@@ -2,7 +2,6 @@ import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
-import { auth } from "@clerk/nextjs/server";
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { TopNav } from "./_components/topnav";
@@ -16,8 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  modal,
-}: Readonly<{ children: React.ReactNode; modal: React.ReactNode }>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <ClerkProvider>
       <html lang="en" className={`${GeistSans.variable}`}>
@@ -31,8 +29,7 @@ export default function RootLayout({
                 <Footer />
               </main>
             </div>
-            {modal}
-            <div id="modal-root" />
+
             <Toaster />
           </SignedOut>
           <SignedIn>
@@ -45,8 +42,7 @@ export default function RootLayout({
                 <Footer />
               </main>
             </div>
-            {modal}
-            <div id="modal-root" />
+
             <Toaster />
           </SignedIn>
         </body>
