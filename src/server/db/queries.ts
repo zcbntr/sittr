@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, desc } from "drizzle-orm";
-import { sittingListings } from "./schema";
+import { sittingListings, sittingRequests } from "./schema";
 
 export async function getOwnedListings() {
   const user = auth();
@@ -16,6 +16,50 @@ export async function getOwnedListings() {
   });
 
   return userListings;
+}
+
+export async function createListing(
+  category: "house" | "pet" | "baby" | "plant",
+) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const newListing = await db
+    .insert(sittingListings)
+    .values({
+      ownerId: user.userId,
+      category: category,
+    })
+    .execute();
+
+  return newListing;
+}
+
+export async function createSittingRequest(
+  sittingListingId: number,
+  startDate: Date,
+  endDate: Date,
+) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Add check that user owns the sitting listing?
+  const newSittingRequest = await db
+    .insert(sittingRequests)
+    .values({
+      sittingListingId: sittingListingId,
+      startDate: startDate.toDateString(),
+      endDate: endDate.toDateString(),
+    })
+    .execute();
+
+  return newSittingRequest;
 }
 
 export async function getOwnerUpcommingSittingEvents() {

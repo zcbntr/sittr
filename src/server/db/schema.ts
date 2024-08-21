@@ -3,6 +3,7 @@ import {
   boolean,
   index,
   integer,
+  pgEnum,
   pgTableCreator,
   primaryKey,
   serial,
@@ -10,6 +11,13 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
+
+export const categoryEnum = pgEnum("category", [
+  "house",
+  "pet",
+  "baby",
+  "plant",
+]);
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -55,6 +63,7 @@ export const userOwnerPreferances = createTable("user_owner_preferences", {
 export const sittingListings = createTable("sitting_listing", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owner_id", { length: 255 }).notNull(),
+  category: categoryEnum("category").notNull(),
   fulfilled: boolean("fulfilled").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
@@ -75,7 +84,7 @@ export const sittingListingsRelations = relations(
 // A sitting request is a request for sittering for a specific time period for a specific listing
 export const sittingRequests = createTable("sitting_requests", {
   id: serial("id").primaryKey(),
-  sittingListing: integer("sitting_listing_id")
+  sittingListingId: integer("sitting_listing_id")
     .references(() => sittingListings.id, { onDelete: "cascade" })
     .notNull(),
   startDate: varchar("start_date", { length: 255 }).notNull(),
@@ -93,7 +102,7 @@ export const sittingRequestsRelations = relations(
   sittingRequests,
   ({ one }) => ({
     listing: one(sittingListings, {
-      fields: [sittingRequests.sittingListing],
+      fields: [sittingRequests.sittingListingId],
       references: [sittingListings.id],
     }),
   }),
