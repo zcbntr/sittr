@@ -1,4 +1,4 @@
-/* displays big calander, overview of upcoming sittings, 
+/* displays big calender, overview of upcoming sittings, 
 recent sittings, ability to create sittings (if owner),
 ability to satisfy sitting requests (if sitter) */
 
