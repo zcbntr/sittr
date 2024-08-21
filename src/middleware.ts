@@ -1,22 +1,10 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isTenantRoute = createRouteMatcher(["/apps/(.*)"]);
-
-const isTenantAdminRoute = createRouteMatcher(["/apps/create", "/apps/(.*)/edit"]);
+const isTenantRoute = createRouteMatcher(["/sitters/(.*)"]);
 
 export default clerkMiddleware((auth, request) => {
-  if (isTenantAdminRoute(request)) {
-    auth().protect((has) => {
-      return has({ permission: "org:apps:create" });
-    });
-  }
-
   if (isTenantRoute(request)) {
-    auth().protect((has) => {
-      return (
-        has({ role: "org:admin" }) || has({ role: "org:member" })
-      );
-    });
+    auth().protect();
   }
 });
 
