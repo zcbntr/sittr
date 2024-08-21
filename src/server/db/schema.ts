@@ -23,10 +23,10 @@ export const createTable = pgTableCreator((name) => `sittr_${name}`);
 export const userSittingPreferances = createTable("user_sitting_preferences", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id", { length: 255 }).notNull(),
-  houseSitting: boolean("house_sitting").notNull(),
-  petSitting: boolean("pet_sitting").notNull(),
-  babySitting: boolean("baby_sitting").notNull(),
-  plantSitting: boolean("plant_sitting").notNull(),
+  houseSitting: boolean("house_sitting").notNull().default(false),
+  petSitting: boolean("pet_sitting").notNull().default(false),
+  babySitting: boolean("baby_sitting").notNull().default(false),
+  plantSitting: boolean("plant_sitting").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -39,10 +39,10 @@ export const userSittingPreferances = createTable("user_sitting_preferences", {
 export const userOwnerPreferances = createTable("user_owner_preferences", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id", { length: 255 }).notNull(),
-  houseSitting: boolean("house_sitting").notNull(),
-  petSitting: boolean("pet_sitting").notNull(),
-  babySitting: boolean("baby_sitting").notNull(),
-  plantSitting: boolean("plant_sitting").notNull(),
+  houseSitting: boolean("house_sitting").notNull().default(false),
+  petSitting: boolean("pet_sitting").notNull().default(false),
+  babySitting: boolean("baby_sitting").notNull().default(false),
+  plantSitting: boolean("plant_sitting").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -55,6 +55,7 @@ export const userOwnerPreferances = createTable("user_owner_preferences", {
 export const sittingListings = createTable("sitting_listing", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owner_id", { length: 255 }).notNull(),
+  fulfilled: boolean("fulfilled").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -105,6 +106,8 @@ export const sittingEvents = createTable("sitting_events", {
   sittingRequest: integer("sitting_request_id")
     .references(() => sittingRequests.id, { onDelete: "cascade" })
     .notNull(),
+  sitterId: varchar("sitter_id", { length: 255 }).notNull(),
+  fulfilled: boolean("fulfilled").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
