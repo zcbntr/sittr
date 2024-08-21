@@ -1,12 +1,9 @@
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignedIn, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
-import { useState } from "react";
 import RoleSwapper from "~/components/roleswapper";
 
 export function TopNav() {
-  const [role, setRole] = useState("");
-
   return (
     <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-4 py-4 md:px-8">
       <div className="container mx-auto flex items-center justify-between">
