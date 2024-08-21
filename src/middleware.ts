@@ -1,6 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isTenantRoute = createRouteMatcher(["/sitters/(.*)"]);
+const isTenantRoute = createRouteMatcher(["/onboarding", "/sitters/(.*)"]);
 
 export default clerkMiddleware((auth, request) => {
   if (isTenantRoute(request)) {

@@ -97,6 +97,20 @@ export async function getSitterUpcommingSittingEvents() {
   return sitterSittings;
 }
 
+export async function userCompletedOnboarding(): Promise<boolean> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const userOwnerPreferances = await getUserOwnerPreferences();
+  if (userOwnerPreferances) return true;
+  const userSitterPreferances = await getUserSittingPreferences();
+  if (userSitterPreferances) return true;
+  return false;
+}
+
 export async function getUserOwnerPreferences() {
   const user = auth();
 

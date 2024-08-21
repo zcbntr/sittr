@@ -10,16 +10,10 @@ export function TopNav() {
           sittr
         </Link>
         <nav className="hidden items-center space-x-6 md:flex">
-          <Link href="/about" className="hover:underline" prefetch={false}>
-            About
-          </Link>
-          <Link href="/contact" className="hover:underline" prefetch={false}>
-            Contact
+          <Link href="/support" className="hover:underline" prefetch={false}>
+            Support
           </Link>
           <div className="flex place-content-center">
-            <SignedOut>
-              <SignInButton />
-            </SignedOut>
             <SignedIn>
               <UserButton />
             </SignedIn>

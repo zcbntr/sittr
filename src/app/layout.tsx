@@ -22,15 +22,11 @@ export default function RootLayout({
         <body className={`${GeistSans.variable}`}>
           <SignedOut>
             <div className="grid h-screen grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
-              <TopNav />
-
               <main className="overflow-y-scroll">
                 {children}
                 <Footer />
               </main>
             </div>
-
-            <Toaster />
           </SignedOut>
           <SignedIn>
             <div className="grid h-screen grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
@@ -42,9 +38,8 @@ export default function RootLayout({
                 <Footer />
               </main>
             </div>
-
-            <Toaster />
           </SignedIn>
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>
