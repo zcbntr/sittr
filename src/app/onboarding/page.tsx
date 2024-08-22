@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Onboarder from "../_components/onboarder";
-import { userCompletedOnboarding } from "~/server/db/queries";
+import { userCompletedOnboarding } from "~/server/queries";
 
 export default async function Onboarding() {
   const completedOnboarding = await userCompletedOnboarding();

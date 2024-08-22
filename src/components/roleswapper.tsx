@@ -1,3 +1,5 @@
+"use client";
+
 import { create } from "zustand";
 import { combine } from "zustand/middleware";
 import { Button } from "./ui/button";
@@ -15,5 +17,5 @@ const useRoleStore = create(
 export default function RoleSwapper() {
   const role = useRoleStore((state) => state.role);
 
-  return <Button onClick={useRoleStore((state) => state.swap)}>{role}</Button>;
+  return <Button className="w-16" onClick={useRoleStore((state) => state.swap)}>{role}</Button>;
 }

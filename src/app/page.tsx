@@ -1,5 +1,6 @@
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import Dashboard from "./_components/dashboard";
+import Home from "./_components/homepage";
 
 export default function HomePage() {
   return (
@@ -8,7 +9,7 @@ export default function HomePage() {
         <Dashboard />
       </SignedIn>
       <SignedOut>
-        <HomePage />
+        <Home />
       </SignedOut>
     </>
   );

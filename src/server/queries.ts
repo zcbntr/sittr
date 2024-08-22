@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, desc } from "drizzle-orm";
-import { sittingListings, sittingRequests } from "./schema";
+import { sittingListings, sittingRequests } from "./db/schema";
 
 export async function getOwnedListings() {
   const user = auth();
