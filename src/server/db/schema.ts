@@ -27,26 +27,11 @@ export const categoryEnum = pgEnum("category", [
  */
 export const createTable = pgTableCreator((name) => `sittr_${name}`);
 
-// User preferences for the sitting services they can provide
-export const userSittingPreferances = createTable("user_sitting_preferences", {
+// User preferences for the sitting services they provide/require
+export const userPreferances = createTable("user_preferences", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id", { length: 255 }).notNull(),
-  houseSitting: boolean("house_sitting").notNull().default(false),
-  petSitting: boolean("pet_sitting").notNull().default(false),
-  babySitting: boolean("baby_sitting").notNull().default(false),
-  plantSitting: boolean("plant_sitting").notNull().default(false),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
-
-// User preferences for the sitting services they require
-export const userOwnerPreferances = createTable("user_owner_preferences", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id", { length: 255 }).notNull(),
+  isOwner: boolean("is_owner").notNull().default(true),
   houseSitting: boolean("house_sitting").notNull().default(false),
   petSitting: boolean("pet_sitting").notNull().default(false),
   babySitting: boolean("baby_sitting").notNull().default(false),

@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, desc } from "drizzle-orm";
-import { sittingListings, sittingRequests } from "./db/schema";
+import { sittingListings, sittingRequests, userPreferances } from "./db/schema";
 
 export async function getOwnedListings() {
   const user = auth();
@@ -118,8 +118,8 @@ export async function getUserOwnerPreferences() {
     throw new Error("Unauthorized");
   }
 
-  const userOwnerPreferences = await db.query.userOwnerPreferances.findFirst({
-    where: (model, { eq }) => eq(model.userId, user.userId),
+  const userOwnerPreferences = await db.query.userPreferances.findFirst({
+    where: (model, { and, eq }) => and(eq(model.isOwner, true), eq(model.userId, user.userId)),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
@@ -134,12 +134,31 @@ export async function getUserSittingPreferences() {
   }
 
   const userSittingPreferences =
-    await db.query.userSittingPreferances.findFirst({
-      where: (model, { eq }) => eq(model.userId, user.userId),
+    await db.query.userPreferances.findFirst({
+      where: (model, { and, eq }) => and(eq(model.isOwner, false), eq(model.userId, user.userId)),
       orderBy: (model, { desc }) => desc(model.createdAt),
     });
 
   return userSittingPreferences;
+}
+
+export async function setUserPreferences(isOwner: boolean, pet: boolean, house: boolean, baby: boolean, plant: boolean) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const preferences = await db.insert(userPreferances).values({
+    userId: user.userId,
+    isOwner: isOwner,
+    petSitting: pet,
+    houseSitting: house,
+    babySitting: baby,
+    plantSitting: plant
+  })
+
+  return preferences;
 }
 
 export async function getOwnerRecentlyFulfilledSittings() {
