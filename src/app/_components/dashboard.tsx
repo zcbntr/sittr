@@ -2,13 +2,13 @@
 recent sittings, ability to create sittings (if owner),
 ability to satisfy sitting requests (if sitter) */
 
-import Calendar from "~/components/calendar";
+import CalendarComponent from "~/components/calendar";
 
 export default function Dashboard() {
   return (
     <>
       <div>Dashboard</div>
-      <Calendar />
+      <CalendarComponent />
     </>
   );
 }
