@@ -1,24 +1,9 @@
 "use client";
-import {
-  Calendar,
-  dateFnsLocalizer,
-  momentLocalizer,
-  View,
-  Views,
-} from "react-big-calendar";
-import format from "date-fns/format";
-import parse from "date-fns/parse";
-import startOfWeek from "date-fns/startOfWeek";
-import getDay from "date-fns/getDay";
-import enUS from "date-fns/locale/en-US";
+import { Calendar, momentLocalizer, type View } from "react-big-calendar";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { Children, cloneElement, useMemo, useState } from "react";
+import { useState } from "react";
 import moment from "moment";
-
-const locales = {
-  "en-US": enUS,
-};
 
 const allViews: View[] = ["agenda", "day", "week", "month"];
 
@@ -50,7 +35,11 @@ class CalendarEvent {
   }
 }
 
-export default function CalendarComponent({ ...props }) {
+export default function CalendarComponent() {
+  // TODO
+  // Get events from database
+  // Set events from database to the state
+
   const [events, setEvents] = useState([
     {
       start: moment(),
@@ -73,15 +62,6 @@ export default function CalendarComponent({ ...props }) {
       setEvents([...events, newEvent]);
     }
   };
-
-  const myEventsList = [
-    {
-      id: 1,
-      title: "All Day Event very long title",
-      start: new Date(2024, 8, 25, 10),
-      end: new Date(2024, 8, 25, 15),
-    },
-  ];
 
   return (
     <>
