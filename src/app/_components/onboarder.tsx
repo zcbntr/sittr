@@ -1,8 +1,10 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+"use client";
 
-import { Button } from "~/components/ui/button"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
@@ -11,7 +13,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "~/components/ui/form"
+} from "~/components/ui/form";
 import { Checkbox } from "~/components/ui/checkbox";
 import {
   Select,
@@ -19,32 +21,18 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select"
-import { setUserPreferences } from "~/server/queries";
+} from "~/components/ui/select";
 
 const formSchema = z.object({
   role: z.string(),
   pet: z.boolean(),
   house: z.boolean(),
   baby: z.boolean(),
-  plant: z.boolean()
-})
+  plant: z.boolean(),
+});
+export type OnboardingFormInput = z.infer<typeof formSchema>;
 
 export default function Onboarder() {
-  // const searchParams = useSearchParams();
-
-  // const rawRoleUrlParam = searchParams.get("role");
-  // let role = "owner";
-  // let otherRole = "sitter";
-
-  // if (rawRoleUrlParam === "owner") {
-  // } else if (rawRoleUrlParam === "sitter") {
-  //   role = "sitter";
-  //   otherRole = "owner";
-  // } else {
-  //   // redirect to homepage
-  // }
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -52,13 +40,33 @@ export default function Onboarder() {
       pet: false,
       house: false,
       baby: false,
-      plant: false
+      plant: false,
     },
-  })
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const isOwner = values.role == "owner";
-    setUserPreferences(isOwner, values.pet, values.house, values.baby, values.plant);
+
+    try {
+      const res: Response = await fetch("/api/onboard", {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify(values),
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const data = await res.json();
+      if (data) {
+        console.log(data);
+      }
+
+      // Redirect to the dashboard
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (
@@ -66,7 +74,10 @@ export default function Onboarder() {
       <div>
         <div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="w-2/3 space-y-6"
+            >
               <FormField
                 control={form.control}
                 name="role"
@@ -74,13 +85,16 @@ export default function Onboarder() {
                   <FormItem>
                     <FormLabel>Role</FormLabel>
                     <FormControl>
-                      <Select>   <SelectTrigger className="w-[180px]">
-                        <SelectValue defaultValue="Owner" />
-                      </SelectTrigger>
+                      <Select>
+                        {" "}
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue defaultValue="Owner" />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="owner">Owner</SelectItem>
                           <SelectItem value="sitter">Sitter</SelectItem>
-                        </SelectContent> </Select>
+                        </SelectContent>{" "}
+                      </Select>
                     </FormControl>
                     <FormDescription>
                       Set your owner or sitter preference.
