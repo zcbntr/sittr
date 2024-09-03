@@ -5,7 +5,6 @@ import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -24,7 +23,7 @@ import {
 } from "~/components/ui/popover";
 import { type DateRange } from "react-day-picker";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
-import { z } from "zod";
+import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -35,33 +34,15 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-
-const formSchema = z
-  .object({
-    name: z.string(),
-    dateRange: z.object(
-      {
-        from: z.date(),
-        to: z.date(),
-      },
-      {
-        required_error: "Please select a date or date range.",
-      },
-    ),
-    sittingType: z.string(),
-  })
-  .refine((data) => data.dateRange.from < data.dateRange.to, {
-    path: ["dateRange"],
-    message: "From date must be before to date",
-  });
+import { createSittingFormSchema } from "~/lib/schema/index";
 
 export default function SittingDialogue() {
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: new Date(2022, 0, 20),
   });
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof createSittingFormSchema>>({
+    resolver: zodResolver(createSittingFormSchema),
     defaultValues: {
       name: "New Sitting",
       dateRange: {
@@ -71,8 +52,11 @@ export default function SittingDialogue() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
+  const onSubmit = (data: z.infer<typeof createSittingFormSchema>) => {
     console.log(data);
+    // Validate form
+    // POST to a new api endpoint for creating sittings
+    // Close dialogue
   };
 
   return (
@@ -83,9 +67,6 @@ export default function SittingDialogue() {
       <DialogContent className="sm:max-w-[454px]">
         <DialogHeader>
           <DialogTitle>New Sitting</DialogTitle>
-          <DialogDescription>
-            Set the details of the new sitting.
-          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -104,9 +85,7 @@ export default function SittingDialogue() {
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    This is the name of the sitting. e.g. Your pet&apos;s name
-                  </FormDescription>
+                  <FormDescription>e.g. Your pet&apos;s name</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

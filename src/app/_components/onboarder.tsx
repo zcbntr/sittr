@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { type z } from "zod";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -22,21 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-
-const formSchema = z.object({
-  role: z.string(),
-  pet: z.boolean(),
-  house: z.boolean(),
-  baby: z.boolean(),
-  plant: z.boolean(),
-});
-export type OnboardingFormInput = z.infer<typeof formSchema>;
+import { onboardingPreferencesFormSchema } from "~/lib/schema";
 
 export default function Onboarder() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof onboardingPreferencesFormSchema>>({
+    resolver: zodResolver(onboardingPreferencesFormSchema),
     defaultValues: {
-      role: "owner",
+      role: "Owner",
       pet: false,
       house: false,
       baby: false,
@@ -44,9 +36,9 @@ export default function Onboarder() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const isOwner = values.role == "owner";
-
+  async function onSubmit(
+    values: z.infer<typeof onboardingPreferencesFormSchema>,
+  ) {
     try {
       const res: Response = await fetch("/api/onboard", {
         method: "POST",
