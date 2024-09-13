@@ -1,19 +1,15 @@
-"use client";
+// Separate component for the form to create a sitting to be used in the CreateSittingDialogue component
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "~/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
-import { Input } from "~/components/ui/input";
-import * as React from "react";
-import { add, format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+  } from "~/components/ui/form";
+  import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Calendar } from "~/components/ui/calendar";
 import {
@@ -21,61 +17,44 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { type DateRange } from "react-day-picker";
+import { Input } from "~/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import { add, format } from "date-fns";
+import { type DateRange } from "react-day-picker";
 import { type z } from "zod";
 import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "~/components/ui/form";
 import { createSittingFormSchema } from "~/lib/schema/index";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-export default function SittingDialogue() {
-  const initialFromDate = add(new Date(), { hours : 4});
-  const initialToDate = add(new Date(), { days: 1 });
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: initialFromDate,
-    to: initialToDate,
-  });
-
-  const form = useForm<z.infer<typeof createSittingFormSchema>>({
-    resolver: zodResolver(createSittingFormSchema),
-    defaultValues: {
-      name: "New Sitting",
-      dateRange: {
-        from: initialFromDate,
-        to: initialToDate,
+export default function SittingForm() {
+    const initialToDate = add(new Date(), { hours: 1 });
+    const [date, setDate] = React.useState<DateRange | undefined>({
+      from: new Date(),
+      to: initialToDate,
+    });
+  
+    const form = useForm<z.infer<typeof createSittingFormSchema>>({
+      resolver: zodResolver(createSittingFormSchema),
+      defaultValues: {
+        name: "New Sitting",
+        dateRange: {
+          from: new Date(),
+          to: initialToDate,
+        },
       },
-      sittingType: "Pet",
-    },
-  });
+    });
+  
+    const onSubmit = (data: z.infer<typeof createSittingFormSchema>) => {
+      console.log(data);
+      // POST to a new api endpoint for creating sittings
+      // Close dialogue
+    };
 
-  const onSubmit = (data: z.infer<typeof createSittingFormSchema>) => {
-    console.log(data);
-    // POST to a new api endpoint for creating sittings
-    // Close dialogue
-  };
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline">New Sitting</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[454px]">
-        <DialogHeader>
-          <DialogTitle>New Sitting</DialogTitle>
-        </DialogHeader>
+    return (
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="w-2/3 space-y-6"
-            name="createSitting"
           >
             <FormField
               control={form.control}
@@ -97,7 +76,6 @@ export default function SittingDialogue() {
             <FormField
               control={form.control}
               name="dateRange"
-              // This is thie problem - the zod date is never set, only the react state date
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Date</FormLabel>
@@ -114,7 +92,7 @@ export default function SittingDialogue() {
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {date?.from ? (
-                            date.to ? (
+                            date.to && date.to != initialToDate ? (
                               <>
                                 {format(date.from, "LLL dd, y")} -{" "}
                                 {format(date.to, "LLL dd, y")}
@@ -134,7 +112,7 @@ export default function SittingDialogue() {
                         mode="range"
                         defaultMonth={date?.from}
                         selected={date}
-                        onSelect={(e) => {setDate(e) ; field.onChange(e)}}
+                        onSelect={setDate}
                         numberOfMonths={2}
                       />
                     </PopoverContent>
@@ -180,12 +158,7 @@ export default function SittingDialogue() {
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <Button type="submit" form="createSitting" onClick={() => onsubmit}>Create Sitting</Button>
-            </DialogFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
-  );
+    )
 }
