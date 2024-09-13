@@ -97,7 +97,6 @@ export default function SittingDialogue() {
             <FormField
               control={form.control}
               name="dateRange"
-              // This is thie problem - the zod date is never set, only the react state date
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Date</FormLabel>
@@ -180,6 +179,7 @@ export default function SittingDialogue() {
                 </FormItem>
               )}
             />
+            {/* This does not submit the form! */}
             <DialogFooter>
               <Button type="submit" form="createSitting" onClick={() => onsubmit}>Create Sitting</Button>
             </DialogFooter>

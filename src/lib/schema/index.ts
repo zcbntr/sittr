@@ -17,10 +17,9 @@ export const createSittingFormSchema = z
       {
         required_error: "Please select a date or date range.",
       },
-    ).required(),
+    ),
     sittingType: SittingTypeEnum,
   })
-  .required()
   .refine((data) => data.dateRange.from < data.dateRange.to, {
     path: ["dateRange"],
     message: "From date must be before to date",
