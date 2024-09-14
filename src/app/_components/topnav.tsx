@@ -11,9 +11,6 @@ export function TopNav() {
           sittr
         </Link>
         <nav className="hidden items-center space-x-6 md:flex">
-          <Link href="/support" className="hover:underline" prefetch={false}>
-            Support
-          </Link>
           <RoleSwapper />
           <div className="flex place-content-center">
             <SignedIn>

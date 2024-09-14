@@ -44,34 +44,12 @@ export const userPreferances = createTable("user_preferences", {
   ),
 });
 
-// Sittings listings have an owner
-export const sittingListings = createTable("sitting_listing", {
+// A sitting request is a request for sittering for a specific time period
+export const sittingRequests = createTable("sitting_requests", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owner_id", { length: 255 }).notNull(),
   category: categoryEnum("category").notNull(),
   fulfilled: boolean("fulfilled").notNull().default(false),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
-
-// Sitting listings can have multiple events
-export const sittingListingsRelations = relations(
-  sittingListings,
-  ({ many }) => ({
-    events: many(sittingRequests),
-  }),
-);
-
-// A sitting request is a request for sittering for a specific time period for a specific listing
-export const sittingRequests = createTable("sitting_requests", {
-  id: serial("id").primaryKey(),
-  sittingListingId: integer("sitting_listing_id")
-    .references(() => sittingListings.id, { onDelete: "cascade" })
-    .notNull(),
   startDate: varchar("start_date", { length: 255 }).notNull(),
   endDate: varchar("end_date", { length: 255 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -81,17 +59,6 @@ export const sittingRequests = createTable("sitting_requests", {
     () => new Date(),
   ),
 });
-
-// Sitting requests can only be for a single listing
-export const sittingRequestsRelations = relations(
-  sittingRequests,
-  ({ one }) => ({
-    listing: one(sittingListings, {
-      fields: [sittingRequests.sittingListingId],
-      references: [sittingListings.id],
-    }),
-  }),
-);
 
 // A sitting event is a completed sitting request
 // Will need additional details connected to the event for the sitter to provide to the owner

@@ -1,16 +1,16 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, desc } from "drizzle-orm";
-import { sittingListings, sittingRequests, userPreferances } from "./db/schema";
+import { sittingRequests, userPreferances } from "./db/schema";
 
-export async function getOwnedListings() {
+export async function getOwnedSittingRequests() {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const userListings = await db.query.sittingListings.findMany({
+  const userListings = await db.query.sittingRequests.findMany({
     where: (model, { eq }) => eq(model.ownerId, user.userId),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
@@ -18,28 +18,8 @@ export async function getOwnedListings() {
   return userListings;
 }
 
-export async function createListing(
-  category: "house" | "pet" | "baby" | "plant",
-) {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const newListing = await db
-    .insert(sittingListings)
-    .values({
-      ownerId: user.userId,
-      category: category,
-    })
-    .execute();
-
-  return newListing;
-}
-
 export async function createSittingRequest(
-  sittingListingId: number,
+  category: "house" | "pet" | "baby" | "plant",
   startDate: Date,
   endDate: Date,
 ) {
@@ -53,7 +33,8 @@ export async function createSittingRequest(
   const newSittingRequest = await db
     .insert(sittingRequests)
     .values({
-      sittingListingId: sittingListingId,
+      ownerId: user.userId,
+      category: category,
       startDate: startDate.toDateString(),
       endDate: endDate.toDateString(),
     })
@@ -62,7 +43,27 @@ export async function createSittingRequest(
   return newSittingRequest;
 }
 
-export async function getOwnerUpcommingSittingEvents() {
+export async function getSittingRequestsInRange(from: Date, to: Date) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const upcomingSittingRequests = await db.query.sittingRequests.findMany({
+    where: (model, { eq, gte, lte, and }) =>
+      and(
+        eq(model.ownerId, user.userId),
+        gte(model.startDate, from.toDateString()),
+        lte(model.endDate, to.toDateString()),
+      ),
+    orderBy: (model, { desc }) => desc(model.createdAt),
+  });
+
+  return upcomingSittingRequests;
+}
+
+export async function getOwnerUpcommingSittings() {
   const user = auth();
 
   if (!user.userId) {
@@ -119,7 +120,8 @@ export async function getUserOwnerPreferences() {
   }
 
   const userOwnerPreferences = await db.query.userPreferances.findFirst({
-    where: (model, { and, eq }) => and(eq(model.isOwner, true), eq(model.userId, user.userId)),
+    where: (model, { and, eq }) =>
+      and(eq(model.isOwner, true), eq(model.userId, user.userId)),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
@@ -133,16 +135,22 @@ export async function getUserSittingPreferences() {
     throw new Error("Unauthorized");
   }
 
-  const userSittingPreferences =
-    await db.query.userPreferances.findFirst({
-      where: (model, { and, eq }) => and(eq(model.isOwner, false), eq(model.userId, user.userId)),
-      orderBy: (model, { desc }) => desc(model.createdAt),
-    });
+  const userSittingPreferences = await db.query.userPreferances.findFirst({
+    where: (model, { and, eq }) =>
+      and(eq(model.isOwner, false), eq(model.userId, user.userId)),
+    orderBy: (model, { desc }) => desc(model.createdAt),
+  });
 
   return userSittingPreferences;
 }
 
-export async function setUserPreferences(isOwner: boolean, pet: boolean, house: boolean, baby: boolean, plant: boolean) {
+export async function setUserPreferences(
+  isOwner: boolean,
+  pet: boolean,
+  house: boolean,
+  baby: boolean,
+  plant: boolean,
+) {
   const user = auth();
 
   if (!user.userId) {
@@ -155,8 +163,8 @@ export async function setUserPreferences(isOwner: boolean, pet: boolean, house: 
     petSitting: pet,
     houseSitting: house,
     babySitting: baby,
-    plantSitting: plant
-  })
+    plantSitting: plant,
+  });
 
   return preferences;
 }

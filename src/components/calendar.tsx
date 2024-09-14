@@ -2,8 +2,10 @@
 import { Calendar, momentLocalizer, type View } from "react-big-calendar";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import moment from "moment";
+import { getSittingRequestsInRange } from "~/server/queries";
+import { endOfMonth, startOfMonth } from "date-fns";
 
 const allViews: View[] = ["agenda", "day", "week", "month"];
 
@@ -50,6 +52,38 @@ export default function CalendarComponent() {
     },
   ] as unknown as CalendarEvent[]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const result = await fetch("api/sittingrequest", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: startOfMonth(new Date()),
+            to: endOfMonth(new Date()),
+          }),
+        });
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+        const events = result.map((event) => {
+          return {
+            title: event.category,
+            start: new Date(event.startDate),
+            end: new Date(event.endDate),
+            allDay: false,
+            desc: "",
+          };
+        });
+        setEvents(events);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleSelect = ({ start, end }) => {
     const title = window.prompt("New Event name");
 
@@ -77,7 +111,7 @@ export default function CalendarComponent() {
         events={events}
         defaultView="month"
         views={allViews}
-        defaultDate={new Date(2024, 8, 21)}
+        defaultDate={new Date()}
         onSelectEvent={(event: CalendarEvent) => alert(event.title)}
         onSelectSlot={handleSelect}
         startAccessor="start"

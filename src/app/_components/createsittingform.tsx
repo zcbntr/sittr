@@ -25,6 +25,8 @@ import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import { createSittingFormSchema } from "~/lib/schema/index";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "~/components/ui/button";
+import React from "react";
 
 export default function SittingForm() {
     const initialToDate = add(new Date(), { hours: 1 });
@@ -136,19 +138,19 @@ export default function SittingForm() {
                     >
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
-                          <RadioGroupItem value="Pet" />
+                          <RadioGroupItem value="pet" />
                         </FormControl>
                         <FormLabel className="font-normal">Pet</FormLabel>
                       </FormItem>
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
-                          <RadioGroupItem value="House" />
+                          <RadioGroupItem value="house" />
                         </FormControl>
                         <FormLabel className="font-normal">House</FormLabel>
                       </FormItem>
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
-                          <RadioGroupItem value="Plant" />
+                          <RadioGroupItem value="plant" />
                         </FormControl>
                         <FormLabel className="font-normal">Plant</FormLabel>
                       </FormItem>

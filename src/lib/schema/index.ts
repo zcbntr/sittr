@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-const SittingTypeEnum = z.enum(["Pet", "House", "Baby", "Plant"]);
+const SittingTypeEnum = z.enum(["pet", "house", "baby", "plant"]);
 export type SittingTypeEnum = z.infer<typeof SittingTypeEnum>;
 
-const RoleEnum = z.enum(["Owner", "Sitter"]);
+const RoleEnum = z.enum(["owner", "sitter"]);
 export type RoleEnum = z.infer<typeof RoleEnum>;
 
 export const createSittingFormSchema = z
