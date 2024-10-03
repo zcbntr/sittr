@@ -13,10 +13,10 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const categoryEnum = pgEnum("category", [
-  "house",
-  "pet",
-  "baby",
-  "plant",
+  "House",
+  "Pet",
+  "Baby",
+  "Plant",
 ]);
 
 /**
@@ -48,6 +48,7 @@ export const userPreferances = createTable("user_preferences", {
 export const sittingRequests = createTable("sitting_requests", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owner_id", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
   category: categoryEnum("category").notNull(),
   fulfilled: boolean("fulfilled").notNull().default(false),
   startDate: varchar("start_date", { length: 255 }).notNull(),

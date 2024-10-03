@@ -37,8 +37,10 @@ import {
 import { createSittingFormSchema } from "~/lib/schema/index";
 
 export default function SittingDialogue() {
-  const initialFromDate = add(new Date(), { hours : 4});
-  const initialToDate = add(new Date(), { days: 1 });
+  const [open, setOpen] = React.useState(false);
+
+  const initialFromDate = add(new Date(), { hours : 1});
+  const initialToDate = add(new Date(), { days: 1, hours: 1 });
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: initialFromDate,
     to: initialToDate,
@@ -56,14 +58,28 @@ export default function SittingDialogue() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof createSittingFormSchema>) => {
-    console.log(data);
+  async function onSubmit(data: z.infer<typeof createSittingFormSchema>) {
+
+    const response = await fetch("api/sittingrequest", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      setOpen(false);
+    } else {
+      console.log(response);
+    }
+
     // POST to a new api endpoint for creating sittings
     // Close dialogue
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">New Sitting</Button>
       </DialogTrigger>
@@ -181,7 +197,7 @@ export default function SittingDialogue() {
             />
             {/* This does not submit the form! */}
             <DialogFooter>
-              <Button type="submit" form="createSitting" onClick={() => onsubmit}>Create Sitting</Button>
+              <Button type="submit">Create Sitting</Button>
             </DialogFooter>
           </form>
         </Form>

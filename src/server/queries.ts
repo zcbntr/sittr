@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, desc } from "drizzle-orm";
 import { sittingRequests, userPreferances } from "./db/schema";
+import { type SittingTypeEnum } from "~/lib/schema";
 
 export async function getOwnedSittingRequests() {
   const user = auth();
@@ -19,7 +20,8 @@ export async function getOwnedSittingRequests() {
 }
 
 export async function createSittingRequest(
-  category: "house" | "pet" | "baby" | "plant",
+  name: string,
+  category: SittingTypeEnum,
   startDate: Date,
   endDate: Date,
 ) {
@@ -28,11 +30,11 @@ export async function createSittingRequest(
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
-
-  // Add check that user owns the sitting listing?
+  
   const newSittingRequest = await db
     .insert(sittingRequests)
     .values({
+      name: name,
       ownerId: user.userId,
       category: category,
       startDate: startDate.toDateString(),
