@@ -51,8 +51,8 @@ export const sittingRequests = createTable("sitting_requests", {
   name: varchar("name", { length: 255 }).notNull(),
   category: categoryEnum("category").notNull(),
   fulfilled: boolean("fulfilled").notNull().default(false),
-  startDate: varchar("start_date", { length: 255 }).notNull(),
-  endDate: varchar("end_date", { length: 255 }).notNull(),
+  startDate: timestamp("start_date", { withTimezone: true }).notNull(),
+  endDate: timestamp("end_date", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

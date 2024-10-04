@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createSittingFormSchema, dateRangeSchema } from "~/lib/schema";
 import {
   createSittingRequest,
-  getSittingRequestsInRange,
+  getSittingRequestsStartingInRange,
 } from "~/server/queries";
 
 export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
@@ -47,15 +47,14 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    if (requestParams.data.from && requestParams.data.to) {
-      const pgRow = await getSittingRequestsInRange(
-        requestParams.data.from,
-        requestParams.data.to,
-      );
-      return NextResponse.json(pgRow);
-    } else {
-      throw new Error("Missing date range");
-    }
+    console.log(requestParams.data);
+
+    const pgRows = await getSittingRequestsStartingInRange(
+      requestParams.data.from,
+      requestParams.data.to,
+    );
+
+    return NextResponse.json(pgRows);
   } catch (error) {
     return NextResponse.json({ error });
   }

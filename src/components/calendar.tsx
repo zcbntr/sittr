@@ -4,7 +4,7 @@ import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useEffect, useState } from "react";
 import moment from "moment";
-import { getSittingRequestsInRange } from "~/server/queries";
+import { getSittingRequestsStartingInRange } from "~/server/queries";
 import { endOfMonth, startOfMonth } from "date-fns";
 
 const allViews: View[] = ["agenda", "day", "week", "month"];
@@ -65,8 +65,6 @@ export default function CalendarComponent() {
           },
         });
         const data: unknown = await res.json();
-
-        console.log(data);
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         const events = data.map((event) => {

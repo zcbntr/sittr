@@ -37,15 +37,15 @@ export async function createSittingRequest(
       name: name,
       ownerId: user.userId,
       category: category,
-      startDate: startDate.toDateString(),
-      endDate: endDate.toDateString(),
+      startDate: startDate,
+      endDate: endDate,
     })
     .execute();
 
   return newSittingRequest;
 }
 
-export async function getSittingRequestsInRange(from: Date, to: Date) {
+export async function getSittingRequestsStartingInRange(from: Date, to: Date) {
   const user = auth();
 
   if (!user.userId) {
@@ -56,8 +56,8 @@ export async function getSittingRequestsInRange(from: Date, to: Date) {
     where: (model, { eq, gte, lte, and }) =>
       and(
         eq(model.ownerId, user.userId),
-        gte(model.startDate, from.toDateString()),
-        lte(model.endDate, to.toDateString()),
+        gte(model.startDate, from),
+        lte(model.startDate, to),
       ),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
