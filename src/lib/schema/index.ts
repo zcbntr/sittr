@@ -11,8 +11,8 @@ export const createSittingFormSchema = z
     name: z.string().min(3).max(50),
     dateRange: z.object(
       {
-        from: z.date(),
-        to: z.date(),
+        from: z.coerce.date(),
+        to: z.coerce.date(),
       },
       {
         required_error: "Please select a date or date range.",

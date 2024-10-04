@@ -1,12 +1,20 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { type CreateSittingFormInput } from "~/lib/schema";
+import { createSittingFormSchema } from "~/lib/schema";
 import { createSittingRequest, getSittingRequestsInRange } from "~/server/queries";
 
 export async function POST(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const formData: CreateSittingFormInput = await req.json();
-    const pgRow = await createSittingRequest(formData.sittingType, formData.dateRange.from, formData.dateRange.to);
+    const json: unknown = await req.json();
+
+    // This is the problem line - it throws an error and ends the try block
+    const formData = createSittingFormSchema.safeParse(json);
+
+    if (!formData.success) {
+      console.log("Create Sitting Request Form Data Parse Error: \n" + formData.error.toString());
+      throw new Error("Invalid form data");
+    }
+
+    const pgRow = await createSittingRequest(formData.data.name, formData.data.sittingType, formData.data.dateRange.from, formData.data.dateRange.to);
 
     return NextResponse.json(pgRow);
   } catch (error) {
@@ -16,8 +24,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<unknown>> {
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const requestDetails = await req.json();
+    const requestDetails: unknown = await req.json();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
     const from = new Date(requestDetails.dateRange.from);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument

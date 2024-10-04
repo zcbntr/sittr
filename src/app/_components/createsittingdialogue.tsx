@@ -60,7 +60,7 @@ export default function SittingDialogue() {
 
   async function onSubmit(data: z.infer<typeof createSittingFormSchema>) {
 
-    const response = await fetch("api/sittingrequest", {
+    const response = await fetch("/api/sittingrequest", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

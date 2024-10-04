@@ -1,8 +1,14 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
+const isSometimesProectedRoute = createRouteMatcher(["/"]);
+
 const isTenantRoute = createRouteMatcher(["/onboarding", "/sitters/(.*)"]);
 
 export default clerkMiddleware((auth, request) => {
+  if (auth().userId && isSometimesProectedRoute(request)) {
+    auth().protect();
+  }
+
   if (isTenantRoute(request)) {
     auth().protect();
   }
