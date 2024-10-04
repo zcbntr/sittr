@@ -53,22 +53,25 @@ export default function CalendarComponent() {
   ] as unknown as CalendarEvent[]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    async function fetchData() {
       try {
-        const result = await fetch("api/sittingrequest", {
+        const res = await fetch("api/sittingrequest?" + new URLSearchParams({
+          from: startOfMonth(new Date()).toString(),
+          to: endOfMonth(new Date()).toString(),
+        }).toString(), {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            from: startOfMonth(new Date()),
-            to: endOfMonth(new Date()),
-          }),
         });
+        const data: unknown = await res.json();
+
+        console.log(data);
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-        const events = result.map((event) => {
+        const events = data.map((event) => {
           return {
-            title: event.category,
+            title: event.name,
             start: new Date(event.startDate),
             end: new Date(event.endDate),
             allDay: false,
@@ -79,7 +82,7 @@ export default function CalendarComponent() {
       } catch (error) {
         console.error("Error fetching data:", error);
       }
-    };
+    }
 
     fetchData();
   }, []);

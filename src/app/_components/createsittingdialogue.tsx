@@ -60,18 +60,18 @@ export default function SittingDialogue() {
 
   async function onSubmit(data: z.infer<typeof createSittingFormSchema>) {
 
-    const response = await fetch("/api/sittingrequest", {
-      method: "POST",
+    const res = await fetch("api/sittingrequest", {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     });
 
-    if (response.ok) {
+    if (res.ok) {
       setOpen(false);
     } else {
-      console.log(response);
+      console.log(res);
     }
 
     // POST to a new api endpoint for creating sittings

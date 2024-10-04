@@ -1,8 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createSittingFormSchema } from "~/lib/schema";
-import { createSittingRequest, getSittingRequestsInRange } from "~/server/queries";
+import { createSittingFormSchema, dateRangeSchema } from "~/lib/schema";
+import {
+  createSittingRequest,
+  getSittingRequestsInRange,
+} from "~/server/queries";
 
-export async function POST(req: NextRequest): Promise<NextResponse<unknown>> {
+export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
@@ -10,11 +13,19 @@ export async function POST(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = createSittingFormSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log("Create Sitting Request Form Data Parse Error: \n" + formData.error.toString());
+      console.log(
+        "Create Sitting Request Form Data Parse Error: \n" +
+          formData.error.toString(),
+      );
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await createSittingRequest(formData.data.name, formData.data.sittingType, formData.data.dateRange.from, formData.data.dateRange.to);
+    const pgRow = await createSittingRequest(
+      formData.data.name,
+      formData.data.sittingType,
+      formData.data.dateRange.from,
+      formData.data.dateRange.to,
+    );
 
     return NextResponse.json(pgRow);
   } catch (error) {
@@ -24,18 +35,27 @@ export async function POST(req: NextRequest): Promise<NextResponse<unknown>> {
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
-    const requestDetails: unknown = await req.json();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-    const from = new Date(requestDetails.dateRange.from);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-    const to = new Date(requestDetails.dateRange.to);
-    if (from && to) {
-      const pgRow = await getSittingRequestsInRange(from, to);
+    const requestParams = dateRangeSchema.safeParse({
+      from: req.nextUrl.searchParams.get("from"),
+      to: req.nextUrl.searchParams.get("to"),
+    });
+
+    if (!requestParams.success) {
+      console.log(
+        "Date Range Form Data Parse Error: \n" + requestParams.error.toString(),
+      );
+      throw new Error("Invalid form data");
+    }
+
+    if (requestParams.data.from && requestParams.data.to) {
+      const pgRow = await getSittingRequestsInRange(
+        requestParams.data.from,
+        requestParams.data.to,
+      );
       return NextResponse.json(pgRow);
     } else {
       throw new Error("Missing date range");
     }
-
   } catch (error) {
     return NextResponse.json({ error });
   }

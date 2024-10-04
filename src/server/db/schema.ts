@@ -61,6 +61,13 @@ export const sittingRequests = createTable("sitting_requests", {
   ),
 });
 
+export const sittingRequestsRelations = relations(
+  sittingRequests,
+  ({ one }) => ({
+    sittingEvents: one(sittingEvents),
+  }),
+);
+
 // A sitting event is a scheduled sitting based on a sitting request and a sitter
 // Will need additional details connected to the event for the sitter to provide to the owner
 export const sittingEvents = createTable("sitting_events", {
@@ -77,3 +84,10 @@ export const sittingEvents = createTable("sitting_events", {
     () => new Date(),
   ),
 });
+
+export const sittingEventsRelations = relations(sittingEvents, ({ one }) => ({
+  sittingRequest: one(sittingRequests, {
+    fields: [sittingEvents.sittingRequest],
+    references: [sittingRequests.id],
+  }),
+}));

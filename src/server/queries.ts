@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, desc } from "drizzle-orm";
-import { sittingRequests, userPreferances } from "./db/schema";
+import { sittingEvents, sittingRequests, userPreferances } from "./db/schema";
 import { type SittingTypeEnum } from "~/lib/schema";
 
 export async function getOwnedSittingRequests() {
@@ -30,7 +30,7 @@ export async function createSittingRequest(
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
-  
+
   const newSittingRequest = await db
     .insert(sittingRequests)
     .values({
@@ -65,6 +65,7 @@ export async function getSittingRequestsInRange(from: Date, to: Date) {
   return upcomingSittingRequests;
 }
 
+// Untested - might explode
 export async function getOwnerUpcommingSittings() {
   const user = auth();
 
@@ -72,15 +73,16 @@ export async function getOwnerUpcommingSittings() {
     throw new Error("Unauthorized");
   }
 
-  const ownedSittings = db
-    .select()
-    .from(sittingListings)
-    .where(eq(sittingListings.ownerId, user.userId))
-    .as("owned_sittings");
   const upcommingSittingEventsAsOwner = await db
     .select()
-    .from(ownedSittings)
-    .where(eq(ownedSittings.fulfilled, false));
+    .from(sittingEvents)
+    .innerJoin(
+      sittingRequests,
+      eq(sittingRequests.id, sittingEvents.sittingRequest),
+    )
+    .where(eq(sittingRequests.ownerId, user.userId))
+    .orderBy(desc(sittingRequests.createdAt))
+    .execute();
 
   return upcommingSittingEventsAsOwner;
 }

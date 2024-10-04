@@ -45,3 +45,10 @@ export const onboardingPreferencesFormSchema = z.object({
 export type OnboardingFormInput = z.infer<
   typeof onboardingPreferencesFormSchema
 >;
+
+export const dateRangeSchema = z.object({
+  from: z.coerce.date(),
+  to: z.coerce.date(),
+});
+
+export type DateRange = z.infer<typeof dateRangeSchema>;
