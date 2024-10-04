@@ -47,8 +47,6 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    console.log(requestParams.data);
-
     const pgRows = await getSittingRequestsStartingInRange(
       requestParams.data.from,
       requestParams.data.to,
