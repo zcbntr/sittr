@@ -4,8 +4,15 @@ import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useEffect, useState } from "react";
 import moment from "moment";
-import { getSittingRequestsStartingInRange } from "~/server/queries";
 import { endOfMonth, startOfMonth } from "date-fns";
+
+// Start the week on a monday, and set the first week of the year to be the one that contains the first Thursday
+moment.locale("en-GB", {
+  week: {
+    dow: 1,
+    doy: 4,
+  },
+});
 
 const allViews: View[] = ["agenda", "day", "week", "month"];
 
@@ -38,10 +45,6 @@ class CalendarEvent {
 }
 
 export default function CalendarComponent() {
-  // TODO
-  // Get events from database
-  // Set events from database to the state
-
   const [view, setView] = useState<View>("month");
   const [date, setDate] = useState<Date>(new Date());
   const [events, setEvents] = useState([
