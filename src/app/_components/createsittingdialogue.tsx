@@ -34,32 +34,55 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createSittingFormSchema } from "~/lib/schema/index";
+import {
+  createSittingFormSchema,
+  type SittingTypeEnum,
+} from "~/lib/schema/index";
 
-export default function SittingDialogue() {
+export default function SittingDialogue({
+  props,
+  children,
+}: {
+  props?: {
+    name?: string;
+    sittingType?: SittingTypeEnum;
+    dateRange?: DateRange;
+  };
+  children: React.ReactNode;
+}) {
   const [open, setOpen] = React.useState(false);
 
-  const initialFromDate = add(new Date(), { hours : 1});
-  const initialToDate = add(new Date(), { days: 1, hours: 1 });
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: initialFromDate,
-    to: initialToDate,
+  const defaultFromDate = add(new Date(), { hours: 1 });
+  const defaultToDate = add(new Date(), { days: 1, hours: 1 });
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
+    to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
   });
 
   const form = useForm<z.infer<typeof createSittingFormSchema>>({
     resolver: zodResolver(createSittingFormSchema),
-    defaultValues: {
-      name: "New Sitting",
-      dateRange: {
-        from: initialFromDate,
-        to: initialToDate,
-      },
-      sittingType: "Pet",
-    },
   });
 
-  async function onSubmit(data: z.infer<typeof createSittingFormSchema>) {
+  // Update state upon props change, Update form value upon props change
+  React.useEffect(
+    () => {
+      if (props) {
+        setDateRange({
+          from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
+          to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+        });
 
+        form.setValue("dateRange", {
+          from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
+          to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+        });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [props],
+  );
+
+  async function onSubmit(data: z.infer<typeof createSittingFormSchema>) {
     const res = await fetch("api/sittingrequest", {
       method: "PUT",
       headers: {
@@ -70,19 +93,15 @@ export default function SittingDialogue() {
 
     if (res.ok) {
       setOpen(false);
+      dispatchEvent(new Event("sittingCreated"));
     } else {
       console.log(res);
     }
-
-    // POST to a new api endpoint for creating sittings
-    // Close dialogue
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">New Sitting</Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[454px]">
         <DialogHeader>
           <DialogTitle>New Sitting</DialogTitle>
@@ -124,18 +143,18 @@ export default function SittingDialogue() {
                           variant={"outline"}
                           className={cn(
                             "w-[300px] justify-start text-left font-normal",
-                            !date && "text-muted-foreground",
+                            !dateRange && "text-muted-foreground",
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date?.from ? (
-                            date.to ? (
+                          {dateRange?.from ? (
+                            dateRange.to ? (
                               <>
-                                {format(date.from, "LLL dd, y")} -{" "}
-                                {format(date.to, "LLL dd, y")}
+                                {format(dateRange.from, "LLL dd, y")} -{" "}
+                                {format(dateRange.to, "LLL dd, y")}
                               </>
                             ) : (
-                              format(date.from, "LLL dd, y")
+                              format(dateRange.from, "LLL dd, y")
                             )
                           ) : (
                             <span>Pick a date</span>
@@ -147,9 +166,13 @@ export default function SittingDialogue() {
                       <Calendar
                         initialFocus
                         mode="range"
-                        defaultMonth={date?.from}
-                        selected={date}
-                        onSelect={(e) => {setDate(e) ; field.onChange(e)}}
+                        defaultMonth={dateRange?.from}
+                        selected={dateRange}
+                        onSelect={(e) => {
+                          console.log(dateRange);
+                          setDateRange(e);
+                          field.onChange(e);
+                        }}
                         numberOfMonths={2}
                       />
                     </PopoverContent>
@@ -195,7 +218,6 @@ export default function SittingDialogue() {
                 </FormItem>
               )}
             />
-            {/* This does not submit the form! */}
             <DialogFooter>
               <Button type="submit">Create Sitting</Button>
             </DialogFooter>

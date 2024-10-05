@@ -2,9 +2,13 @@
 import { Calendar, momentLocalizer, type View } from "react-big-calendar";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { useEffect, useState } from "react";
+import { Key, useEffect, useState } from "react";
 import moment from "moment";
 import { endOfMonth, startOfMonth } from "date-fns";
+import SittingDialogue from "~/app/_components/createsittingdialogue";
+import { Button } from "./ui/button";
+import { SittingTypeEnum } from "~/lib/schema";
+import { DateRange } from "react-day-picker";
 
 // Start the week on a monday, and set the first week of the year to be the one that contains the first Thursday
 moment.locale("en-GB", {
@@ -47,15 +51,12 @@ class CalendarEvent {
 export default function CalendarComponent() {
   const [view, setView] = useState<View>("month");
   const [date, setDate] = useState<Date>(new Date());
-  const [events, setEvents] = useState([
-    {
-      start: moment(),
-      end: moment().add(1, "hours"),
-      title: "test",
-      allDay: false,
-      desc: "test",
-    },
-  ] as unknown as CalendarEvent[]);
+  const [events, setEvents] = useState([] as unknown as CalendarEvent[]);
+  const [createSittingDialogProps, setCreateSittingDialogProps] = useState<{
+    name?: string;
+    sittingType?: SittingTypeEnum;
+    dateRange?: DateRange;
+  }>();
 
   useEffect(() => {
     async function fetchData() {
@@ -91,19 +92,28 @@ export default function CalendarComponent() {
       }
     }
 
-    fetchData();
+    void fetchData();
+
+    document.addEventListener("sittingCreated", () => {
+      console.log("Sitting created event received");
+      void fetchData();
+    });
   }, []);
 
-  const handleSelect = ({ start, end }) => {
-    const title = window.prompt("New Event name");
-
-    if (title) {
-      const newEvent = {} as CalendarEvent;
-      newEvent.start = moment(start).toDate();
-      newEvent.end = moment(end).toDate();
-      newEvent.title = title;
-
-      setEvents([...events, newEvent]);
+  const handleDateSelect = ({ start, end }: { start: Date; end: Date }) => {
+    // Find the openCreateSittingDialogHiddenButton and click it - workaround for avoiding putting the dialog in each calendar day
+    const button = document.getElementById(
+      "openCreateSittingDialogHiddenButton",
+    );
+    if (button) {
+      setCreateSittingDialogProps({
+        name: "",
+        dateRange: {
+          from: start,
+          to: end,
+        },
+      });
+      button.click();
     }
   };
 
@@ -120,7 +130,7 @@ export default function CalendarComponent() {
         localizer={localizer}
         events={events}
         onSelectEvent={(event: CalendarEvent) => alert(event.title)}
-        onSelectSlot={handleSelect}
+        onSelectSlot={handleDateSelect}
         views={allViews}
         defaultView={view}
         view={view}
@@ -132,6 +142,13 @@ export default function CalendarComponent() {
         endAccessor="end"
         titleAccessor="title"
       />
+
+      <SittingDialogue props={createSittingDialogProps}>
+        <Button
+          id="openCreateSittingDialogHiddenButton"
+          className="hidden"
+        ></Button>
+      </SittingDialogue>
     </div>
   );
 }
