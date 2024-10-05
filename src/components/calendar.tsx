@@ -42,6 +42,8 @@ export default function CalendarComponent() {
   // Get events from database
   // Set events from database to the state
 
+  const [view, setView] = useState<View>("month");
+  const [date, setDate] = useState<Date>(new Date());
   const [events, setEvents] = useState([
     {
       start: moment(),
@@ -55,15 +57,19 @@ export default function CalendarComponent() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("api/sittingrequest?" + new URLSearchParams({
-          from: startOfMonth(new Date()).toString(),
-          to: endOfMonth(new Date()).toString(),
-        }).toString(), {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
+        const res = await fetch(
+          "api/sittingrequest?" +
+            new URLSearchParams({
+              from: startOfMonth(new Date()).toString(),
+              to: endOfMonth(new Date()).toString(),
+            }).toString(),
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
-        });
+        );
         const data: unknown = await res.json();
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
@@ -99,7 +105,7 @@ export default function CalendarComponent() {
   };
 
   return (
-    <>
+    <div className="h-[38rem]">
       <div>
         <strong>
           Click an event to see more info, or drag the mouse over the calendar
@@ -110,15 +116,19 @@ export default function CalendarComponent() {
         selectable
         localizer={localizer}
         events={events}
-        defaultView="month"
-        views={allViews}
-        defaultDate={new Date()}
         onSelectEvent={(event: CalendarEvent) => alert(event.title)}
         onSelectSlot={handleSelect}
+        views={allViews}
+        defaultView={view}
+        view={view}
+        onView={(view) => setView(view)}
+        defaultDate={new Date()}
+        date={date}
+        onNavigate={(date) => setDate(new Date(date))}
         startAccessor="start"
         endAccessor="end"
         titleAccessor="title"
       />
-    </>
+    </div>
   );
 }

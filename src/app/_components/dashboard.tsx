@@ -7,12 +7,14 @@ import SittingDialogue from "./createsittingdialogue";
 
 export default function Dashboard() {
   return (
-    <>
-      <div>Dashboard</div>
+    <div className="p-5">
+      <h1 className="text-xl">Dashboard</h1>
       <div>
         <SittingDialogue />
       </div>
-      <CalendarComponent />
-    </>
+      <div className="pb-5">
+        <CalendarComponent />
+      </div>
+    </div>
   );
 }
