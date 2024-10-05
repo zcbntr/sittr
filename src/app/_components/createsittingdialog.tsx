@@ -1,15 +1,19 @@
-// Separate component for the form to create a sitting to be used in the CreateSittingDialogue component
+"use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "~/components/ui/button";
 import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-  } from "~/components/ui/form";
-  import { Calendar as CalendarIcon } from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import * as React from "react";
+import { add, format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Calendar } from "~/components/ui/calendar";
 import {
@@ -17,46 +21,96 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { Input } from "~/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
-import { add, format } from "date-fns";
 import { type DateRange } from "react-day-picker";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { type z } from "zod";
 import { useForm } from "react-hook-form";
-import { editSittingRequestFormSchema } from "~/lib/schema/index";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "~/components/ui/button";
-import React from "react";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "~/components/ui/form";
+import {
+  editSittingRequestFormSchema,
+  type SittingTypeEnum,
+} from "~/lib/schema/index";
 
-export default function SittingForm() {
-    const initialToDate = add(new Date(), { hours: 1 });
-    const [date, setDate] = React.useState<DateRange | undefined>({
-      from: new Date(),
-      to: initialToDate,
-    });
-  
-    const form = useForm<z.infer<typeof editSittingRequestFormSchema>>({
-      resolver: zodResolver(editSittingRequestFormSchema),
-      defaultValues: {
-        name: "New Sitting",
-        dateRange: {
-          from: new Date(),
-          to: initialToDate,
-        },
+export default function CreateSittingDialog({
+  props,
+  children,
+}: {
+  props?: {
+    name?: string;
+    sittingType?: SittingTypeEnum;
+    dateRange?: DateRange;
+  };
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = React.useState(false);
+
+  const defaultFromDate = add(new Date(), { hours: 1 });
+  const defaultToDate = add(new Date(), { days: 1, hours: 1 });
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
+    to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+  });
+
+  const form = useForm<z.infer<typeof editSittingRequestFormSchema>>({
+    resolver: zodResolver(editSittingRequestFormSchema),
+  });
+
+  // Update state upon props change, Update form value upon props change
+  React.useEffect(
+    () => {
+      if (props) {
+        setDateRange({
+          from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
+          to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+        });
+
+        form.setValue("dateRange", {
+          from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
+          to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+        });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [props],
+  );
+
+  async function onSubmit(data: z.infer<typeof editSittingRequestFormSchema>) {
+    const res = await fetch("api/sittingrequest", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify(data),
     });
-  
-    const onSubmit = (data: z.infer<typeof editSittingRequestFormSchema>) => {
-      console.log(data);
-      // POST to a new api endpoint for creating sittings
-      // Close dialogue
-    };
 
-    return (
+    if (res.ok) {
+      setOpen(false);
+      document.dispatchEvent(new Event("sittingCreated"));
+    } else {
+      console.log(res);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[454px]">
+        <DialogHeader>
+          <DialogTitle>New Sitting</DialogTitle>
+        </DialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="w-2/3 space-y-6"
+            name="createSitting"
           >
             <FormField
               control={form.control}
@@ -89,18 +143,18 @@ export default function SittingForm() {
                           variant={"outline"}
                           className={cn(
                             "w-[300px] justify-start text-left font-normal",
-                            !date && "text-muted-foreground",
+                            !dateRange && "text-muted-foreground",
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date?.from ? (
-                            date.to && date.to != initialToDate ? (
+                          {dateRange?.from ? (
+                            dateRange.to ? (
                               <>
-                                {format(date.from, "LLL dd, y")} -{" "}
-                                {format(date.to, "LLL dd, y")}
+                                {format(dateRange.from, "LLL dd, y")} -{" "}
+                                {format(dateRange.to, "LLL dd, y")}
                               </>
                             ) : (
-                              format(date.from, "LLL dd, y")
+                              format(dateRange.from, "LLL dd, y")
                             )
                           ) : (
                             <span>Pick a date</span>
@@ -112,9 +166,12 @@ export default function SittingForm() {
                       <Calendar
                         initialFocus
                         mode="range"
-                        defaultMonth={date?.from}
-                        selected={date}
-                        onSelect={setDate}
+                        defaultMonth={dateRange?.from}
+                        selected={dateRange}
+                        onSelect={(e) => {
+                          setDateRange(e);
+                          field.onChange(e);
+                        }}
                         numberOfMonths={2}
                       />
                     </PopoverContent>
@@ -138,19 +195,19 @@ export default function SittingForm() {
                     >
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
-                          <RadioGroupItem value="pet" />
+                          <RadioGroupItem value="Pet" />
                         </FormControl>
                         <FormLabel className="font-normal">Pet</FormLabel>
                       </FormItem>
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
-                          <RadioGroupItem value="house" />
+                          <RadioGroupItem value="House" />
                         </FormControl>
                         <FormLabel className="font-normal">House</FormLabel>
                       </FormItem>
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
-                          <RadioGroupItem value="plant" />
+                          <RadioGroupItem value="Plant" />
                         </FormControl>
                         <FormLabel className="font-normal">Plant</FormLabel>
                       </FormItem>
@@ -160,7 +217,12 @@ export default function SittingForm() {
                 </FormItem>
               )}
             />
+            <DialogFooter>
+              <Button type="submit">Create Sitting</Button>
+            </DialogFooter>
           </form>
         </Form>
-    )
+      </DialogContent>
+    </Dialog>
+  );
 }

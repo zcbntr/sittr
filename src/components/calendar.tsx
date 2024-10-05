@@ -2,13 +2,14 @@
 import { Calendar, momentLocalizer, type View } from "react-big-calendar";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { Key, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import moment from "moment";
 import { endOfMonth, startOfMonth } from "date-fns";
-import SittingDialogue from "~/app/_components/createsittingdialogue";
+import CreateSittingDialog from "~/app/_components/createsittingdialog";
 import { Button } from "./ui/button";
-import { SittingTypeEnum } from "~/lib/schema";
-import { DateRange } from "react-day-picker";
+import { type SittingTypeEnum } from "~/lib/schema";
+import { type DateRange } from "react-day-picker";
+import EditSittingDialog from "~/app/_components/editsittingdialog";
 
 // Start the week on a monday, and set the first week of the year to be the one that contains the first Thursday
 moment.locale("en-GB", {
@@ -23,26 +24,32 @@ const allViews: View[] = ["agenda", "day", "week", "month"];
 const localizer = momentLocalizer(moment);
 
 class CalendarEvent {
+  id: string;
   title: string;
   allDay: boolean;
   start: Date;
   end: Date;
+  sittingType: SittingTypeEnum;
   desc: string;
   resourceId?: string;
   tooltip?: string;
 
   constructor(
+    _id: string,
     _title: string,
     _start: Date,
     _endDate: Date,
+    _sittingType: SittingTypeEnum,
     _allDay?: boolean,
     _desc?: string,
     _resourceId?: string,
   ) {
+    this.id = _id;
     this.title = _title;
     this.allDay = _allDay ?? false;
     this.start = _start;
     this.end = _endDate;
+    this.sittingType = _sittingType;
     this.desc = _desc ?? "";
     this.resourceId = _resourceId;
   }
@@ -56,6 +63,12 @@ export default function CalendarComponent() {
     name?: string;
     sittingType?: SittingTypeEnum;
     dateRange?: DateRange;
+  }>();
+  const [editSittingDialogProps, setEditSittingDialogProps] = useState<{
+    id: string;
+    name: string;
+    sittingType: SittingTypeEnum;
+    dateRange: DateRange;
   }>();
 
   useEffect(() => {
@@ -77,11 +90,14 @@ export default function CalendarComponent() {
         const data: unknown = await res.json();
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-        const events = data.map((event) => {
+        const events: CalendarEvent[] = data.map((event) => {
+          console.log(event);
           return {
+            id: event.id,
             title: event.name,
             start: new Date(event.startDate),
             end: new Date(event.endDate),
+            sittingType: event.category,
             allDay: false,
             desc: "",
           };
@@ -96,6 +112,11 @@ export default function CalendarComponent() {
 
     document.addEventListener("sittingCreated", () => {
       console.log("Sitting created event received");
+      void fetchData();
+    });
+
+    document.addEventListener("sittingUpdated", () => {
+      console.log("Sitting updated event received");
       void fetchData();
     });
   }, []);
@@ -117,6 +138,22 @@ export default function CalendarComponent() {
     }
   };
 
+  const handleEventSelect = (event: CalendarEvent) => {
+    const button = document.getElementById("openEditSittingDialogHiddenButton");
+    if (button) {
+      setEditSittingDialogProps({
+        id: event.id,
+        name: event.title,
+        sittingType: event.sittingType,
+        dateRange: {
+          from: event.start,
+          to: event.end,
+        },
+      });
+      button.click();
+    }
+  };
+
   return (
     <div className="h-[38rem]">
       <div>
@@ -129,7 +166,7 @@ export default function CalendarComponent() {
         selectable
         localizer={localizer}
         events={events}
-        onSelectEvent={(event: CalendarEvent) => alert(event.title)}
+        onSelectEvent={handleEventSelect}
         onSelectSlot={handleDateSelect}
         views={allViews}
         defaultView={view}
@@ -143,12 +180,19 @@ export default function CalendarComponent() {
         titleAccessor="title"
       />
 
-      <SittingDialogue props={createSittingDialogProps}>
+      <CreateSittingDialog props={createSittingDialogProps}>
         <Button
           id="openCreateSittingDialogHiddenButton"
           className="hidden"
         ></Button>
-      </SittingDialogue>
+      </CreateSittingDialog>
+
+      <EditSittingDialog props={editSittingDialogProps}>
+        <Button
+          id="openEditSittingDialogHiddenButton"
+          className="hidden"
+        ></Button>
+      </EditSittingDialog>
     </div>
   );
 }

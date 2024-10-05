@@ -35,18 +35,19 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import {
-  createSittingFormSchema,
+  editSittingRequestFormSchema,
   type SittingTypeEnum,
 } from "~/lib/schema/index";
 
-export default function SittingDialogue({
+export default function EditSittingDialog({
   props,
   children,
 }: {
-  props?: {
-    name?: string;
-    sittingType?: SittingTypeEnum;
-    dateRange?: DateRange;
+  props: {
+    id: string;
+    name: string;
+    sittingType: SittingTypeEnum;
+    dateRange: DateRange;
   };
   children: React.ReactNode;
 }) {
@@ -59,8 +60,8 @@ export default function SittingDialogue({
     to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
   });
 
-  const form = useForm<z.infer<typeof createSittingFormSchema>>({
-    resolver: zodResolver(createSittingFormSchema),
+  const form = useForm<z.infer<typeof editSittingRequestFormSchema>>({
+    resolver: zodResolver(editSittingRequestFormSchema),
   });
 
   // Update state upon props change, Update form value upon props change
@@ -72,6 +73,13 @@ export default function SittingDialogue({
           to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
         });
 
+        form.setValue(
+          "sittingType",
+          props?.sittingType ? props.sittingType : "Pet",
+        );
+
+        form.setValue("name", props?.name ? props.name : "");
+
         form.setValue("dateRange", {
           from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
           to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
@@ -82,9 +90,9 @@ export default function SittingDialogue({
     [props],
   );
 
-  async function onSubmit(data: z.infer<typeof createSittingFormSchema>) {
+  async function onSubmit(data: z.infer<typeof editSittingRequestFormSchema>) {
     const res = await fetch("api/sittingrequest", {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
@@ -93,7 +101,7 @@ export default function SittingDialogue({
 
     if (res.ok) {
       setOpen(false);
-      document.dispatchEvent(new Event("sittingCreated"));
+      document.dispatchEvent(new Event("sittingUpdated"));
     } else {
       console.log(res);
     }
@@ -110,7 +118,7 @@ export default function SittingDialogue({
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="w-2/3 space-y-6"
-            name="createSitting"
+            name="editSitting"
           >
             <FormField
               control={form.control}
@@ -218,7 +226,9 @@ export default function SittingDialogue({
               )}
             />
             <DialogFooter>
-              <Button type="submit">Create Sitting</Button>
+              <Button type="submit" disabled>
+                Update Sitting
+              </Button>
             </DialogFooter>
           </form>
         </Form>

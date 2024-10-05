@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createSittingFormSchema, dateRangeSchema } from "~/lib/schema";
+import { editSittingRequestFormSchema, dateRangeSchema } from "~/lib/schema";
 import {
   createSittingRequest,
   getSittingRequestsStartingInRange,
@@ -10,7 +10,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
     const json: unknown = await req.json();
 
     // This is the problem line - it throws an error and ends the try block
-    const formData = createSittingFormSchema.safeParse(json);
+    const formData = editSittingRequestFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
