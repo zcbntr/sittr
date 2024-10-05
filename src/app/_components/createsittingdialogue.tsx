@@ -93,7 +93,7 @@ export default function SittingDialogue({
 
     if (res.ok) {
       setOpen(false);
-      dispatchEvent(new Event("sittingCreated"));
+      document.dispatchEvent(new Event("sittingCreated"));
     } else {
       console.log(res);
     }
@@ -169,7 +169,6 @@ export default function SittingDialogue({
                         defaultMonth={dateRange?.from}
                         selected={dateRange}
                         onSelect={(e) => {
-                          console.log(dateRange);
                           setDateRange(e);
                           field.onChange(e);
                         }}
