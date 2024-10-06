@@ -1,16 +1,41 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { editSittingRequestFormSchema, dateRangeSchema } from "~/lib/schema";
+import { editSittingRequestFormSchema, dateRangeSchema, createSittingRequestFormSchema } from "~/lib/schema";
 import {
   createSittingRequest,
   getSittingRequestsStartingInRange,
+  updateSittingRequest,
 } from "~/server/queries";
+
+export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
+  try {
+    const requestParams = dateRangeSchema.safeParse({
+      from: req.nextUrl.searchParams.get("from"),
+      to: req.nextUrl.searchParams.get("to"),
+    });
+
+    if (!requestParams.success) {
+      console.log(
+        "Date Range Form Data Parse Error: \n" + requestParams.error.toString(),
+      );
+      throw new Error("Invalid form data");
+    }
+
+    const pgRows = await getSittingRequestsStartingInRange(
+      requestParams.data.from,
+      requestParams.data.to,
+    );
+
+    return NextResponse.json(pgRows);
+  } catch (error) {
+    return NextResponse.json({ error });
+  }
+}
 
 export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    // This is the problem line - it throws an error and ends the try block
-    const formData = editSittingRequestFormSchema.safeParse(json);
+    const formData = createSittingRequestFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
@@ -33,26 +58,29 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
   }
 }
 
-export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
+export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
-    const requestParams = dateRangeSchema.safeParse({
-      from: req.nextUrl.searchParams.get("from"),
-      to: req.nextUrl.searchParams.get("to"),
-    });
+    const json: unknown = await req.json();
 
-    if (!requestParams.success) {
+    const formData = editSittingRequestFormSchema.safeParse(json);
+
+    if (!formData.success) {
       console.log(
-        "Date Range Form Data Parse Error: \n" + requestParams.error.toString(),
+        "Edit Sitting Request Form Data Parse Error: \n" +
+          formData.error.toString(),
       );
       throw new Error("Invalid form data");
     }
 
-    const pgRows = await getSittingRequestsStartingInRange(
-      requestParams.data.from,
-      requestParams.data.to,
+    const pgRow = await updateSittingRequest(
+      formData.data.id,
+      formData.data.name,
+      formData.data.sittingType,
+      formData.data.dateRange.from,
+      formData.data.dateRange.to,
     );
 
-    return NextResponse.json(pgRows);
+    return NextResponse.json(pgRow);
   } catch (error) {
     return NextResponse.json({ error });
   }

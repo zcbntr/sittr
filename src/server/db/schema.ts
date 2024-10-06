@@ -91,3 +91,43 @@ export const sittingEventsRelations = relations(sittingEvents, ({ one }) => ({
     references: [sittingRequests.id],
   }),
 }));
+
+export const petDetails = createTable("pet_details", {
+  id: serial("id").primaryKey(),
+  ownerId: varchar("owner_id", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  species: varchar("species", { length: 255 }).notNull(),
+  breed: varchar("breed", { length: 255 }),
+  dob: timestamp("dob", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const petDetailsRelations = relations(petDetails, ({ one }) => ({
+  petNotes: one(petNotes),
+}));
+
+export const petNotes = createTable("pet_notes", {
+  id: serial("id").primaryKey(),
+  petId: integer("pet_id")
+    .references(() => petDetails.id, { onDelete: "cascade" })
+    .notNull(),
+  note: text("note").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const petNotesRelations = relations(petNotes, ({ one }) => ({
+  petDetails: one(petDetails, {
+    fields: [petNotes.petId],
+    references: [petDetails.id],
+  }),
+}));

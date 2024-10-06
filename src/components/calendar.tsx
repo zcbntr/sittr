@@ -24,7 +24,7 @@ const allViews: View[] = ["agenda", "day", "week", "month"];
 const localizer = momentLocalizer(moment);
 
 class CalendarEvent {
-  id: string;
+  id: number;
   title: string;
   allDay: boolean;
   start: Date;
@@ -35,7 +35,7 @@ class CalendarEvent {
   tooltip?: string;
 
   constructor(
-    _id: string,
+    _id: number,
     _title: string,
     _start: Date,
     _endDate: Date,
@@ -65,7 +65,7 @@ export default function CalendarComponent() {
     dateRange?: DateRange;
   }>();
   const [editSittingDialogProps, setEditSittingDialogProps] = useState<{
-    id: string;
+    id: number;
     name: string;
     sittingType: SittingTypeEnum;
     dateRange: DateRange;
@@ -91,7 +91,6 @@ export default function CalendarComponent() {
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         const events: CalendarEvent[] = data.map((event) => {
-          console.log(event);
           return {
             id: event.id,
             title: event.name,

@@ -12,7 +12,7 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import * as React from "react";
-import { add, format } from "date-fns";
+import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Calendar } from "~/components/ui/calendar";
@@ -43,8 +43,8 @@ export default function EditSittingDialog({
   props,
   children,
 }: {
-  props: {
-    id: string;
+  props?: {
+    id: number;
     name: string;
     sittingType: SittingTypeEnum;
     dateRange: DateRange;
@@ -53,11 +53,10 @@ export default function EditSittingDialog({
 }) {
   const [open, setOpen] = React.useState(false);
 
-  const defaultFromDate = add(new Date(), { hours: 1 });
-  const defaultToDate = add(new Date(), { days: 1, hours: 1 });
+  const [dataChanged, setDataChanged] = React.useState(false);
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
-    to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+    from: props?.dateRange?.from,
+    to: props?.dateRange?.to,
   });
 
   const form = useForm<z.infer<typeof editSittingRequestFormSchema>>({
@@ -69,21 +68,24 @@ export default function EditSittingDialog({
     () => {
       if (props) {
         setDateRange({
-          from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
-          to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+          from: props.dateRange.from,
+          to: props.dateRange.to,
         });
+
+        form.setValue("id", props.id);
+
+        form.setValue("name", props?.name ? props.name : "");
+
+        if (props.dateRange.from && props.dateRange.to)
+          form.setValue("dateRange", {
+            from: props.dateRange.from,
+            to: props.dateRange.to,
+          });
 
         form.setValue(
           "sittingType",
           props?.sittingType ? props.sittingType : "Pet",
         );
-
-        form.setValue("name", props?.name ? props.name : "");
-
-        form.setValue("dateRange", {
-          from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
-          to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
-        });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,6 +130,9 @@ export default function EditSittingDialog({
                   <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input
+                      onChangeCapture={() => {
+                        setDataChanged(true);
+                      }}
                       placeholder="Pet sitting while I am away"
                       {...field}
                     />
@@ -179,6 +184,7 @@ export default function EditSittingDialog({
                         onSelect={(e) => {
                           setDateRange(e);
                           field.onChange(e);
+                          setDataChanged(true);
                         }}
                         numberOfMonths={2}
                       />
@@ -197,7 +203,10 @@ export default function EditSittingDialog({
                   <FormLabel>Sitting Type</FormLabel>
                   <FormControl>
                     <RadioGroup
-                      onValueChange={field.onChange}
+                      onValueChange={() => {
+                        field.onChange();
+                        setDataChanged(true);
+                      }}
                       defaultValue={field.value}
                       className="flex flex-col space-y-1"
                     >
@@ -226,7 +235,7 @@ export default function EditSittingDialog({
               )}
             />
             <DialogFooter>
-              <Button type="submit" disabled>
+              <Button type="submit" disabled={!dataChanged}>
                 Update Sitting
               </Button>
             </DialogFooter>

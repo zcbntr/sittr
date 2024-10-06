@@ -35,7 +35,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import {
-  editSittingRequestFormSchema,
+  createSittingRequestFormSchema,
   type SittingTypeEnum,
 } from "~/lib/schema/index";
 
@@ -45,8 +45,8 @@ export default function CreateSittingDialog({
 }: {
   props?: {
     name?: string;
-    sittingType?: SittingTypeEnum;
     dateRange?: DateRange;
+    sittingType?: SittingTypeEnum;
   };
   children: React.ReactNode;
 }) {
@@ -54,13 +54,10 @@ export default function CreateSittingDialog({
 
   const defaultFromDate = add(new Date(), { hours: 1 });
   const defaultToDate = add(new Date(), { days: 1, hours: 1 });
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
-    to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
-  });
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
-  const form = useForm<z.infer<typeof editSittingRequestFormSchema>>({
-    resolver: zodResolver(editSittingRequestFormSchema),
+  const form = useForm<z.infer<typeof createSittingRequestFormSchema>>({
+    resolver: zodResolver(createSittingRequestFormSchema),
   });
 
   // Update state upon props change, Update form value upon props change
@@ -72,17 +69,29 @@ export default function CreateSittingDialog({
           to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
         });
 
-        form.setValue("dateRange", {
-          from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
-          to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
-        });
+        if (props?.name) {
+          form.setValue("name", props.name);
+        }
+
+        if (props?.dateRange) {
+          form.setValue("dateRange", {
+            from: props?.dateRange?.from
+              ? props.dateRange.from
+              : defaultFromDate,
+            to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+          });
+        }
+
+        if (props?.sittingType) {
+          form.setValue("sittingType", props.sittingType);
+        }
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [props],
   );
 
-  async function onSubmit(data: z.infer<typeof editSittingRequestFormSchema>) {
+  async function onSubmit(data: z.infer<typeof createSittingRequestFormSchema>) {
     const res = await fetch("api/sittingrequest", {
       method: "PUT",
       headers: {

@@ -45,6 +45,33 @@ export async function createSittingRequest(
   return newSittingRequest;
 }
 
+export async function updateSittingRequest(
+  id: number,
+  name: string,
+  category: SittingTypeEnum,
+  startDate: Date,
+  endDate: Date,
+) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const updatedSittingRequest = await db
+    .update(sittingRequests)
+    .set({
+      name: name,
+      category: category,
+      startDate: startDate,
+      endDate: endDate,
+    })
+    .where(eq(sittingRequests.id, id))
+    .execute();
+
+  return updatedSittingRequest;
+}
+
 export async function getSittingRequestsStartingInRange(from: Date, to: Date) {
   const user = auth();
 

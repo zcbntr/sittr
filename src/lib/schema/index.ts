@@ -39,7 +39,7 @@ export type CreateSittingRequestFormInput = z.infer<
 
 export const editSittingRequestFormSchema = z
   .object({
-    id: z.string(),
+    id: z.number(),
     name: z.string().min(3).max(50),
     dateRange: z.object(
       {
