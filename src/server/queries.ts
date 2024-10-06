@@ -72,6 +72,21 @@ export async function updateSittingRequest(
   return updatedSittingRequest;
 }
 
+export async function deleteSittingRequest(id: number) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const deletedSittingRequest = await db
+    .delete(sittingRequests)
+    .where(eq(sittingRequests.id, id))
+    .execute();
+
+  return deletedSittingRequest;
+}
+
 export async function getSittingRequestsStartingInRange(from: Date, to: Date) {
   const user = auth();
 

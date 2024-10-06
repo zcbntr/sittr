@@ -69,6 +69,14 @@ export type EditSittingRequestFormInput = z.infer<
   typeof editSittingRequestFormSchema
 >;
 
+export const deleteSittingRequestFormSchema = z.object({
+  id: z.number(),
+});
+
+export type DeleteSittingRequestFormInput = z.infer<
+  typeof deleteSittingRequestFormSchema
+>;
+
 export const onboardingPreferencesFormSchema = z.object({
   role: RoleEnum,
   pet: z.boolean(),
