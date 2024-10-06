@@ -110,12 +110,10 @@ export default function CalendarComponent() {
     void fetchData();
 
     document.addEventListener("sittingCreated", () => {
-      console.log("Sitting created event received");
       void fetchData();
     });
 
     document.addEventListener("sittingUpdated", () => {
-      console.log("Sitting updated event received");
       void fetchData();
     });
   }, []);
@@ -177,6 +175,27 @@ export default function CalendarComponent() {
         startAccessor="start"
         endAccessor="end"
         titleAccessor="title"
+        eventPropGetter={(event, start, end, isSelected) => {
+          const newStyle = {
+            backgroundColor: "lightgrey",
+            color: "black",
+          };
+
+          if (event.sittingType == "Pet") {
+            newStyle.backgroundColor = "#f54290";
+          } else if (event.sittingType == "House") {
+            newStyle.backgroundColor = "#424bf5";
+          } else if (event.sittingType == "Plant") {
+            newStyle.backgroundColor = "#87f542";
+          } else if (event.sittingType == "Baby") {
+            newStyle.backgroundColor = "#f5bf42";
+          }
+
+          return {
+            className: "",
+            style: newStyle,
+          };
+        }}
       />
 
       <CreateSittingDialog props={createSittingDialogProps}>
