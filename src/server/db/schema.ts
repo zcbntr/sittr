@@ -19,6 +19,8 @@ export const categoryEnum = pgEnum("category", [
   "Plant",
 ]);
 
+export const roleEnum = pgEnum("role", ["Owner", "Member", "PendingApproval"]);
+
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
  * database instance for multiple projects.
@@ -92,7 +94,21 @@ export const sittingEventsRelations = relations(sittingEvents, ({ one }) => ({
   }),
 }));
 
-export const petDetails = createTable("pet_details", {
+// Represents Pet, House or Plant sitting subject. Single table for accessing pets, houses and plants in general
+export const sittingSubjects = createTable("sitting_subjects", {
+  id: serial("id").primaryKey(),
+  entityType: varchar("type", { length: 255 }).notNull(),
+  // Foreign key to the Pet, House or Plant table
+  entityId: integer("entity_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const pets = createTable("pets", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owner_id", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
@@ -107,14 +123,14 @@ export const petDetails = createTable("pet_details", {
   ),
 });
 
-export const petDetailsRelations = relations(petDetails, ({ one }) => ({
+export const petRelations = relations(pets, ({ one }) => ({
   petNotes: one(petNotes),
 }));
 
 export const petNotes = createTable("pet_notes", {
   id: serial("id").primaryKey(),
   petId: integer("pet_id")
-    .references(() => petDetails.id, { onDelete: "cascade" })
+    .references(() => pets.id, { onDelete: "cascade" })
     .notNull(),
   note: text("note").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -126,8 +142,140 @@ export const petNotes = createTable("pet_notes", {
 });
 
 export const petNotesRelations = relations(petNotes, ({ one }) => ({
-  petDetails: one(petDetails, {
+  petDetails: one(pets, {
     fields: [petNotes.petId],
-    references: [petDetails.id],
+    references: [pets.id],
   }),
 }));
+
+export const houses = createTable("houses", {
+  id: serial("id").primaryKey(),
+  ownerId: varchar("owner_id", { length: 255 }).notNull(),
+  address: text("address").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const houseRelations = relations(houses, ({ one }) => ({
+  houseNotes: one(houseNotes),
+}));
+
+export const houseNotes = createTable("house_notes", {
+  id: serial("id").primaryKey(),
+  houseId: integer("house_id")
+    .references(() => houses.id, { onDelete: "cascade" })
+    .notNull(),
+  note: text("note").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const plants = createTable("plants", {
+  id: serial("id").primaryKey(),
+  ownerId: varchar("owner_id", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  species: varchar("species", { length: 255 }).notNull(),
+  lastWatered: timestamp("last_watered", { withTimezone: true }).notNull(),
+  wateringFrequency: integer("watering_frequency").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const plantRelations = relations(plants, ({ one }) => ({
+  plantNotes: one(plantNotes),
+}));
+
+export const plantNotes = createTable("plant_notes", {
+  id: serial("id").primaryKey(),
+  plantId: integer("plant_id")
+    .references(() => plants.id, { onDelete: "cascade" })
+    .notNull(),
+  note: text("note").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const groups = createTable("groups", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const groupsRelations = relations(groups, ({ many }) => ({
+  groupInviteCodes: many(groupInviteCodes),
+  groupMembers: many(groupMembers),
+}));
+
+export const groupMembers = createTable("group_members", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id")
+    .references(() => groups.id, { onDelete: "cascade" })
+    .notNull(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  role: roleEnum("role").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
+  group: one(groups, {
+    fields: [groupMembers.groupId],
+    references: [groups.id],
+  }),
+}));
+
+export const groupInviteCodes = createTable("group_invite_codes", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id")
+    .references(() => groups.id, { onDelete: "cascade" })
+    .notNull(),
+  code: varchar("code", { length: 255 }).notNull().unique(),
+  uses: integer("uses").notNull().default(0),
+  maxUses: integer("max_uses").notNull().default(1),
+  requiresApproval: boolean("requires_approval").notNull().default(false),
+  valid: boolean("valid").notNull().default(true),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const groupInviteCodesRelations = relations(
+  groupInviteCodes,
+  ({ one }) => ({
+    group: one(groups, {
+      fields: [groupInviteCodes.groupId],
+      references: [groups.id],
+    }),
+  }),
+);

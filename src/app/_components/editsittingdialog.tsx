@@ -108,8 +108,6 @@ export default function EditSittingDialog({
       body: JSON.stringify(data),
     });
 
-    console.log(res);
-
     if (res.ok) {
       setOpen(false);
       document.dispatchEvent(new Event("sittingUpdated"));

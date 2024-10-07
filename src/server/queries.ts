@@ -1,8 +1,16 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, desc } from "drizzle-orm";
-import { sittingEvents, sittingRequests, userPreferances } from "./db/schema";
+import {
+  groupInviteCodes,
+  groupMembers,
+  groups,
+  sittingEvents,
+  sittingRequests,
+  userPreferances,
+} from "./db/schema";
 import { type SittingTypeEnum } from "~/lib/schema";
+import { sha256 } from "crypto-hash";
 
 export async function getOwnedSittingRequests() {
   const user = auth();
@@ -215,25 +223,170 @@ export async function setUserPreferences(
   return preferences;
 }
 
-export async function getOwnerRecentlyFulfilledSittings() {
+export async function createGroup(name: string) {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const ownedSittingListings = db
-    .select()
-    .from(sittingListings)
-    .where(eq(sittingListings.ownerId, user.userId))
-    .as("owned_sitting_listings");
-  const recentlyFulfilledSittingsAsOwner = await db
-    .select()
-    .from(ownedSittingListings)
-    .where(eq(ownedSittingListings.fulfilled, true))
-    .orderBy(desc(ownedSittingListings.updatedAt))
-    .limit(5)
+  let newGroup;
+
+  // Create group and add user to groupMembers table in a transaction
+  await db.transaction(async (db) => {
+    // Create group
+    newGroup = await db
+      .insert(groups)
+      .values({
+        name: name,
+      })
+      .returning();
+
+    if (!newGroup) {
+      db.rollback();
+      throw new Error("Failed to create group");
+    }
+
+    // Add user to groupMembers table
+    const groupMember = await db.insert(groupMembers).values({
+      groupId: newGroup.id,
+      userId: user.userId,
+      role: "Owner",
+    });
+
+    if (!groupMember) {
+      db.rollback();
+      throw new Error("Failed to add user to group");
+    }
+  });
+
+  return newGroup;
+}
+
+export async function getNewGroupInviteCode(
+  groupId: number,
+  maxUses: number,
+  expiresAt: Date,
+  requiresApproval: boolean,
+) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check user is the owner of the group
+  const groupMember = await db.query.groupMembers.findFirst({
+    where: (model, { and, eq }) =>
+      and(
+        eq(model.groupId, groupId),
+        eq(model.userId, user.userId),
+        eq(model.role, "Owner"),
+      ),
+  });
+
+  if (groupMember) {
+    throw new Error(
+      "User is not the owner of the group, not a member, or the group doesn't exist",
+    );
+  }
+
+  // Create a new invite code based on the group id and random number
+  function getRandomUint32() {
+    const data = new Uint32Array(1);
+    crypto.getRandomValues(data);
+    return data[0];
+  }
+
+  const inviteCode = getRandomUint32()?.toString(16);
+
+  if (!inviteCode) {
+    throw new Error("Failed to generate invite code");
+  }
+
+  const newInviteCode = await db
+    .insert(groupInviteCodes)
+    .values({
+      groupId: groupId,
+      code: inviteCode,
+      maxUses: maxUses,
+      expiresAt: expiresAt,
+      requiresApproval: requiresApproval,
+    })
     .execute();
 
-  return recentlyFulfilledSittingsAsOwner;
+  return newInviteCode;
+}
+
+export async function joinGroup(inviteCode: string) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // This needs to be a find many if there becomes lots of groups
+  const inviteCodeRow = await db.query.groupInviteCodes.findFirst({
+    where: (model, { eq }) => eq(model.code, inviteCode),
+  });
+
+  if (!inviteCodeRow || !inviteCodeRow.valid) {
+    throw new Error("Invalid invite code");
+  }
+
+  // Check if the invite code has expired
+  if (inviteCodeRow.expiresAt < new Date()) {
+    // Set code to invalid
+    await db
+      .update(groupInviteCodes)
+      .set({ valid: false })
+      .where(eq(groupInviteCodes.id, inviteCodeRow.id))
+      .execute();
+
+    throw new Error("Invite code has expired");
+  }
+
+  // Check if the invite code has reached its max uses
+  if (inviteCodeRow.uses >= inviteCodeRow.maxUses) {
+    // Set code to invalid
+    await db
+      .update(groupInviteCodes)
+      .set({ valid: false })
+      .where(eq(groupInviteCodes.id, inviteCodeRow.id))
+      .execute();
+
+    throw new Error("Invite code has reached its max uses");
+  }
+
+  // Check if the user is already in the group
+  const existingGroupRow = await db.query.groupMembers.findFirst({
+    where: (model, { and, eq }) =>
+      and(
+        eq(model.groupId, inviteCodeRow.groupId),
+        eq(model.userId, user.userId),
+      ),
+  });
+
+  if (existingGroupRow) {
+    throw new Error("User is already in the group");
+  }
+
+  // Add the user to the group
+  const newGroupMember = await db
+    .insert(groupMembers)
+    .values({
+      groupId: inviteCodeRow.groupId,
+      userId: user.userId,
+      role: inviteCodeRow.requiresApproval ? "PendingApproval" : "Member",
+    })
+    .execute();
+
+  // Increment the invite code uses
+  await db
+    .update(groupInviteCodes)
+    .set({ uses: inviteCodeRow.uses + 1 })
+    .where(eq(groupInviteCodes.id, inviteCodeRow.id))
+    .execute();
+
+  return newGroupMember;
 }
