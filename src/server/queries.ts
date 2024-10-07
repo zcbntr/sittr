@@ -1,10 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import {
   groupInviteCodes,
   groupMembers,
   groups,
+  pets,
   sittingEvents,
   sittingRequests,
   userPreferances,
@@ -389,4 +390,59 @@ export async function joinGroup(inviteCode: string) {
     .execute();
 
   return newGroupMember;
+}
+
+export async function leaveGroup(groupId: number) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const groupMember = await db.query.groupMembers.findFirst({
+    where: (model, { and, eq }) =>
+      and(eq(model.groupId, groupId), eq(model.userId, user.userId)),
+  });
+
+  if (!groupMember) {
+    throw new Error("User is not in the group");
+  }
+
+  const deletedGroupMember = await db
+    .delete(groupMembers)
+    .where(
+      and(
+        eq(groupMembers.userId, user.userId),
+        eq(groupMembers.groupId, groupId),
+      ),
+    )
+    .returning();
+
+  return deletedGroupMember;
+}
+
+export async function createPet(
+  name: string,
+  species: string,
+  birthdate: Date,
+  breed?: string,
+) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const newPet = await db
+    .insert(pets)
+    .values({
+      name: name,
+      ownerId: user.userId,
+      species: species,
+      breed: breed,
+      dob: birthdate,
+    })
+    .execute();
+
+  return newPet;
 }

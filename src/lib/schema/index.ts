@@ -77,6 +77,15 @@ export type DeleteSittingRequestFormInput = z.infer<
   typeof deleteSittingRequestFormSchema
 >;
 
+export const createPetFormSchema = z.object({
+  name: z.string().min(3).max(50),
+  species: z.string().min(3).max(50),
+  breed: z.string().min(3).max(50).optional(),
+  birthdate: z.coerce.date(),
+});
+
+export type CreatePetFormInput = z.infer<typeof createPetFormSchema>;
+
 export const onboardingPreferencesFormSchema = z.object({
   role: RoleEnum,
   pet: z.boolean(),

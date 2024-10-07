@@ -6,20 +6,29 @@ import CalendarComponent from "~/components/calendar";
 import CreateSittingDialog from "./createsittingdialog";
 import { Button } from "~/components/ui/button";
 import { add } from "date-fns";
+import CreatePetDialog from "./createpetdialog";
 
 export default function Dashboard() {
   return (
     <div className="p-5">
       <h1 className="text-xl">Dashboard</h1>
-      <div>
-        <CreateSittingDialog props={{
-          dateRange: {
-            from: add(new Date(), { hours: 1 }),
-            to: add(new Date(), { days: 1, hours: 1 }),
-          },
-        }}>
+      <div className="flex flex-row gap-3">
+        <CreateSittingDialog
+          props={{
+            dateRange: {
+              from: add(new Date(), { hours: 1 }),
+              to: add(new Date(), { days: 1, hours: 1 }),
+            },
+          }}
+        >
           <Button variant="outline">New Sitting</Button>
         </CreateSittingDialog>
+        {/* Eventually show or hide based on user preferences */}
+        <CreatePetDialog>
+          <Button variant="outline">New Pet</Button>
+        </CreatePetDialog>
+        <Button variant="outline">New House</Button>
+        <Button variant="outline">New Plant</Button>
       </div>
       <div className="pb-5">
         <CalendarComponent />
