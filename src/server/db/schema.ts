@@ -65,10 +65,36 @@ export const sittingRequests = createTable("sitting_requests", {
 
 export const sittingRequestsRelations = relations(
   sittingRequests,
-  ({ one }) => ({
+  ({ one, many }) => ({
     sittingEvents: one(sittingEvents),
+    tasks: many(tasks),
   }),
 );
+
+// Tasks are todo items for a sitting request - potentially in the future images and other attachments could be added
+export const tasks = createTable("tasks", {
+  id: serial("id").primaryKey(),
+  sittingRequestId: integer("sitting_request_id")
+    .references(() => sittingRequests.id, { onDelete: "cascade" })
+    .notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  completed: boolean("completed").notNull().default(false),
+  dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  sittingRequest: one(sittingRequests, {
+    fields: [tasks.sittingRequestId],
+    references: [sittingRequests.id],
+  }),
+}));
 
 // A sitting event is a scheduled sitting based on a sitting request and a sitter
 // Will need additional details connected to the event for the sitter to provide to the owner
