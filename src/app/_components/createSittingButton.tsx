@@ -5,12 +5,10 @@ import CreateSittingDialogue from "./createsittingdialog"
 import React from "react"
 
 export default function CreateSittingButton() {
-    const [open, setOpen] = React.useState(false)
-
     return (
         <>
-            <CreateSittingDialogue isOpen={open} onCloseClick={() => setOpen(false)}>
-                <Button variant="outline" onClick={() => setOpen(true)}>New Sitting</Button>
+            <CreateSittingDialogue >
+                <Button variant="outline">New Sitting</Button>
             </CreateSittingDialogue>
         </>
     )

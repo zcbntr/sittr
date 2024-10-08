@@ -40,7 +40,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
+import { type DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
 
 export default function CreateGroupDialog({
   children,
@@ -60,7 +60,7 @@ export default function CreateGroupDialog({
   });
 
   // -------------------------------------------------------------------------------------------------------
-  // Implement getting all the pets from the database and putting them in a state to be used in the dropdown
+  // Implement getting all the subjects from the database and putting them in a state to be used in the dropdown
   // -------------------------------------------------------------------------------------------------------
 
   async function onSubmit(data: z.infer<typeof createGroupFormSchema>) {
