@@ -204,6 +204,13 @@ export const houseNotes = createTable("house_notes", {
   ),
 });
 
+export const houseNotesRelations = relations(houseNotes, ({ one }) => ({
+  houseDetails: one(houses, {
+    fields: [houseNotes.houseId],
+    references: [houses.id],
+  }),
+}));
+
 export const plants = createTable("plants", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owner_id", { length: 255 }).notNull(),
@@ -237,6 +244,13 @@ export const plantNotes = createTable("plant_notes", {
     () => new Date(),
   ),
 });
+
+export const plantNotesRelations = relations(plantNotes, ({ one }) => ({
+  plantDetails: one(plants, {
+    fields: [plantNotes.plantId],
+    references: [plants.id],
+  }),
+}));
 
 export const groups = createTable("groups", {
   id: serial("id").primaryKey(),
