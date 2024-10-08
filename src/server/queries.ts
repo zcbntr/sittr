@@ -8,6 +8,7 @@ import {
   pets,
   sittingEvents,
   sittingRequests,
+  tasks,
   userPreferances,
 } from "./db/schema";
 import { type SittingTypeEnum } from "~/lib/schema";
@@ -420,6 +421,77 @@ export async function leaveGroup(groupId: number) {
     .returning();
 
   return deletedGroupMember;
+}
+
+export async function getGroupMembers(groupId: number) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const groupMembersList = await db.query.groupMembers.findMany({
+    where: (model, { eq }) => eq(model.groupId, groupId),
+  });
+
+  return groupMembersList;
+}
+
+export async function deleteGroup(groupId: number) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check user is the owner of the group
+  const groupMember = await db.query.groupMembers.findFirst({
+    where: (model, { and, eq }) =>
+      and(
+        eq(model.groupId, groupId),
+        eq(model.userId, user.userId),
+        eq(model.role, "Owner"),
+      ),
+  });
+
+  if (!groupMember) {
+    throw new Error("User is not the owner of the group");
+  }
+
+  const deletedGroup = await db
+    .delete(groups)
+    .where(eq(groups.id, groupId))
+    .returning();
+
+  return deletedGroup;
+}
+
+export async function createTask(
+  name: string,
+  startDate?: Date,
+  endDate?: Date,
+  dueDate?: Date,
+  description?: string,
+) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const newTask = await db
+    .insert(tasks)
+    .values({
+      name: name,
+      ownerId: user.userId,
+      startDate: startDate,
+      endDate: endDate,
+      dueDate: dueDate,
+      description: description,
+    })
+    .execute();
+
+  return newTask;
 }
 
 export async function createPet(

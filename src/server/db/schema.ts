@@ -71,16 +71,20 @@ export const sittingRequestsRelations = relations(
   }),
 );
 
-// Tasks are todo items for a sitting request - potentially in the future images and other attachments could be added
+// Tasks are small todos. They can be associated with a sitting request but not required
+// Can be either due at a certain time or span a certain time period
 export const tasks = createTable("tasks", {
   id: serial("id").primaryKey(),
-  sittingRequestId: integer("sitting_request_id")
-    .references(() => sittingRequests.id, { onDelete: "cascade" })
-    .notNull(),
+  sittingRequestId: integer("sitting_request_id").references(
+    () => sittingRequests.id,
+    { onDelete: "cascade" },
+  ),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   completed: boolean("completed").notNull().default(false),
-  dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
+  dueDate: timestamp("due_date", { withTimezone: true }),
+  startDate: timestamp("start_date", { withTimezone: true }),
+  endDate: timestamp("end_date", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

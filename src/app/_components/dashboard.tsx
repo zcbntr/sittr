@@ -8,6 +8,7 @@ import { Button } from "~/components/ui/button";
 import { add } from "date-fns";
 import CreatePetDialog from "./createpetdialog";
 import CreateGroupDialog from "./creategroupdialog";
+import CreateTaskDialog from "./createtaskdialog";
 
 export default function Dashboard() {
   return (
@@ -24,6 +25,9 @@ export default function Dashboard() {
         >
           <Button variant="outline">New Sitting</Button>
         </CreateSittingDialog>
+        <CreateTaskDialog>
+          <Button variant="outline">New Task</Button>
+        </CreateTaskDialog>
         {/* Eventually show or hide based on user preferences */}
         <CreatePetDialog>
           <Button variant="outline">New Pet</Button>
