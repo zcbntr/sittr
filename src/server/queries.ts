@@ -564,7 +564,7 @@ export async function getOwnedPets() {
         eq(sittingSubjects.entityType, "Pet"),
       ),
     )
-    .as("getOwnedSubjects");
+    .as("get_owned_pet_subjects");
 
   const joinedPets = await db
     .select()
@@ -575,6 +575,7 @@ export async function getOwnedPets() {
   return joinedPets;
 }
 
+// Needs work
 export async function getOwnedSubjects() {
   const user = auth();
 
@@ -587,7 +588,9 @@ export async function getOwnedSubjects() {
     .select()
     .from(sittingSubjects)
     .where(eq(sittingSubjects.ownerId, user.userId))
-    .as("getOwnedSubjects");
+    .as("get_owned_subjects");
+
+  console.log(subjectsList);
 
   const joinedSubjects = await db
     .select()
@@ -596,6 +599,8 @@ export async function getOwnedSubjects() {
     .innerJoin(houses, eq(sittingSubjects.entityId, houses.id))
     .innerJoin(plants, eq(sittingSubjects.entityId, plants.id))
     .execute();
+
+  console.log(joinedSubjects);
 
   return joinedSubjects;
 }

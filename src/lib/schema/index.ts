@@ -170,8 +170,8 @@ export type DateRange = z.infer<typeof dateRangeSchema>;
 
 export const basicGetAPIFormSchema = z
   .object({
-    ids: z.array(z.number()).optional(),
-    all: z.boolean().optional(),
+    ids: z.array(z.number()).optional().nullable(),
+    all: z.boolean().optional().nullable(),
   })
   // Ensure that either ids or all is provided
   .refine((data) => data.ids ?? data.all, {
