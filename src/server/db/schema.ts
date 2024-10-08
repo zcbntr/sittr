@@ -138,6 +138,47 @@ export const sittingSubjects = createTable("sitting_subjects", {
   ),
 });
 
+export const sittingSubjectsRelations = relations(
+  sittingSubjects,
+  ({ one, many }) => ({
+    pet: one(pets),
+    house: one(houses),
+    plant: one(plants),
+    subjectsToGroups: many(subjectsToGroups),
+  }),
+);
+
+export const subjectsToGroups = createTable("subjects_to_groups", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id")
+    .references(() => groups.id, { onDelete: "cascade" })
+    .notNull(),
+  subjectId: integer("subject_id")
+    .references(() => sittingSubjects.id, { onDelete: "cascade" })
+    .notNull(),
+  role: roleEnum("role").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const subjectsToGroupsRelations = relations(
+  subjectsToGroups,
+  ({ one }) => ({
+    group: one(groups, {
+      fields: [subjectsToGroups.groupId],
+      references: [groups.id],
+    }),
+    subject: one(sittingSubjects, {
+      fields: [subjectsToGroups.subjectId],
+      references: [sittingSubjects.id],
+    }),
+  }),
+);
+
 export const pets = createTable("pets", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owner_id", { length: 255 }).notNull(),
@@ -271,6 +312,7 @@ export const groups = createTable("groups", {
 export const groupsRelations = relations(groups, ({ many }) => ({
   groupInviteCodes: many(groupInviteCodes),
   groupMembers: many(groupMembers),
+  sittingSubjects: many(sittingSubjects),
 }));
 
 export const groupMembers = createTable("group_members", {
@@ -288,12 +330,16 @@ export const groupMembers = createTable("group_members", {
   ),
 });
 
-export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
-  group: one(groups, {
-    fields: [groupMembers.groupId],
-    references: [groups.id],
+export const groupMembersRelations = relations(
+  groupMembers,
+  ({ one, many }) => ({
+    group: one(groups, {
+      fields: [groupMembers.groupId],
+      references: [groups.id],
+    }),
+    subjectsToGroups: many(subjectsToGroups),
   }),
-}));
+);
 
 export const groupInviteCodes = createTable("group_invite_codes", {
   id: serial("id").primaryKey(),

@@ -17,7 +17,8 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
   
       const pgRow = await createGroup(
         formData.data.name,
-        formData.data.description
+        formData.data.description,
+        formData.data.sittingSubject
       );
   
       return NextResponse.json(pgRow);
