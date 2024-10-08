@@ -168,9 +168,18 @@ export const dateRangeSchema = z.object({
 
 export type DateRange = z.infer<typeof dateRangeSchema>;
 
-export const getSubjectsFormSchema = z.object({
-  id: z.number().optional(),
-  all: z.boolean().optional(),
-});
+export const getSubjectsFormSchema = z
+  .object({
+    ids: z.array(z.number()).optional(),
+    all: z.boolean().optional(),
+  })
+  // Ensure that either ids or all is provided
+  .refine((data) => data.ids ?? data.all, {
+    message: "Must provide either ids or all",
+  })
+  // Ensure that ids is not empty if provided
+  .refine((data) => !data.ids || data.ids.length > 0, {
+    message: "Ids must not be empty",
+  });
 
 export type GetSubjectsFormInput = z.infer<typeof getSubjectsFormSchema>;

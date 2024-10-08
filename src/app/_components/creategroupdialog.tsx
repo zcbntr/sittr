@@ -44,6 +44,7 @@ export default function CreateGroupDialog({
 
   const [subjects, setSubjects] = React.useState([]);
   const [selectedSubjectIds, setSelectedSubjectIds] = React.useState([]);
+  const [subjectsEmpty, setSubjectsEmpty] = React.useState(false);
 
   const form = useForm<z.infer<typeof createGroupFormSchema>>({
     resolver: zodResolver(createGroupFormSchema),
@@ -51,10 +52,20 @@ export default function CreateGroupDialog({
 
   React.useEffect(() => {
     async function fetchSubjects() {
-      await fetch("api/sittingsubjects")
+      await fetch("api/sittingsubject?all=true")
         .then((res) => res.json())
         .then((data) => {
-          setSubjects(data);
+          if (data.error) {
+            setSubjectsEmpty(true);
+            console.error(data.error);
+            return;
+          }
+
+          if (data.length > 0) {
+            setSubjects(data);
+          } else if (data.length === 0) {
+            setSubjectsEmpty(true);
+          }
         });
     }
 
@@ -131,9 +142,29 @@ export default function CreateGroupDialog({
                 <FormItem className="flex flex-col">
                   <FormLabel>Sitting For</FormLabel>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger disabled={subjectsEmpty} asChild>
                       {/* Should reactively change based on whats selected */}
-                      <Button variant="outline">None</Button>
+                      <Button variant="outline">
+                        {!subjectsEmpty && subjects.length === 0 && (
+                          <div>None</div>
+                        )}
+                        {!subjectsEmpty &&
+                          subjects.length > 0 &&
+                          subjects.length < 3 && (
+                            <div>
+                              {subjects[0].name + " and " + subjects[1].name}
+                            </div>
+                          )}
+                        {subjects.length >= 3 && (
+                          <div>
+                            {subjects[0].name +
+                              ", " +
+                              subjects[1].name +
+                              ", and more"}
+                          </div>
+                        )}
+                        {subjectsEmpty && <div>None</div>}
+                      </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
                       {subjects.map(function (subject, i) {
@@ -170,7 +201,9 @@ export default function CreateGroupDialog({
               )}
             />
             <DialogFooter>
-              <Button type="submit">Create Group</Button>
+              <Button type="submit" disabled={subjectsEmpty}>
+                Create Group
+              </Button>
             </DialogFooter>
           </form>
         </Form>
