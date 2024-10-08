@@ -127,6 +127,7 @@ export const sittingEventsRelations = relations(sittingEvents, ({ one }) => ({
 // Represents Pet, House or Plant sitting subject. Single table for accessing pets, houses and plants in general
 export const sittingSubjects = createTable("sitting_subjects", {
   id: serial("id").primaryKey(),
+  ownerId: varchar("owned_by", { length: 255 }).notNull(),
   entityType: varchar("type", { length: 255 }).notNull(),
   // Foreign key to the Pet, House or Plant table
   entityId: integer("entity_id").notNull(),
@@ -181,7 +182,6 @@ export const subjectsToGroupsRelations = relations(
 
 export const pets = createTable("pets", {
   id: serial("id").primaryKey(),
-  ownerId: varchar("owner_id", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   species: varchar("species", { length: 255 }).notNull(),
   breed: varchar("breed", { length: 255 }),
@@ -195,6 +195,7 @@ export const pets = createTable("pets", {
 });
 
 export const petRelations = relations(pets, ({ one }) => ({
+  subjects: one(sittingSubjects),
   petNotes: one(petNotes),
 }));
 
@@ -221,7 +222,6 @@ export const petNotesRelations = relations(petNotes, ({ one }) => ({
 
 export const houses = createTable("houses", {
   id: serial("id").primaryKey(),
-  ownerId: varchar("owner_id", { length: 255 }).notNull(),
   address: text("address").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
@@ -233,6 +233,7 @@ export const houses = createTable("houses", {
 
 export const houseRelations = relations(houses, ({ one }) => ({
   houseNotes: one(houseNotes),
+  subjects: one(sittingSubjects),
 }));
 
 export const houseNotes = createTable("house_notes", {
@@ -258,7 +259,6 @@ export const houseNotesRelations = relations(houseNotes, ({ one }) => ({
 
 export const plants = createTable("plants", {
   id: serial("id").primaryKey(),
-  ownerId: varchar("owner_id", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   species: varchar("species", { length: 255 }).notNull(),
   lastWatered: timestamp("last_watered", { withTimezone: true }).notNull(),
@@ -274,6 +274,7 @@ export const plants = createTable("plants", {
 
 export const plantRelations = relations(plants, ({ one }) => ({
   plantNotes: one(plantNotes),
+  subjects: one(sittingSubjects),
 }));
 
 export const plantNotes = createTable("plant_notes", {

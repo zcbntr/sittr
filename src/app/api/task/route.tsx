@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { createTaskFormSchema } from "~/lib/schema";
 import { createTask } from "~/server/queries";
 

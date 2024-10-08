@@ -167,3 +167,10 @@ export const dateRangeSchema = z.object({
 });
 
 export type DateRange = z.infer<typeof dateRangeSchema>;
+
+export const getSubjectsFormSchema = z.object({
+  id: z.number().optional(),
+  all: z.boolean().optional(),
+});
+
+export type GetSubjectsFormInput = z.infer<typeof getSubjectsFormSchema>;

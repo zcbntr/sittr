@@ -26,18 +26,9 @@ import {
 import { createGroupFormSchema } from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { type DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
@@ -51,17 +42,24 @@ export default function CreateGroupDialog({
 
   type Checked = DropdownMenuCheckboxItemProps["checked"];
 
-  const [showStatusBar, setShowStatusBar] = React.useState<Checked>(true);
-  const [showActivityBar, setShowActivityBar] = React.useState<Checked>(false);
-  const [showPanel, setShowPanel] = React.useState<Checked>(false);
+  const [subjects, setSubjects] = React.useState([]);
+  const [selectedSubjectIds, setSelectedSubjectIds] = React.useState([]);
 
   const form = useForm<z.infer<typeof createGroupFormSchema>>({
     resolver: zodResolver(createGroupFormSchema),
   });
 
-  // -------------------------------------------------------------------------------------------------------
-  // Implement getting all the subjects from the database and putting them in a state to be used in the dropdown
-  // -------------------------------------------------------------------------------------------------------
+  React.useEffect(() => {
+    async function fetchSubjects() {
+      await fetch("api/sittingsubjects")
+        .then((res) => res.json())
+        .then((data) => {
+          setSubjects(data);
+        });
+    }
+
+    void fetchSubjects();
+  }, []);
 
   async function onSubmit(data: z.infer<typeof createGroupFormSchema>) {
     const res = await fetch("api/group", {
@@ -138,28 +136,30 @@ export default function CreateGroupDialog({
                       <Button variant="outline">None</Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
-                      <DropdownMenuLabel>Appearance</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {}
-                      <DropdownMenuCheckboxItem
-                        checked={showStatusBar}
-                        onCheckedChange={setShowStatusBar}
-                      >
-                        Status Bar
-                      </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem
-                        checked={showActivityBar}
-                        onCheckedChange={setShowActivityBar}
-                        disabled
-                      >
-                        Activity Bar
-                      </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem
-                        checked={showPanel}
-                        onCheckedChange={setShowPanel}
-                      >
-                        Panel
-                      </DropdownMenuCheckboxItem>
+                      {subjects.map(function (subject, i) {
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={i}
+                            checked={subject.id in selectedSubjectIds}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedSubjectIds([
+                                  ...selectedSubjectIds,
+                                  subject.id,
+                                ]);
+                              } else {
+                                setSelectedSubjectIds(
+                                  selectedSubjectIds.filter(
+                                    (sId) => sId !== subject.id,
+                                  ),
+                                );
+                              }
+                            }}
+                          >
+                            {subject.name}
+                          </DropdownMenuCheckboxItem>
+                        );
+                      })}
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <FormDescription>

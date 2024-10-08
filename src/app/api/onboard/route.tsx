@@ -7,7 +7,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<unknown>> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const formData: OnboardingFormInput = await req.json();
     const pgRow = await setUserPreferences(
-      formData.role == "owner",
+      formData.role == "Owner",
       formData.pet,
       formData.house,
       formData.baby,

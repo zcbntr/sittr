@@ -5,9 +5,12 @@ import {
   groupInviteCodes,
   groupMembers,
   groups,
+  houses,
   pets,
+  plants,
   sittingEvents,
   sittingRequests,
+  sittingSubjects,
   tasks,
   userPreferances,
 } from "./db/schema";
@@ -532,9 +535,48 @@ export async function getOwnedPets() {
     throw new Error("Unauthorized");
   }
 
-  const petsList = await db.query.pets.findMany({
-    where: (model, { eq }) => eq(model.ownerId, user.userId),
-  });
+  // Join sittingSubjects with pets
+  const subjectsList = db
+    .select()
+    .from(sittingSubjects)
+    .where(
+      and(
+        eq(sittingSubjects.ownerId, user.userId),
+        eq(sittingSubjects.entityType, "Pet"),
+      ),
+    )
+    .as("getOwnedSubjects");
 
-  return petsList;
+  const joinedPets = await db
+    .select()
+    .from(subjectsList)
+    .innerJoin(pets, eq(sittingSubjects.entityId, pets.id))
+    .execute();
+
+  return joinedPets;
+}
+
+export async function getOwnedSubjects() {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Join sittingSubjects with pets, plants and houses
+  const subjectsList = db
+    .select()
+    .from(sittingSubjects)
+    .where(eq(sittingSubjects.ownerId, user.userId))
+    .as("getOwnedSubjects");
+
+  const joinedSubjects = await db
+    .select()
+    .from(subjectsList)
+    .innerJoin(pets, eq(sittingSubjects.entityId, pets.id))
+    .innerJoin(houses, eq(sittingSubjects.entityId, houses.id))
+    .innerJoin(plants, eq(sittingSubjects.entityId, plants.id))
+    .execute();
+
+  return joinedSubjects;
 }
