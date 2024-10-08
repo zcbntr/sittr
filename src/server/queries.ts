@@ -260,7 +260,7 @@ export async function createGroup(
 
     // Add user to groupMembers table
     const groupMember = await db.insert(groupMembers).values({
-      groupId: newGroup.id,
+      groupId: newGroup[0].id,
       userId: user.userId,
       role: "Owner",
     });
@@ -341,7 +341,7 @@ export async function joinGroup(inviteCode: string) {
     where: (model, { eq }) => eq(model.code, inviteCode),
   });
 
-  if (!inviteCodeRow || !inviteCodeRow.valid) {
+  if (!inviteCodeRow?.valid) {
     throw new Error("Invalid invite code");
   }
 
@@ -514,18 +514,37 @@ export async function createPet(
     throw new Error("Unauthorized");
   }
 
-  const newPet = await db
-    .insert(pets)
-    .values({
-      name: name,
-      ownerId: user.userId,
-      species: species,
-      breed: breed,
-      dob: birthdate,
-    })
-    .execute();
+  await db.transaction(async (db) => {
+    const newPet = await db
+      .insert(pets)
+      .values({
+        name: name,
+        species: species,
+        breed: breed,
+        dob: birthdate,
+      })
+      .returning();
 
-  return newPet;
+    if (!newPet) {
+      db.rollback();
+      throw new Error("Failed to create pet in pet table");
+    }
+
+    const newSittingSubject = await db.insert(sittingSubjects).values({
+      ownerId: user.userId,
+      entityId: newPet[0].id,
+      entityType: "Pet",
+    });
+
+    if (!newSittingSubject) {
+      db.rollback();
+      throw new Error("Failed to create pet link in sittingSubjects table");
+    }
+
+    return newPet;
+  });
+
+  throw new Error("Failed to create pet");
 }
 
 export async function getOwnedPets() {

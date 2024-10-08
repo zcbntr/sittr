@@ -56,11 +56,18 @@ export default function CreatePetDialog({
       body: JSON.stringify(data),
     });
 
-    if (res.ok) {
+    if (!res.ok) {
+      console.log(res);
+      return;
+    }
+
+    const resData = await res.json();
+
+    if (!resData.error) {
       setOpen(false);
       document.dispatchEvent(new Event("petCreated"));
     } else {
-      console.log(res);
+      console.log(resData);
     }
   }
 

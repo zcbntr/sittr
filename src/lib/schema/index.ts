@@ -168,7 +168,7 @@ export const dateRangeSchema = z.object({
 
 export type DateRange = z.infer<typeof dateRangeSchema>;
 
-export const getSubjectsFormSchema = z
+export const basicGetAPIFormSchema = z
   .object({
     ids: z.array(z.number()).optional(),
     all: z.boolean().optional(),
@@ -182,4 +182,4 @@ export const getSubjectsFormSchema = z
     message: "Ids must not be empty",
   });
 
-export type GetSubjectsFormInput = z.infer<typeof getSubjectsFormSchema>;
+export type BasicGetAPIFormSchema = z.infer<typeof basicGetAPIFormSchema>;

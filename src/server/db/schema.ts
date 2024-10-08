@@ -195,8 +195,11 @@ export const pets = createTable("pets", {
 });
 
 export const petRelations = relations(pets, ({ one }) => ({
-  subjects: one(sittingSubjects),
   petNotes: one(petNotes),
+  sittingSubjects: one(sittingSubjects, {
+    fields: [pets.id],
+    references: [sittingSubjects.entityId],
+  }),
 }));
 
 export const petNotes = createTable("pet_notes", {
@@ -233,7 +236,10 @@ export const houses = createTable("houses", {
 
 export const houseRelations = relations(houses, ({ one }) => ({
   houseNotes: one(houseNotes),
-  subjects: one(sittingSubjects),
+  sittingSubjects: one(sittingSubjects, {
+    fields: [houses.id],
+    references: [sittingSubjects.entityId],
+  }),
 }));
 
 export const houseNotes = createTable("house_notes", {
@@ -274,7 +280,10 @@ export const plants = createTable("plants", {
 
 export const plantRelations = relations(plants, ({ one }) => ({
   plantNotes: one(plantNotes),
-  subjects: one(sittingSubjects),
+  sittingSubjects: one(sittingSubjects, {
+    fields: [plants.id],
+    references: [sittingSubjects.entityId],
+  }),
 }));
 
 export const plantNotes = createTable("plant_notes", {
@@ -313,7 +322,7 @@ export const groups = createTable("groups", {
 export const groupsRelations = relations(groups, ({ many }) => ({
   groupInviteCodes: many(groupInviteCodes),
   groupMembers: many(groupMembers),
-  sittingSubjects: many(sittingSubjects),
+  subjectsToGroups: many(subjectsToGroups),
 }));
 
 export const groupMembers = createTable("group_members", {
@@ -331,16 +340,12 @@ export const groupMembers = createTable("group_members", {
   ),
 });
 
-export const groupMembersRelations = relations(
-  groupMembers,
-  ({ one, many }) => ({
-    group: one(groups, {
-      fields: [groupMembers.groupId],
-      references: [groups.id],
-    }),
-    subjectsToGroups: many(subjectsToGroups),
+export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
+  group: one(groups, {
+    fields: [groupMembers.groupId],
+    references: [groups.id],
   }),
-);
+}));
 
 export const groupInviteCodes = createTable("group_invite_codes", {
   id: serial("id").primaryKey(),

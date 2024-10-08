@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getSubjectsFormSchema } from "~/lib/schema";
+import { basicGetAPIFormSchema } from "~/lib/schema";
 import { getOwnedSubjects } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
-    const requestParams = getSubjectsFormSchema.safeParse({
+    const requestParams = basicGetAPIFormSchema.safeParse({
       ids: req.nextUrl.searchParams.get("ids"),
       all: req.nextUrl.searchParams.get("all") === "true",
     });
