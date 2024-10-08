@@ -86,6 +86,22 @@ export const createPetFormSchema = z.object({
 
 export type CreatePetFormInput = z.infer<typeof createPetFormSchema>;
 
+export const createGroupFormSchema = z.object({
+  name: z
+    .string()
+    .min(3, { message: "Name must be at least 3 characters" })
+    .max(50, { message: "Name must be less than 50 characters" }),
+  description: z
+    .string()
+    .max(500, {
+      message: "Description must be less than 500 characters",
+    })
+    .optional(),
+  relatedSittingSubjects: z.array(z.number()),
+});
+
+export type CreateGroupFormInput = z.infer<typeof createGroupFormSchema>;
+
 export const onboardingPreferencesFormSchema = z.object({
   role: RoleEnum,
   pet: z.boolean(),

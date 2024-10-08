@@ -224,7 +224,7 @@ export async function setUserPreferences(
   return preferences;
 }
 
-export async function createGroup(name: string) {
+export async function createGroup(name: string, description?: string) {
   const user = auth();
 
   if (!user.userId) {
@@ -240,6 +240,7 @@ export async function createGroup(name: string) {
       .insert(groups)
       .values({
         name: name,
+        description: description,
       })
       .returning();
 
