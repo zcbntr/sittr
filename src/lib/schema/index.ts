@@ -145,7 +145,7 @@ export const createGroupFormSchema = z.object({
       message: "Description must be less than 500 characters",
     })
     .optional(),
-  relatedSittingSubjects: z.array(z.number()),
+  sittingSubjects: z.array(z.number()),
 });
 
 export type CreateGroupFormInput = z.infer<typeof createGroupFormSchema>;

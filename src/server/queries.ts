@@ -524,3 +524,17 @@ export async function createPet(
 
   return newPet;
 }
+
+export async function getOwnedPets() {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const petsList = await db.query.pets.findMany({
+    where: (model, { eq }) => eq(model.ownerId, user.userId),
+  });
+
+  return petsList;
+}

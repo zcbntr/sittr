@@ -25,6 +25,22 @@ import {
 } from "~/components/ui/form";
 import { createGroupFormSchema } from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
 
 export default function CreateGroupDialog({
   children,
@@ -33,9 +49,19 @@ export default function CreateGroupDialog({
 }) {
   const [open, setOpen] = React.useState(false);
 
+  type Checked = DropdownMenuCheckboxItemProps["checked"];
+
+  const [showStatusBar, setShowStatusBar] = React.useState<Checked>(true);
+  const [showActivityBar, setShowActivityBar] = React.useState<Checked>(false);
+  const [showPanel, setShowPanel] = React.useState<Checked>(false);
+
   const form = useForm<z.infer<typeof createGroupFormSchema>>({
     resolver: zodResolver(createGroupFormSchema),
   });
+
+  // -------------------------------------------------------------------------------------------------------
+  // Implement getting all the pets from the database and putting them in a state to be used in the dropdown
+  // -------------------------------------------------------------------------------------------------------
 
   async function onSubmit(data: z.infer<typeof createGroupFormSchema>) {
     const res = await fetch("api/group", {
@@ -102,13 +128,40 @@ export default function CreateGroupDialog({
             />
             <FormField
               control={form.control}
-              name="relatedSittingSubjects"
+              name="sittingSubjects"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Sitting For</FormLabel>
-                  <FormControl>
-                    <Input placeholder="None Selected" {...field} />
-                  </FormControl>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      {/* Should reactively change based on whats selected */}
+                      <Button variant="outline">None</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {}
+                      <DropdownMenuCheckboxItem
+                        checked={showStatusBar}
+                        onCheckedChange={setShowStatusBar}
+                      >
+                        Status Bar
+                      </DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem
+                        checked={showActivityBar}
+                        onCheckedChange={setShowActivityBar}
+                        disabled
+                      >
+                        Activity Bar
+                      </DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem
+                        checked={showPanel}
+                        onCheckedChange={setShowPanel}
+                      >
+                        Panel
+                      </DropdownMenuCheckboxItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <FormDescription>
                     Who or what the group will sit for.
                   </FormDescription>
