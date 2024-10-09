@@ -52,7 +52,7 @@ export default function CreateGroupDialog({
 
   React.useEffect(() => {
     async function fetchSubjects() {
-      await fetch("api/pet?all=true")
+      await fetch("api/sittingsubject?all=true")
         .then((res) => res.json())
         .then((data) => {
           if (data.error) {

@@ -1,11 +1,19 @@
 import path from "path";
 import { z } from "zod";
 
+// -----------------------------------------------------------------------------
+// General schemas
+// -----------------------------------------------------------------------------
+
 const SittingTypeEnum = z.enum(["Pet", "House", "Baby", "Plant"]);
 export type SittingTypeEnum = z.infer<typeof SittingTypeEnum>;
 
 const RoleEnum = z.enum(["Owner", "Sitter"]);
 export type RoleEnum = z.infer<typeof RoleEnum>;
+
+// -----------------------------------------------------------------------------
+// Form schemas
+// -----------------------------------------------------------------------------
 
 export const createSittingRequestFormSchema = z
   .object({
@@ -183,3 +191,42 @@ export const basicGetAPIFormSchema = z
   });
 
 export type BasicGetAPIFormSchema = z.infer<typeof basicGetAPIFormSchema>;
+
+// -----------------------------------------------------------------------------
+// Response schemas
+// -----------------------------------------------------------------------------
+
+export const petSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  species: z.string(),
+  breed: z.string().optional().nullable(),
+  dob: z.date(),
+});
+
+export type Pet = z.infer<typeof petSchema>;
+
+export const houseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  address: z.string().optional().nullable(),
+});
+
+export type House = z.infer<typeof houseSchema>;
+
+export const plantSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  species: z.string().optional().nullable(),
+  lastWatered: z.date(),
+});
+
+export type Plant = z.infer<typeof plantSchema>;
+
+export const sittingSubjectSchema = z.union([
+  petSchema,
+  houseSchema,
+  plantSchema,
+]);
+
+export type SittingSubject = z.infer<typeof sittingSubjectSchema>;

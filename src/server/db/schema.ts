@@ -225,7 +225,8 @@ export const petNotesRelations = relations(petNotes, ({ one }) => ({
 
 export const houses = createTable("houses", {
   id: serial("id").primaryKey(),
-  address: text("address").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  address: text("address"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

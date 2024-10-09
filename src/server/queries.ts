@@ -14,7 +14,16 @@ import {
   tasks,
   userPreferances,
 } from "./db/schema";
-import { type SittingTypeEnum } from "~/lib/schema";
+import {
+  House,
+  houseSchema,
+  Pet,
+  petSchema,
+  Plant,
+  plantSchema,
+  SittingSubject,
+  type SittingTypeEnum,
+} from "~/lib/schema";
 import { sha256 } from "crypto-hash";
 
 export async function getOwnedSittingRequests() {
@@ -547,7 +556,7 @@ export async function createPet(
   throw new Error("Failed to create pet");
 }
 
-export async function getOwnedPets() {
+export async function getOwnedPets(): Promise<Pet[]> {
   const user = auth();
 
   if (!user.userId) {
@@ -576,17 +585,28 @@ export async function getOwnedPets() {
     .innerJoin(pets, eq(subjectsList.entityId, pets.id))
     .execute();
 
-  return joinedPets;
+  // Turn into zod pet type
+  const petsList: Pet[] = joinedPets.map((pet) => {
+    return petSchema.parse({
+      id: pet.pets.id,
+      name: pet.pets.name,
+      species: pet.pets.species,
+      breed: pet.pets.breed,
+      dob: pet.pets.dob,
+    });
+  });
+
+  return petsList;
 }
 
-export async function getOwnedSubjects() {
+export async function getOwnedHouses(): Promise<House[]> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  // Join sittingSubjects with pets, plants and houses
+  // Join sittingSubjects with houses
   const subjectsList = db
     .select({
       subjectId: sittingSubjects.id,
@@ -594,17 +614,92 @@ export async function getOwnedSubjects() {
       entityId: sittingSubjects.entityId,
     })
     .from(sittingSubjects)
-    .where(eq(sittingSubjects.ownerId, user.userId))
-    .as("owned_subjects");
+    .where(
+      and(
+        eq(sittingSubjects.ownerId, user.userId),
+        eq(sittingSubjects.entityType, "House"),
+      ),
+    )
+    .as("owned_house_subjects");
 
-  // This approach will not work - need to use a union or something else
-  const joinedSubjects = await db
+  const joinedHouses = await db
     .select()
     .from(subjectsList)
-    .innerJoin(pets, eq(subjectsList.entityId, pets.id))
     .innerJoin(houses, eq(subjectsList.entityId, houses.id))
+    .execute();
+
+  // Turn into zod house type
+  const housesList: House[] = joinedHouses.map((house) => {
+    return houseSchema.parse({
+      id: house.houses.id,
+      name: house.houses.name,
+      address: house.houses.address,
+    });
+  });
+
+  return housesList;
+}
+
+export async function getOwnedPlants(): Promise<Plant[]> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Join sittingSubjects with plants
+  const subjectsList = db
+    .select({
+      subjectId: sittingSubjects.id,
+      entityType: sittingSubjects.entityType,
+      entityId: sittingSubjects.entityId,
+    })
+    .from(sittingSubjects)
+    .where(
+      and(
+        eq(sittingSubjects.ownerId, user.userId),
+        eq(sittingSubjects.entityType, "Plant"),
+      ),
+    )
+    .as("owned_plant_subjects");
+
+  const joinedPlants = await db
+    .select()
+    .from(subjectsList)
     .innerJoin(plants, eq(subjectsList.entityId, plants.id))
     .execute();
 
-  return joinedSubjects;
+  // Turn into zod plant type
+  const plantsList: Plant[] = joinedPlants.map((plant) => {
+    return plantSchema.parse({
+      id: plant.plants.id,
+      name: plant.plants.name,
+      species: plant.plants.species,
+      lastWatered: plant.plants.lastWatered,
+    });
+  });
+
+  return plantsList;
+}
+
+// Make this a return a defined type with zod so the frontend can be made nicer
+export async function getOwnedSubjects(): Promise<SittingSubject[]> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Get pets, houses, and plants
+  const petsList = await getOwnedPets();
+  console.log("petsList: " + petsList);
+  const housesList = await getOwnedHouses();
+  console.log("housesList: " + housesList);
+  const plantsList = await getOwnedPlants();
+  console.log("plantsList: " + plantsList);
+
+  // Combine all subjects
+  const allSubjects = [...petsList, ...housesList, ...plantsList];
+
+  return allSubjects;
 }
