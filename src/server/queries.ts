@@ -588,13 +588,14 @@ export async function getOwnedPets(): Promise<Pet[]> {
     .execute();
 
   // Turn into zod pet type
-  const petsList: Pet[] = joinedPets.map((pet) => {
+  const petsList: Pet[] = joinedPets.map((petSubject) => {
     return petSchema.parse({
-      id: pet.pets.id,
-      name: pet.pets.name,
-      species: pet.pets.species,
-      breed: pet.pets.breed,
-      dob: pet.pets.dob,
+      id: petSubject.pets.id,
+      subjectId: petSubject.owned_pet_subjects.subjectId,
+      name: petSubject.pets.name,
+      species: petSubject.pets.species,
+      breed: petSubject.pets.breed,
+      dob: petSubject.pets.dob,
     });
   });
 
@@ -631,11 +632,12 @@ export async function getOwnedHouses(): Promise<House[]> {
     .execute();
 
   // Turn into zod house type
-  const housesList: House[] = joinedHouses.map((house) => {
+  const housesList: House[] = joinedHouses.map((houseSubject) => {
     return houseSchema.parse({
-      id: house.houses.id,
-      name: house.houses.name,
-      address: house.houses.address,
+      id: houseSubject.houses.id,
+      subjectId: houseSubject.owned_house_subjects.subjectId,
+      name: houseSubject.houses.name,
+      address: houseSubject.houses.address,
     });
   });
 
@@ -672,12 +674,13 @@ export async function getOwnedPlants(): Promise<Plant[]> {
     .execute();
 
   // Turn into zod plant type
-  const plantsList: Plant[] = joinedPlants.map((plant) => {
+  const plantsList: Plant[] = joinedPlants.map((plantSubject) => {
     return plantSchema.parse({
-      id: plant.plants.id,
-      name: plant.plants.name,
-      species: plant.plants.species,
-      lastWatered: plant.plants.lastWatered,
+      id: plantSubject.plants.id,
+      subjectId: plantSubject.owned_plant_subjects.subjectId,
+      name: plantSubject.plants.name,
+      species: plantSubject.plants.species,
+      lastWatered: plantSubject.plants.lastWatered,
     });
   });
 

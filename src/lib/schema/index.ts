@@ -198,6 +198,7 @@ export type BasicGetAPIFormSchema = z.infer<typeof basicGetAPIFormSchema>;
 
 export const petSchema = z.object({
   id: z.number(),
+  subjectId: z.number().optional().nullable(),
   name: z.string(),
   species: z.string(),
   breed: z.string().optional().nullable(),
@@ -208,6 +209,7 @@ export type Pet = z.infer<typeof petSchema>;
 
 export const houseSchema = z.object({
   id: z.number(),
+  subjectId: z.number().optional().nullable(),
   name: z.string(),
   address: z.string().optional().nullable(),
 });
@@ -216,6 +218,7 @@ export type House = z.infer<typeof houseSchema>;
 
 export const plantSchema = z.object({
   id: z.number(),
+  subjectId: z.number().optional().nullable(),
   name: z.string(),
   species: z.string().optional().nullable(),
   lastWatered: z.date(),

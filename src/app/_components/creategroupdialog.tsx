@@ -31,7 +31,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { type DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
 import { SittingSubject } from "~/lib/schema/index";
 
 export default function CreateGroupDialog({
@@ -40,8 +39,6 @@ export default function CreateGroupDialog({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
-
-  type Checked = DropdownMenuCheckboxItemProps["checked"];
 
   const [subjects, setSubjects] = React.useState<SittingSubject[]>([]);
   const [selectedSubjectIds, setSelectedSubjectIds] = React.useState<number[]>(
@@ -148,8 +145,8 @@ export default function CreateGroupDialog({
                   <FormLabel>Sitting For</FormLabel>
                   <DropdownMenu>
                     <DropdownMenuTrigger disabled={subjectsEmpty} asChild>
-                      {/* Should reactively change based on whats selected */}
                       <Button variant="outline">
+                        {/* Probably a better way of doing this */}
                         {!subjectsEmpty && selectedSubjectIds.length === 0 && (
                           <div>None</div>
                         )}
@@ -157,28 +154,30 @@ export default function CreateGroupDialog({
                           <div>
                             {
                               subjects.find(
-                                (x) => x.id == selectedSubjectIds[0],
+                                (x) => x.subjectId == selectedSubjectIds[0],
                               ).name
                             }
                           </div>
                         )}
                         {!subjectsEmpty && selectedSubjectIds.length === 2 && (
                           <div>
-                            {subjects.find((x) => x.id == selectedSubjectIds[0])
-                              .name +
+                            {subjects.find(
+                              (x) => x.subjectId == selectedSubjectIds[0],
+                            ).name +
                               " and " +
                               subjects.find(
-                                (x) => x.id == selectedSubjectIds[1],
+                                (x) => x.subjectId == selectedSubjectIds[1],
                               ).name}
                           </div>
                         )}
                         {selectedSubjectIds.length >= 3 && (
                           <div>
-                            {subjects.find((x) => x.id == selectedSubjectIds[0])
-                              .name +
+                            {subjects.find(
+                              (x) => x.subjectId == selectedSubjectIds[0],
+                            ).name +
                               ", " +
                               subjects.find(
-                                (x) => x.id == selectedSubjectIds[1],
+                                (x) => x.subjectId == selectedSubjectIds[1],
                               ).name +
                               ", and " +
                               (selectedSubjectIds.length - 2).toString() +
@@ -193,17 +192,21 @@ export default function CreateGroupDialog({
                         return (
                           <DropdownMenuCheckboxItem
                             key={i}
-                            checked={subject.id in selectedSubjectIds}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
+                            checked={selectedSubjectIds.includes(
+                              subject.subjectId,
+                            )}
+                            onCheckedChange={() => {
+                              if (
+                                !selectedSubjectIds.includes(subject.subjectId)
+                              ) {
                                 setSelectedSubjectIds([
                                   ...selectedSubjectIds,
-                                  subject.id,
+                                  subject.subjectId,
                                 ]);
                               } else {
                                 setSelectedSubjectIds(
                                   selectedSubjectIds.filter(
-                                    (sId) => sId !== subject.id,
+                                    (sId) => sId !== subject.subjectId,
                                   ),
                                 );
                               }
