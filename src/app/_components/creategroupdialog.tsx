@@ -83,11 +83,18 @@ export default function CreateGroupDialog({
       body: JSON.stringify(data),
     });
 
-    if (res.ok) {
+    if (!res.ok) {
+      console.log(res);
+      return;
+    }
+
+    const resData = await res.json();
+
+    if (!resData.error) {
       setOpen(false);
       document.dispatchEvent(new Event("groupCreated"));
     } else {
-      console.log(res);
+      console.log(resData);
     }
   }
 
@@ -203,8 +210,17 @@ export default function CreateGroupDialog({
                                   ...selectedSubjectIds,
                                   subject.subjectId,
                                 ]);
+                                field.onChange([
+                                  ...selectedSubjectIds,
+                                  subject.subjectId,
+                                ]);
                               } else {
                                 setSelectedSubjectIds(
+                                  selectedSubjectIds.filter(
+                                    (sId) => sId !== subject.subjectId,
+                                  ),
+                                );
+                                field.onChange(
                                   selectedSubjectIds.filter(
                                     (sId) => sId !== subject.subjectId,
                                   ),

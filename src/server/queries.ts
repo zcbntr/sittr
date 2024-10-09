@@ -13,6 +13,7 @@ import {
   sittingEvents,
   sittingRequests,
   sittingSubjects,
+  subjectsToGroups,
   tasks,
   userPreferances,
 } from "./db/schema";
@@ -260,7 +261,6 @@ export async function createGroup(
       .values({
         name: name,
         description: description,
-        sittingSubjects: sittingSubjects,
       })
       .returning();
 
@@ -279,6 +279,19 @@ export async function createGroup(
     if (!groupMember) {
       db.rollback();
       throw new Error("Failed to add user to group");
+    }
+
+    // Add sitting subjects to group
+    for (const subjectId of sittingSubjects) {
+      const subject = await db.insert(subjectsToGroups).values({
+        groupId: newGroup[0].id,
+        subjectId: subjectId,
+      });
+
+      if (!subject) {
+        db.rollback();
+        throw new Error("Failed to add subject to group");
+      }
     }
   });
 

@@ -129,7 +129,7 @@ export const sittingSubjects = createTable("sitting_subjects", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owned_by", { length: 255 }).notNull(),
   entityType: varchar("type", { length: 255 }).notNull(),
-  // Foreign key to the Pet, House or Plant table
+  // Foreign key to the Pet, House or Plant table - not sure how to do delete cascade here
   entityId: integer("entity_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
@@ -157,7 +157,6 @@ export const subjectsToGroups = createTable("subjects_to_groups", {
   subjectId: integer("subject_id")
     .references(() => sittingSubjects.id, { onDelete: "cascade" })
     .notNull(),
-  role: roleEnum("role").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
