@@ -716,6 +716,44 @@ export async function getOwnedHouses(): Promise<House[]> {
   return housesList;
 }
 
+export async function createHouse(name: string, address: string) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  await db.transaction(async (db) => {
+    const newHouse = await db
+      .insert(houses)
+      .values({
+        name: name,
+        address: address,
+      })
+      .returning();
+
+    if (!newHouse) {
+      db.rollback();
+      throw new Error("Failed to create house in house table");
+    }
+
+    const newSittingSubject = await db.insert(sittingSubjects).values({
+      ownerId: user.userId,
+      entityId: newHouse[0].id,
+      entityType: "House",
+    });
+
+    if (!newSittingSubject) {
+      db.rollback();
+      throw new Error("Failed to create house link in sittingSubjects table");
+    }
+
+    return newHouse;
+  });
+
+  throw new Error("Failed to create house");
+}
+
 export async function getOwnedPlants(): Promise<Plant[]> {
   const user = auth();
 
@@ -757,6 +795,51 @@ export async function getOwnedPlants(): Promise<Plant[]> {
   });
 
   return plantsList;
+}
+
+export async function createPlant(
+  name: string,
+  species: string,
+  lastWatered: Date,
+  wateringFrequency: number,
+) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  await db.transaction(async (db) => {
+    const newPlant = await db
+      .insert(plants)
+      .values({
+        name: name,
+        species: species,
+        lastWatered: lastWatered,
+        wateringFrequency: wateringFrequency,
+      })
+      .returning();
+
+    if (!newPlant) {
+      db.rollback();
+      throw new Error("Failed to create plant in plant table");
+    }
+
+    const newSittingSubject = await db.insert(sittingSubjects).values({
+      ownerId: user.userId,
+      entityId: newPlant[0].id,
+      entityType: "Plant",
+    });
+
+    if (!newSittingSubject) {
+      db.rollback();
+      throw new Error("Failed to create plant link in sittingSubjects table");
+    }
+
+    return newPlant;
+  });
+
+  throw new Error("Failed to create plant");
 }
 
 // Make this a return a defined type with zod so the frontend can be made nicer

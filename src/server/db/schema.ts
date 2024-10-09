@@ -267,10 +267,9 @@ export const houseNotesRelations = relations(houseNotes, ({ one }) => ({
 export const plants = createTable("plants", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
-  species: varchar("species", { length: 255 }).notNull(),
+  species: varchar("species", { length: 255 }),
   lastWatered: timestamp("last_watered", { withTimezone: true }).notNull(),
   wateringFrequency: integer("watering_frequency").notNull(),
-  notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
