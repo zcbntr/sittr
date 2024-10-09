@@ -74,7 +74,7 @@ export default function CalendarComponent() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(
+        const sittingRequestsRes = await fetch(
           "api/sittingrequest?" +
             new URLSearchParams({
               from: startOfMonth(new Date()).toString(),
@@ -87,7 +87,7 @@ export default function CalendarComponent() {
             },
           },
         );
-        const data: unknown = await res.json();
+        const data: unknown = await sittingRequestsRes.json();
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         const events: CalendarEvent[] = data.map((event) => {

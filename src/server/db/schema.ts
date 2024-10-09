@@ -75,6 +75,7 @@ export const sittingRequestsRelations = relations(
 // Can be either due at a certain time or span a certain time period
 export const tasks = createTable("tasks", {
   id: serial("id").primaryKey(),
+  ownerId: varchar("owner_id", { length: 255 }).notNull(),
   sittingRequestId: integer("sitting_request_id").references(
     () => sittingRequests.id,
     { onDelete: "cascade" },

@@ -154,6 +154,93 @@ export async function getOwnerUpcommingSittings() {
   return upcommingSittingEventsAsOwner;
 }
 
+export async function getOwnedTasks() {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const userTasks = await db.query.tasks.findMany({
+    where: (model, { eq }) => eq(model.ownerId, user.userId),
+    orderBy: (model, { desc }) => desc(model.createdAt),
+  });
+
+  return userTasks;
+}
+
+export async function createTask(
+  name: string,
+  startDate?: Date,
+  endDate?: Date,
+  dueDate?: Date,
+  description?: string,
+) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const newTask = await db
+    .insert(tasks)
+    .values({
+      name: name,
+      ownerId: user.userId,
+      startDate: startDate,
+      endDate: endDate,
+      dueDate: dueDate,
+      description: description,
+    })
+    .execute();
+
+  return newTask;
+}
+
+export async function updateTask(
+  id: number,
+  name: string,
+  startDate?: Date,
+  endDate?: Date,
+  dueDate?: Date,
+  description?: string,
+) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const updatedTask = await db
+    .update(tasks)
+    .set({
+      name: name,
+      startDate: startDate,
+      endDate: endDate,
+      dueDate: dueDate,
+      description: description,
+    })
+    .where(and(eq(tasks.id, id), eq(tasks.ownerId, user.userId)))
+    .execute();
+
+  return updatedTask;
+}
+
+export async function deleteTask(id: number) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const deletedTask = await db
+    .delete(tasks)
+    .where(and(eq(tasks.id, id), eq(tasks.ownerId, user.userId)))
+    .execute();
+
+  return deletedTask;
+}
+
 export async function getSitterUpcommingSittingEvents() {
   const user = auth();
 
@@ -496,34 +583,6 @@ export async function deleteGroup(groupId: number) {
     .returning();
 
   return deletedGroup;
-}
-
-export async function createTask(
-  name: string,
-  startDate?: Date,
-  endDate?: Date,
-  dueDate?: Date,
-  description?: string,
-) {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const newTask = await db
-    .insert(tasks)
-    .values({
-      name: name,
-      ownerId: user.userId,
-      startDate: startDate,
-      endDate: endDate,
-      dueDate: dueDate,
-      description: description,
-    })
-    .execute();
-
-  return newTask;
 }
 
 export async function createPet(
