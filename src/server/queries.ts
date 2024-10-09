@@ -1,3 +1,5 @@
+"use server";
+
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, desc, and } from "drizzle-orm";
@@ -692,11 +694,8 @@ export async function getOwnedSubjects(): Promise<SittingSubject[]> {
 
   // Get pets, houses, and plants
   const petsList = await getOwnedPets();
-  console.log("petsList: " + petsList);
   const housesList = await getOwnedHouses();
-  console.log("housesList: " + housesList);
   const plantsList = await getOwnedPlants();
-  console.log("plantsList: " + plantsList);
 
   // Combine all subjects
   const allSubjects = [...petsList, ...housesList, ...plantsList];

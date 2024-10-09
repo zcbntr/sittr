@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { type DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
+import { SittingSubject } from "~/lib/schema/index";
 
 export default function CreateGroupDialog({
   children,
@@ -42,9 +43,11 @@ export default function CreateGroupDialog({
 
   type Checked = DropdownMenuCheckboxItemProps["checked"];
 
-  const [subjects, setSubjects] = React.useState([]);
-  const [selectedSubjectIds, setSelectedSubjectIds] = React.useState([]);
-  const [subjectsEmpty, setSubjectsEmpty] = React.useState(false);
+  const [subjects, setSubjects] = React.useState<SittingSubject[]>([]);
+  const [selectedSubjectIds, setSelectedSubjectIds] = React.useState<number[]>(
+    [],
+  );
+  const [subjectsEmpty, setSubjectsEmpty] = React.useState<boolean>(false);
 
   const form = useForm<z.infer<typeof createGroupFormSchema>>({
     resolver: zodResolver(createGroupFormSchema),
@@ -154,32 +157,32 @@ export default function CreateGroupDialog({
                           <div>
                             {
                               subjects.find(
-                                (x) => x.pets.id == selectedSubjectIds[0],
-                              ).pets.name
+                                (x) => x.id == selectedSubjectIds[0],
+                              ).name
                             }
                           </div>
                         )}
                         {!subjectsEmpty && selectedSubjectIds.length === 2 && (
                           <div>
-                            {subjects.find(
-                              (x) => x.pets.id == selectedSubjectIds[0],
-                            ).pets.name +
+                            {subjects.find((x) => x.id == selectedSubjectIds[0])
+                              .name +
                               " and " +
                               subjects.find(
-                                (x) => x.pets.id == selectedSubjectIds[1],
-                              ).pets.name}
+                                (x) => x.id == selectedSubjectIds[1],
+                              ).name}
                           </div>
                         )}
                         {selectedSubjectIds.length >= 3 && (
                           <div>
-                            {subjects.find(
-                              (x) => x.pets.id == selectedSubjectIds[0],
-                            ).pets.name +
+                            {subjects.find((x) => x.id == selectedSubjectIds[0])
+                              .name +
                               ", " +
                               subjects.find(
-                                (x) => x.pets.id == selectedSubjectIds[1],
-                              ).pets.name +
-                              ", and " + (selectedSubjectIds.length - 2).toString() + " more"}
+                                (x) => x.id == selectedSubjectIds[1],
+                              ).name +
+                              ", and " +
+                              (selectedSubjectIds.length - 2).toString() +
+                              " more"}
                           </div>
                         )}
                         {subjectsEmpty && <div>Nothing to display</div>}
@@ -190,23 +193,23 @@ export default function CreateGroupDialog({
                         return (
                           <DropdownMenuCheckboxItem
                             key={i}
-                            checked={subject.pets.id in selectedSubjectIds}
+                            checked={subject.id in selectedSubjectIds}
                             onCheckedChange={(checked) => {
                               if (checked) {
                                 setSelectedSubjectIds([
                                   ...selectedSubjectIds,
-                                  subject.pets.id,
+                                  subject.id,
                                 ]);
                               } else {
                                 setSelectedSubjectIds(
                                   selectedSubjectIds.filter(
-                                    (sId) => sId !== subject.pets.id,
+                                    (sId) => sId !== subject.id,
                                   ),
                                 );
                               }
                             }}
                           >
-                            {subject.pets.name}
+                            {subject.name}
                           </DropdownMenuCheckboxItem>
                         );
                       })}
