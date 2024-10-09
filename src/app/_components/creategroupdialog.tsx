@@ -52,7 +52,7 @@ export default function CreateGroupDialog({
 
   React.useEffect(() => {
     async function fetchSubjects() {
-      await fetch("api/sittingsubject?all=true")
+      await fetch("api/pet?all=true")
         .then((res) => res.json())
         .then((data) => {
           if (data.error) {
@@ -60,6 +60,8 @@ export default function CreateGroupDialog({
             console.error(data.error);
             return;
           }
+
+          console.log(data);
 
           if (data.length > 0) {
             setSubjects(data);
@@ -145,25 +147,42 @@ export default function CreateGroupDialog({
                     <DropdownMenuTrigger disabled={subjectsEmpty} asChild>
                       {/* Should reactively change based on whats selected */}
                       <Button variant="outline">
-                        {!subjectsEmpty && subjects.length === 0 && (
+                        {!subjectsEmpty && selectedSubjectIds.length === 0 && (
                           <div>None</div>
                         )}
-                        {!subjectsEmpty &&
-                          subjects.length > 0 &&
-                          subjects.length < 3 && (
-                            <div>
-                              {subjects[0].name + " and " + subjects[1].name}
-                            </div>
-                          )}
-                        {subjects.length >= 3 && (
+                        {!subjectsEmpty && selectedSubjectIds.length === 1 && (
                           <div>
-                            {subjects[0].name +
-                              ", " +
-                              subjects[1].name +
-                              ", and more"}
+                            {
+                              subjects.find(
+                                (x) => x.pets.id == selectedSubjectIds[0],
+                              ).pets.name
+                            }
                           </div>
                         )}
-                        {subjectsEmpty && <div>None</div>}
+                        {!subjectsEmpty && selectedSubjectIds.length === 2 && (
+                          <div>
+                            {subjects.find(
+                              (x) => x.pets.id == selectedSubjectIds[0],
+                            ).pets.name +
+                              " and " +
+                              subjects.find(
+                                (x) => x.pets.id == selectedSubjectIds[1],
+                              ).pets.name}
+                          </div>
+                        )}
+                        {selectedSubjectIds.length >= 3 && (
+                          <div>
+                            {subjects.find(
+                              (x) => x.pets.id == selectedSubjectIds[0],
+                            ).pets.name +
+                              ", " +
+                              subjects.find(
+                                (x) => x.pets.id == selectedSubjectIds[1],
+                              ).pets.name +
+                              ", and " + (selectedSubjectIds.length - 2).toString() + " more"}
+                          </div>
+                        )}
+                        {subjectsEmpty && <div>Nothing to display</div>}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
@@ -171,23 +190,23 @@ export default function CreateGroupDialog({
                         return (
                           <DropdownMenuCheckboxItem
                             key={i}
-                            checked={subject.id in selectedSubjectIds}
+                            checked={subject.pets.id in selectedSubjectIds}
                             onCheckedChange={(checked) => {
                               if (checked) {
                                 setSelectedSubjectIds([
                                   ...selectedSubjectIds,
-                                  subject.id,
+                                  subject.pets.id,
                                 ]);
                               } else {
                                 setSelectedSubjectIds(
                                   selectedSubjectIds.filter(
-                                    (sId) => sId !== subject.id,
+                                    (sId) => sId !== subject.pets.id,
                                   ),
                                 );
                               }
                             }}
                           >
-                            {subject.name}
+                            {subject.pets.name}
                           </DropdownMenuCheckboxItem>
                         );
                       })}

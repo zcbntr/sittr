@@ -556,7 +556,11 @@ export async function getOwnedPets() {
 
   // Join sittingSubjects with pets
   const subjectsList = db
-    .select()
+    .select({
+      subjectId: sittingSubjects.id,
+      entityType: sittingSubjects.entityType,
+      entityId: sittingSubjects.entityId,
+    })
     .from(sittingSubjects)
     .where(
       and(
@@ -564,18 +568,17 @@ export async function getOwnedPets() {
         eq(sittingSubjects.entityType, "Pet"),
       ),
     )
-    .as("get_owned_pet_subjects");
+    .as("owned_pet_subjects");
 
   const joinedPets = await db
     .select()
     .from(subjectsList)
-    .innerJoin(pets, eq(sittingSubjects.entityId, pets.id))
+    .innerJoin(pets, eq(subjectsList.entityId, pets.id))
     .execute();
 
   return joinedPets;
 }
 
-// Needs work
 export async function getOwnedSubjects() {
   const user = auth();
 
@@ -585,22 +588,23 @@ export async function getOwnedSubjects() {
 
   // Join sittingSubjects with pets, plants and houses
   const subjectsList = db
-    .select()
+    .select({
+      subjectId: sittingSubjects.id,
+      entityType: sittingSubjects.entityType,
+      entityId: sittingSubjects.entityId,
+    })
     .from(sittingSubjects)
     .where(eq(sittingSubjects.ownerId, user.userId))
-    .as("get_owned_subjects");
+    .as("owned_subjects");
 
-  console.log(subjectsList);
-
+  // This approach will not work - need to use a union or something else
   const joinedSubjects = await db
     .select()
     .from(subjectsList)
-    .innerJoin(pets, eq(sittingSubjects.entityId, pets.id))
-    .innerJoin(houses, eq(sittingSubjects.entityId, houses.id))
-    .innerJoin(plants, eq(sittingSubjects.entityId, plants.id))
+    .innerJoin(pets, eq(subjectsList.entityId, pets.id))
+    .innerJoin(houses, eq(subjectsList.entityId, houses.id))
+    .innerJoin(plants, eq(subjectsList.entityId, plants.id))
     .execute();
-
-  console.log(joinedSubjects);
 
   return joinedSubjects;
 }

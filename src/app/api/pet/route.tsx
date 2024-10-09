@@ -1,42 +1,32 @@
 import { type NextRequest, NextResponse } from "next/server";
-import {
-  editSittingRequestFormSchema,
-  dateRangeSchema,
-  createPetFormSchema,
-  deleteSittingRequestFormSchema,
-} from "~/lib/schema";
-import {
-  createPet,
-  createSittingRequest,
-  deleteSittingRequest,
-  getSittingRequestsStartingInRange,
-  updateSittingRequest,
-} from "~/server/queries";
+import { createPetFormSchema, basicGetAPIFormSchema } from "~/lib/schema";
+import { createPet, getOwnedPets } from "~/server/queries";
 
-// export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
-//   try {
-//     const requestParams = dateRangeSchema.safeParse({
-//       from: req.nextUrl.searchParams.get("from"),
-//       to: req.nextUrl.searchParams.get("to"),
-//     });
+export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
+  try {
+    const requestParams = basicGetAPIFormSchema.safeParse({
+      ids: req.nextUrl.searchParams.get("ids"),
+      all: req.nextUrl.searchParams.get("all") === "true",
+    });
 
-//     if (!requestParams.success) {
-//       console.log(
-//         "Date Range Form Data Parse Error: \n" + requestParams.error.toString(),
-//       );
-//       throw new Error("Invalid form data");
-//     }
+    if (!requestParams.success) {
+      console.log(
+        "Owned Pets Form Data Parse Error: \n" + requestParams.error.toString(),
+      );
+      throw new Error("Invalid form data");
+    }
 
-//     const pgRows = await getSittingRequestsStartingInRange(
-//       requestParams.data.from,
-//       requestParams.data.to,
-//     );
+    if (requestParams.data.all) {
+      const pgRows = await getOwnedPets();
 
-//     return NextResponse.json(pgRows);
-//   } catch (error) {
-//     return NextResponse.json({ error });
-//   }
-// }
+      return NextResponse.json(pgRows);
+    }
+
+    return NextResponse.json({ error: "Invalid request params" });
+  } catch (error) {
+    return NextResponse.json({ error });
+  }
+}
 
 export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
