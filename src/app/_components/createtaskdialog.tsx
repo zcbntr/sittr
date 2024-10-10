@@ -26,6 +26,15 @@ import {
 import { createTaskFormSchema } from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { Calendar } from "~/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "~/lib/utils";
+import { format } from "date-fns";
 
 export default function CreateTaskDialog({
   children,
@@ -33,6 +42,9 @@ export default function CreateTaskDialog({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
+
+  const [dueMode, setDueMode] = React.useState(true);
+  const [dueDate, setDueDate] = React.useState<Date | undefined>();
 
   const form = useForm<z.infer<typeof createTaskFormSchema>>({
     resolver: zodResolver(createTaskFormSchema),
@@ -94,7 +106,8 @@ export default function CreateTaskDialog({
                     />
                   </FormControl>
                   <FormDescription>
-                    Include important information sitters need to know.
+                    Include important information sitters need to know. (Not
+                    required)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -110,20 +123,69 @@ export default function CreateTaskDialog({
                       Span Time Period
                     </FormLabel>
                     <FormDescription>
-                      Toggle whether the task spans a time period or set a due
-                      date
+                      Toggle whether the task has a due date/time or is a span
+                      of time.
                     </FormDescription>
                   </div>
                   <FormControl>
                     <Switch
                       checked={field.value}
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={() => {
+                        field.onChange();
+                        setDueMode(!dueMode);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            {dueMode && (
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            id="date"
+                            variant={"outline"}
+                            className={cn(
+                              "justify-start text-left font-normal",
+                              !dueDate && "text-muted-foreground",
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          initialFocus
+                          mode="single"
+                          onSelect={(e) => {
+                            setDueDate(e);
+                            field.onChange(e);
+                          }}
+                          numberOfMonths={2}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormDescription>Due Date and Time</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <DialogFooter>
               <Button type="submit">Create Task</Button>
             </DialogFooter>

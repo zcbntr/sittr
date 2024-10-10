@@ -18,9 +18,9 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     }
 
     if (requestParams.data.all) {
-      const pgRows = await getOwnedSubjects();
+      const subjects = await getOwnedSubjects();
 
-      return NextResponse.json(pgRows);
+      return NextResponse.json(subjects);
     }
 
     return NextResponse.json({ error: "Invalid request params" });

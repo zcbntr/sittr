@@ -871,6 +871,7 @@ export async function getOwnedPlants(): Promise<Plant[]> {
       name: plantSubject.plants.name,
       species: plantSubject.plants.species,
       lastWatered: plantSubject.plants.lastWatered,
+      wateringFrequency: plantSubject.plants.wateringFrequency,
     });
   });
 

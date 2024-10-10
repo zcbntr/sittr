@@ -109,10 +109,8 @@ export const createTaskFormSchema = z
   // Must have either due date or start and end date, but not both
   .refine(
     (data) =>
-      data.dueDate ||
-      (data.startDate &&
-        data.endDate &&
-        !(data.dueDate && data.startDate && data.endDate)),
+      (data.dueMode && data.dueDate && !data.startDate && !data.endDate) ||
+      (!data.dueMode && data.startDate && data.endDate && !data.dueDate),
     {
       path: ["dueDate"],
       message: "Due date is required if start and end date are not provided",
@@ -120,24 +118,34 @@ export const createTaskFormSchema = z
   )
   // End date must be after start date
   .refine(
-    (data) => data.endDate && data.startDate && data.endDate > data.startDate,
+    (data) =>
+      !data.dueMode &&
+      data.startDate &&
+      data.endDate &&
+      data.endDate > data.startDate,
     {
       path: ["endDate"],
       message: "End date must be after start date",
     },
   )
   // Start date must be in the future
-  .refine((data) => data.startDate && data.startDate > new Date(), {
-    path: ["startDate"],
-    message: "Start date must be in the future",
-  })
+  .refine(
+    (data) => !data.dueMode && data.startDate && data.startDate > new Date(),
+    {
+      path: ["startDate"],
+      message: "Start date must be in the future",
+    },
+  )
   // End date must be in the future
-  .refine((data) => data.endDate && data.endDate > new Date(), {
-    path: ["endDate"],
-    message: "End date must be in the future",
-  })
+  .refine(
+    (data) => !data.dueMode && data.endDate && data.endDate > new Date(),
+    {
+      path: ["endDate"],
+      message: "End date must be in the future",
+    },
+  )
   // Due date must be in the future
-  .refine((data) => data.dueDate && data.dueDate > new Date(), {
+  .refine((data) => data.dueMode && data.dueDate && data.dueDate > new Date(), {
     path: ["dueDate"],
     message: "Due date must be in the future",
   });
@@ -248,8 +256,8 @@ export const plantSchema = z.object({
   subjectId: z.number().optional().nullable(),
   name: z.string(),
   species: z.string().optional().nullable(),
-  lastWatered: z.date(),
-  WateringFrequency: WateringFrequency,
+  lastWatered: z.date().optional().nullable(),
+  wateringFrequency: WateringFrequency,
 });
 
 export type Plant = z.infer<typeof plantSchema>;
