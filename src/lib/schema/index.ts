@@ -5,11 +5,22 @@ import { z } from "zod";
 // General schemas
 // -----------------------------------------------------------------------------
 
-const SittingTypeEnum = z.enum(["Pet", "House", "Baby", "Plant"]);
+export const SittingTypeEnum = z.enum(["Pet", "House", "Baby", "Plant"]);
 export type SittingTypeEnum = z.infer<typeof SittingTypeEnum>;
 
-const RoleEnum = z.enum(["Owner", "Sitter"]);
+export const RoleEnum = z.enum(["Owner", "Sitter"]);
 export type RoleEnum = z.infer<typeof RoleEnum>;
+
+export const GroupRoleEnum = z.enum(["Owner", "Member", "Pending"]);
+export type GroupRoleEnum = z.infer<typeof GroupRoleEnum>;
+
+export const WateringFrequency = z.enum([
+  "Daily",
+  "Weekly",
+  "Biweekly",
+  "Monthly",
+]);
+export type WateringFrequency = z.infer<typeof WateringFrequency>;
 
 // -----------------------------------------------------------------------------
 // Form schemas
@@ -142,6 +153,22 @@ export const createPetFormSchema = z.object({
 
 export type CreatePetFormInput = z.infer<typeof createPetFormSchema>;
 
+export const createHouseFormSchema = z.object({
+  name: z.string().min(3).max(50),
+  address: z.string().min(3).max(50).optional(),
+});
+
+export type CreateHouseFormInput = z.infer<typeof createHouseFormSchema>;
+
+export const createPlantFormSchema = z.object({
+  name: z.string().min(3).max(50),
+  species: z.string().min(3).max(50).optional(),
+  lastWatered: z.coerce.date().optional(),
+  wateringFrequency: WateringFrequency,
+});
+
+export type CreatePlantFormInput = z.infer<typeof createPlantFormSchema>;
+
 export const createGroupFormSchema = z.object({
   name: z
     .string()
@@ -222,6 +249,7 @@ export const plantSchema = z.object({
   name: z.string(),
   species: z.string().optional().nullable(),
   lastWatered: z.date(),
+  WateringFrequency: WateringFrequency,
 });
 
 export type Plant = z.infer<typeof plantSchema>;

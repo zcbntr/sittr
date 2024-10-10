@@ -32,23 +32,30 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createPetFormSchema } from "~/lib/schema/index";
+import { createPlantFormSchema, WateringFrequency } from "~/lib/schema/index";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
-export default function CreatePetDialog({
+export default function CreatePlantDialog({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
 
-  const [dob, setDOB] = React.useState<Date | undefined>();
+  const [lastWatered, setLastWatered] = React.useState<Date | undefined>();
 
-  const form = useForm<z.infer<typeof createPetFormSchema>>({
-    resolver: zodResolver(createPetFormSchema),
+  const form = useForm<z.infer<typeof createPlantFormSchema>>({
+    resolver: zodResolver(createPlantFormSchema),
   });
 
-  async function onSubmit(data: z.infer<typeof createPetFormSchema>) {
-    const res = await fetch("api/pet", {
+  async function onSubmit(data: z.infer<typeof createPlantFormSchema>) {
+    const res = await fetch("api/plant", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -65,7 +72,7 @@ export default function CreatePetDialog({
 
     if (!resData.error) {
       setOpen(false);
-      document.dispatchEvent(new Event("petCreated"));
+      document.dispatchEvent(new Event("plantCreated"));
     } else {
       console.log(resData);
     }
@@ -76,7 +83,7 @@ export default function CreatePetDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[454px]">
         <DialogHeader>
-          <DialogTitle>New Pet</DialogTitle>
+          <DialogTitle>New Plant</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -91,7 +98,7 @@ export default function CreatePetDialog({
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Jake" {...field} />
+                    <Input placeholder="Lounge Monsteras" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -104,34 +111,19 @@ export default function CreatePetDialog({
                 <FormItem>
                   <FormLabel>Species</FormLabel>
                   <FormControl>
-                    <Input placeholder="Dog" {...field} />
+                    <Input placeholder="Monstera" {...field} />
                   </FormControl>
+                  <FormDescription>(Not required)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="breed"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Breed</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Golden Retriever" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    e.g. Husky, Siamese, etc. (Not required)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="birthdate"
+              name="lastWatered"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date</FormLabel>
+                  <FormLabel>Last Watered</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -140,7 +132,7 @@ export default function CreatePetDialog({
                           variant={"outline"}
                           className={cn(
                             "justify-start text-left font-normal",
-                            !dob && "text-muted-foreground",
+                            !lastWatered && "text-muted-foreground",
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
@@ -157,20 +149,47 @@ export default function CreatePetDialog({
                         initialFocus
                         mode="single"
                         onSelect={(e) => {
-                          setDOB(e);
+                          setLastWatered(e);
                           field.onChange(e);
                         }}
                         numberOfMonths={2}
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormDescription>Your pet's date of birth</FormDescription>
+                  <FormDescription>(Not required)</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="wateringFrequency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Watering Frequency</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a watering frequency" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {WateringFrequency.options.map((frequency) => (
+                        <SelectItem key={frequency} value={frequency}>
+                          {frequency}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter>
-              <Button type="submit">Save Pet</Button>
+              <Button type="submit">Save Plant</Button>
             </DialogFooter>
           </form>
         </Form>

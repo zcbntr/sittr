@@ -11,15 +11,20 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
+import {
+  GroupRoleEnum,
+  SittingTypeEnum,
+  WateringFrequency,
+} from "~/lib/schema";
 
-export const categoryEnum = pgEnum("category", [
-  "House",
-  "Pet",
-  "Baby",
-  "Plant",
-]);
+export const categoryEnum = pgEnum("category", SittingTypeEnum.options);
 
-export const roleEnum = pgEnum("role", ["Owner", "Member", "PendingApproval"]);
+export const groupRoleEnum = pgEnum("role", GroupRoleEnum.options);
+
+export const wateringFrequencyEnum = pgEnum(
+  "watering_frequency",
+  WateringFrequency.options,
+);
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -268,8 +273,8 @@ export const plants = createTable("plants", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   species: varchar("species", { length: 255 }),
-  lastWatered: timestamp("last_watered", { withTimezone: true }).notNull(),
-  wateringFrequency: integer("watering_frequency").notNull(),
+  lastWatered: timestamp("last_watered", { withTimezone: true }),
+  wateringFrequency: wateringFrequencyEnum("watering_frequency").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -331,7 +336,7 @@ export const groupMembers = createTable("group_members", {
     .references(() => groups.id, { onDelete: "cascade" })
     .notNull(),
   userId: varchar("user_id", { length: 255 }).notNull(),
-  role: roleEnum("role").notNull(),
+  role: groupRoleEnum("role").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

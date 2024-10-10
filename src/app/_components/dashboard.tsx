@@ -9,6 +9,8 @@ import { add } from "date-fns";
 import CreatePetDialog from "./createpetdialog";
 import CreateGroupDialog from "./creategroupdialog";
 import CreateTaskDialog from "./createtaskdialog";
+import CreateHouseDialog from "./createhousedialog";
+import CreatePlantDialog from "./createplantdialog";
 
 export default function Dashboard() {
   return (
@@ -32,8 +34,12 @@ export default function Dashboard() {
         <CreatePetDialog>
           <Button variant="outline">New Pet</Button>
         </CreatePetDialog>
-        <Button variant="outline">New House</Button>
-        <Button variant="outline">New Plant</Button>
+        <CreateHouseDialog>
+          <Button variant="outline">New House</Button>
+        </CreateHouseDialog>
+        <CreatePlantDialog>
+          <Button variant="outline">New Plant</Button>
+        </CreatePlantDialog>
         <CreateGroupDialog>
           <Button variant="outline">New Group</Button>
         </CreateGroupDialog>

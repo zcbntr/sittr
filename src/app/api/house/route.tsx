@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createPetFormSchema, basicGetAPIFormSchema } from "~/lib/schema";
-import { createPet, deletePet, getOwnedPets } from "~/server/queries";
+import { createHouseFormSchema, basicGetAPIFormSchema } from "~/lib/schema";
+import { createHouse, deleteHouse, getOwnedHouses } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -11,13 +11,14 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
 
     if (!requestParams.success) {
       console.log(
-        "Owned Pets Form Data Parse Error: \n" + requestParams.error.toString(),
+        "Owned Houses Form Data Parse Error: \n" +
+          requestParams.error.toString(),
       );
       throw new Error("Invalid form data");
     }
 
     if (requestParams.data.all) {
-      const pets = await getOwnedPets();
+      const pets = await getOwnedHouses();
 
       return NextResponse.json(pets);
     }
@@ -32,23 +33,18 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = createPetFormSchema.safeParse(json);
+    const formData = createHouseFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
-        "Create Pet Form Data Parse Error: \n" + formData.error.toString(),
+        "Create House Form Data Parse Error: \n" + formData.error.toString(),
       );
       throw new Error("Invalid form data");
     }
 
-    const pet = await createPet(
-      formData.data.name,
-      formData.data.species,
-      formData.data.birthdate,
-      formData.data.breed,
-    );
+    const pgRow = await createHouse(formData.data.name, formData.data.address);
 
-    return NextResponse.json(pet);
+    return NextResponse.json(pgRow);
   } catch (error) {
     return NextResponse.json({ error });
   }
@@ -58,16 +54,17 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = editPetFormSchema.safeParse(json);
+    const formData = editHouseFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
-        "Edit Pet Form Data Parse Error: \n" + formData.error.toString(),
+        "Edit House Form Data Parse Error: \n" +
+          formData.error.toString(),
       );
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await updatePet(
+    const pgRow = await updateHouse(
       formData.data.subjectId,
       formData.data.name,
       formData.data.sittingType,
@@ -85,16 +82,17 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = deletePetRequestFormSchema.safeParse(json);
+    const formData = deleteHouseFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
-        "Delete Pet Form Data Parse Error: \n" + formData.error.toString(),
+        "Delete House Form Data Parse Error: \n" +
+          formData.error.toString(),
       );
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await deletePet(formData.data.id);
+    const pgRow = await deleteHouse(formData.data.id);
 
     return NextResponse.json(pgRow);
   } catch (error) {

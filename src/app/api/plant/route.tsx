@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createPetFormSchema, basicGetAPIFormSchema } from "~/lib/schema";
-import { createPet, deletePet, getOwnedPets } from "~/server/queries";
+import { createPlantFormSchema, basicGetAPIFormSchema } from "~/lib/schema";
+import { createPlant, deletePlant, getOwnedPlants } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -11,13 +11,14 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
 
     if (!requestParams.success) {
       console.log(
-        "Owned Pets Form Data Parse Error: \n" + requestParams.error.toString(),
+        "Owned Plants Form Data Parse Error: \n" +
+          requestParams.error.toString(),
       );
       throw new Error("Invalid form data");
     }
 
     if (requestParams.data.all) {
-      const pets = await getOwnedPets();
+      const pets = await getOwnedPlants();
 
       return NextResponse.json(pets);
     }
@@ -32,23 +33,23 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = createPetFormSchema.safeParse(json);
+    const formData = createPlantFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
-        "Create Pet Form Data Parse Error: \n" + formData.error.toString(),
+        "Create Plant Form Data Parse Error: \n" + formData.error.toString(),
       );
       throw new Error("Invalid form data");
     }
 
-    const pet = await createPet(
+    const pgRow = await createPlant(
       formData.data.name,
+      formData.data.wateringFrequency,
       formData.data.species,
-      formData.data.birthdate,
-      formData.data.breed,
+      formData.data.lastWatered,
     );
 
-    return NextResponse.json(pet);
+    return NextResponse.json(pgRow);
   } catch (error) {
     return NextResponse.json({ error });
   }
@@ -58,16 +59,16 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = editPetFormSchema.safeParse(json);
+    const formData = editPlantFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
-        "Edit Pet Form Data Parse Error: \n" + formData.error.toString(),
+        "Edit Plant Form Data Parse Error: \n" + formData.error.toString(),
       );
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await updatePet(
+    const pgRow = await updatePlant(
       formData.data.subjectId,
       formData.data.name,
       formData.data.sittingType,
@@ -85,16 +86,16 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = deletePetRequestFormSchema.safeParse(json);
+    const formData = deletePlantFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
-        "Delete Pet Form Data Parse Error: \n" + formData.error.toString(),
+        "Delete Plant Form Data Parse Error: \n" + formData.error.toString(),
       );
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await deletePet(formData.data.id);
+    const pgRow = await deletePlant(formData.data.id);
 
     return NextResponse.json(pgRow);
   } catch (error) {

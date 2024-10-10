@@ -61,8 +61,6 @@ export default function CreateGroupDialog({
             return;
           }
 
-          console.log(data);
-
           if (data.length > 0) {
             setSubjects(data);
           } else if (data.length === 0) {

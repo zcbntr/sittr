@@ -18,6 +18,7 @@ import {
   userPreferances,
 } from "./db/schema";
 import {
+  GroupRoleEnum,
   House,
   houseSchema,
   Pet,
@@ -25,6 +26,7 @@ import {
   Plant,
   plantSchema,
   SittingSubject,
+  WateringFrequency,
   type SittingTypeEnum,
 } from "~/lib/schema";
 import { sha256 } from "crypto-hash";
@@ -499,7 +501,9 @@ export async function joinGroup(inviteCode: string) {
     .values({
       groupId: inviteCodeRow.groupId,
       userId: user.userId,
-      role: inviteCodeRow.requiresApproval ? "PendingApproval" : "Member",
+      role: inviteCodeRow.requiresApproval
+        ? GroupRoleEnum.Values.Pending
+        : GroupRoleEnum.Values.Member,
     })
     .execute();
 
@@ -597,6 +601,8 @@ export async function createPet(
     throw new Error("Unauthorized");
   }
 
+  let newSittingSubject;
+
   await db.transaction(async (db) => {
     const newPet = await db
       .insert(pets)
@@ -613,7 +619,7 @@ export async function createPet(
       throw new Error("Failed to create pet in pet table");
     }
 
-    const newSittingSubject = await db.insert(sittingSubjects).values({
+    newSittingSubject = await db.insert(sittingSubjects).values({
       ownerId: user.userId,
       entityId: newPet[0].id,
       entityType: "Pet",
@@ -623,9 +629,11 @@ export async function createPet(
       db.rollback();
       throw new Error("Failed to create pet link in sittingSubjects table");
     }
-
-    return newPet;
   });
+
+  if (newSittingSubject) {
+    return newSittingSubject;
+  }
 
   throw new Error("Failed to create pet");
 }
@@ -674,6 +682,40 @@ export async function getOwnedPets(): Promise<Pet[]> {
   return petsList;
 }
 
+export async function deletePet(subjectId: number) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  db.transaction(async (db) => {
+    const deletedSubject = await db
+      .delete(sittingSubjects)
+      .where(eq(sittingSubjects.id, subjectId))
+      .returning();
+
+    if (!deletedSubject) {
+      db.rollback();
+      throw new Error("Failed to delete pet from sittingSubjects table");
+    }
+
+    const deletedPet = await db
+      .delete(pets)
+      .where(eq(pets.id, deletedSubject[0].entityId))
+      .returning();
+
+    if (!deletedPet) {
+      db.rollback();
+      throw new Error("Failed to delete pet from pet table");
+    }
+
+    return deletedPet;
+  });
+
+  throw new Error("Failed to delete pet");
+}
+
 export async function getOwnedHouses(): Promise<House[]> {
   const user = auth();
 
@@ -716,12 +758,14 @@ export async function getOwnedHouses(): Promise<House[]> {
   return housesList;
 }
 
-export async function createHouse(name: string, address: string) {
+export async function createHouse(name: string, address?: string) {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
+
+  let newSittingSubject;
 
   await db.transaction(async (db) => {
     const newHouse = await db
@@ -737,7 +781,7 @@ export async function createHouse(name: string, address: string) {
       throw new Error("Failed to create house in house table");
     }
 
-    const newSittingSubject = await db.insert(sittingSubjects).values({
+    newSittingSubject = await db.insert(sittingSubjects).values({
       ownerId: user.userId,
       entityId: newHouse[0].id,
       entityType: "House",
@@ -747,11 +791,47 @@ export async function createHouse(name: string, address: string) {
       db.rollback();
       throw new Error("Failed to create house link in sittingSubjects table");
     }
-
-    return newHouse;
   });
 
+  if (newSittingSubject) {
+    return newSittingSubject;
+  }
+
   throw new Error("Failed to create house");
+}
+
+export async function deleteHouse(subjectId: number) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  db.transaction(async (db) => {
+    const deletedSubject = await db
+      .delete(sittingSubjects)
+      .where(eq(sittingSubjects.id, subjectId))
+      .returning();
+
+    if (!deletedSubject) {
+      db.rollback();
+      throw new Error("Failed to delete house from sittingSubjects table");
+    }
+
+    const deletedHouse = await db
+      .delete(houses)
+      .where(eq(houses.id, deletedSubject[0].entityId))
+      .returning();
+
+    if (!deletedHouse) {
+      db.rollback();
+      throw new Error("Failed to delete house from house table");
+    }
+
+    return deletedHouse;
+  });
+
+  throw new Error("Failed to delete house");
 }
 
 export async function getOwnedPlants(): Promise<Plant[]> {
@@ -799,15 +879,17 @@ export async function getOwnedPlants(): Promise<Plant[]> {
 
 export async function createPlant(
   name: string,
-  species: string,
-  lastWatered: Date,
-  wateringFrequency: number,
+  wateringFrequency: WateringFrequency,
+  species?: string,
+  lastWatered?: Date,
 ) {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
+
+  let newSittingSubject;
 
   await db.transaction(async (db) => {
     const newPlant = await db
@@ -825,7 +907,7 @@ export async function createPlant(
       throw new Error("Failed to create plant in plant table");
     }
 
-    const newSittingSubject = await db.insert(sittingSubjects).values({
+    newSittingSubject = await db.insert(sittingSubjects).values({
       ownerId: user.userId,
       entityId: newPlant[0].id,
       entityType: "Plant",
@@ -835,11 +917,47 @@ export async function createPlant(
       db.rollback();
       throw new Error("Failed to create plant link in sittingSubjects table");
     }
-
-    return newPlant;
   });
 
+  if (newSittingSubject) {
+    return newSittingSubject;
+  }
+
   throw new Error("Failed to create plant");
+}
+
+export async function deletePlant(subjectId: number) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  db.transaction(async (db) => {
+    const deletedSubject = await db
+      .delete(sittingSubjects)
+      .where(eq(sittingSubjects.id, subjectId))
+      .returning();
+
+    if (!deletedSubject) {
+      db.rollback();
+      throw new Error("Failed to delete plant from sittingSubjects table");
+    }
+
+    const deletedPlant = await db
+      .delete(plants)
+      .where(eq(plants.id, deletedSubject[0].entityId))
+      .returning();
+
+    if (!deletedPlant) {
+      db.rollback();
+      throw new Error("Failed to delete plant from plant table");
+    }
+
+    return deletedPlant;
+  });
+
+  throw new Error("Failed to delete plant");
 }
 
 // Make this a return a defined type with zod so the frontend can be made nicer
