@@ -33,6 +33,7 @@ import {
 } from "~/components/ui/popover";
 import { Calendar } from "~/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
+import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import { cn } from "~/lib/utils";
 import { format } from "date-fns";
 
@@ -146,41 +147,41 @@ export default function CreateTaskDialog({
                 name="dueDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel className="text-left">Due Date/Time</FormLabel>
                     <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
+                      <FormControl>
+                        <PopoverTrigger asChild>
                           <Button
-                            id="date"
-                            variant={"outline"}
+                            variant="outline"
                             className={cn(
-                              "justify-start text-left font-normal",
-                              !dueDate && "text-muted-foreground",
+                              "w-[280px] justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {field.value ? (
-                              format(field.value, "PPP")
+                              format(field.value, "PPP HH:mm:ss")
                             ) : (
                               <span>Pick a date</span>
                             )}
                           </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-0">
                         <Calendar
-                          initialFocus
                           mode="single"
-                          onSelect={(e) => {
-                            setDueDate(e);
-                            field.onChange(e);
-                          }}
-                          numberOfMonths={2}
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
                         />
+                        <div className="border-t border-border p-3">
+                          <TimePickerDemo
+                            setDate={field.onChange}
+                            date={field.value}
+                          />
+                        </div>
                       </PopoverContent>
                     </Popover>
-                    <FormDescription>Due Date and Time</FormDescription>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
