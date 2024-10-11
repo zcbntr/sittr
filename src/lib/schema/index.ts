@@ -50,7 +50,9 @@ export const createTaskFormSchema = z
   // Must have either due date or start and end date
   .refine(
     (data) =>
-      (data.dueMode && data.dueDate) ?? (!data.dueMode && data.dateRange),
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      (data.dueMode && data.dueDate) ||
+      (!data.dueMode && data.dateRange !== undefined),
     {
       path: ["dueDate"],
       message: "dueDate is required if dateRange is not provided",
@@ -85,10 +87,15 @@ export const createTaskFormSchema = z
     },
   )
   // Due date must be in the future
-  .refine((data) => data.dueMode && data.dueDate && data.dueDate > new Date(), {
-    path: ["dueDate"],
-    message: "dueDate must be in the future",
-  });
+  .refine(
+    (data) =>
+      !data.dueMode ||
+      (data.dueMode && data.dueDate && data.dueDate > new Date()),
+    {
+      path: ["dueDate"],
+      message: "dueDate must be in the future",
+    },
+  );
 
 export type CreateTaskFormInput = z.infer<typeof createTaskFormSchema>;
 
@@ -178,7 +185,7 @@ export type BasicGetAPIFormSchema = z.infer<typeof basicGetAPIFormSchema>;
 
 export const petSchema = z.object({
   id: z.number(),
-  subjectId: z.number().optional().nullable(),
+  subjectId: z.number(),
   name: z.string(),
   species: z.string(),
   breed: z.string().optional().nullable(),
@@ -189,7 +196,7 @@ export type Pet = z.infer<typeof petSchema>;
 
 export const houseSchema = z.object({
   id: z.number(),
-  subjectId: z.number().optional().nullable(),
+  subjectId: z.number(),
   name: z.string(),
   address: z.string().optional().nullable(),
 });
@@ -198,7 +205,7 @@ export type House = z.infer<typeof houseSchema>;
 
 export const plantSchema = z.object({
   id: z.number(),
-  subjectId: z.number().optional().nullable(),
+  subjectId: z.number(),
   name: z.string(),
   species: z.string().optional().nullable(),
   lastWatered: z.date().optional().nullable(),
@@ -225,11 +232,11 @@ export const taskSchema = z
     dateRange: dateRangeSchema.optional().nullable(),
     subjectId: z.number(),
   })
-  // Must have either due date or start and end date, but not both
+  // Must have either due date or start and end date
   .refine(
     (data) =>
-      (data.dueMode && data.dueDate && !data.dateRange) ??
-      (!data.dueMode && !data.dueDate && data.dateRange),
+      (data.dueMode && data.dueDate) ??
+      (!data.dueMode && data.dateRange !== undefined),
     {
       path: ["dueDate"],
       message: "dueDate is required if dateRange is not provided",
@@ -264,9 +271,14 @@ export const taskSchema = z
     },
   )
   // Due date must be in the future
-  .refine((data) => data.dueMode && data.dueDate && data.dueDate > new Date(), {
-    path: ["dueDate"],
-    message: "dueDate must be in the future",
-  });
+  .refine(
+    (data) =>
+      !data.dueMode ||
+      (data.dueMode && data.dueDate && data.dueDate > new Date()),
+    {
+      path: ["dueDate"],
+      message: "dueDate must be in the future",
+    },
+  );
 
 export type Task = z.infer<typeof taskSchema>;

@@ -27,7 +27,7 @@ import {
   type CreateTaskFormProps,
   createTaskFormSchema,
   type DateRange,
-  SittingSubject,
+  type SittingSubject,
 } from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
@@ -176,7 +176,10 @@ export default function CreateTaskDialog({
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void onSubmit(form.getValues());
+            }}
             className="w-2/3 space-y-6"
             name="createPet"
           >
@@ -281,6 +284,7 @@ export default function CreateTaskDialog({
                         </div>
                       </PopoverContent>
                     </Popover>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -327,6 +331,7 @@ export default function CreateTaskDialog({
                         </div>
                       </PopoverContent>
                     </Popover>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -373,6 +378,7 @@ export default function CreateTaskDialog({
                         </div>
                       </PopoverContent>
                     </Popover>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -387,6 +393,7 @@ export default function CreateTaskDialog({
                   <Select
                     onValueChange={(value) => {
                       form.setValue("subjectId", parseInt(value));
+                      console.log(form.getValues());
                     }}
                     disabled={subjectsEmpty}
                   >
@@ -404,8 +411,8 @@ export default function CreateTaskDialog({
                     <SelectContent>
                       {subjects.map((subject) => (
                         <SelectItem
-                          key={subject.id}
-                          value={subject.id.toString()}
+                          key={subject.subjectId}
+                          value={subject.subjectId.toString()}
                         >
                           {subject.name}
                         </SelectItem>
