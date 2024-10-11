@@ -10,117 +10,33 @@ import {
   houses,
   pets,
   plants,
-  sittingEvents,
-  sittingRequests,
   sittingSubjects,
   subjectsToGroups,
   tasks,
   userPreferances,
 } from "./db/schema";
 import {
-  DateRange,
+  type DateRange,
   GroupRoleEnum,
-  House,
+  type House,
   houseSchema,
-  Pet,
+  type Pet,
   petSchema,
-  Plant,
+  type Plant,
   plantSchema,
-  SittingSubject,
-  WateringFrequency,
-  type SittingTypeEnum,
+  type SittingSubject,
+  type WateringFrequency,
 } from "~/lib/schema";
 import { sha256 } from "crypto-hash";
 
-export async function getOwnedSittingRequests() {
+export async function getTasksStartingInRange(from: Date, to: Date) {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const userListings = await db.query.sittingRequests.findMany({
-    where: (model, { eq }) => eq(model.ownerId, user.userId),
-    orderBy: (model, { desc }) => desc(model.createdAt),
-  });
-
-  return userListings;
-}
-
-export async function createSittingRequest(
-  name: string,
-  category: SittingTypeEnum,
-  dateRange: DateRange,
-) {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const newSittingRequest = await db
-    .insert(sittingRequests)
-    .values({
-      name: name,
-      ownerId: user.userId,
-      category: category,
-      dateRangeFrom: dateRange.from,
-      dateRangeTo: dateRange.to,
-    })
-    .execute();
-
-  return newSittingRequest;
-}
-
-export async function updateSittingRequest(
-  id: number,
-  name: string,
-  category: SittingTypeEnum,
-  dateRange: DateRange,
-) {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const updatedSittingRequest = await db
-    .update(sittingRequests)
-    .set({
-      name: name,
-      category: category,
-      dateRangeFrom: dateRange.from,
-      dateRangeTo: dateRange.to,
-    })
-    .where(eq(sittingRequests.id, id))
-    .execute();
-
-  return updatedSittingRequest;
-}
-
-export async function deleteSittingRequest(id: number) {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const deletedSittingRequest = await db
-    .delete(sittingRequests)
-    .where(eq(sittingRequests.id, id))
-    .execute();
-
-  return deletedSittingRequest;
-}
-
-export async function getSittingRequestsStartingInRange(from: Date, to: Date) {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const upcomingSittingRequests = await db.query.sittingRequests.findMany({
+  const upcomingSittingRequests = await db.query.tasks.findMany({
     where: (model, { eq, gte, lte, and }) =>
       and(
         eq(model.ownerId, user.userId),
@@ -131,28 +47,6 @@ export async function getSittingRequestsStartingInRange(from: Date, to: Date) {
   });
 
   return upcomingSittingRequests;
-}
-
-// Untested - might explode
-export async function getOwnerUpcommingSittings() {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const upcommingSittingEventsAsOwner = await db
-    .select()
-    .from(sittingEvents)
-    .innerJoin(
-      sittingRequests,
-      eq(sittingRequests.id, sittingEvents.sittingRequest),
-    )
-    .where(eq(sittingRequests.ownerId, user.userId))
-    .orderBy(desc(sittingRequests.createdAt))
-    .execute();
-
-  return upcommingSittingEventsAsOwner;
 }
 
 export async function getOwnedTasks() {
@@ -172,6 +66,7 @@ export async function getOwnedTasks() {
 
 export async function createTask(
   name: string,
+  subjectId: number,
   dateRange?: DateRange,
   dueDate?: Date,
   description?: string,
@@ -191,6 +86,7 @@ export async function createTask(
       dateRangeTo: dateRange?.to,
       dueDate: dueDate,
       description: description,
+      sittingSubject: subjectId,
     })
     .execute();
 
@@ -200,6 +96,7 @@ export async function createTask(
 export async function updateTask(
   id: number,
   name: string,
+  subjectId: number,
   dateRange: DateRange,
   dueDate?: Date,
   description?: string,
@@ -218,6 +115,7 @@ export async function updateTask(
       dateRangeTo: dateRange?.to,
       dueDate: dueDate,
       description: description,
+      sittingSubject: subjectId,
     })
     .where(and(eq(tasks.id, id), eq(tasks.ownerId, user.userId)))
     .execute();
@@ -238,21 +136,6 @@ export async function deleteTask(id: number) {
     .execute();
 
   return deletedTask;
-}
-
-export async function getSitterUpcommingSittingEvents() {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const sitterSittings = await db.query.sittingEvents.findMany({
-    where: (model, { eq }) => eq(model.sitterId, user.userId),
-    orderBy: (model, { desc }) => desc(model.createdAt),
-  });
-
-  return sitterSittings;
 }
 
 export async function userCompletedOnboarding(): Promise<boolean> {
@@ -686,7 +569,7 @@ export async function deletePet(subjectId: number) {
     throw new Error("Unauthorized");
   }
 
-  db.transaction(async (db) => {
+  await db.transaction(async (db) => {
     const deletedSubject = await db
       .delete(sittingSubjects)
       .where(eq(sittingSubjects.id, subjectId))
@@ -804,7 +687,7 @@ export async function deleteHouse(subjectId: number) {
     throw new Error("Unauthorized");
   }
 
-  db.transaction(async (db) => {
+  await db.transaction(async (db) => {
     const deletedSubject = await db
       .delete(sittingSubjects)
       .where(eq(sittingSubjects.id, subjectId))
@@ -931,7 +814,7 @@ export async function deletePlant(subjectId: number) {
     throw new Error("Unauthorized");
   }
 
-  db.transaction(async (db) => {
+  await db.transaction(async (db) => {
     const deletedSubject = await db
       .delete(sittingSubjects)
       .where(eq(sittingSubjects.id, subjectId))

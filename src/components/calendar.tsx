@@ -5,11 +5,11 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useEffect, useState } from "react";
 import moment from "moment";
 import { endOfMonth, startOfMonth } from "date-fns";
-import CreateSittingDialog from "~/app/_components/createsittingdialog";
 import { Button } from "./ui/button";
-import { type SittingTypeEnum } from "~/lib/schema";
+import { CreateTaskFormProps, Task, type SittingTypeEnum } from "~/lib/schema";
 import { type DateRange } from "react-day-picker";
-import EditSittingDialog from "~/app/_components/editsittingdialog";
+import EditTaskDialog from "~/app/_components/edittaskdialog";
+import CreateTaskDialog from "~/app/_components/createtaskdialog";
 
 // Start the week on a monday, and set the first week of the year to be the one that contains the first Thursday
 moment.locale("en-GB", {
@@ -29,7 +29,6 @@ class CalendarEvent {
   allDay: boolean;
   start: Date;
   end: Date;
-  sittingType: SittingTypeEnum;
   desc: string;
   resourceId?: string;
   tooltip?: string;
@@ -39,7 +38,6 @@ class CalendarEvent {
     _title: string,
     _start: Date,
     _endDate: Date,
-    _sittingType: SittingTypeEnum,
     _allDay?: boolean,
     _desc?: string,
     _resourceId?: string,
@@ -49,7 +47,6 @@ class CalendarEvent {
     this.allDay = _allDay ?? false;
     this.start = _start;
     this.end = _endDate;
-    this.sittingType = _sittingType;
     this.desc = _desc ?? "";
     this.resourceId = _resourceId;
   }
@@ -59,23 +56,15 @@ export default function CalendarComponent() {
   const [view, setView] = useState<View>("month");
   const [date, setDate] = useState<Date>(new Date());
   const [events, setEvents] = useState([] as unknown as CalendarEvent[]);
-  const [createSittingDialogProps, setCreateSittingDialogProps] = useState<{
-    name?: string;
-    sittingType?: SittingTypeEnum;
-    dateRange?: DateRange;
-  }>();
-  const [editSittingDialogProps, setEditSittingDialogProps] = useState<{
-    id: number;
-    name: string;
-    sittingType: SittingTypeEnum;
-    dateRange: DateRange;
-  }>();
+  const [createTaskDialogProps, setCreateTaskDialogProps] =
+    useState<CreateTaskFormProps>();
+  const [editTaskDialogProps, setEditTaskDialogProps] = useState<Task>();
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const sittingRequestsRes = await fetch(
-          "api/sittingrequest?" +
+        const tasksRes = await fetch(
+          "api/task?" +
             new URLSearchParams({
               from: startOfMonth(new Date()).toString(),
               to: endOfMonth(new Date()).toString(),
@@ -87,21 +76,22 @@ export default function CalendarComponent() {
             },
           },
         );
-        const data: unknown = await sittingRequestsRes.json();
+        const data: unknown = await tasksRes.json();
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-        const events: CalendarEvent[] = data.map((event) => {
-          return {
-            id: event.id,
-            title: event.name,
-            start: new Date(event.startDate),
-            end: new Date(event.endDate),
-            sittingType: event.category,
-            allDay: false,
-            desc: "",
-          };
-        });
-        setEvents(events);
+        if (data) {
+          const events: CalendarEvent[] = data.map((event) => {
+            return {
+              id: event.id,
+              title: event.name,
+              start: new Date(event.startDate),
+              end: new Date(event.endDate),
+              allDay: false,
+              desc: "",
+            };
+          });
+          setEvents(events);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -109,23 +99,26 @@ export default function CalendarComponent() {
 
     void fetchData();
 
-    document.addEventListener("sittingCreated", () => {
+    document.addEventListener("taskCreated", () => {
       void fetchData();
     });
 
-    document.addEventListener("sittingUpdated", () => {
+    document.addEventListener("taskUpdated", () => {
+      void fetchData();
+    });
+
+    document.addEventListener("taskDeleted", () => {
       void fetchData();
     });
   }, []);
 
   const handleDateSelect = ({ start, end }: { start: Date; end: Date }) => {
-    // Find the openCreateSittingDialogHiddenButton and click it - workaround for avoiding putting the dialog in each calendar day
-    const button = document.getElementById(
-      "openCreateSittingDialogHiddenButton",
-    );
+    // Find the openCreateTaskDialogHiddenButton and click it - workaround for avoiding putting the dialog in each calendar day
+    const button = document.getElementById("openCreateTaskDialogHiddenButton");
     if (button) {
-      setCreateSittingDialogProps({
-        name: "",
+      setCreateTaskDialogProps({
+        dueMode: false,
+        dueDate: start,
         dateRange: {
           from: start,
           to: end,
@@ -136,12 +129,14 @@ export default function CalendarComponent() {
   };
 
   const handleEventSelect = (event: CalendarEvent) => {
-    const button = document.getElementById("openEditSittingDialogHiddenButton");
+    const button = document.getElementById("openEditTaskDialogHiddenButton");
     if (button) {
-      setEditSittingDialogProps({
+      setEditTaskDialogProps({
         id: event.id,
         name: event.title,
+        description: event.desc,
         sittingType: event.sittingType,
+        dueDate: event.end,
         dateRange: {
           from: event.start,
           to: event.end,
@@ -198,19 +193,16 @@ export default function CalendarComponent() {
         }}
       />
 
-      <CreateSittingDialog props={createSittingDialogProps}>
+      <CreateTaskDialog props={createTaskDialogProps}>
         <Button
-          id="openCreateSittingDialogHiddenButton"
+          id="openCreateTaskDialogHiddenButton"
           className="hidden"
         ></Button>
-      </CreateSittingDialog>
+      </CreateTaskDialog>
 
-      <EditSittingDialog props={editSittingDialogProps}>
-        <Button
-          id="openEditSittingDialogHiddenButton"
-          className="hidden"
-        ></Button>
-      </EditSittingDialog>
+      <EditTaskDialog props={editTaskDialogProps}>
+        <Button id="openEditTaskDialogHiddenButton" className="hidden"></Button>
+      </EditTaskDialog>
     </div>
   );
 }

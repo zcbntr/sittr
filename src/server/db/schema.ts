@@ -51,46 +51,26 @@ export const userPreferances = createTable("user_preferences", {
   ),
 });
 
-// A sitting request is a request for sittering for a specific time period
-export const sittingRequests = createTable("sitting_requests", {
-  id: serial("id").primaryKey(),
-  ownerId: varchar("owner_id", { length: 255 }).notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  category: categoryEnum("category").notNull(),
-  fulfilled: boolean("fulfilled").notNull().default(false),
-  dateRangeFrom: timestamp("date_range_from", { withTimezone: true }).notNull(),
-  dateRangeTo: timestamp("date_range_to", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
-
-export const sittingRequestsRelations = relations(
-  sittingRequests,
-  ({ one, many }) => ({
-    sittingEvents: one(sittingEvents),
-    tasks: many(tasks),
-  }),
-);
-
-// Tasks are small todos. They can be associated with a sitting request but not required
+// Tasks are small todos.
 // Can be either due at a certain time or span a certain time period
 export const tasks = createTable("tasks", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owner_id", { length: 255 }).notNull(),
-  sittingRequestId: integer("sitting_request_id").references(
-    () => sittingRequests.id,
-    { onDelete: "cascade" },
-  ),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   completed: boolean("completed").notNull().default(false),
   dueDate: timestamp("due_date", { withTimezone: true }),
   dateRangeFrom: timestamp("date_range_from", { withTimezone: true }),
   dateRangeTo: timestamp("date_range_to", { withTimezone: true }),
+  sittingSubject: integer("sitting_subject").references(
+    () => sittingSubjects.id,
+    { onDelete: "cascade" },
+  ),
+  // If the task is marked as done, the user who marked it as done
+  markedAsDoneBy: varchar("marked_as_done_by", { length: 255 }),
+  requiresVerification: boolean("requires_verification")
+    .notNull()
+    .default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -100,33 +80,9 @@ export const tasks = createTable("tasks", {
 });
 
 export const tasksRelations = relations(tasks, ({ one }) => ({
-  sittingRequest: one(sittingRequests, {
-    fields: [tasks.sittingRequestId],
-    references: [sittingRequests.id],
-  }),
-}));
-
-// A sitting event is a scheduled sitting based on a sitting request and a sitter
-// Will need additional details connected to the event for the sitter to provide to the owner
-export const sittingEvents = createTable("sitting_events", {
-  id: serial("id").primaryKey(),
-  sittingRequest: integer("sitting_request_id")
-    .references(() => sittingRequests.id, { onDelete: "cascade" })
-    .notNull(),
-  sitterId: varchar("sitter_id", { length: 255 }).notNull(),
-  fulfilled: boolean("fulfilled").notNull().default(false),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
-
-export const sittingEventsRelations = relations(sittingEvents, ({ one }) => ({
-  sittingRequest: one(sittingRequests, {
-    fields: [sittingEvents.sittingRequest],
-    references: [sittingRequests.id],
+  sittingSubject: one(sittingSubjects, {
+    fields: [tasks.sittingSubject],
+    references: [sittingSubjects.entityId],
   }),
 }));
 

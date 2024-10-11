@@ -12,7 +12,7 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import * as React from "react";
-import { add, format } from "date-fns";
+import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Calendar } from "~/components/ui/calendar";
@@ -22,7 +22,6 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { type DateRange } from "react-day-picker";
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import {
@@ -34,56 +33,72 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import {
-  createSittingRequestFormSchema,
-  type SittingTypeEnum,
-} from "~/lib/schema/index";
+import { SittingSubject, type Task, taskSchema } from "~/lib/schema/index";
 
-export default function CreateSittingDialog({
+export default function EditTaskDialog({
   props,
   children,
 }: {
-  props?: {
-    name?: string;
-    dateRange?: DateRange;
-    sittingType?: SittingTypeEnum;
-  };
+  props?: Task;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
+  const [dataChanged, setDataChanged] = React.useState(false);
 
-  const defaultFromDate = add(new Date(), { hours: 1 });
-  const defaultToDate = add(new Date(), { days: 1, hours: 1 });
+  const [subjects, setSubjects] = React.useState<SittingSubject[]>([]);
+  const [selectedSubject, setSelectedSubject] = React.useState<
+    number | undefined
+  >();
+  const [subjectsEmpty, setSubjectsEmpty] = React.useState<boolean>(false);
+
+  const [dueMode, setDueMode] = React.useState(true);
+  const [dueDate, setDueDate] = React.useState<Date | undefined>();
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
-  const form = useForm<z.infer<typeof createSittingRequestFormSchema>>({
-    resolver: zodResolver(createSittingRequestFormSchema),
+  const [deleteClicked, setDeleteClicked] = React.useState(false);
+
+  const form = useForm<z.infer<typeof taskSchema>>({
+    resolver: zodResolver(taskSchema),
   });
 
   // Update state upon props change, Update form value upon props change
   React.useEffect(
     () => {
       if (props) {
-        setDateRange({
-          from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
-          to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
-        });
+        if (props?.dueMode !== undefined) {
+          setDueMode(props.dueMode);
+          form.setValue("dueMode", props.dueMode);
+        }
+
+        if (props?.dueDate) setDueDate(props?.dueDate);
+
+        if (props?.dateRange)
+          setDateRange({
+            from: props?.dateRange?.from,
+            to: props?.dateRange?.to,
+          });
 
         if (props?.name) {
           form.setValue("name", props.name);
         }
 
+        if (props?.description) {
+          form.setValue("description", props.description);
+        }
+
+        if (props?.dueDate) {
+          form.setValue("dueDate", props.dueDate);
+        }
+
         if (props?.dateRange) {
           form.setValue("dateRange", {
-            from: props?.dateRange?.from
-              ? props.dateRange.from
-              : defaultFromDate,
-            to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+            from: props?.dateRange?.from,
+            to: props?.dateRange?.to,
           });
         }
 
-        if (props?.sittingType) {
-          form.setValue("sittingType", props.sittingType);
+        if (props?.subjectId) {
+          form.setValue("subjectId", props.subjectId);
         }
       }
     },
@@ -91,20 +106,55 @@ export default function CreateSittingDialog({
     [props],
   );
 
-  async function onSubmit(data: z.infer<typeof createSittingRequestFormSchema>) {
-    const res = await fetch("api/sittingrequest", {
-      method: "PUT",
+  async function onSubmit(data: z.infer<typeof taskSchema>) {
+    if (deleteClicked) {
+      await deleteTask();
+      return;
+    }
+
+    const res = await fetch("api/task", {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     });
 
-    if (res.ok) {
-      setOpen(false);
-      document.dispatchEvent(new Event("sittingCreated"));
-    } else {
+    if (!res.ok) {
       console.log(res);
+      return;
+    }
+
+    const resData = await res.json();
+
+    if (!resData.error) {
+      setOpen(false);
+      document.dispatchEvent(new Event("taskUpdated"));
+    } else {
+      console.log(resData);
+    }
+  }
+
+  async function deleteTask() {
+    // Fix this at some point with another dialog
+    // eslint-disable-next-line no-alert
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      const res = await fetch("api/task", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: form.getValues().id }),
+      });
+
+      if (res.ok) {
+        setOpen(false);
+        document.dispatchEvent(new Event("taskDeleted"));
+      } else {
+        console.log(res);
+      }
+
+      setDeleteClicked(false);
     }
   }
 
@@ -113,13 +163,13 @@ export default function CreateSittingDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[454px]">
         <DialogHeader>
-          <DialogTitle>New Sitting</DialogTitle>
+          <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="w-2/3 space-y-6"
-            name="createSitting"
+            name="editTask"
           >
             <FormField
               control={form.control}
@@ -129,6 +179,9 @@ export default function CreateSittingDialog({
                   <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input
+                      onChangeCapture={() => {
+                        setDataChanged(true);
+                      }}
                       placeholder="Pet sitting while I am away"
                       {...field}
                     />
@@ -180,6 +233,7 @@ export default function CreateSittingDialog({
                         onSelect={(e) => {
                           setDateRange(e);
                           field.onChange(e);
+                          setDataChanged(true);
                         }}
                         numberOfMonths={2}
                       />
@@ -190,44 +244,29 @@ export default function CreateSittingDialog({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="sittingType"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Sitting Type</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="Pet" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Pet</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="House" />
-                        </FormControl>
-                        <FormLabel className="font-normal">House</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="Plant" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Plant</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <DialogFooter>
-              <Button type="submit">Create Sitting</Button>
+              <div className="flex grow flex-row place-content-between">
+                <Button
+                  id="deleteTaskButton"
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={() => {
+                    setDeleteClicked(true);
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 -960 960 960"
+                    width="24px"
+                    fill="#e8eaed"
+                  >
+                    <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+                  </svg>
+                </Button>
+                <Button type="submit" disabled={!dataChanged}>
+                  Update Task
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </Form>

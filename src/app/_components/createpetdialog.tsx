@@ -164,7 +164,9 @@ export default function CreatePetDialog({
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormDescription>Your pet's date of birth</FormDescription>
+                  <FormDescription>
+                    Your pet&apos;s date of birth
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

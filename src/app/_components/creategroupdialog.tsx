@@ -31,7 +31,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { SittingSubject } from "~/lib/schema/index";
+import { type SittingSubject } from "~/lib/schema/index";
 
 export default function CreateGroupDialog({
   children,

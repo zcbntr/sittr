@@ -23,7 +23,12 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createTaskFormSchema } from "~/lib/schema/index";
+import {
+  type CreateTaskFormProps,
+  createTaskFormSchema,
+  type DateRange,
+  SittingSubject,
+} from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import {
@@ -35,14 +40,29 @@ import { Calendar } from "~/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import { cn } from "~/lib/utils";
-import { format } from "date-fns";
+import { add, format } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 export default function CreateTaskDialog({
+  props,
   children,
 }: {
+  props?: CreateTaskFormProps;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
+
+  const defaultFromDate = add(new Date(), { hours: 1 });
+  const defaultToDate = add(new Date(), { days: 1, hours: 1 });
+
+  const [subjects, setSubjects] = React.useState<SittingSubject[]>([]);
+  const [subjectsEmpty, setSubjectsEmpty] = React.useState<boolean>(false);
 
   const [dueMode, setDueMode] = React.useState(true);
   const [dueDate, setDueDate] = React.useState<Date | undefined>();
@@ -51,6 +71,77 @@ export default function CreateTaskDialog({
   const form = useForm<z.infer<typeof createTaskFormSchema>>({
     resolver: zodResolver(createTaskFormSchema),
   });
+
+  // Update state upon props change, Update form value upon props change
+  React.useEffect(
+    () => {
+      async function fetchSubjects() {
+        await fetch("api/sittingsubject?all=true")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.error) {
+              setSubjectsEmpty(true);
+              console.error(data.error);
+              return;
+            }
+
+            if (data.length > 0) {
+              setSubjects(data);
+            } else if (data.length === 0) {
+              setSubjectsEmpty(true);
+            }
+          });
+      }
+
+      if (props) {
+        if (props?.dueMode !== undefined) {
+          setDueMode(props.dueMode);
+          form.setValue("dueMode", props.dueMode);
+        }
+
+        if (props?.dueDate) setDueDate(props?.dueDate);
+
+        if (props?.dateRange)
+          setDateRange({
+            from: props?.dateRange?.from
+              ? props.dateRange.from
+              : defaultFromDate,
+            to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+          });
+
+        if (props?.name) {
+          form.setValue("name", props.name);
+        }
+
+        if (props?.description) {
+          form.setValue("description", props.description);
+        }
+
+        if (props?.dueDate) {
+          form.setValue("dueDate", props.dueDate);
+        }
+
+        if (props?.dateRange) {
+          form.setValue("dateRange", {
+            from: props?.dateRange?.from
+              ? props.dateRange.from
+              : defaultFromDate,
+            to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+          });
+        }
+
+        if (props?.subjectId) {
+          form.setValue("subjectId", props.subjectId);
+        }
+      }
+
+      // Fetch all possible sitting subjects
+
+      void fetchSubjects();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [props],
+  );
 
   async function onSubmit(data: z.infer<typeof createTaskFormSchema>) {
     const res = await fetch("api/task", {
@@ -61,11 +152,18 @@ export default function CreateTaskDialog({
       body: JSON.stringify(data),
     });
 
-    if (res.ok) {
+    if (!res.ok) {
+      console.log(res);
+      return;
+    }
+
+    const resData = await res.json();
+
+    if (!resData.error) {
       setOpen(false);
       document.dispatchEvent(new Event("taskCreated"));
     } else {
-      console.log(res);
+      console.log(resData);
     }
   }
 
@@ -103,7 +201,7 @@ export default function CreateTaskDialog({
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="The food box is on the dresser with the spice racks in the kitchen. He has three scoops at each meal."
+                      placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
                       {...field}
                     />
                   </FormControl>
@@ -131,7 +229,7 @@ export default function CreateTaskDialog({
                   </div>
                   <FormControl>
                     <Switch
-                      checked={field.value}
+                      checked={!field.value}
                       onCheckedChange={() => {
                         field.onChange();
                         setDueMode(!dueMode);
@@ -191,10 +289,10 @@ export default function CreateTaskDialog({
             {!dueMode && (
               <FormField
                 control={form.control}
-                name="dateRange"
+                name="dateRange.from"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel className="text-left">Due Date/Time</FormLabel>
+                    <FormLabel className="text-left">Start Date/Time</FormLabel>
                     <Popover>
                       <FormControl>
                         <PopoverTrigger asChild>
@@ -209,7 +307,7 @@ export default function CreateTaskDialog({
                             {field.value ? (
                               format(field.value, "PPP HH:mm:ss")
                             ) : (
-                              <span>Pick a date</span>
+                              <span>Pick a start date/time</span>
                             )}
                           </Button>
                         </PopoverTrigger>
@@ -233,6 +331,94 @@ export default function CreateTaskDialog({
                 )}
               />
             )}
+
+            {!dueMode && (
+              <FormField
+                control={form.control}
+                name="dateRange.to"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-left">End Date/Time</FormLabel>
+                    <Popover>
+                      <FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-[280px] justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground",
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? (
+                              format(field.value, "PPP HH:mm:ss")
+                            ) : (
+                              <span>Pick a end date/time</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                        <div className="border-t border-border p-3">
+                          <TimePickerDemo
+                            setDate={field.onChange}
+                            date={field.value}
+                          />
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <FormField
+              control={form.control}
+              name="subjectId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pet, House, or Plant</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      form.setValue("subjectId", parseInt(value));
+                    }}
+                    disabled={subjectsEmpty}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            !subjectsEmpty
+                              ? "Select a pet, house or plant"
+                              : "Nothing to show"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {subjects.map((subject) => (
+                        <SelectItem
+                          key={subject.id}
+                          value={subject.id.toString()}
+                        >
+                          {subject.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Select a pet, house or plant to associate with this task.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter>
               <Button type="submit">Create Task</Button>

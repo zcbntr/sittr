@@ -1,4 +1,3 @@
-import path from "path";
 import { z } from "zod";
 
 // -----------------------------------------------------------------------------
@@ -22,10 +21,6 @@ export const WateringFrequency = z.enum([
 ]);
 export type WateringFrequency = z.infer<typeof WateringFrequency>;
 
-// -----------------------------------------------------------------------------
-// Form schemas
-// -----------------------------------------------------------------------------
-
 export const dateRangeSchema = z.object({
   from: z.coerce.date(),
   to: z.coerce.date(),
@@ -33,68 +28,15 @@ export const dateRangeSchema = z.object({
 
 export type DateRange = z.infer<typeof dateRangeSchema>;
 
-export const createSittingRequestFormSchema = z
-  .object({
-    name: z.string().min(3).max(50),
-    dateRange: dateRangeSchema,
-    sittingType: SittingTypeEnum,
-  })
-  .refine((data) => data.dateRange.from < data.dateRange.to, {
-    path: ["dateRange"],
-    message: "From date must be before to date",
-  })
-  .refine((data) => data.dateRange.from > new Date(), {
-    path: ["dateRange"],
-    message: "From date must be in the future",
-  })
-  .refine((data) => data.dateRange.to > new Date(), {
-    path: ["dateRange"],
-    message: "To date must be in the future",
-  });
-
-export type CreateSittingRequestFormInput = z.infer<
-  typeof createSittingRequestFormSchema
->;
-
-export const editSittingRequestFormSchema = z
-  .object({
-    id: z.number(),
-    name: z.string().min(3).max(50),
-    dateRange: z.object(
-      {
-        from: z.coerce.date(),
-        to: z.coerce.date(),
-      },
-      {
-        required_error: "Please select a date or date range.",
-      },
-    ),
-    sittingType: SittingTypeEnum,
-  })
-  .refine((data) => data.dateRange.from < data.dateRange.to, {
-    path: ["dateRange"],
-    message: "From date must be before to date",
-  })
-  .refine((data) => data.dateRange.from > new Date(), {
-    path: ["dateRange"],
-    message: "From date must be in the future",
-  })
-  .refine((data) => data.dateRange.to > new Date(), {
-    path: ["dateRange"],
-    message: "To date must be in the future",
-  });
-
-export type EditSittingRequestFormInput = z.infer<
-  typeof editSittingRequestFormSchema
->;
-
-export const deleteSittingRequestFormSchema = z.object({
+export const deleteFormSchema = z.object({
   id: z.number(),
 });
 
-export type DeleteSittingRequestFormInput = z.infer<
-  typeof deleteSittingRequestFormSchema
->;
+export type DeleteFormInput = z.infer<typeof deleteFormSchema>;
+
+// -----------------------------------------------------------------------------
+// Form schemas
+// -----------------------------------------------------------------------------
 
 export const createTaskFormSchema = z
   .object({
@@ -103,12 +45,12 @@ export const createTaskFormSchema = z
     dueMode: z.boolean(),
     dueDate: z.coerce.date().optional(),
     dateRange: dateRangeSchema.optional(),
+    subjectId: z.number(),
   })
-  // Must have either due date or start and end date, but not both
+  // Must have either due date or start and end date
   .refine(
     (data) =>
-      (data.dueMode && data.dueDate && !data.dateRange) ||
-      (!data.dueMode && !data.dueDate && data.dateRange),
+      (data.dueMode && data.dueDate) ?? (!data.dueMode && data.dateRange),
     {
       path: ["dueDate"],
       message: "dueDate is required if dateRange is not provided",
@@ -149,6 +91,18 @@ export const createTaskFormSchema = z
   });
 
 export type CreateTaskFormInput = z.infer<typeof createTaskFormSchema>;
+
+// Ideally could just use .partial() but doesn't work for some reason
+export const createTaskFormProps = z.object({
+  name: z.string().min(3).max(50).optional(),
+  description: z.string().min(3).max(500).optional(),
+  dueMode: z.boolean().optional(),
+  dueDate: z.coerce.date().optional(),
+  dateRange: dateRangeSchema.optional(),
+  subjectId: z.number().optional(),
+});
+
+export type CreateTaskFormProps = z.infer<typeof createTaskFormProps>;
 
 export const createPetFormSchema = z.object({
   name: z.string().min(3).max(50),
@@ -260,3 +214,59 @@ export const sittingSubjectSchema = z.union([
 ]);
 
 export type SittingSubject = z.infer<typeof sittingSubjectSchema>;
+
+export const taskSchema = z
+  .object({
+    id: z.number(),
+    name: z.string(),
+    description: z.string().optional().nullable(),
+    dueMode: z.boolean(),
+    dueDate: z.date().optional().nullable(),
+    dateRange: dateRangeSchema.optional().nullable(),
+    subjectId: z.number(),
+  })
+  // Must have either due date or start and end date, but not both
+  .refine(
+    (data) =>
+      (data.dueMode && data.dueDate && !data.dateRange) ??
+      (!data.dueMode && !data.dueDate && data.dateRange),
+    {
+      path: ["dueDate"],
+      message: "dueDate is required if dateRange is not provided",
+    },
+  )
+  // End date must be after start date
+  .refine(
+    (data) =>
+      !data.dueMode &&
+      data.dateRange &&
+      data.dateRange.to > data.dateRange.from,
+    {
+      path: ["dateRange"],
+      message: "dateRange.to must be after dateRange.from",
+    },
+  )
+  // Start date must be in the future
+  .refine(
+    (data) =>
+      !data.dueMode && data.dateRange && data.dateRange.from > new Date(),
+    {
+      path: ["dateRange"],
+      message: "dateRange.from must be in the future",
+    },
+  )
+  // To date must be in the future
+  .refine(
+    (data) => !data.dueMode && data.dateRange && data.dateRange.to > new Date(),
+    {
+      path: ["dateRange"],
+      message: "dateRange.to must be in the future",
+    },
+  )
+  // Due date must be in the future
+  .refine((data) => data.dueMode && data.dueDate && data.dueDate > new Date(), {
+    path: ["dueDate"],
+    message: "dueDate must be in the future",
+  });
+
+export type Task = z.infer<typeof taskSchema>;
