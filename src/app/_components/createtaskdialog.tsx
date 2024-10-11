@@ -231,7 +231,7 @@ export default function CreateTaskDialog({
                     <Switch
                       checked={!field.value}
                       onCheckedChange={() => {
-                        field.onChange();
+                        form.setValue("dueMode", !dueMode);
                         setDueMode(!dueMode);
                       }}
                     />
