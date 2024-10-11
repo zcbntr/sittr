@@ -59,6 +59,7 @@ export const tasks = createTable("tasks", {
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   completed: boolean("completed").notNull().default(false),
+  dueMode: boolean("due_mode").notNull(),
   dueDate: timestamp("due_date", { withTimezone: true }),
   dateRangeFrom: timestamp("date_range_from", { withTimezone: true }),
   dateRangeTo: timestamp("date_range_to", { withTimezone: true }),

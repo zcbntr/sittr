@@ -67,6 +67,7 @@ export async function getOwnedTasks() {
 export async function createTask(
   name: string,
   subjectId: number,
+  dueMode: boolean,
   dateRange?: DateRange,
   dueDate?: Date,
   description?: string,
@@ -81,6 +82,7 @@ export async function createTask(
     .insert(tasks)
     .values({
       name: name,
+      dueMode: dueMode,
       ownerId: user.userId,
       dateRangeFrom: dateRange?.from,
       dateRangeTo: dateRange?.to,
@@ -97,6 +99,7 @@ export async function updateTask(
   id: number,
   name: string,
   subjectId: number,
+  dueMode: boolean,
   dateRange: DateRange,
   dueDate?: Date,
   description?: string,
@@ -111,6 +114,7 @@ export async function updateTask(
     .update(tasks)
     .set({
       name: name,
+      dueMode: dueMode,
       dateRangeFrom: dateRange?.from,
       dateRangeTo: dateRange?.to,
       dueDate: dueDate,
@@ -550,7 +554,7 @@ export async function getOwnedPets(): Promise<Pet[]> {
   // Turn into zod pet type
   const petsList: Pet[] = joinedPets.map((petSubject) => {
     return petSchema.parse({
-      id: petSubject.pets.id,
+      id: petSubject.owned_pet_subjects.entityId,
       subjectId: petSubject.owned_pet_subjects.subjectId,
       name: petSubject.pets.name,
       species: petSubject.pets.species,
@@ -628,7 +632,7 @@ export async function getOwnedHouses(): Promise<House[]> {
   // Turn into zod house type
   const housesList: House[] = joinedHouses.map((houseSubject) => {
     return houseSchema.parse({
-      id: houseSubject.houses.id,
+      id: houseSubject.owned_house_subjects.entityId,
       subjectId: houseSubject.owned_house_subjects.subjectId,
       name: houseSubject.houses.name,
       address: houseSubject.houses.address,
@@ -746,7 +750,7 @@ export async function getOwnedPlants(): Promise<Plant[]> {
   // Turn into zod plant type
   const plantsList: Plant[] = joinedPlants.map((plantSubject) => {
     return plantSchema.parse({
-      id: plantSubject.plants.id,
+      id: plantSubject.owned_plant_subjects.entityId,
       subjectId: plantSubject.owned_plant_subjects.subjectId,
       name: plantSubject.plants.name,
       species: plantSubject.plants.species,

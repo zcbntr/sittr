@@ -53,6 +53,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
     const pgRow = await createTask(
       formData.data.name,
       formData.data.subjectId,
+      formData.data.dueMode,
       formData.data.dateRange,
       formData.data.dueDate,
       formData.data.description,
@@ -81,6 +82,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
       formData.data.id,
       formData.data.name,
       formData.data.subjectId,
+      formData.data.dueMode,
       formData.data.dateRange,
       formData.data.dueDate,
       formData.data.description,

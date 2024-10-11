@@ -393,7 +393,6 @@ export default function CreateTaskDialog({
                   <Select
                     onValueChange={(value) => {
                       form.setValue("subjectId", parseInt(value));
-                      console.log(form.getValues());
                     }}
                     disabled={subjectsEmpty}
                   >
