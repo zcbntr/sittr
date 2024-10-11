@@ -58,8 +58,8 @@ export const sittingRequests = createTable("sitting_requests", {
   name: varchar("name", { length: 255 }).notNull(),
   category: categoryEnum("category").notNull(),
   fulfilled: boolean("fulfilled").notNull().default(false),
-  startDate: timestamp("start_date", { withTimezone: true }).notNull(),
-  endDate: timestamp("end_date", { withTimezone: true }).notNull(),
+  dateRangeFrom: timestamp("date_range_from", { withTimezone: true }).notNull(),
+  dateRangeTo: timestamp("date_range_to", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -89,8 +89,8 @@ export const tasks = createTable("tasks", {
   description: text("description"),
   completed: boolean("completed").notNull().default(false),
   dueDate: timestamp("due_date", { withTimezone: true }),
-  startDate: timestamp("start_date", { withTimezone: true }),
-  endDate: timestamp("end_date", { withTimezone: true }),
+  dateRangeFrom: timestamp("date_range_from", { withTimezone: true }),
+  dateRangeTo: timestamp("date_range_to", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

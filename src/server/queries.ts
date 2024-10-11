@@ -18,6 +18,7 @@ import {
   userPreferances,
 } from "./db/schema";
 import {
+  DateRange,
   GroupRoleEnum,
   House,
   houseSchema,
@@ -49,8 +50,7 @@ export async function getOwnedSittingRequests() {
 export async function createSittingRequest(
   name: string,
   category: SittingTypeEnum,
-  startDate: Date,
-  endDate: Date,
+  dateRange: DateRange,
 ) {
   const user = auth();
 
@@ -64,8 +64,8 @@ export async function createSittingRequest(
       name: name,
       ownerId: user.userId,
       category: category,
-      startDate: startDate,
-      endDate: endDate,
+      dateRangeFrom: dateRange.from,
+      dateRangeTo: dateRange.to,
     })
     .execute();
 
@@ -76,8 +76,7 @@ export async function updateSittingRequest(
   id: number,
   name: string,
   category: SittingTypeEnum,
-  startDate: Date,
-  endDate: Date,
+  dateRange: DateRange,
 ) {
   const user = auth();
 
@@ -90,8 +89,8 @@ export async function updateSittingRequest(
     .set({
       name: name,
       category: category,
-      startDate: startDate,
-      endDate: endDate,
+      dateRangeFrom: dateRange.from,
+      dateRangeTo: dateRange.to,
     })
     .where(eq(sittingRequests.id, id))
     .execute();
@@ -125,8 +124,8 @@ export async function getSittingRequestsStartingInRange(from: Date, to: Date) {
     where: (model, { eq, gte, lte, and }) =>
       and(
         eq(model.ownerId, user.userId),
-        gte(model.startDate, from),
-        lte(model.startDate, to),
+        gte(model.dateRangeFrom, from),
+        lte(model.dateRangeFrom, to),
       ),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
@@ -173,8 +172,7 @@ export async function getOwnedTasks() {
 
 export async function createTask(
   name: string,
-  startDate?: Date,
-  endDate?: Date,
+  dateRange?: DateRange,
   dueDate?: Date,
   description?: string,
 ) {
@@ -189,8 +187,8 @@ export async function createTask(
     .values({
       name: name,
       ownerId: user.userId,
-      startDate: startDate,
-      endDate: endDate,
+      dateRangeFrom: dateRange?.from,
+      dateRangeTo: dateRange?.to,
       dueDate: dueDate,
       description: description,
     })
@@ -202,8 +200,7 @@ export async function createTask(
 export async function updateTask(
   id: number,
   name: string,
-  startDate?: Date,
-  endDate?: Date,
+  dateRange: DateRange,
   dueDate?: Date,
   description?: string,
 ) {
@@ -217,8 +214,8 @@ export async function updateTask(
     .update(tasks)
     .set({
       name: name,
-      startDate: startDate,
-      endDate: endDate,
+      dateRangeFrom: dateRange?.from,
+      dateRangeTo: dateRange?.to,
       dueDate: dueDate,
       description: description,
     })

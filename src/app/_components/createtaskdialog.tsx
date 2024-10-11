@@ -46,6 +46,7 @@ export default function CreateTaskDialog({
 
   const [dueMode, setDueMode] = React.useState(true);
   const [dueDate, setDueDate] = React.useState<Date | undefined>();
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
   const form = useForm<z.infer<typeof createTaskFormSchema>>({
     resolver: zodResolver(createTaskFormSchema),
@@ -145,6 +146,52 @@ export default function CreateTaskDialog({
               <FormField
                 control={form.control}
                 name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-left">Due Date/Time</FormLabel>
+                    <Popover>
+                      <FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-[280px] justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground",
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? (
+                              format(field.value, "PPP HH:mm:ss")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                        <div className="border-t border-border p-3">
+                          <TimePickerDemo
+                            setDate={field.onChange}
+                            date={field.value}
+                          />
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {!dueMode && (
+              <FormField
+                control={form.control}
+                name="dateRange"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel className="text-left">Due Date/Time</FormLabel>
