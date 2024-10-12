@@ -20,7 +20,7 @@ const PrivacyPolicy = () => {
           Back
         </Link>
         <h1 className="pb-6 text-3xl font-extrabold">
-          Privacy Policy for {config.appName}
+          Privacy Policy for sittr
         </h1>
 
         <pre

@@ -87,15 +87,19 @@ export default function CalendarComponent() {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         if (data) {
           const events: CalendarEvent[] = data.map((event) => {
-            return {
-              id: event.id,
-              title: event.name,
-              start: new Date(event.startDate),
-              end: new Date(event.endDate),
-              allDay: false,
-              desc: "",
-            };
+            return new CalendarEvent(
+              event.id,
+              event.name,
+              event.dueMode,
+              new Date(event.dateRangeFrom),
+              new Date(event.dateRangeTo),
+              event.sittingSubject,
+              false,
+              event.description,
+            );
           });
+
+          console.log(events);
           setEvents(events);
         }
       } catch (error) {

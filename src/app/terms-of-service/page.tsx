@@ -20,7 +20,7 @@ const TOS = () => {
           Back
         </Link>
         <h1 className="pb-6 text-3xl font-extrabold">
-          Terms and Conditions for {config.appName}
+          Terms and Conditions for sittr
         </h1>
 
         <pre

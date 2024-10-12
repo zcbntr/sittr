@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, or } from "drizzle-orm";
 import {
   groupInviteCodes,
   groupMembers,
@@ -36,17 +36,19 @@ export async function getTasksStartingInRange(from: Date, to: Date) {
     throw new Error("Unauthorized");
   }
 
-  const upcomingSittingRequests = await db.query.tasks.findMany({
+  const tasksInRange = await db.query.tasks.findMany({
     where: (model, { eq, gte, lte, and }) =>
       and(
         eq(model.ownerId, user.userId),
-        gte(model.dateRangeFrom, from),
-        lte(model.dateRangeFrom, to),
+        or(
+          and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
+          gte(model.dueDate, to),
+        ),
       ),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
-  return upcomingSittingRequests;
+  return tasksInRange;
 }
 
 export async function getOwnedTasks() {
