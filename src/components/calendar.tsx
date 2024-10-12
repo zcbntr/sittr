@@ -27,8 +27,10 @@ class CalendarEvent {
   id: number;
   title: string;
   allDay: boolean;
+  dueMode: boolean;
   start: Date;
   end: Date;
+  subjectId: number;
   desc: string;
   resourceId?: string;
   tooltip?: string;
@@ -36,8 +38,10 @@ class CalendarEvent {
   constructor(
     _id: number,
     _title: string,
+    _dueMode: boolean,
     _start: Date,
     _endDate: Date,
+    _subjectId: number,
     _allDay?: boolean,
     _desc?: string,
     _resourceId?: string,
@@ -45,8 +49,10 @@ class CalendarEvent {
     this.id = _id;
     this.title = _title;
     this.allDay = _allDay ?? false;
+    this.dueMode = _dueMode;
     this.start = _start;
     this.end = _endDate;
+    this.subjectId = _subjectId;
     this.desc = _desc ?? "";
     this.resourceId = _resourceId;
   }
@@ -135,7 +141,8 @@ export default function CalendarComponent() {
         id: event.id,
         name: event.title,
         description: event.desc,
-        sittingType: event.sittingType,
+        subjectId: event.subjectId,
+        dueMode: event.dueMode,
         dueDate: event.end,
         dateRange: {
           from: event.start,
