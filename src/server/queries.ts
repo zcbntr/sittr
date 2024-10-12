@@ -25,11 +25,16 @@ import {
   type Plant,
   plantSchema,
   type SittingSubject,
+  Task,
+  taskSchema,
   type WateringFrequency,
 } from "~/lib/schema";
 import { sha256 } from "crypto-hash";
 
-export async function getTasksStartingInRange(from: Date, to: Date) {
+export async function getTasksStartingInRange(
+  from: Date,
+  to: Date,
+): Promise<Task[]> {
   const user = auth();
 
   if (!user.userId) {
@@ -48,10 +53,33 @@ export async function getTasksStartingInRange(from: Date, to: Date) {
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
-  return tasksInRange;
+  // Turn into task schema
+  const tasksList: Task[] = tasksInRange.map((task) => {
+    try {
+      return taskSchema.parse({
+        id: task.id,
+        name: task.name,
+        description: task.description,
+        dueMode: task.dueMode,
+        dueDate: task.dueDate,
+        dateRange: {
+          from: task.dateRangeFrom,
+          to: task.dateRangeTo,
+        },
+        subjectId: task.sittingSubject,
+      });
+    } catch (error) {
+      console.error("Failed to parse task", error);
+      throw new Error("Failed to parse task");
+    }
+  });
+
+  console.log(tasksList);
+
+  return tasksList;
 }
 
-export async function getOwnedTasks() {
+export async function getOwnedTasks(): Promise<Task[]> {
   const user = auth();
 
   if (!user.userId) {
@@ -63,7 +91,23 @@ export async function getOwnedTasks() {
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
-  return userTasks;
+  // Turn into task schema
+  const tasksList: Task[] = userTasks.map((task) => {
+    return taskSchema.parse({
+      id: task.id,
+      name: task.name,
+      description: task.description,
+      dueMode: task.dueMode,
+      dueDate: task.dueDate,
+      dateRange: {
+        from: task.dateRangeFrom,
+        to: task.dateRangeTo,
+      },
+      subjectId: task.sittingSubject,
+    });
+  });
+
+  return tasksList;
 }
 
 export async function createTask(

@@ -235,7 +235,7 @@ export const taskSchema = z
   // Must have either due date or start and end date
   .refine(
     (data) =>
-      (data.dueMode && data.dueDate) ??
+      (data.dueMode && data.dueDate) ||
       (!data.dueMode && data.dateRange !== undefined),
     {
       path: ["dueDate"],

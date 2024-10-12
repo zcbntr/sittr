@@ -82,20 +82,20 @@ export default function CalendarComponent() {
             },
           },
         );
-        const data: unknown = await tasksRes.json();
+        const data: Task[] = await tasksRes.json();
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         if (data) {
-          const events: CalendarEvent[] = data.map((event) => {
+          const events: CalendarEvent[] = data.map((task) => {
             return new CalendarEvent(
-              event.id,
-              event.name,
-              event.dueMode,
-              new Date(event.dateRangeFrom),
-              new Date(event.dateRangeTo),
-              event.sittingSubject,
+              task.id,
+              task.name,
+              task.dueMode,
+              new Date(task.dateRange?.from),
+              new Date(task.dateRange?.to),
+              task.subjectId,
               false,
-              event.description,
+              task.description ? task.description : "",
             );
           });
 

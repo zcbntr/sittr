@@ -167,7 +167,10 @@ export default function EditTaskDialog({
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void onSubmit(form.getValues());
+            }}
             className="w-2/3 space-y-6"
             name="editTask"
           >
