@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
-import { eq, desc, and, or } from "drizzle-orm";
+import { eq, desc, and, or, lte, gte } from "drizzle-orm";
 import {
   groupInviteCodes,
   groupMembers,
@@ -138,35 +138,50 @@ export async function getOwnedTask(taskId: number): Promise<Task> {
   });
 }
 
-export async function getVisibleTasksInRange(from: Date, to: Date): Promise<Task[]> {
+export async function getVisibleTasksInRange(
+  from: Date,
+  to: Date,
+): Promise<Task[]> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const tasksInRange = await db.query.tasks.findMany({
-    where: (model, { gte, lte }) =>
-      or(
-        and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
-        gte(model.dueDate, to),
+  // Get tasks in range where the user is the owner or in the group the task is assigned to
+  const visibleTasksInRange = await db
+    .select()
+    .from(tasks)
+    .leftJoin(groups, eq(tasks.sittingSubject, groups.id))
+    .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
+    .where(
+      and(
+        or(
+          eq(groupMembers.userId, user.userId),
+          eq(tasks.ownerId, user.userId),
+        ),
+        or(
+          and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
+          gte(tasks.dueDate, to),
+        ),
       ),
-    orderBy: (model, { desc }) => desc(model.createdAt),
-  });
+    )
+    .execute();
 
   // Turn into task schema
-  const tasksList: Task[] = tasksInRange.map((task) => {
+  const tasksList: Task[] = visibleTasksInRange.map((joinedTaskRow) => {
     return taskSchema.parse({
-      id: task.id,
-      name: task.name,
-      description: task.description,
-      dueMode: task.dueMode,
-      dueDate: task.dueDate,
+      id: joinedTaskRow.tasks.id,
+      name: joinedTaskRow.tasks.name,
+      description: joinedTaskRow.tasks.description,
+      dueMode: joinedTaskRow.tasks.dueMode,
+      dueDate: joinedTaskRow.tasks.dueDate,
       dateRange: {
-        from: task.dateRangeFrom,
-        to: task.dateRangeTo,
+        from: joinedTaskRow.tasks.dateRangeFrom,
+        to: joinedTaskRow.tasks.dateRangeTo,
       },
-      subjectId: task.sittingSubject,
+      subjectId: joinedTaskRow.tasks.sittingSubject,
+      groupId: joinedTaskRow.groups?.id ?? undefined,
     });
   });
 
