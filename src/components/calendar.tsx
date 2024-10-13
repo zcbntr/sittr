@@ -31,6 +31,7 @@ class CalendarEvent {
   start: Date;
   end: Date;
   subjectId: number;
+  groupId?: number;
   desc: string;
   resourceId?: string;
   tooltip?: string;
@@ -42,6 +43,7 @@ class CalendarEvent {
     _start: Date,
     _endDate: Date,
     _subjectId: number,
+    _groupId?: number,
     _allDay?: boolean,
     _desc?: string,
     _resourceId?: string,
@@ -53,6 +55,7 @@ class CalendarEvent {
     this.start = _start;
     this.end = _endDate;
     this.subjectId = _subjectId;
+    this.groupId = _groupId;
     this.desc = _desc ?? "";
     this.resourceId = _resourceId;
   }
@@ -94,6 +97,7 @@ export default function CalendarComponent() {
               new Date(task.dateRange?.from),
               new Date(task.dateRange?.to),
               task.subjectId,
+              task.groupId,
               false,
               task.description ? task.description : "",
             );
@@ -145,6 +149,7 @@ export default function CalendarComponent() {
         name: event.title,
         description: event.desc,
         subjectId: event.subjectId,
+        groupId: event.groupId,
         dueMode: event.dueMode,
         dueDate: event.end,
         dateRange: {

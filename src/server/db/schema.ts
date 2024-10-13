@@ -67,6 +67,9 @@ export const tasks = createTable("tasks", {
     () => sittingSubjects.id,
     { onDelete: "cascade" },
   ),
+  group: integer("group").references(() => groups.id, {
+    onDelete: "cascade",
+  }),
   // If the task is marked as done, the user who marked it as done
   markedAsDoneBy: varchar("marked_as_done_by", { length: 255 }),
   requiresVerification: boolean("requires_verification")
@@ -84,6 +87,10 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
   sittingSubject: one(sittingSubjects, {
     fields: [tasks.sittingSubject],
     references: [sittingSubjects.entityId],
+  }),
+  group: one(groups, {
+    fields: [tasks.group],
+    references: [groups.id],
   }),
 }));
 
@@ -282,6 +289,7 @@ export const groups = createTable("groups", {
 });
 
 export const groupsRelations = relations(groups, ({ many }) => ({
+  tasks: many(tasks),
   groupInviteCodes: many(groupInviteCodes),
   groupMembers: many(groupMembers),
   subjectsToGroups: many(subjectsToGroups),

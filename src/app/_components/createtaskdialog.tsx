@@ -27,6 +27,7 @@ import {
   type CreateTaskFormProps,
   createTaskFormSchema,
   type DateRange,
+  Group,
   type SittingSubject,
 } from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
@@ -64,6 +65,9 @@ export default function CreateTaskDialog({
   const [subjects, setSubjects] = React.useState<SittingSubject[]>([]);
   const [subjectsEmpty, setSubjectsEmpty] = React.useState<boolean>(false);
 
+  const [groups, setGroups] = React.useState<Group[]>([]);
+  const [groupsEmpty, setGroupsEmpty] = React.useState<boolean>(false);
+
   const [dueMode, setDueMode] = React.useState<boolean>(true);
   const [dueDate, setDueDate] = React.useState<Date | undefined>();
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
@@ -92,6 +96,24 @@ export default function CreateTaskDialog({
               setSubjects(data);
             } else if (data.length === 0) {
               setSubjectsEmpty(true);
+            }
+          });
+      }
+
+      async function fetchGroups() {
+        await fetch("api/group?all=true")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.error) {
+              setGroupsEmpty(true);
+              console.error(data.error);
+              return;
+            }
+
+            if (data.length > 0) {
+              setGroups(data);
+            } else if (data.length === 0) {
+              setGroupsEmpty(true);
             }
           });
       }
@@ -136,10 +158,15 @@ export default function CreateTaskDialog({
         if (props?.subjectId) {
           form.setValue("subjectId", props.subjectId);
         }
+
+        if (props?.groupId) {
+          form.setValue("groupId", props.groupId);
+        }
       }
 
       // Fetch all possible sitting subjects
       void fetchSubjects();
+      void fetchGroups();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [props],
@@ -426,6 +453,45 @@ export default function CreateTaskDialog({
                   </Select>
                   <FormDescription>
                     Select a pet, house or plant to associate with this task.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="groupId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Group</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      form.setValue("groupId", parseInt(value));
+                    }}
+                    disabled={groupsEmpty}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            !groupsEmpty
+                              ? "Select group to associate with task"
+                              : "Make a group first"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {groups.map((group) => (
+                        <SelectItem key={group.id} value={group.id.toString()}>
+                          {group.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Select a group to associate with this task.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

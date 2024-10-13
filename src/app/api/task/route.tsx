@@ -8,7 +8,7 @@ import {
 import {
   createTask,
   deleteTask,
-  getTasksStartingInRange,
+  getOwnedTasksStartingInRange,
   updateTask,
 } from "~/server/queries";
 
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const pgRows = await getTasksStartingInRange(
+    const pgRows = await getOwnedTasksStartingInRange(
       requestParams.data.from,
       requestParams.data.to,
     );

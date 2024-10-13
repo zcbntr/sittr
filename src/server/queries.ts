@@ -31,7 +31,7 @@ import {
 } from "~/lib/schema";
 import { sha256 } from "crypto-hash";
 
-export async function getTasksStartingInRange(
+export async function getOwnedTasksStartingInRange(
   from: Date,
   to: Date,
 ): Promise<Task[]> {
@@ -91,6 +91,71 @@ export async function getOwnedTasks(): Promise<Task[]> {
 
   // Turn into task schema
   const tasksList: Task[] = userTasks.map((task) => {
+    return taskSchema.parse({
+      id: task.id,
+      name: task.name,
+      description: task.description,
+      dueMode: task.dueMode,
+      dueDate: task.dueDate,
+      dateRange: {
+        from: task.dateRangeFrom,
+        to: task.dateRangeTo,
+      },
+      subjectId: task.sittingSubject,
+    });
+  });
+
+  return tasksList;
+}
+
+export async function getOwnedTask(taskId: number): Promise<Task> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const task = await db.query.tasks.findFirst({
+    where: (model, { and, eq }) =>
+      and(eq(model.id, taskId), eq(model.ownerId, user.userId)),
+  });
+
+  if (!task) {
+    throw new Error("Task not found");
+  }
+
+  return taskSchema.parse({
+    id: task.id,
+    name: task.name,
+    description: task.description,
+    dueMode: task.dueMode,
+    dueDate: task.dueDate,
+    dateRange: {
+      from: task.dateRangeFrom,
+      to: task.dateRangeTo,
+    },
+    subjectId: task.sittingSubject,
+  });
+}
+
+export async function getVisibleTasksInRange(from: Date, to: Date): Promise<Task[]> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const tasksInRange = await db.query.tasks.findMany({
+    where: (model, { gte, lte }) =>
+      or(
+        and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
+        gte(model.dueDate, to),
+      ),
+    orderBy: (model, { desc }) => desc(model.createdAt),
+  });
+
+  // Turn into task schema
+  const tasksList: Task[] = tasksInRange.map((task) => {
     return taskSchema.parse({
       id: task.id,
       name: task.name,
@@ -515,6 +580,20 @@ export async function deleteGroup(groupId: number) {
     .returning();
 
   return deletedGroup;
+}
+
+export async function getGroupsIn() {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const groupsList = await db.query.groupMembers.findMany({
+    where: (model, { eq }) => eq(model.userId, user.userId),
+  });
+
+  return groupsList;
 }
 
 export async function createPet(

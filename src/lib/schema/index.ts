@@ -46,6 +46,7 @@ export const createTaskFormSchema = z
     dueDate: z.coerce.date().optional(),
     dateRange: dateRangeSchema.optional(),
     subjectId: z.number(),
+    groupId: z.number().optional(),
   })
   // Must have either due date or start and end date
   .refine(
@@ -107,6 +108,7 @@ export const createTaskFormProps = z.object({
   dueDate: z.coerce.date().optional(),
   dateRange: dateRangeSchema.optional(),
   subjectId: z.number().optional(),
+  groupId: z.number().optional(),
 });
 
 export type CreateTaskFormProps = z.infer<typeof createTaskFormProps>;
@@ -231,6 +233,7 @@ export const taskSchema = z
     dueDate: z.coerce.date().optional().nullable(),
     dateRange: dateRangeSchema.optional().nullable(),
     subjectId: z.number(),
+    groupId: z.number().optional().nullable(),
   })
   // Must have either due date or start and end date
   .refine(
@@ -282,3 +285,18 @@ export const taskSchema = z
   );
 
 export type Task = z.infer<typeof taskSchema>;
+
+export const groupSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  description: z.string().optional().nullable(),
+  members: z.array(
+    z.object({
+      id: z.number(),
+      role: GroupRoleEnum,
+    }),
+  ),
+  sittingSubjects: z.array(sittingSubjectSchema),
+});
+
+export type Group = z.infer<typeof groupSchema>;
