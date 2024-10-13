@@ -204,8 +204,10 @@ export default function EditTaskDialog({
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              console.log(form.getValues());
               void onSubmit(form.getValues());
             }}
+            onChange={() => setDataChanged(true)}
             className="w-2/3 space-y-6"
             name="editTask"
           >
@@ -262,7 +264,6 @@ export default function EditTaskDialog({
                       onCheckedChange={() => {
                         form.setValue("dueMode", !dueMode);
                         setDueMode(!dueMode);
-                        setDataChanged(true);
                       }}
                     />
                   </FormControl>
@@ -420,7 +421,6 @@ export default function EditTaskDialog({
                   <Select
                     onValueChange={(value) => {
                       form.setValue("subjectId", parseInt(value));
-                      setDataChanged(true);
                     }}
                     disabled={subjectsEmpty}
                     value={field.value?.toString()}

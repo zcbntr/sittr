@@ -75,6 +75,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
       console.log(
         "Edit Task Form Data Parse Error: \n" + formData.error.toString(),
       );
+      console.log(json);
       throw new Error("Invalid form data");
     }
 

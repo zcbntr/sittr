@@ -189,7 +189,7 @@ export const petSchema = z.object({
   name: z.string(),
   species: z.string(),
   breed: z.string().optional().nullable(),
-  dob: z.date(),
+  dob: z.coerce.date(),
 });
 
 export type Pet = z.infer<typeof petSchema>;
@@ -208,7 +208,7 @@ export const plantSchema = z.object({
   subjectId: z.number(),
   name: z.string(),
   species: z.string().optional().nullable(),
-  lastWatered: z.date().optional().nullable(),
+  lastWatered: z.coerce.date().optional().nullable(),
   wateringFrequency: WateringFrequency,
 });
 
@@ -228,7 +228,7 @@ export const taskSchema = z
     name: z.string(),
     description: z.string().optional().nullable(),
     dueMode: z.boolean(),
-    dueDate: z.date().optional().nullable(),
+    dueDate: z.coerce.date().optional().nullable(),
     dateRange: dateRangeSchema.optional().nullable(),
     subjectId: z.number(),
   })
