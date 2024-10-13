@@ -99,7 +99,6 @@ export default function CalendarComponent() {
             );
           });
 
-          console.log(events);
           setEvents(events);
         }
       } catch (error) {
@@ -187,6 +186,7 @@ export default function CalendarComponent() {
             color: "black",
           };
 
+          // Replace with either group based colour or subject based colour
           if (event.sittingType == "Pet") {
             newStyle.backgroundColor = "#f54290";
           } else if (event.sittingType == "House") {

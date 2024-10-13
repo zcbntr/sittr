@@ -34,6 +34,16 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { SittingSubject, type Task, taskSchema } from "~/lib/schema/index";
+import { TimePickerDemo } from "~/components/ui/time-picker-demo";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
+import { Switch } from "~/components/ui/switch";
 
 export default function EditTaskDialog({
   props,
@@ -42,8 +52,8 @@ export default function EditTaskDialog({
   props?: Task;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = React.useState(false);
-  const [dataChanged, setDataChanged] = React.useState(false);
+  const [open, setOpen] = React.useState<boolean>(false);
+  const [dataChanged, setDataChanged] = React.useState<boolean>(false);
 
   const [subjects, setSubjects] = React.useState<SittingSubject[]>([]);
   const [selectedSubject, setSelectedSubject] = React.useState<
@@ -51,11 +61,11 @@ export default function EditTaskDialog({
   >();
   const [subjectsEmpty, setSubjectsEmpty] = React.useState<boolean>(false);
 
-  const [dueMode, setDueMode] = React.useState(true);
+  const [dueMode, setDueMode] = React.useState<boolean>(true);
   const [dueDate, setDueDate] = React.useState<Date | undefined>();
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
-  const [deleteClicked, setDeleteClicked] = React.useState(false);
+  const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
 
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
@@ -64,7 +74,29 @@ export default function EditTaskDialog({
   // Update state upon props change, Update form value upon props change
   React.useEffect(
     () => {
+      async function fetchSubjects() {
+        await fetch("api/sittingsubject?all=true")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.error) {
+              setSubjectsEmpty(true);
+              console.error(data.error);
+              return;
+            }
+
+            if (data.length > 0) {
+              setSubjects(data);
+            } else if (data.length === 0) {
+              setSubjectsEmpty(true);
+            }
+          });
+      }
+
       if (props) {
+        if (props?.id) {
+          form.setValue("id", props.id);
+        }
+
         if (props?.dueMode !== undefined) {
           setDueMode(props.dueMode);
           form.setValue("dueMode", props.dueMode);
@@ -101,6 +133,9 @@ export default function EditTaskDialog({
           form.setValue("subjectId", props.subjectId);
         }
       }
+
+      // Fetch all possible sitting subjects
+      void fetchSubjects();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [props],
@@ -181,68 +216,240 @@ export default function EditTaskDialog({
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input
-                      onChangeCapture={() => {
-                        setDataChanged(true);
-                      }}
-                      placeholder="Pet sitting while I am away"
-                      {...field}
-                    />
+                    <Input placeholder="Give Jake his dinner" {...field} />
                   </FormControl>
-                  <FormDescription>e.g. Your pet&apos;s name</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="dateRange"
+              name="description"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Include important information sitters need to know. (Not
+                    required)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="dueMode"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                      Span Time Period
+                    </FormLabel>
+                    <FormDescription>
+                      Toggle whether the task has a due date/time or is a span
+                      of time.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={!field.value}
+                      onCheckedChange={() => {
+                        form.setValue("dueMode", !dueMode);
+                        setDueMode(!dueMode);
+                        setDataChanged(true);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {dueMode && (
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-left">Due Date/Time</FormLabel>
+                    <Popover>
                       <FormControl>
-                        <Button
-                          id="date"
-                          variant={"outline"}
-                          className={cn(
-                            "w-[300px] justify-start text-left font-normal",
-                            !dateRange && "text-muted-foreground",
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {dateRange?.from ? (
-                            dateRange.to ? (
-                              <>
-                                {format(dateRange.from, "LLL dd, y")} -{" "}
-                                {format(dateRange.to, "LLL dd, y")}
-                              </>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-[280px] justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground",
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? (
+                              format(field.value, "PPP HH:mm:ss")
                             ) : (
-                              format(dateRange.from, "LLL dd, y")
-                            )
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={dateRange?.from}
-                        selected={dateRange}
-                        onSelect={(e) => {
-                          setDateRange(e);
-                          field.onChange(e);
-                          setDataChanged(true);
-                        }}
-                        numberOfMonths={2}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>The date(s) of your sitting</FormDescription>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                        <div className="border-t border-border p-3">
+                          <TimePickerDemo
+                            setDate={field.onChange}
+                            date={field.value}
+                          />
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {!dueMode && (
+              <FormField
+                control={form.control}
+                name="dateRange.from"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-left">Start Date/Time</FormLabel>
+                    <Popover>
+                      <FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-[280px] justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground",
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? (
+                              format(field.value, "PPP HH:mm:ss")
+                            ) : (
+                              <span>Pick a start date/time</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                        <div className="border-t border-border p-3">
+                          <TimePickerDemo
+                            setDate={field.onChange}
+                            date={field.value}
+                          />
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {!dueMode && (
+              <FormField
+                control={form.control}
+                name="dateRange.to"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-left">End Date/Time</FormLabel>
+                    <Popover>
+                      <FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-[280px] justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground",
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? (
+                              format(field.value, "PPP HH:mm:ss")
+                            ) : (
+                              <span>Pick a end date/time</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                      </FormControl>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                        <div className="border-t border-border p-3">
+                          <TimePickerDemo
+                            setDate={field.onChange}
+                            date={field.value}
+                          />
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <FormField
+              control={form.control}
+              name="subjectId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pet, House, or Plant</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      form.setValue("subjectId", parseInt(value));
+                      setDataChanged(true);
+                    }}
+                    disabled={subjectsEmpty}
+                    value={field.value?.toString()}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            !subjectsEmpty
+                              ? "Select a pet, house or plant"
+                              : "Nothing to show"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {subjects.map((subject) => (
+                        <SelectItem
+                          key={subject.subjectId}
+                          value={subject.subjectId.toString()}
+                        >
+                          {subject.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Select a pet, house or plant to associate with this task.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

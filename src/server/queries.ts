@@ -74,8 +74,6 @@ export async function getTasksStartingInRange(
     }
   });
 
-  console.log(tasksList);
-
   return tasksList;
 }
 
@@ -146,7 +144,7 @@ export async function updateTask(
   name: string,
   subjectId: number,
   dueMode: boolean,
-  dateRange: DateRange,
+  dateRange?: DateRange,
   dueDate?: Date,
   description?: string,
 ) {

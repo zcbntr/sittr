@@ -56,7 +56,7 @@ export default function CreateTaskDialog({
   props?: CreateTaskFormProps;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState<boolean>(false);
 
   const defaultFromDate = add(new Date(), { hours: 1 });
   const defaultToDate = add(new Date(), { days: 1, hours: 1 });
@@ -64,7 +64,7 @@ export default function CreateTaskDialog({
   const [subjects, setSubjects] = React.useState<SittingSubject[]>([]);
   const [subjectsEmpty, setSubjectsEmpty] = React.useState<boolean>(false);
 
-  const [dueMode, setDueMode] = React.useState(true);
+  const [dueMode, setDueMode] = React.useState<boolean>(true);
   const [dueDate, setDueDate] = React.useState<Date | undefined>();
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
@@ -136,7 +136,6 @@ export default function CreateTaskDialog({
       }
 
       // Fetch all possible sitting subjects
-
       void fetchSubjects();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
