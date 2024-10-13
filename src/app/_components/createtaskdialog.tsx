@@ -70,6 +70,9 @@ export default function CreateTaskDialog({
 
   const form = useForm<z.infer<typeof createTaskFormSchema>>({
     resolver: zodResolver(createTaskFormSchema),
+    defaultValues: {
+      dueMode: true,
+    },
   });
 
   // Update state upon props change, Update form value upon props change
