@@ -3,9 +3,9 @@ import { getOwnedPets } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
-    const pgRows = await getOwnedPets();
+    const pets = await getOwnedPets();
 
-    return NextResponse.json(pgRows);
+    return NextResponse.json(pets);
   } catch (error) {
     return NextResponse.json({ error });
   }

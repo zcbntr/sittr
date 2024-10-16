@@ -21,24 +21,28 @@ export const WateringFrequency = z.enum([
 ]);
 export type WateringFrequency = z.infer<typeof WateringFrequency>;
 
-export const dateRangeSchema = z.object({
-  from: z.coerce.date(),
-  to: z.coerce.date(),
-});
+export const dateRangeSchema = z
+  .object({
+    from: z.coerce.date(),
+    to: z.coerce.date(),
+  })
+  .refine((data) => data.to > data.from, {
+    message: "to must be after from",
+  })
+  .refine((data) => data.to > new Date("1900-01-01"), {
+    message: "to must be after 1900-01-01",
+  })
+  .refine((data) => data.from > new Date("1900-01-01"), {
+    message: "from must be after 1900-01-01",
+  });
 
 export type DateRange = z.infer<typeof dateRangeSchema>;
-
-export const deleteFormSchema = z.object({
-  id: z.number(),
-});
-
-export type DeleteFormInput = z.infer<typeof deleteFormSchema>;
 
 // -----------------------------------------------------------------------------
 // Form schemas
 // -----------------------------------------------------------------------------
 
-export const createTaskFormSchema = z
+export const createTaskSchema = z
   .object({
     name: z.string().min(3).max(50),
     description: z.string().min(3).max(500).optional(),
@@ -98,7 +102,7 @@ export const createTaskFormSchema = z
     },
   );
 
-export type CreateTaskFormInput = z.infer<typeof createTaskFormSchema>;
+export type CreateTask = z.infer<typeof createTaskSchema>;
 
 // Ideally could just use .partial() but doesn't work for some reason
 export const createTaskFormProps = z.object({
@@ -113,28 +117,42 @@ export const createTaskFormProps = z.object({
 
 export type CreateTaskFormProps = z.infer<typeof createTaskFormProps>;
 
-export const createPetFormSchema = z.object({
-  name: z.string().min(3).max(50),
-  species: z.string().min(3).max(50),
-  breed: z.string().min(3).max(50).optional(),
-  birthdate: z.coerce.date(),
-});
+export const createPetFormSchema = z
+  .object({
+    name: z.string().min(3).max(50),
+    species: z.string().min(3).max(50),
+    breed: z.string().min(3).max(50).optional(),
+    birthdate: z.coerce.date(),
+  })
+  .refine((data) => data.birthdate < new Date(), {
+    message: "Birthdate must be in the past",
+  })
+  .refine((data) => data.birthdate > new Date("1900-01-01"), {
+    message: "Birthdate must be after 1900-01-01",
+  });
 
 export type CreatePetFormInput = z.infer<typeof createPetFormSchema>;
 
 export const createHouseFormSchema = z.object({
   name: z.string().min(3).max(50),
-  address: z.string().min(3).max(50).optional(),
+  address: z.string().min(5).max(150).optional(),
 });
 
 export type CreateHouseFormInput = z.infer<typeof createHouseFormSchema>;
 
-export const createPlantFormSchema = z.object({
-  name: z.string().min(3).max(50),
-  species: z.string().min(3).max(50).optional(),
-  lastWatered: z.coerce.date().optional(),
-  wateringFrequency: WateringFrequency,
-});
+export const createPlantFormSchema = z
+  .object({
+    name: z.string().min(3).max(50),
+    species: z.string().min(3).max(50).optional(),
+    lastWatered: z.coerce.date().optional(),
+    wateringFrequency: WateringFrequency,
+  })
+  .refine(
+    (data) => data.lastWatered == undefined || data.lastWatered < new Date(),
+    {
+      message: "Last watered must be in the past",
+    },
+  );
 
 export type CreatePlantFormInput = z.infer<typeof createPlantFormSchema>;
 
@@ -154,25 +172,41 @@ export const createGroupFormSchema = z.object({
 
 export type CreateGroupFormInput = z.infer<typeof createGroupFormSchema>;
 
+export const requestGroupInviteCodeFormInput = z.object({
+  groupId: z.number(),
+  maxUses: z.number(),
+  expiresAt: z.coerce.date(),
+  requiresApproval: z.boolean(),
+});
+
+export type RequestGroupInviteCodeFormInput = z.infer<
+  typeof requestGroupInviteCodeFormInput
+>;
+
 export const onboardingPreferencesFormSchema = z.object({
-  role: RoleEnum,
   pet: z.boolean(),
   house: z.boolean(),
   baby: z.boolean(),
   plant: z.boolean(),
 });
+
 export type OnboardingFormInput = z.infer<
   typeof onboardingPreferencesFormSchema
 >;
 
+// -----------------------------------------------------------------------------
+// API form schemas
+// -----------------------------------------------------------------------------
+
 export const basicGetAPIFormSchema = z
   .object({
+    id: z.number().optional().nullable(),
     ids: z.array(z.number()).optional().nullable(),
     all: z.boolean().optional().nullable(),
   })
   // Ensure that either ids or all is provided
-  .refine((data) => data.ids ?? data.all, {
-    message: "Must provide either ids or all",
+  .refine((data) => data.id ?? data.ids ?? data.all, {
+    message: "Must provide either id (single), ids (array), or all (boolean)",
   })
   // Ensure that ids is not empty if provided
   .refine((data) => !data.ids || data.ids.length > 0, {
@@ -181,9 +215,55 @@ export const basicGetAPIFormSchema = z
 
 export type BasicGetAPIFormSchema = z.infer<typeof basicGetAPIFormSchema>;
 
+export const basicGetAPIFormSchemaWithDateRange = z
+  .object({
+    id: z.number().optional().nullable(),
+    ids: z.array(z.number()).optional().nullable(),
+    all: z.boolean().optional().nullable(),
+    dateRange: dateRangeSchema.optional().nullable(),
+  })
+  // Ensure that either ids or all is provided
+  .refine((data) => data.id ?? data.ids ?? data.all, {
+    message: "Must provide either id (single), ids (array), or all (boolean)",
+  })
+  // Ensure that ids is not empty if provided
+  .refine((data) => !data.ids || data.ids.length > 0, {
+    message: "Ids must not be empty",
+  });
+
+export type BasicGetAPIFormSchemaWithDateRange = z.infer<
+  typeof basicGetAPIFormSchemaWithDateRange
+>;
+
+export const deleteAPIFormSchema = z.object({
+  id: z.number(),
+});
+
+export type DeleteAPIFormInput = z.infer<typeof deleteAPIFormSchema>;
+
 // -----------------------------------------------------------------------------
-// Response schemas
+// Response schemas - no refine methods
 // -----------------------------------------------------------------------------
+
+export const sittingPreferencesSchema = z.object({
+  userId: z.string(),
+  pet: z.boolean(),
+  house: z.boolean(),
+  baby: z.boolean(),
+  plant: z.boolean(),
+});
+
+export type SittingPreferences = z.infer<typeof sittingPreferencesSchema>;
+
+export const ownerPreferencesSchema = z.object({
+  userId: z.string(),
+  pet: z.boolean(),
+  house: z.boolean(),
+  baby: z.boolean(),
+  plant: z.boolean(),
+});
+
+export type OwnerPreferences = z.infer<typeof ownerPreferencesSchema>;
 
 export const petSchema = z.object({
   id: z.number(),
@@ -227,6 +307,7 @@ export type SittingSubject = z.infer<typeof sittingSubjectSchema>;
 export const taskSchema = z
   .object({
     id: z.number(),
+    ownerId: z.string(),
     name: z.string(),
     description: z.string().optional().nullable(),
     dueMode: z.boolean(),
@@ -234,6 +315,9 @@ export const taskSchema = z
     dateRange: dateRangeSchema.optional().nullable(),
     subjectId: z.number(),
     groupId: z.number().optional().nullable(),
+    requiresVerification: z.boolean().optional().nullable(),
+    markedAsDone: z.boolean(),
+    markedAsDoneBy: z.string().optional().nullable(),
   })
   // Must have either due date or start and end date
   .refine(
@@ -282,6 +366,15 @@ export const taskSchema = z
       path: ["dueDate"],
       message: "dueDate must be in the future",
     },
+  )
+  .refine(
+    (data) =>
+      !data.markedAsDone ||
+      (data.markedAsDone && data.markedAsDoneBy !== undefined),
+    {
+      path: ["markedAsDoneBy"],
+      message: "markedAsDoneBy is required if markedAsDone is true",
+    },
   );
 
 export type Task = z.infer<typeof taskSchema>;
@@ -300,3 +393,23 @@ export const groupSchema = z.object({
 });
 
 export type Group = z.infer<typeof groupSchema>;
+
+export const groupMemberSchema = z.object({
+  id: z.number(),
+  groupId: z.number(),
+  role: GroupRoleEnum,
+});
+
+export type GroupMember = z.infer<typeof groupMemberSchema>;
+
+export const groupInviteCodeSchema = z.object({
+  id: z.number(),
+  code: z.string(),
+  groupId: z.number(),
+  uses: z.number(),
+  maxUses: z.number(),
+  expiresAt: z.coerce.date(),
+  requiresApproval: z.boolean(),
+});
+
+export type GroupInviteCode = z.infer<typeof groupInviteCodeSchema>;

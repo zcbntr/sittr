@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createPetFormSchema, basicGetAPIFormSchema } from "~/lib/schema";
+import { createPetFormSchema, basicGetAPIFormSchema, deleteAPIFormSchema } from "~/lib/schema";
 import { createPet, deletePet, getOwnedPets } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
@@ -42,10 +42,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
     }
 
     const pet = await createPet(
-      formData.data.name,
-      formData.data.species,
-      formData.data.birthdate,
-      formData.data.breed,
+      formData.data
     );
 
     return NextResponse.json(pet);
@@ -85,7 +82,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = deletePetRequestFormSchema.safeParse(json);
+    const formData = deleteAPIFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(

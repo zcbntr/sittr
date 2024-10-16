@@ -34,11 +34,26 @@ export const wateringFrequencyEnum = pgEnum(
  */
 export const createTable = pgTableCreator((name) => `sittr_${name}`);
 
-// User preferences for the sitting services they provide/require
-export const userPreferances = createTable("user_preferences", {
+// User preferences for providing sitting services
+export const userSittingPreferances = createTable("user_sitting_preferences", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id", { length: 255 }).notNull(),
-  isOwner: boolean("is_owner").notNull().default(true),
+  houseSitting: boolean("house_sitting").notNull().default(false),
+  petSitting: boolean("pet_sitting").notNull().default(false),
+  babySitting: boolean("baby_sitting").notNull().default(false),
+  plantSitting: boolean("plant_sitting").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+// User preferences for receiving sitting services
+export const userOwnerPreferences = createTable("user_owner_preferences", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
   houseSitting: boolean("house_sitting").notNull().default(false),
   petSitting: boolean("pet_sitting").notNull().default(false),
   babySitting: boolean("baby_sitting").notNull().default(false),
@@ -326,7 +341,6 @@ export const groupInviteCodes = createTable("group_invite_codes", {
   uses: integer("uses").notNull().default(0),
   maxUses: integer("max_uses").notNull().default(1),
   requiresApproval: boolean("requires_approval").notNull().default(false),
-  valid: boolean("valid").notNull().default(true),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)

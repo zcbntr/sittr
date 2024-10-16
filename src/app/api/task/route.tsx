@@ -1,37 +1,61 @@
 import { type NextRequest, NextResponse } from "next/server";
 import {
-  createTaskFormSchema,
+  basicGetAPIFormSchemaWithDateRange,
+  createTaskSchema,
   dateRangeSchema,
-  deleteFormSchema,
+  deleteAPIFormSchema,
   taskSchema,
 } from "~/lib/schema";
 import {
   createTask,
-  deleteTask,
+  deleteOwnedTask,
+  getOwnedTask,
   getVisibleTasksInRange,
   updateTask,
 } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
-    const requestParams = dateRangeSchema.safeParse({
-      from: req.nextUrl.searchParams.get("from"),
-      to: req.nextUrl.searchParams.get("to"),
+    const requestParams = basicGetAPIFormSchemaWithDateRange.safeParse({
+      id: req.nextUrl.searchParams.get("id"),
+      ids: req.nextUrl.searchParams.get("ids"),
+      all: req.nextUrl.searchParams.get("all") === "true",
+      dateRange: {
+        from: req.nextUrl.searchParams.get("from"),
+        to: req.nextUrl.searchParams.get("to"),
+      },
     });
 
     if (!requestParams.success) {
       console.log(
-        "Date Range Form Data Parse Error: \n" + requestParams.error.toString(),
+        "GET Request URL Params Parse Error: \n" +
+          requestParams.error.toString(),
       );
-      throw new Error("Invalid form data");
+      throw new Error("Invalid URL params");
     }
 
-    const pgRows = await getVisibleTasksInRange(
-      requestParams.data.from,
-      requestParams.data.to,
-    );
+    if (requestParams.data.id) {
+      const task = await getOwnedTask(requestParams.data.id);
 
-    return NextResponse.json(pgRows);
+      if (!task) {
+        return NextResponse.json({ error: "Task not found" });
+      }
+
+      return NextResponse.json(task);
+    }
+
+    if (requestParams.data.dateRange) {
+      const pgRows = await getVisibleTasksInRange(
+        requestParams.data.dateRange.from,
+        requestParams.data.dateRange.to,
+      );
+
+      console.log(pgRows);
+
+      return NextResponse.json(pgRows);
+    }
+
+    return NextResponse.json({ error: "Request type not currently supported" });
   } catch (error) {
     return NextResponse.json({ error });
   }
@@ -41,7 +65,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = createTaskFormSchema.safeParse(json);
+    const formData = createTaskSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
@@ -50,14 +74,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await createTask(
-      formData.data.name,
-      formData.data.subjectId,
-      formData.data.dueMode,
-      formData.data.dateRange,
-      formData.data.dueDate,
-      formData.data.description,
-    );
+    const pgRow = await createTask(formData.data);
 
     return NextResponse.json(pgRow);
   } catch (error) {
@@ -79,15 +96,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await updateTask(
-      formData.data.id,
-      formData.data.name,
-      formData.data.subjectId,
-      formData.data.dueMode,
-      formData.data.dateRange,
-      formData.data.dueDate,
-      formData.data.description,
-    );
+    const pgRow = await updateTask(formData.data);
 
     return NextResponse.json(pgRow);
   } catch (error) {
@@ -99,7 +108,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = deleteFormSchema.safeParse(json);
+    const formData = deleteAPIFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
@@ -108,7 +117,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await deleteTask(formData.data.id);
+    const pgRow = await deleteOwnedTask(formData.data.id);
 
     return NextResponse.json(pgRow);
   } catch (error) {

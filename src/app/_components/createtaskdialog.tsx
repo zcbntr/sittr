@@ -25,7 +25,7 @@ import {
 } from "~/components/ui/form";
 import {
   type CreateTaskFormProps,
-  createTaskFormSchema,
+  createTaskSchema,
   type DateRange,
   Group,
   type SittingSubject,
@@ -72,8 +72,8 @@ export default function CreateTaskDialog({
   const [dueDate, setDueDate] = React.useState<Date | undefined>();
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
-  const form = useForm<z.infer<typeof createTaskFormSchema>>({
-    resolver: zodResolver(createTaskFormSchema),
+  const form = useForm<z.infer<typeof createTaskSchema>>({
+    resolver: zodResolver(createTaskSchema),
     defaultValues: {
       dueMode: true,
     },
@@ -172,7 +172,7 @@ export default function CreateTaskDialog({
     [props],
   );
 
-  async function onSubmit(data: z.infer<typeof createTaskFormSchema>) {
+  async function onSubmit(data: z.infer<typeof createTaskSchema>) {
     const res = await fetch("api/task", {
       method: "PUT",
       headers: {

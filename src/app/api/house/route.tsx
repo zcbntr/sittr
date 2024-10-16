@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createHouseFormSchema, basicGetAPIFormSchema } from "~/lib/schema";
+import { createHouseFormSchema, basicGetAPIFormSchema, deleteAPIFormSchema } from "~/lib/schema";
 import { createHouse, deleteHouse, getOwnedHouses } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
@@ -82,7 +82,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = deleteHouseFormSchema.safeParse(json);
+    const formData = deleteAPIFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(

@@ -13,17 +13,34 @@ import {
   sittingSubjects,
   subjectsToGroups,
   tasks,
-  userPreferances,
+  userSittingPreferances,
+  userOwnerPreferences,
 } from "./db/schema";
 import {
+  CreateGroupFormInput,
+  CreatePetFormInput,
+  CreatePlantFormInput,
+  CreateTask,
   type DateRange,
+  Group,
+  GroupInviteCode,
+  groupInviteCodeSchema,
+  GroupMember,
+  groupMemberSchema,
   GroupRoleEnum,
+  groupSchema,
   type House,
   houseSchema,
+  OnboardingFormInput,
+  OwnerPreferences,
+  ownerPreferencesSchema,
   type Pet,
   petSchema,
   type Plant,
   plantSchema,
+  RequestGroupInviteCodeFormInput,
+  SittingPreferences,
+  sittingPreferencesSchema,
   type SittingSubject,
   Task,
   taskSchema,
@@ -58,6 +75,7 @@ export async function getOwnedTasksStartingInRange(
     try {
       return taskSchema.parse({
         id: task.id,
+        ownerId: task.ownerId,
         name: task.name,
         description: task.description,
         dueMode: task.dueMode,
@@ -67,6 +85,9 @@ export async function getOwnedTasksStartingInRange(
           to: task.dateRangeTo,
         },
         subjectId: task.sittingSubject,
+        groupId: task.group,
+        markedAsDone: task.markedAsDoneBy !== null,
+        markedAsDoneBy: task.markedAsDoneBy,
       });
     } catch (error) {
       console.error("Failed to parse task", error);
@@ -93,6 +114,7 @@ export async function getOwnedTasks(): Promise<Task[]> {
   const tasksList: Task[] = userTasks.map((task) => {
     return taskSchema.parse({
       id: task.id,
+      ownerId: task.ownerId,
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -102,6 +124,9 @@ export async function getOwnedTasks(): Promise<Task[]> {
         to: task.dateRangeTo,
       },
       subjectId: task.sittingSubject,
+      groupId: task.group,
+      markedAsDone: task.markedAsDoneBy !== null,
+      markedAsDoneBy: task.markedAsDoneBy,
     });
   });
 
@@ -126,6 +151,7 @@ export async function getOwnedTask(taskId: number): Promise<Task> {
 
   return taskSchema.parse({
     id: task.id,
+    ownerId: task.ownerId,
     name: task.name,
     description: task.description,
     dueMode: task.dueMode,
@@ -135,6 +161,9 @@ export async function getOwnedTask(taskId: number): Promise<Task> {
       to: task.dateRangeTo,
     },
     subjectId: task.sittingSubject,
+    groupId: task.group,
+    markedAsDone: task.markedAsDoneBy !== null,
+    markedAsDoneBy: task.markedAsDoneBy,
   });
 }
 
@@ -170,8 +199,9 @@ export async function getVisibleTasksInRange(
 
   // Turn into task schema
   const tasksList: Task[] = visibleTasksInRange.map((joinedTaskRow) => {
-    return taskSchema.parse({
+    const parse = taskSchema.safeParse({
       id: joinedTaskRow.tasks.id,
+      ownerId: joinedTaskRow.tasks.ownerId,
       name: joinedTaskRow.tasks.name,
       description: joinedTaskRow.tasks.description,
       dueMode: joinedTaskRow.tasks.dueMode,
@@ -182,20 +212,22 @@ export async function getVisibleTasksInRange(
       },
       subjectId: joinedTaskRow.tasks.sittingSubject,
       groupId: joinedTaskRow.groups?.id ?? undefined,
+      markedAsDone: joinedTaskRow.tasks.markedAsDoneBy !== null,
+      markedAsDoneBy: joinedTaskRow.tasks.markedAsDoneBy,
     });
+
+    if (!parse.success) {
+      console.error("Failed to parse task", parse.error);
+      throw new Error("Failed to parse task");
+    }
+
+    return parse.data;
   });
 
   return tasksList;
 }
 
-export async function createTask(
-  name: string,
-  subjectId: number,
-  dueMode: boolean,
-  dateRange?: DateRange,
-  dueDate?: Date,
-  description?: string,
-) {
+export async function createTask(task: CreateTask): Promise<Task> {
   const user = auth();
 
   if (!user.userId) {
@@ -205,29 +237,39 @@ export async function createTask(
   const newTask = await db
     .insert(tasks)
     .values({
-      name: name,
-      dueMode: dueMode,
+      name: task.name,
+      dueMode: task.dueMode,
       ownerId: user.userId,
-      dateRangeFrom: dateRange?.from,
-      dateRangeTo: dateRange?.to,
-      dueDate: dueDate,
-      description: description,
-      sittingSubject: subjectId,
+      dateRangeFrom: task.dateRange?.from,
+      dateRangeTo: task.dateRange?.to,
+      dueDate: task.dueDate,
+      description: task.description,
+      sittingSubject: task.subjectId,
+      group: task.groupId,
     })
+    .returning()
     .execute();
 
-  return newTask;
+  if (newTask[0]) {
+    return taskSchema.parse({
+      id: newTask[0].id,
+      ownerId: newTask[0].ownerId,
+      name: newTask[0].name,
+      description: newTask[0].description,
+      dueMode: newTask[0].dueMode,
+      dueDate: newTask[0].dueDate,
+      dateRange: { from: newTask[0].dateRangeFrom, to: newTask[0].dateRangeTo },
+      subjectId: newTask[0].sittingSubject,
+      groupId: newTask[0].group,
+      markedAsDone: newTask[0].markedAsDoneBy !== null,
+      markedAsDoneBy: newTask[0].markedAsDoneBy,
+    });
+  }
+
+  throw new Error("Failed to create task");
 }
 
-export async function updateTask(
-  id: number,
-  name: string,
-  subjectId: number,
-  dueMode: boolean,
-  dateRange?: DateRange,
-  dueDate?: Date,
-  description?: string,
-) {
+export async function updateTask(task: Task): Promise<Task> {
   const user = auth();
 
   if (!user.userId) {
@@ -237,21 +279,85 @@ export async function updateTask(
   const updatedTask = await db
     .update(tasks)
     .set({
-      name: name,
-      dueMode: dueMode,
-      dateRangeFrom: dateRange?.from,
-      dateRangeTo: dateRange?.to,
-      dueDate: dueDate,
-      description: description,
-      sittingSubject: subjectId,
+      name: task.name,
+      dueMode: task.dueMode,
+      dateRangeFrom: task.dateRange?.from,
+      dateRangeTo: task.dateRange?.to,
+      dueDate: task.dueDate,
+      description: task.description,
+      sittingSubject: task.subjectId,
     })
-    .where(and(eq(tasks.id, id), eq(tasks.ownerId, user.userId)))
+    .where(and(eq(tasks.id, task.id), eq(tasks.ownerId, user.userId)))
+    .returning()
     .execute();
 
-  return updatedTask;
+  if (updatedTask.length === 0) {
+    throw new Error("Task not found");
+  }
+
+  // Check if the task has been marked as done
+  if (updatedTask[0]) {
+    // If so, update the markedAsDoneBy field, if the user is the owner or the task is unmarked, or the user is the one who marked it
+    if (
+      updatedTask[0].markedAsDoneBy != task.markedAsDoneBy &&
+      (user.userId == updatedTask[0].ownerId ||
+        updatedTask[0].markedAsDoneBy == null ||
+        user.userId == updatedTask[0].markedAsDoneBy)
+    ) {
+      const updatedTaskChangedMarkedAsDoneBy = await db
+        .update(tasks)
+        .set({
+          markedAsDoneBy: task.markedAsDoneBy,
+        })
+        .where(eq(tasks.id, task.id))
+        .returning()
+        .execute();
+
+      // Return a task object with the data from the updated task including the markedAsDoneBy field
+      if (updatedTaskChangedMarkedAsDoneBy[0]) {
+        return taskSchema.parse({
+          id: updatedTaskChangedMarkedAsDoneBy[0].id,
+          ownerId: updatedTaskChangedMarkedAsDoneBy[0].ownerId,
+          name: updatedTaskChangedMarkedAsDoneBy[0].name,
+          description: updatedTaskChangedMarkedAsDoneBy[0].description,
+          dueMode: updatedTaskChangedMarkedAsDoneBy[0].dueMode,
+          dueDate: updatedTaskChangedMarkedAsDoneBy[0].dueDate,
+          dateRange: {
+            from: updatedTaskChangedMarkedAsDoneBy[0].dateRangeFrom,
+            to: updatedTaskChangedMarkedAsDoneBy[0].dateRangeTo,
+          },
+          subjectId: updatedTaskChangedMarkedAsDoneBy[0].sittingSubject,
+          groupId: updatedTaskChangedMarkedAsDoneBy[0].group,
+          markedAsDone:
+            updatedTaskChangedMarkedAsDoneBy[0].markedAsDoneBy !== null,
+          markedAsDoneBy: updatedTaskChangedMarkedAsDoneBy[0].markedAsDoneBy,
+        });
+      }
+    }
+
+    // Return a task object with the data from the updated task
+    return taskSchema.parse({
+      id: updatedTask[0].id,
+      ownerId: updatedTask[0].ownerId,
+      name: updatedTask[0].name,
+      description: updatedTask[0].description,
+      dueMode: updatedTask[0].dueMode,
+      dueDate: updatedTask[0].dueDate,
+      dateRange: {
+        from: updatedTask[0].dateRangeFrom,
+        to: updatedTask[0].dateRangeTo,
+      },
+      subjectId: updatedTask[0].sittingSubject,
+      groupId: updatedTask[0].group,
+      markedAsDone: updatedTask[0].markedAsDoneBy !== null,
+      markedAsDoneBy: updatedTask[0].markedAsDoneBy,
+    });
+  }
+
+  throw new Error("Failed to update task");
 }
 
-export async function deleteTask(id: number) {
+export async function deleteOwnedTask(id: number): Promise<Task> {
   const user = auth();
 
   if (!user.userId) {
@@ -261,87 +367,165 @@ export async function deleteTask(id: number) {
   const deletedTask = await db
     .delete(tasks)
     .where(and(eq(tasks.id, id), eq(tasks.ownerId, user.userId)))
+    .returning()
     .execute();
 
-  return deletedTask;
+  if (deletedTask[0]) {
+    return taskSchema.parse({
+      id: deletedTask[0].id,
+      ownerId: deletedTask[0].ownerId,
+      name: deletedTask[0].name,
+      description: deletedTask[0].description,
+      dueMode: deletedTask[0].dueMode,
+      dueDate: deletedTask[0].dueDate,
+      dateRange: {
+        from: deletedTask[0].dateRangeFrom,
+        to: deletedTask[0].dateRangeTo,
+      },
+      subjectId: deletedTask[0].sittingSubject,
+      groupId: deletedTask[0].group,
+      markedAsDone: deletedTask[0].markedAsDoneBy !== null,
+      markedAsDoneBy: deletedTask[0].markedAsDoneBy,
+    });
+  }
+
+  throw new Error("Failed to delete task");
 }
 
-export async function userCompletedOnboarding(): Promise<boolean> {
+export async function currentUserCompletedOnboarding(): Promise<boolean> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const userOwnerPreferances = await getUserOwnerPreferences();
+  const userOwnerPreferances = await getCurrentUserOwnerPreferences();
   if (userOwnerPreferances) return true;
-  const userSitterPreferances = await getUserSittingPreferences();
+  const userSitterPreferances = await getCurrentUserSittingPreferences();
   if (userSitterPreferances) return true;
   return false;
 }
 
-export async function getUserOwnerPreferences() {
+export async function getCurrentUserOwnerPreferences(): Promise<OwnerPreferences> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const userOwnerPreferences = await db.query.userPreferances.findFirst({
-    where: (model, { and, eq }) =>
-      and(eq(model.isOwner, true), eq(model.userId, user.userId)),
+  const userOwnerPreferences = await db.query.userOwnerPreferences.findFirst({
+    where: (model, { and, eq }) => eq(model.userId, user.userId),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
-  return userOwnerPreferences;
+  if (userOwnerPreferences) {
+    return ownerPreferencesSchema.parse({
+      userId: userOwnerPreferences.userId,
+      petOwnership: userOwnerPreferences.petSitting,
+      houseOwnership: userOwnerPreferences.houseSitting,
+      babyOwnership: userOwnerPreferences.babySitting,
+      plantOwnership: userOwnerPreferences.plantSitting,
+    });
+  }
+
+  throw new Error("User owner preferences not found");
 }
 
-export async function getUserSittingPreferences() {
+export async function getCurrentUserSittingPreferences(): Promise<SittingPreferences> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const userSittingPreferences = await db.query.userPreferances.findFirst({
-    where: (model, { and, eq }) =>
-      and(eq(model.isOwner, false), eq(model.userId, user.userId)),
-    orderBy: (model, { desc }) => desc(model.createdAt),
-  });
+  const userSittingPreferences =
+    await db.query.userSittingPreferances.findFirst({
+      where: (model, { and, eq }) => eq(model.userId, user.userId),
+      orderBy: (model, { desc }) => desc(model.createdAt),
+    });
 
-  return userSittingPreferences;
+  if (userSittingPreferences) {
+    return sittingPreferencesSchema.parse({
+      userId: userSittingPreferences.userId,
+      petSitting: userSittingPreferences.petSitting,
+      houseSitting: userSittingPreferences.houseSitting,
+      babySitting: userSittingPreferences.babySitting,
+      plantSitting: userSittingPreferences.plantSitting,
+    });
+  }
+
+  throw new Error("User sitting preferences not found");
 }
 
-export async function setUserPreferences(
-  isOwner: boolean,
-  pet: boolean,
-  house: boolean,
-  baby: boolean,
-  plant: boolean,
-) {
+export async function setUserSittingPreferences(
+  preferences: OnboardingFormInput,
+): Promise<SittingPreferences> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const preferences = await db.insert(userPreferances).values({
-    userId: user.userId,
-    isOwner: isOwner,
-    petSitting: pet,
-    houseSitting: house,
-    babySitting: baby,
-    plantSitting: plant,
-  });
+  const preferencesRow = await db
+    .insert(userSittingPreferances)
+    .values({
+      userId: user.userId,
+      petSitting: preferences.pet,
+      houseSitting: preferences.house,
+      babySitting: preferences.baby,
+      plantSitting: preferences.plant,
+    })
+    .returning()
+    .execute();
 
-  return preferences;
+  if (preferencesRow[0]) {
+    return sittingPreferencesSchema.parse({
+      userId: preferencesRow[0].userId,
+      petSitting: preferencesRow[0].petSitting,
+      houseSitting: preferencesRow[0].houseSitting,
+      babySitting: preferencesRow[0].babySitting,
+      plantSitting: preferencesRow[0].plantSitting,
+    });
+  }
+
+  throw new Error("Failed to set user sitting preferences");
 }
 
-export async function createGroup(
-  name: string,
-  sittingSubjects: number[],
-  description?: string,
-) {
+export async function setUserOwnerPreferences(
+  preferences: OnboardingFormInput,
+): Promise<OwnerPreferences> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const preferencesRow = await db
+    .insert(userOwnerPreferences)
+    .values({
+      userId: user.userId,
+      petSitting: preferences.pet,
+      houseSitting: preferences.house,
+      babySitting: preferences.baby,
+      plantSitting: preferences.plant,
+    })
+    .returning()
+    .execute();
+
+  if (!preferencesRow || !preferencesRow[0]) {
+    throw new Error("Failed to set user owner preferences");
+  }
+
+  return ownerPreferencesSchema.parse({
+    userId: preferencesRow[0].userId,
+    petOwnership: preferencesRow[0].petSitting,
+    houseOwnership: preferencesRow[0].houseSitting,
+    babyOwnership: preferencesRow[0].babySitting,
+    plantOwnership: preferencesRow[0].plantSitting,
+  });
+}
+
+export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
   const user = auth();
 
   if (!user.userId) {
@@ -356,12 +540,13 @@ export async function createGroup(
     newGroup = await db
       .insert(groups)
       .values({
-        name: name,
-        description: description,
+        name: group.name,
+        description: group.description,
       })
-      .returning();
+      .returning()
+      .execute();
 
-    if (!newGroup) {
+    if (!newGroup || !newGroup[0]) {
       db.rollback();
       throw new Error("Failed to create group");
     }
@@ -379,7 +564,7 @@ export async function createGroup(
     }
 
     // Add sitting subjects to group
-    for (const subjectId of sittingSubjects) {
+    for (const subjectId of group.sittingSubjects) {
       const subject = await db.insert(subjectsToGroups).values({
         groupId: newGroup[0].id,
         subjectId: subjectId,
@@ -390,17 +575,20 @@ export async function createGroup(
         throw new Error("Failed to add subject to group");
       }
     }
+
+    return groupSchema.parse({
+      id: newGroup[0].id,
+      name: newGroup[0].name,
+      description: newGroup[0].description,
+    });
   });
 
-  return newGroup;
+  throw new Error("Failed to create group");
 }
 
 export async function getNewGroupInviteCode(
-  groupId: number,
-  maxUses: number,
-  expiresAt: Date,
-  requiresApproval: boolean,
-) {
+  request: RequestGroupInviteCodeFormInput,
+): Promise<GroupInviteCode> {
   const user = auth();
 
   if (!user.userId) {
@@ -411,7 +599,7 @@ export async function getNewGroupInviteCode(
   const groupMember = await db.query.groupMembers.findFirst({
     where: (model, { and, eq }) =>
       and(
-        eq(model.groupId, groupId),
+        eq(model.groupId, request.groupId),
         eq(model.userId, user.userId),
         eq(model.role, "Owner"),
       ),
@@ -439,18 +627,31 @@ export async function getNewGroupInviteCode(
   const newInviteCode = await db
     .insert(groupInviteCodes)
     .values({
-      groupId: groupId,
+      groupId: request.groupId,
       code: inviteCode,
-      maxUses: maxUses,
-      expiresAt: expiresAt,
-      requiresApproval: requiresApproval,
+      maxUses: request.maxUses,
+      expiresAt: request.expiresAt,
+      requiresApproval: request.requiresApproval,
     })
+    .returning()
     .execute();
 
-  return newInviteCode;
+  if (!newInviteCode || !newInviteCode[0]) {
+    throw new Error("Failed to create invite code");
+  }
+
+  return groupInviteCodeSchema.parse({
+    id: newInviteCode[0].id,
+    groupId: newInviteCode[0].groupId,
+    code: newInviteCode[0].code,
+    maxUses: newInviteCode[0].maxUses,
+    uses: newInviteCode[0].uses,
+    expiresAt: newInviteCode[0].expiresAt,
+    requiresApproval: newInviteCode[0].requiresApproval,
+  });
 }
 
-export async function joinGroup(inviteCode: string) {
+export async function joinGroup(inviteCode: string): Promise<GroupMember> {
   const user = auth();
 
   if (!user.userId) {
@@ -462,16 +663,15 @@ export async function joinGroup(inviteCode: string) {
     where: (model, { eq }) => eq(model.code, inviteCode),
   });
 
-  if (!inviteCodeRow?.valid) {
-    throw new Error("Invalid invite code");
+  if (!inviteCodeRow) {
+    throw new Error("Invite code not found");
   }
 
   // Check if the invite code has expired
   if (inviteCodeRow.expiresAt < new Date()) {
-    // Set code to invalid
+    // Delete code
     await db
-      .update(groupInviteCodes)
-      .set({ valid: false })
+      .delete(groupInviteCodes)
       .where(eq(groupInviteCodes.id, inviteCodeRow.id))
       .execute();
 
@@ -480,10 +680,9 @@ export async function joinGroup(inviteCode: string) {
 
   // Check if the invite code has reached its max uses
   if (inviteCodeRow.uses >= inviteCodeRow.maxUses) {
-    // Set code to invalid
+    // Delete code
     await db
-      .update(groupInviteCodes)
-      .set({ valid: false })
+      .delete(groupInviteCodes)
       .where(eq(groupInviteCodes.id, inviteCodeRow.id))
       .execute();
 
@@ -513,19 +712,37 @@ export async function joinGroup(inviteCode: string) {
         ? GroupRoleEnum.Values.Pending
         : GroupRoleEnum.Values.Member,
     })
+    .returning()
     .execute();
 
-  // Increment the invite code uses
-  await db
-    .update(groupInviteCodes)
-    .set({ uses: inviteCodeRow.uses + 1 })
-    .where(eq(groupInviteCodes.id, inviteCodeRow.id))
-    .execute();
+  if (!newGroupMember || !newGroupMember[0]) {
+    throw new Error("Failed to add user to group");
+  }
 
-  return newGroupMember;
+  // Check if incrementing the invite code will cause it to reach its max uses
+  if (inviteCodeRow.uses + 1 >= inviteCodeRow.maxUses) {
+    // Delete code
+    await db
+      .delete(groupInviteCodes)
+      .where(eq(groupInviteCodes.id, inviteCodeRow.id))
+      .execute();
+  } else {
+    // Increment the invite code uses
+    await db
+      .update(groupInviteCodes)
+      .set({ uses: inviteCodeRow.uses + 1 })
+      .where(eq(groupInviteCodes.id, inviteCodeRow.id))
+      .execute();
+  }
+
+  return groupMemberSchema.parse({
+    groupId: newGroupMember[0].groupId,
+    userId: newGroupMember[0].userId,
+    role: newGroupMember[0].role,
+  });
 }
 
-export async function leaveGroup(groupId: number) {
+export async function leaveGroup(groupId: number): Promise<GroupMember> {
   const user = auth();
 
   if (!user.userId) {
@@ -551,7 +768,15 @@ export async function leaveGroup(groupId: number) {
     )
     .returning();
 
-  return deletedGroupMember;
+  if (!deletedGroupMember[0]) {
+    throw new Error("Failed to delete group member");
+  }
+
+  return groupMemberSchema.parse({
+    groupId: deletedGroupMember[0].groupId,
+    userId: deletedGroupMember[0].userId,
+    role: deletedGroupMember[0].role,
+  });
 }
 
 export async function getGroupMembers(groupId: number) {
@@ -568,7 +793,7 @@ export async function getGroupMembers(groupId: number) {
   return groupMembersList;
 }
 
-export async function deleteGroup(groupId: number) {
+export async function deleteGroup(groupId: number): Promise<Group> {
   const user = auth();
 
   if (!user.userId) {
@@ -594,68 +819,92 @@ export async function deleteGroup(groupId: number) {
     .where(eq(groups.id, groupId))
     .returning();
 
-  return deletedGroup;
+  if (!deletedGroup[0]) {
+    throw new Error("Failed to delete group");
+  }
+
+  // Database cascade should delete groupMembers and subjectsToGroups, fingers crossed!
+
+  return groupSchema.parse({
+    id: deletedGroup[0].id,
+    name: deletedGroup[0].name,
+    description: deletedGroup[0].description,
+  });
 }
 
-export async function getGroupsIn() {
+export async function getGroupsUserIsIn(): Promise<Group[]> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const groupsList = await db.query.groupMembers.findMany({
+  const groupMemberList = await db.query.groupMembers.findMany({
     where: (model, { eq }) => eq(model.userId, user.userId),
+    with: {
+      group: true,
+    },
   });
 
-  return groupsList;
+  if (!groupMemberList) {
+    throw new Error("Failed to get groups user is in");
+  }
+
+  return groupMemberList.map((groupMember) => {
+    return groupSchema.parse({
+      id: groupMember.groupId,
+      name: groupMember.group.name,
+      description: groupMember.group.description,
+    });
+  });
 }
 
-export async function createPet(
-  name: string,
-  species: string,
-  birthdate: Date,
-  breed?: string,
-) {
+export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
-
-  let newSittingSubject;
 
   await db.transaction(async (db) => {
     const newPet = await db
       .insert(pets)
       .values({
-        name: name,
-        species: species,
-        breed: breed,
-        dob: birthdate,
+        name: pet.name,
+        species: pet.species,
+        breed: pet.breed,
+        dob: pet.birthdate,
       })
       .returning();
 
-    if (!newPet) {
+    if (!newPet || !newPet[0]) {
       db.rollback();
       throw new Error("Failed to create pet in pet table");
     }
 
-    newSittingSubject = await db.insert(sittingSubjects).values({
-      ownerId: user.userId,
-      entityId: newPet[0].id,
-      entityType: "Pet",
-    });
+    const newSittingSubject = await db
+      .insert(sittingSubjects)
+      .values({
+        ownerId: user.userId,
+        entityId: newPet[0].id,
+        entityType: "Pet",
+      })
+      .returning();
 
-    if (!newSittingSubject) {
+    if (!newSittingSubject || !newSittingSubject[0]) {
       db.rollback();
       throw new Error("Failed to create pet link in sittingSubjects table");
     }
-  });
 
-  if (newSittingSubject) {
-    return newSittingSubject;
-  }
+    return petSchema.parse({
+      id: newSittingSubject[0].entityId,
+      subjectId: newSittingSubject[0].id,
+      name: pet.name,
+      species: pet.species,
+      breed: pet.breed,
+      dob: pet.birthdate,
+    });
+  });
 
   throw new Error("Failed to create pet");
 }
@@ -704,7 +953,7 @@ export async function getOwnedPets(): Promise<Pet[]> {
   return petsList;
 }
 
-export async function deletePet(subjectId: number) {
+export async function deletePet(subjectId: number): Promise<Pet> {
   const user = auth();
 
   if (!user.userId) {
@@ -717,7 +966,7 @@ export async function deletePet(subjectId: number) {
       .where(eq(sittingSubjects.id, subjectId))
       .returning();
 
-    if (!deletedSubject) {
+    if (!deletedSubject || !deletedSubject[0]) {
       db.rollback();
       throw new Error("Failed to delete pet from sittingSubjects table");
     }
@@ -727,12 +976,19 @@ export async function deletePet(subjectId: number) {
       .where(eq(pets.id, deletedSubject[0].entityId))
       .returning();
 
-    if (!deletedPet) {
+    if (!deletedPet || !deletedPet[0]) {
       db.rollback();
       throw new Error("Failed to delete pet from pet table");
     }
 
-    return deletedPet;
+    return petSchema.parse({
+      id: deletedPet[0].id,
+      subjectId: deletedSubject[0].id,
+      name: deletedPet[0].name,
+      species: deletedPet[0].species,
+      breed: deletedPet[0].breed,
+      dob: deletedPet[0].dob,
+    });
   });
 
   throw new Error("Failed to delete pet");
@@ -780,14 +1036,15 @@ export async function getOwnedHouses(): Promise<House[]> {
   return housesList;
 }
 
-export async function createHouse(name: string, address?: string) {
+export async function createHouse(
+  name: string,
+  address?: string,
+): Promise<House> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
-
-  let newSittingSubject;
 
   await db.transaction(async (db) => {
     const newHouse = await db
@@ -798,31 +1055,37 @@ export async function createHouse(name: string, address?: string) {
       })
       .returning();
 
-    if (!newHouse) {
+    if (!newHouse || !newHouse[0]) {
       db.rollback();
       throw new Error("Failed to create house in house table");
     }
 
-    newSittingSubject = await db.insert(sittingSubjects).values({
-      ownerId: user.userId,
-      entityId: newHouse[0].id,
-      entityType: "House",
-    });
+    const newSittingSubject = await db
+      .insert(sittingSubjects)
+      .values({
+        ownerId: user.userId,
+        entityId: newHouse[0].id,
+        entityType: "House",
+      })
+      .returning();
 
-    if (!newSittingSubject) {
+    if (!newSittingSubject || !newSittingSubject[0]) {
       db.rollback();
       throw new Error("Failed to create house link in sittingSubjects table");
     }
-  });
 
-  if (newSittingSubject) {
-    return newSittingSubject;
-  }
+    return houseSchema.parse({
+      id: newHouse[0].id,
+      subjectId: newSittingSubject[0].id,
+      name: name,
+      address: address,
+    });
+  });
 
   throw new Error("Failed to create house");
 }
 
-export async function deleteHouse(subjectId: number) {
+export async function deleteHouse(subjectId: number): Promise<House> {
   const user = auth();
 
   if (!user.userId) {
@@ -835,7 +1098,7 @@ export async function deleteHouse(subjectId: number) {
       .where(eq(sittingSubjects.id, subjectId))
       .returning();
 
-    if (!deletedSubject) {
+    if (!deletedSubject || !deletedSubject[0]) {
       db.rollback();
       throw new Error("Failed to delete house from sittingSubjects table");
     }
@@ -845,12 +1108,17 @@ export async function deleteHouse(subjectId: number) {
       .where(eq(houses.id, deletedSubject[0].entityId))
       .returning();
 
-    if (!deletedHouse) {
+    if (!deletedHouse || !deletedHouse[0]) {
       db.rollback();
       throw new Error("Failed to delete house from house table");
     }
 
-    return deletedHouse;
+    return houseSchema.parse({
+      id: deletedHouse[0].id,
+      subjectId: deletedSubject[0].id,
+      name: deletedHouse[0].name,
+      address: deletedHouse[0].address,
+    });
   });
 
   throw new Error("Failed to delete house");
@@ -900,56 +1168,57 @@ export async function getOwnedPlants(): Promise<Plant[]> {
   return plantsList;
 }
 
-export async function createPlant(
-  name: string,
-  wateringFrequency: WateringFrequency,
-  species?: string,
-  lastWatered?: Date,
-) {
+export async function createPlant(plant: CreatePlantFormInput): Promise<Plant> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  let newSittingSubject;
-
   await db.transaction(async (db) => {
     const newPlant = await db
       .insert(plants)
       .values({
-        name: name,
-        species: species,
-        lastWatered: lastWatered,
-        wateringFrequency: wateringFrequency,
+        name: plant.name,
+        species: plant.species,
+        lastWatered: plant.lastWatered,
+        wateringFrequency: plant.wateringFrequency,
       })
       .returning();
 
-    if (!newPlant) {
+    if (!newPlant || !newPlant[0]) {
       db.rollback();
       throw new Error("Failed to create plant in plant table");
     }
 
-    newSittingSubject = await db.insert(sittingSubjects).values({
-      ownerId: user.userId,
-      entityId: newPlant[0].id,
-      entityType: "Plant",
-    });
+    const newSittingSubject = await db
+      .insert(sittingSubjects)
+      .values({
+        ownerId: user.userId,
+        entityId: newPlant[0].id,
+        entityType: "Plant",
+      })
+      .returning();
 
-    if (!newSittingSubject) {
+    if (!newSittingSubject || !newSittingSubject[0]) {
       db.rollback();
       throw new Error("Failed to create plant link in sittingSubjects table");
     }
-  });
 
-  if (newSittingSubject) {
-    return newSittingSubject;
-  }
+    return plantSchema.parse({
+      id: newPlant[0].id,
+      subjectId: newSittingSubject[0].id,
+      name: plant.name,
+      species: plant.species,
+      lastWatered: plant.lastWatered,
+      wateringFrequency: plant.wateringFrequency,
+    });
+  });
 
   throw new Error("Failed to create plant");
 }
 
-export async function deletePlant(subjectId: number) {
+export async function deletePlant(subjectId: number): Promise<Plant> {
   const user = auth();
 
   if (!user.userId) {
@@ -962,7 +1231,7 @@ export async function deletePlant(subjectId: number) {
       .where(eq(sittingSubjects.id, subjectId))
       .returning();
 
-    if (!deletedSubject) {
+    if (!deletedSubject || !deletedSubject[0]) {
       db.rollback();
       throw new Error("Failed to delete plant from sittingSubjects table");
     }
@@ -972,12 +1241,19 @@ export async function deletePlant(subjectId: number) {
       .where(eq(plants.id, deletedSubject[0].entityId))
       .returning();
 
-    if (!deletedPlant) {
+    if (!deletedPlant || !deletedPlant[0]) {
       db.rollback();
       throw new Error("Failed to delete plant from plant table");
     }
 
-    return deletedPlant;
+    return plantSchema.parse({
+      id: deletedPlant[0].id,
+      subjectId: deletedSubject[0].id,
+      name: deletedPlant[0].name,
+      species: deletedPlant[0].species,
+      lastWatered: deletedPlant[0].lastWatered,
+      wateringFrequency: deletedPlant[0].wateringFrequency,
+    });
   });
 
   throw new Error("Failed to delete plant");

@@ -44,6 +44,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
+import { Checkbox } from "~/components/ui/checkbox";
 
 export default function EditTaskDialog({
   props,
@@ -516,6 +517,24 @@ export default function EditTaskDialog({
                     Select a group to associate with this task.
                   </FormDescription>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="markedAsDone"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Mark as complete</FormLabel>
+                  </div>
                 </FormItem>
               )}
             />

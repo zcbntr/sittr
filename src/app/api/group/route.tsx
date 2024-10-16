@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { basicGetAPIFormSchema, createGroupFormSchema } from "~/lib/schema";
-import { createGroup, getGroupsIn } from "~/server/queries";
+import { createGroup, getGroupsUserIsIn } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     }
 
     if (requestParams.data.all) {
-      const groupsIn = await getGroupsIn();
+      const groupsIn = await getGroupsUserIsIn();
 
       return NextResponse.json(groupsIn);
     }
@@ -44,9 +44,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
     }
 
     const pgRow = await createGroup(
-      formData.data.name,
-      formData.data.sittingSubjects,
-      formData.data.description,
+      formData.data
     );
 
     return NextResponse.json(pgRow);

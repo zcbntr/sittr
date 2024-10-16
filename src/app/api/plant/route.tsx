@@ -1,5 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createPlantFormSchema, basicGetAPIFormSchema } from "~/lib/schema";
+import {
+  createPlantFormSchema,
+  basicGetAPIFormSchema,
+  deleteAPIFormSchema,
+} from "~/lib/schema";
 import { createPlant, deletePlant, getOwnedPlants } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
@@ -42,12 +46,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await createPlant(
-      formData.data.name,
-      formData.data.wateringFrequency,
-      formData.data.species,
-      formData.data.lastWatered,
-    );
+    const pgRow = await createPlant(formData.data);
 
     return NextResponse.json(pgRow);
   } catch (error) {
@@ -68,13 +67,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await updatePlant(
-      formData.data.subjectId,
-      formData.data.name,
-      formData.data.sittingType,
-      formData.data.dateRange.from,
-      formData.data.dateRange.to,
-    );
+    const pgRow = await updatePlant(formData.data);
 
     return NextResponse.json(pgRow);
   } catch (error) {
@@ -86,7 +79,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = deletePlantFormSchema.safeParse(json);
+    const formData = deleteAPIFormSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(

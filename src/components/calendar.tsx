@@ -32,6 +32,8 @@ class CalendarEvent {
   end: Date;
   subjectId: number;
   groupId?: number;
+  markedAsDone: boolean;
+  markedAsDoneBy?: number;
   desc: string;
   resourceId?: string;
   tooltip?: string;
@@ -43,6 +45,8 @@ class CalendarEvent {
     _start: Date,
     _endDate: Date,
     _subjectId: number,
+    _markedAsDone: boolean,
+    _markedAsDoneBy?: number,
     _groupId?: number,
     _allDay?: boolean,
     _desc?: string,
@@ -56,6 +60,8 @@ class CalendarEvent {
     this.end = _endDate;
     this.subjectId = _subjectId;
     this.groupId = _groupId;
+    this.markedAsDone = _markedAsDone;
+    this.markedAsDoneBy = _markedAsDoneBy;
     this.desc = _desc ?? "";
     this.resourceId = _resourceId;
   }
@@ -77,6 +83,7 @@ export default function CalendarComponent() {
             new URLSearchParams({
               from: startOfMonth(new Date()).toString(),
               to: endOfMonth(new Date()).toString(),
+              all: "true",
             }).toString(),
           {
             method: "GET",
@@ -97,6 +104,8 @@ export default function CalendarComponent() {
               new Date(task.dateRange?.from),
               new Date(task.dateRange?.to),
               task.subjectId,
+              task.markedAsDone,
+              task.markedAsDoneBy,
               task.groupId,
               false,
               task.description ? task.description : "",
@@ -156,6 +165,8 @@ export default function CalendarComponent() {
           from: event.start,
           to: event.end,
         },
+        markedAsDone: event.markedAsDone,
+        markedAsDoneBy: event.markedAsDoneBy
       });
       button.click();
     }
