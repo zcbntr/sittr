@@ -304,78 +304,20 @@ export const sittingSubjectSchema = z.union([
 
 export type SittingSubject = z.infer<typeof sittingSubjectSchema>;
 
-export const taskSchema = z
-  .object({
-    id: z.number(),
-    ownerId: z.string(),
-    name: z.string(),
-    description: z.string().optional().nullable(),
-    dueMode: z.boolean(),
-    dueDate: z.coerce.date().optional().nullable(),
-    dateRange: dateRangeSchema.optional().nullable(),
-    subjectId: z.number(),
-    groupId: z.number().optional().nullable(),
-    requiresVerification: z.boolean().optional().nullable(),
-    markedAsDone: z.boolean(),
-    markedAsDoneBy: z.string().optional().nullable(),
-  })
-  // Must have either due date or start and end date
-  .refine(
-    (data) =>
-      (data.dueMode && data.dueDate) ||
-      (!data.dueMode && data.dateRange !== undefined),
-    {
-      path: ["dueDate"],
-      message: "dueDate is required if dateRange is not provided",
-    },
-  )
-  // End date must be after start date
-  .refine(
-    (data) =>
-      !data.dueMode &&
-      data.dateRange &&
-      data.dateRange.to > data.dateRange.from,
-    {
-      path: ["dateRange"],
-      message: "dateRange.to must be after dateRange.from",
-    },
-  )
-  // Start date must be in the future
-  .refine(
-    (data) =>
-      !data.dueMode && data.dateRange && data.dateRange.from > new Date(),
-    {
-      path: ["dateRange"],
-      message: "dateRange.from must be in the future",
-    },
-  )
-  // To date must be in the future
-  .refine(
-    (data) => !data.dueMode && data.dateRange && data.dateRange.to > new Date(),
-    {
-      path: ["dateRange"],
-      message: "dateRange.to must be in the future",
-    },
-  )
-  // Due date must be in the future
-  .refine(
-    (data) =>
-      !data.dueMode ||
-      (data.dueMode && data.dueDate && data.dueDate > new Date()),
-    {
-      path: ["dueDate"],
-      message: "dueDate must be in the future",
-    },
-  )
-  .refine(
-    (data) =>
-      !data.markedAsDone ||
-      (data.markedAsDone && data.markedAsDoneBy !== undefined),
-    {
-      path: ["markedAsDoneBy"],
-      message: "markedAsDoneBy is required if markedAsDone is true",
-    },
-  );
+export const taskSchema = z.object({
+  id: z.number(),
+  ownerId: z.string(),
+  name: z.string(),
+  description: z.string().optional().nullable(),
+  dueMode: z.boolean(),
+  dueDate: z.coerce.date().optional().nullable(),
+  dateRange: dateRangeSchema.optional().nullable(),
+  subjectId: z.number(),
+  groupId: z.number().optional().nullable(),
+  requiresVerification: z.boolean().optional().nullable(),
+  markedAsDone: z.boolean(),
+  markedAsDoneBy: z.string().optional().nullable(),
+});
 
 export type Task = z.infer<typeof taskSchema>;
 
