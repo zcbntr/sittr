@@ -531,7 +531,7 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
   }
 
   // Create group, add user to groupMembers, add subjects to subjects, all in a transaction
-  await db.transaction(async (db) => {
+  const groupToReturn = await db.transaction(async (db) => {
     // Create group
     const newGroup = await db
       .insert(groups)
@@ -580,13 +580,12 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
       }
     }
 
-    // Major issue here - this is failing?
-    return groupSchema.safeParse({
+    return groupSchema.parse({
       id: newGroup[0].id,
       name: newGroup[0].name,
       description: newGroup[0].description,
       members: [
-        groupMemberSchema.safeParse({
+        groupMemberSchema.parse({
           id: groupMember[0].id,
           groupId: groupMember[0].groupId,
           userId: groupMember[0].userId,
@@ -597,8 +596,7 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
     });
   });
 
-  // This is being returned even if the group is created
-  console.log("Failed to create group");
+  if (groupToReturn) return groupToReturn;
 
   throw new Error("Failed to create group");
 }
@@ -883,7 +881,7 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
     throw new Error("Unauthorized");
   }
 
-  await db.transaction(async (db) => {
+  const petToReturn = await db.transaction(async (db) => {
     const newPet = await db
       .insert(pets)
       .values({
@@ -922,6 +920,10 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
       dob: pet.birthdate,
     });
   });
+
+  if (petToReturn) {
+    return petToReturn;
+  }
 
   throw new Error("Failed to create pet");
 }
@@ -977,7 +979,7 @@ export async function deletePet(subjectId: number): Promise<Pet> {
     throw new Error("Unauthorized");
   }
 
-  await db.transaction(async (db) => {
+  const petToReturn = await db.transaction(async (db) => {
     const deletedSubject = await db
       .delete(sittingSubjects)
       .where(eq(sittingSubjects.id, subjectId))
@@ -1007,6 +1009,8 @@ export async function deletePet(subjectId: number): Promise<Pet> {
       dob: deletedPet[0].dob,
     });
   });
+
+  if (petToReturn) return petToReturn;
 
   throw new Error("Failed to delete pet");
 }
@@ -1063,7 +1067,7 @@ export async function createHouse(
     throw new Error("Unauthorized");
   }
 
-  await db.transaction(async (db) => {
+  const houseToReturn = await db.transaction(async (db) => {
     const newHouse = await db
       .insert(houses)
       .values({
@@ -1099,6 +1103,8 @@ export async function createHouse(
     });
   });
 
+  if (houseToReturn) return houseToReturn;
+
   throw new Error("Failed to create house");
 }
 
@@ -1109,7 +1115,7 @@ export async function deleteHouse(subjectId: number): Promise<House> {
     throw new Error("Unauthorized");
   }
 
-  await db.transaction(async (db) => {
+  const houseToReturn = await db.transaction(async (db) => {
     const deletedSubject = await db
       .delete(sittingSubjects)
       .where(eq(sittingSubjects.id, subjectId))
@@ -1137,6 +1143,8 @@ export async function deleteHouse(subjectId: number): Promise<House> {
       address: deletedHouse[0].address,
     });
   });
+
+  if (houseToReturn) return houseToReturn;
 
   throw new Error("Failed to delete house");
 }
@@ -1192,7 +1200,7 @@ export async function createPlant(plant: CreatePlantFormInput): Promise<Plant> {
     throw new Error("Unauthorized");
   }
 
-  await db.transaction(async (db) => {
+  const plantToReturn = await db.transaction(async (db) => {
     const newPlant = await db
       .insert(plants)
       .values({
@@ -1232,6 +1240,8 @@ export async function createPlant(plant: CreatePlantFormInput): Promise<Plant> {
     });
   });
 
+  if (plantToReturn) return plantToReturn;
+
   throw new Error("Failed to create plant");
 }
 
@@ -1242,7 +1252,7 @@ export async function deletePlant(subjectId: number): Promise<Plant> {
     throw new Error("Unauthorized");
   }
 
-  await db.transaction(async (db) => {
+  const plantToReturn = await db.transaction(async (db) => {
     const deletedSubject = await db
       .delete(sittingSubjects)
       .where(eq(sittingSubjects.id, subjectId))
@@ -1272,6 +1282,8 @@ export async function deletePlant(subjectId: number): Promise<Plant> {
       wateringFrequency: deletedPlant[0].wateringFrequency,
     });
   });
+
+  if (plantToReturn) return plantToReturn;
 
   throw new Error("Failed to delete plant");
 }
