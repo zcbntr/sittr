@@ -43,11 +43,11 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await createGroup(
+    const group = await createGroup(
       formData.data
     );
 
-    return NextResponse.json(pgRow);
+    return NextResponse.json(group);
   } catch (error) {
     return NextResponse.json({ error });
   }

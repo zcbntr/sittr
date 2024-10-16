@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
-import { eq, desc, and, or, lte, gte } from "drizzle-orm";
+import { eq, and, or, lte, gte } from "drizzle-orm";
 import {
   groupInviteCodes,
   groupMembers,
@@ -17,34 +17,33 @@ import {
   userOwnerPreferences,
 } from "./db/schema";
 import {
-  CreateGroupFormInput,
-  CreatePetFormInput,
-  CreatePlantFormInput,
-  CreateTask,
-  type DateRange,
-  Group,
-  GroupInviteCode,
+  type CreateGroupFormInput,
+  type CreatePetFormInput,
+  type CreatePlantFormInput,
+  type CreateTask,
+  type Group,
+  type GroupInviteCode,
   groupInviteCodeSchema,
-  GroupMember,
+  type GroupMember,
   groupMemberSchema,
   GroupRoleEnum,
   groupSchema,
   type House,
   houseSchema,
-  OnboardingFormInput,
-  OwnerPreferences,
+  type OnboardingFormInput,
+  type OwnerPreferences,
   ownerPreferencesSchema,
   type Pet,
   petSchema,
   type Plant,
   plantSchema,
-  RequestGroupInviteCodeFormInput,
-  SittingPreferences,
+  type RequestGroupInviteCodeFormInput,
+  RoleEnum,
+  type SittingPreferences,
   sittingPreferencesSchema,
   type SittingSubject,
-  Task,
+  type Task,
   taskSchema,
-  type WateringFrequency,
 } from "~/lib/schema";
 import { sha256 } from "crypto-hash";
 
@@ -413,7 +412,7 @@ export async function getCurrentUserOwnerPreferences(): Promise<OwnerPreferences
   }
 
   const userOwnerPreferences = await db.query.userOwnerPreferences.findFirst({
-    where: (model, { and, eq }) => eq(model.userId, user.userId),
+    where: (model, { eq }) => eq(model.userId, user.userId),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
@@ -439,7 +438,7 @@ export async function getCurrentUserSittingPreferences(): Promise<SittingPrefere
 
   const userSittingPreferences =
     await db.query.userSittingPreferances.findFirst({
-      where: (model, { and, eq }) => eq(model.userId, user.userId),
+      where: (model, { eq }) => eq(model.userId, user.userId),
       orderBy: (model, { desc }) => desc(model.createdAt),
     });
 
@@ -511,7 +510,7 @@ export async function setUserOwnerPreferences(
     .returning()
     .execute();
 
-  if (!preferencesRow || !preferencesRow[0]) {
+  if (!preferencesRow?.[0]) {
     throw new Error("Failed to set user owner preferences");
   }
 
@@ -531,12 +530,10 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
     throw new Error("Unauthorized");
   }
 
-  let newGroup;
-
-  // Create group and add user to groupMembers table in a transaction
+  // Create group, add user to groupMembers, add subjects to subjects, all in a transaction
   await db.transaction(async (db) => {
     // Create group
-    newGroup = await db
+    const newGroup = await db
       .insert(groups)
       .values({
         name: group.name,
@@ -545,42 +542,63 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
       .returning()
       .execute();
 
-    if (!newGroup || !newGroup[0]) {
+    if (!newGroup?.[0]) {
       db.rollback();
       throw new Error("Failed to create group");
     }
 
-    // Add user to groupMembers table
-    const groupMember = await db.insert(groupMembers).values({
-      groupId: newGroup[0].id,
-      userId: user.userId,
-      role: "Owner",
-    });
+    // Add current user to groupMembers table
+    const groupMember = await db
+      .insert(groupMembers)
+      .values({
+        groupId: newGroup[0].id,
+        userId: user.userId,
+        role: RoleEnum.Values.Owner,
+      })
+      .returning()
+      .execute();
 
-    if (!groupMember) {
+    if (!groupMember?.[0]) {
       db.rollback();
       throw new Error("Failed to add user to group");
     }
 
     // Add sitting subjects to group
     for (const subjectId of group.sittingSubjects) {
-      const subject = await db.insert(subjectsToGroups).values({
-        groupId: newGroup[0].id,
-        subjectId: subjectId,
-      });
+      const subject = await db
+        .insert(subjectsToGroups)
+        .values({
+          groupId: newGroup[0].id,
+          subjectId: subjectId,
+        })
+        .returning()
+        .execute();
 
-      if (!subject) {
+      if (!subject?.[0]) {
         db.rollback();
         throw new Error("Failed to add subject to group");
       }
     }
 
-    return groupSchema.parse({
+    // Major issue here - this is failing?
+    return groupSchema.safeParse({
       id: newGroup[0].id,
       name: newGroup[0].name,
       description: newGroup[0].description,
+      members: [
+        groupMemberSchema.safeParse({
+          id: groupMember[0].id,
+          groupId: groupMember[0].groupId,
+          userId: groupMember[0].userId,
+          role: groupMember[0].role,
+        }),
+      ],
+      sittingSubjectIds: group.sittingSubjects,
     });
   });
+
+  // This is being returned even if the group is created
+  console.log("Failed to create group");
 
   throw new Error("Failed to create group");
 }
@@ -600,7 +618,7 @@ export async function getNewGroupInviteCode(
       and(
         eq(model.groupId, request.groupId),
         eq(model.userId, user.userId),
-        eq(model.role, "Owner"),
+        eq(model.role, RoleEnum.Values.Owner),
       ),
   });
 
@@ -635,7 +653,7 @@ export async function getNewGroupInviteCode(
     .returning()
     .execute();
 
-  if (!newInviteCode || !newInviteCode[0]) {
+  if (!newInviteCode?.[0]) {
     throw new Error("Failed to create invite code");
   }
 
@@ -714,7 +732,7 @@ export async function joinGroup(inviteCode: string): Promise<GroupMember> {
     .returning()
     .execute();
 
-  if (!newGroupMember || !newGroupMember[0]) {
+  if (!newGroupMember?.[0]) {
     throw new Error("Failed to add user to group");
   }
 
@@ -876,7 +894,7 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
       })
       .returning();
 
-    if (!newPet || !newPet[0]) {
+    if (!newPet?.[0]) {
       db.rollback();
       throw new Error("Failed to create pet in pet table");
     }
@@ -890,7 +908,7 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
       })
       .returning();
 
-    if (!newSittingSubject || !newSittingSubject[0]) {
+    if (!newSittingSubject?.[0]) {
       db.rollback();
       throw new Error("Failed to create pet link in sittingSubjects table");
     }
@@ -965,7 +983,7 @@ export async function deletePet(subjectId: number): Promise<Pet> {
       .where(eq(sittingSubjects.id, subjectId))
       .returning();
 
-    if (!deletedSubject || !deletedSubject[0]) {
+    if (!deletedSubject?.[0]) {
       db.rollback();
       throw new Error("Failed to delete pet from sittingSubjects table");
     }
@@ -975,7 +993,7 @@ export async function deletePet(subjectId: number): Promise<Pet> {
       .where(eq(pets.id, deletedSubject[0].entityId))
       .returning();
 
-    if (!deletedPet || !deletedPet[0]) {
+    if (!deletedPet?.[0]) {
       db.rollback();
       throw new Error("Failed to delete pet from pet table");
     }
@@ -1054,7 +1072,7 @@ export async function createHouse(
       })
       .returning();
 
-    if (!newHouse || !newHouse[0]) {
+    if (!newHouse?.[0]) {
       db.rollback();
       throw new Error("Failed to create house in house table");
     }
@@ -1068,7 +1086,7 @@ export async function createHouse(
       })
       .returning();
 
-    if (!newSittingSubject || !newSittingSubject[0]) {
+    if (!newSittingSubject?.[0]) {
       db.rollback();
       throw new Error("Failed to create house link in sittingSubjects table");
     }
@@ -1097,7 +1115,7 @@ export async function deleteHouse(subjectId: number): Promise<House> {
       .where(eq(sittingSubjects.id, subjectId))
       .returning();
 
-    if (!deletedSubject || !deletedSubject[0]) {
+    if (!deletedSubject?.[0]) {
       db.rollback();
       throw new Error("Failed to delete house from sittingSubjects table");
     }
@@ -1107,7 +1125,7 @@ export async function deleteHouse(subjectId: number): Promise<House> {
       .where(eq(houses.id, deletedSubject[0].entityId))
       .returning();
 
-    if (!deletedHouse || !deletedHouse[0]) {
+    if (!deletedHouse?.[0]) {
       db.rollback();
       throw new Error("Failed to delete house from house table");
     }
@@ -1185,7 +1203,7 @@ export async function createPlant(plant: CreatePlantFormInput): Promise<Plant> {
       })
       .returning();
 
-    if (!newPlant || !newPlant[0]) {
+    if (!newPlant?.[0]) {
       db.rollback();
       throw new Error("Failed to create plant in plant table");
     }
@@ -1199,7 +1217,7 @@ export async function createPlant(plant: CreatePlantFormInput): Promise<Plant> {
       })
       .returning();
 
-    if (!newSittingSubject || !newSittingSubject[0]) {
+    if (!newSittingSubject?.[0]) {
       db.rollback();
       throw new Error("Failed to create plant link in sittingSubjects table");
     }
@@ -1230,7 +1248,7 @@ export async function deletePlant(subjectId: number): Promise<Plant> {
       .where(eq(sittingSubjects.id, subjectId))
       .returning();
 
-    if (!deletedSubject || !deletedSubject[0]) {
+    if (!deletedSubject?.[0]) {
       db.rollback();
       throw new Error("Failed to delete plant from sittingSubjects table");
     }
@@ -1240,7 +1258,7 @@ export async function deletePlant(subjectId: number): Promise<Plant> {
       .where(eq(plants.id, deletedSubject[0].entityId))
       .returning();
 
-    if (!deletedPlant || !deletedPlant[0]) {
+    if (!deletedPlant?.[0]) {
       db.rollback();
       throw new Error("Failed to delete plant from plant table");
     }

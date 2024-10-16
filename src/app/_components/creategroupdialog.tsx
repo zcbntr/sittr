@@ -88,11 +88,13 @@ export default function CreateGroupDialog({
 
     const resData = await res.json();
 
+    console.log(resData);
+
     if (!resData.error) {
       setOpen(false);
       document.dispatchEvent(new Event("groupCreated"));
     } else {
-      console.log(resData);
+      console.log(resData.error);
     }
   }
 

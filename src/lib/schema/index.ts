@@ -321,28 +321,24 @@ export const taskSchema = z.object({
 
 export type Task = z.infer<typeof taskSchema>;
 
-export const groupSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  description: z.string().optional().nullable(),
-  members: z.array(
-    z.object({
-      id: z.number(),
-      role: GroupRoleEnum,
-    }),
-  ),
-  sittingSubjects: z.array(sittingSubjectSchema),
-});
-
-export type Group = z.infer<typeof groupSchema>;
-
 export const groupMemberSchema = z.object({
   id: z.number(),
+  userId: z.string(),
   groupId: z.number(),
   role: GroupRoleEnum,
 });
 
 export type GroupMember = z.infer<typeof groupMemberSchema>;
+
+export const groupSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  description: z.string().optional().nullable(),
+  members: z.array(groupMemberSchema),
+  sittingSubjectIds: z.array(z.number()),
+});
+
+export type Group = z.infer<typeof groupSchema>;
 
 export const groupInviteCodeSchema = z.object({
   id: z.number(),
