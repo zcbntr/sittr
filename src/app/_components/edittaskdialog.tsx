@@ -33,7 +33,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { SittingSubject, type Task, taskSchema } from "~/lib/schema/index";
+import { type SittingSubject, type Task, taskSchema } from "~/lib/schema/index";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import {
   Select,
@@ -115,6 +115,10 @@ export default function EditTaskDialog({
           form.setValue("id", props.id);
         }
 
+        if (props?.ownerId) {
+          form.setValue("ownerId", props.ownerId);
+        }
+
         if (props?.dueMode !== undefined) {
           setDueMode(props.dueMode);
           form.setValue("dueMode", props.dueMode);
@@ -183,7 +187,7 @@ export default function EditTaskDialog({
       return;
     }
 
-    const resData = await res.json();
+    const resData: unknown = await res.json();
 
     if (!resData.error) {
       setOpen(false);
@@ -533,7 +537,14 @@ export default function EditTaskDialog({
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Mark as complete</FormLabel>
+                    {form.getValues("markedAsDoneBy") && field.value && (
+                      <FormLabel>
+                        Marked as complete by {form.getValues("markedAsDoneBy")}
+                      </FormLabel>
+                    )}
+                    {(!form.getValues("markedAsDoneBy") || !field.value) && (
+                      <FormLabel>Mark as complete</FormLabel>
+                    )}
                   </div>
                 </FormItem>
               )}

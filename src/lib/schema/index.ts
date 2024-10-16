@@ -242,7 +242,7 @@ export const deleteAPIFormSchema = z.object({
 export type DeleteAPIFormInput = z.infer<typeof deleteAPIFormSchema>;
 
 // -----------------------------------------------------------------------------
-// Response schemas - no refine methods
+// Response schemas - no refine methods - we trust the db
 // -----------------------------------------------------------------------------
 
 export const sittingPreferencesSchema = z.object({

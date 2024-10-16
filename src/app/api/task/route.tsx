@@ -50,8 +50,6 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
         requestParams.data.dateRange.to,
       );
 
-      console.log(pgRows);
-
       return NextResponse.json(pgRows);
     }
 

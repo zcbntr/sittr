@@ -186,7 +186,7 @@ export default function CreateTaskDialog({
       return;
     }
 
-    const resData = await res.json();
+    const resData: unknown = await res.json();
 
     if (!resData.error) {
       setOpen(false);

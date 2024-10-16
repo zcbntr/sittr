@@ -291,70 +291,69 @@ export async function updateTask(task: Task): Promise<Task> {
     .returning()
     .execute();
 
-  if (updatedTask.length === 0) {
+  if (!updatedTask?.[0]) {
     throw new Error("Task not found");
   }
 
   // Check if the task has been marked as done
-  if (updatedTask[0]) {
-    // If so, update the markedAsDoneBy field, if the user is the owner or the task is unmarked, or the user is the one who marked it
-    if (
-      updatedTask[0].markedAsDoneBy != task.markedAsDoneBy &&
-      (user.userId == updatedTask[0].ownerId ||
-        updatedTask[0].markedAsDoneBy == null ||
-        user.userId == updatedTask[0].markedAsDoneBy)
-    ) {
-      const updatedTaskChangedMarkedAsDoneBy = await db
-        .update(tasks)
-        .set({
-          markedAsDoneBy: task.markedAsDoneBy,
-        })
-        .where(eq(tasks.id, task.id))
-        .returning()
-        .execute();
+  // If so, update the markedAsDoneBy field, if the user is the owner or the task is unmarked, or the user is the one who marked it
+  if (
+    updatedTask[0].markedAsDoneBy != user.userId &&
+    (user.userId == updatedTask[0].ownerId ||
+      updatedTask[0].markedAsDoneBy == null ||
+      user.userId == updatedTask[0].markedAsDoneBy)
+  ) {
+    console.log("Updating markedAsDoneBy");
+    const updatedTaskChangedMarkedAsDoneBy = await db
+      .update(tasks)
+      .set({
+        markedAsDoneBy: user.userId,
+      })
+      .where(eq(tasks.id, task.id))
+      .returning()
+      .execute();
 
-      // Return a task object with the data from the updated task including the markedAsDoneBy field
-      if (updatedTaskChangedMarkedAsDoneBy[0]) {
-        return taskSchema.parse({
-          id: updatedTaskChangedMarkedAsDoneBy[0].id,
-          ownerId: updatedTaskChangedMarkedAsDoneBy[0].ownerId,
-          name: updatedTaskChangedMarkedAsDoneBy[0].name,
-          description: updatedTaskChangedMarkedAsDoneBy[0].description,
-          dueMode: updatedTaskChangedMarkedAsDoneBy[0].dueMode,
-          dueDate: updatedTaskChangedMarkedAsDoneBy[0].dueDate,
-          dateRange: {
-            from: updatedTaskChangedMarkedAsDoneBy[0].dateRangeFrom,
-            to: updatedTaskChangedMarkedAsDoneBy[0].dateRangeTo,
-          },
-          subjectId: updatedTaskChangedMarkedAsDoneBy[0].sittingSubject,
-          groupId: updatedTaskChangedMarkedAsDoneBy[0].group,
-          markedAsDone:
-            updatedTaskChangedMarkedAsDoneBy[0].markedAsDoneBy !== null,
-          markedAsDoneBy: updatedTaskChangedMarkedAsDoneBy[0].markedAsDoneBy,
-        });
-      }
+    // Return a task object with the data from the updated task including the markedAsDoneBy field
+    if (updatedTaskChangedMarkedAsDoneBy[0]) {
+      return taskSchema.parse({
+        id: updatedTaskChangedMarkedAsDoneBy[0].id,
+        ownerId: updatedTaskChangedMarkedAsDoneBy[0].ownerId,
+        name: updatedTaskChangedMarkedAsDoneBy[0].name,
+        description: updatedTaskChangedMarkedAsDoneBy[0].description,
+        dueMode: updatedTaskChangedMarkedAsDoneBy[0].dueMode,
+        dueDate: updatedTaskChangedMarkedAsDoneBy[0].dueDate,
+        dateRange: {
+          from: updatedTaskChangedMarkedAsDoneBy[0].dateRangeFrom,
+          to: updatedTaskChangedMarkedAsDoneBy[0].dateRangeTo,
+        },
+        subjectId: updatedTaskChangedMarkedAsDoneBy[0].sittingSubject,
+        groupId: updatedTaskChangedMarkedAsDoneBy[0].group,
+        markedAsDone:
+          updatedTaskChangedMarkedAsDoneBy[0].markedAsDoneBy !== null,
+        markedAsDoneBy: updatedTaskChangedMarkedAsDoneBy[0].markedAsDoneBy,
+      });
     }
 
-    // Return a task object with the data from the updated task
-    return taskSchema.parse({
-      id: updatedTask[0].id,
-      ownerId: updatedTask[0].ownerId,
-      name: updatedTask[0].name,
-      description: updatedTask[0].description,
-      dueMode: updatedTask[0].dueMode,
-      dueDate: updatedTask[0].dueDate,
-      dateRange: {
-        from: updatedTask[0].dateRangeFrom,
-        to: updatedTask[0].dateRangeTo,
-      },
-      subjectId: updatedTask[0].sittingSubject,
-      groupId: updatedTask[0].group,
-      markedAsDone: updatedTask[0].markedAsDoneBy !== null,
-      markedAsDoneBy: updatedTask[0].markedAsDoneBy,
-    });
+    throw new Error("Failed to mark task as done");
   }
 
-  throw new Error("Failed to update task");
+  // Return a task object with the data from the updated task
+  return taskSchema.parse({
+    id: updatedTask[0].id,
+    ownerId: updatedTask[0].ownerId,
+    name: updatedTask[0].name,
+    description: updatedTask[0].description,
+    dueMode: updatedTask[0].dueMode,
+    dueDate: updatedTask[0].dueDate,
+    dateRange: {
+      from: updatedTask[0].dateRangeFrom,
+      to: updatedTask[0].dateRangeTo,
+    },
+    subjectId: updatedTask[0].sittingSubject,
+    groupId: updatedTask[0].group,
+    markedAsDone: updatedTask[0].markedAsDoneBy !== null,
+    markedAsDoneBy: updatedTask[0].markedAsDoneBy,
+  });
 }
 
 export async function deleteOwnedTask(id: number): Promise<Task> {

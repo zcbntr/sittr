@@ -25,6 +25,7 @@ const localizer = momentLocalizer(moment);
 
 class CalendarEvent {
   id: number;
+  ownerId: string;
   title: string;
   allDay: boolean;
   dueMode: boolean;
@@ -33,26 +34,28 @@ class CalendarEvent {
   subjectId: number;
   groupId?: number;
   markedAsDone: boolean;
-  markedAsDoneBy?: number;
+  markedAsDoneBy?: string;
   desc: string;
   resourceId?: string;
   tooltip?: string;
 
   constructor(
     _id: number,
+    _ownerId: string,
     _title: string,
     _dueMode: boolean,
     _start: Date,
     _endDate: Date,
     _subjectId: number,
     _markedAsDone: boolean,
-    _markedAsDoneBy?: number,
+    _markedAsDoneBy?: string,
     _groupId?: number,
     _allDay?: boolean,
     _desc?: string,
     _resourceId?: string,
   ) {
     this.id = _id;
+    this.ownerId = _ownerId;
     this.title = _title;
     this.allDay = _allDay ?? false;
     this.dueMode = _dueMode;
@@ -92,6 +95,7 @@ export default function CalendarComponent() {
             },
           },
         );
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const data: Task[] = await tasksRes.json();
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
@@ -99,13 +103,14 @@ export default function CalendarComponent() {
           const events: CalendarEvent[] = data.map((task) => {
             return new CalendarEvent(
               task.id,
+              task.ownerId,
               task.name,
               task.dueMode,
               new Date(task.dateRange?.from),
               new Date(task.dateRange?.to),
               task.subjectId,
               task.markedAsDone,
-              task.markedAsDoneBy,
+              task.markedAsDoneBy ? task.markedAsDoneBy : undefined,
               task.groupId,
               false,
               task.description ? task.description : "",
@@ -155,6 +160,7 @@ export default function CalendarComponent() {
     if (button) {
       setEditTaskDialogProps({
         id: event.id,
+        ownerId: event.ownerId,
         name: event.title,
         description: event.desc,
         subjectId: event.subjectId,
