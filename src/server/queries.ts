@@ -13,7 +13,7 @@ import {
   sittingSubjects,
   subjectsToGroups,
   tasks,
-  userSittingPreferances,
+  userSittingPreferences,
   userOwnerPreferences,
 } from "./db/schema";
 import {
@@ -30,20 +30,17 @@ import {
   groupSchema,
   type House,
   houseSchema,
-  type OnboardingFormInput,
-  type OwnerPreferences,
-  ownerPreferencesSchema,
   type Pet,
   petSchema,
   type Plant,
   plantSchema,
   type RequestGroupInviteCodeFormInput,
   RoleEnum,
-  type SittingPreferences,
-  sittingPreferencesSchema,
   type SittingSubject,
   type Task,
   taskSchema,
+  UserPreferences,
+  userPreferencesSchema,
 } from "~/lib/schema";
 import { sha256 } from "crypto-hash";
 
@@ -397,14 +394,15 @@ export async function currentUserCompletedOnboarding(): Promise<boolean> {
     throw new Error("Unauthorized");
   }
 
-  const userOwnerPreferances = await getCurrentUserOwnerPreferences();
-  if (userOwnerPreferances) return true;
-  const userSitterPreferances = await getCurrentUserSittingPreferences();
-  if (userSitterPreferances) return true;
+  const userPreferances = await getCurrentUserPreferences();
+  if (userPreferances) return true;
+
   return false;
 }
 
-export async function getCurrentUserOwnerPreferences(): Promise<OwnerPreferences> {
+export async function getCurrentUserPreferences(): Promise<
+  UserPreferences | undefined
+> {
   const user = auth();
 
   if (!user.userId) {
@@ -416,111 +414,149 @@ export async function getCurrentUserOwnerPreferences(): Promise<OwnerPreferences
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
-  if (userOwnerPreferences) {
-    return ownerPreferencesSchema.parse({
-      userId: userOwnerPreferences.userId,
-      petOwnership: userOwnerPreferences.petSitting,
-      houseOwnership: userOwnerPreferences.houseSitting,
-      babyOwnership: userOwnerPreferences.babySitting,
-      plantOwnership: userOwnerPreferences.plantSitting,
-    });
-  }
-
-  throw new Error("User owner preferences not found");
-}
-
-export async function getCurrentUserSittingPreferences(): Promise<SittingPreferences> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const userSittingPreferences =
-    await db.query.userSittingPreferances.findFirst({
+  const userSitterPreferences = await db.query.userSittingPreferences.findFirst(
+    {
       where: (model, { eq }) => eq(model.userId, user.userId),
       orderBy: (model, { desc }) => desc(model.createdAt),
-    });
+    },
+  );
 
-  if (userSittingPreferences) {
-    return sittingPreferencesSchema.parse({
-      userId: userSittingPreferences.userId,
-      petSitting: userSittingPreferences.petSitting,
-      houseSitting: userSittingPreferences.houseSitting,
-      babySitting: userSittingPreferences.babySitting,
-      plantSitting: userSittingPreferences.plantSitting,
+  if (userOwnerPreferences && userSitterPreferences) {
+    return userPreferencesSchema.parse({
+      userId: userOwnerPreferences.userId,
+      wantPetSitting: userOwnerPreferences.petSitting,
+      wantHouseSitting: userOwnerPreferences.houseSitting,
+      wantBabySitting: userOwnerPreferences.babySitting,
+      wantPlantSitting: userOwnerPreferences.plantSitting,
+      sitForPets: userSitterPreferences.petSitting,
+      sitForHouses: userSitterPreferences.houseSitting,
+      sitForBabies: userSitterPreferences.babySitting,
+      sitForPlants: userSitterPreferences.plantSitting,
     });
   }
-
-  throw new Error("User sitting preferences not found");
 }
 
-export async function setUserSittingPreferences(
-  preferences: OnboardingFormInput,
-): Promise<SittingPreferences> {
+export async function setUserPreferences(
+  preferences: UserPreferences,
+): Promise<UserPreferences> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const preferencesRow = await db
-    .insert(userSittingPreferances)
-    .values({
-      userId: user.userId,
-      petSitting: preferences.pet,
-      houseSitting: preferences.house,
-      babySitting: preferences.baby,
-      plantSitting: preferences.plant,
-    })
-    .returning()
-    .execute();
-
-  if (preferencesRow[0]) {
-    return sittingPreferencesSchema.parse({
-      userId: preferencesRow[0].userId,
-      petSitting: preferencesRow[0].petSitting,
-      houseSitting: preferencesRow[0].houseSitting,
-      babySitting: preferencesRow[0].babySitting,
-      plantSitting: preferencesRow[0].plantSitting,
-    });
+  if (preferences.userId !== user.userId && preferences.userId !== undefined) {
+    throw new Error("User ID does not match");
   }
+
+  // First check if the user already has preferences set
+  const existingUserPreferences = await getCurrentUserPreferences();
+
+  // If the user already has preferences set, update them
+  if (existingUserPreferences) {
+    const updatedUserPreferences = await db.transaction(async (db) => {
+      const updatedUserOwnerPreferences = await db
+        .update(userOwnerPreferences)
+        .set({
+          petSitting: preferences.wantPetSitting,
+          houseSitting: preferences.wantHouseSitting,
+          babySitting: preferences.wantBabySitting,
+          plantSitting: preferences.wantPlantSitting,
+        })
+        .where(eq(userOwnerPreferences.userId, user.userId))
+        .returning()
+        .execute();
+
+      if (!updatedUserOwnerPreferences?.[0]) {
+        db.rollback();
+        throw new Error("Failed to update user owner preferences");
+      }
+
+      const updatedUserSitterPreferences = await db
+        .update(userSittingPreferences)
+        .set({
+          petSitting: preferences.sitForPets,
+          houseSitting: preferences.sitForHouses,
+          babySitting: preferences.sitForBabies,
+          plantSitting: preferences.sitForPlants,
+        })
+        .where(eq(userSittingPreferences.userId, user.userId))
+        .returning()
+        .execute();
+
+      if (!updatedUserSitterPreferences?.[0]) {
+        db.rollback();
+        throw new Error("Failed to update user sitter preferences");
+      }
+
+      return userPreferencesSchema.parse({
+        userId: updatedUserOwnerPreferences[0].userId,
+        wantPetSitting: updatedUserOwnerPreferences[0].petSitting,
+        wantHouseSitting: updatedUserOwnerPreferences[0].houseSitting,
+        wantBabySitting: updatedUserOwnerPreferences[0].babySitting,
+        wantPlantSitting: updatedUserOwnerPreferences[0].plantSitting,
+        sitForPets: updatedUserSitterPreferences[0].petSitting,
+        sitForHouses: updatedUserSitterPreferences[0].houseSitting,
+        sitForBabies: updatedUserSitterPreferences[0].babySitting,
+        sitForPlants: updatedUserSitterPreferences[0].plantSitting,
+      });
+    });
+
+    if (updatedUserPreferences) return updatedUserPreferences;
+  }
+
+  // If the user does not have preferences set, create them
+  const newUserPreferences = await db.transaction(async (db) => {
+    const preferencesRowSitter = await db
+      .insert(userSittingPreferences)
+      .values({
+        userId: user.userId,
+        petSitting: preferences.sitForPets,
+        houseSitting: preferences.sitForHouses,
+        babySitting: preferences.sitForBabies,
+        plantSitting: preferences.sitForPlants,
+      })
+      .returning();
+
+    if (!preferencesRowSitter?.[0]) {
+      db.rollback();
+      console.log("Failed to set user sitting preferences");
+      throw new Error("Failed to set user sitting preferences");
+    }
+
+    const preferencesRowOwner = await db
+      .insert(userOwnerPreferences)
+      .values({
+        userId: user.userId,
+        petSitting: preferences.wantPetSitting,
+        houseSitting: preferences.wantHouseSitting,
+        babySitting: preferences.wantBabySitting,
+        plantSitting: preferences.wantPlantSitting,
+      })
+      .returning();
+
+    if (!preferencesRowOwner?.[0]) {
+      db.rollback();
+      console.log("Failed to set user owner preferences");
+      throw new Error("Failed to set user owner preferences");
+    }
+
+    return userPreferencesSchema.parse({
+      userId: preferencesRowOwner[0].userId,
+      wantPetSitting: preferencesRowOwner[0].petSitting,
+      wantHouseSitting: preferencesRowOwner[0].houseSitting,
+      wantBabySitting: preferencesRowOwner[0].babySitting,
+      wantPlantSitting: preferencesRowOwner[0].plantSitting,
+      sitForPets: preferencesRowSitter[0].petSitting,
+      sitForHouses: preferencesRowSitter[0].houseSitting,
+      sitForBabys: preferencesRowSitter[0].babySitting,
+      sitForPlants: preferencesRowSitter[0].plantSitting,
+    });
+  });
+
+  if (newUserPreferences) return newUserPreferences;
 
   throw new Error("Failed to set user sitting preferences");
-}
-
-export async function setUserOwnerPreferences(
-  preferences: OnboardingFormInput,
-): Promise<OwnerPreferences> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const preferencesRow = await db
-    .insert(userOwnerPreferences)
-    .values({
-      userId: user.userId,
-      petSitting: preferences.pet,
-      houseSitting: preferences.house,
-      babySitting: preferences.baby,
-      plantSitting: preferences.plant,
-    })
-    .returning()
-    .execute();
-
-  if (!preferencesRow?.[0]) {
-    throw new Error("Failed to set user owner preferences");
-  }
-
-  return ownerPreferencesSchema.parse({
-    userId: preferencesRow[0].userId,
-    petOwnership: preferencesRow[0].petSitting,
-    houseOwnership: preferencesRow[0].houseSitting,
-    babyOwnership: preferencesRow[0].babySitting,
-    plantOwnership: preferencesRow[0].plantSitting,
-  });
 }
 
 export async function createGroup(group: CreateGroupFormInput): Promise<Group> {

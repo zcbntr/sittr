@@ -183,17 +183,6 @@ export type RequestGroupInviteCodeFormInput = z.infer<
   typeof requestGroupInviteCodeFormInput
 >;
 
-export const onboardingPreferencesFormSchema = z.object({
-  pet: z.boolean(),
-  house: z.boolean(),
-  baby: z.boolean(),
-  plant: z.boolean(),
-});
-
-export type OnboardingFormInput = z.infer<
-  typeof onboardingPreferencesFormSchema
->;
-
 // -----------------------------------------------------------------------------
 // API form schemas
 // -----------------------------------------------------------------------------
@@ -245,25 +234,19 @@ export type DeleteAPIFormInput = z.infer<typeof deleteAPIFormSchema>;
 // Response schemas - no refine methods - we trust the db
 // -----------------------------------------------------------------------------
 
-export const sittingPreferencesSchema = z.object({
-  userId: z.string(),
-  pet: z.boolean(),
-  house: z.boolean(),
-  baby: z.boolean(),
-  plant: z.boolean(),
+export const userPreferencesSchema = z.object({
+  userId: z.string().optional(),
+  wantPetSitting: z.boolean(),
+  wantHouseSitting: z.boolean(),
+  wantBabySitting: z.boolean(),
+  wantPlantSitting: z.boolean(),
+  sitForPets: z.boolean(),
+  sitForHouses: z.boolean(),
+  sitForBabies: z.boolean(),
+  sitForPlants: z.boolean(),
 });
 
-export type SittingPreferences = z.infer<typeof sittingPreferencesSchema>;
-
-export const ownerPreferencesSchema = z.object({
-  userId: z.string(),
-  pet: z.boolean(),
-  house: z.boolean(),
-  baby: z.boolean(),
-  plant: z.boolean(),
-});
-
-export type OwnerPreferences = z.infer<typeof ownerPreferencesSchema>;
+export type UserPreferences = z.infer<typeof userPreferencesSchema>;
 
 export const petSchema = z.object({
   id: z.number(),

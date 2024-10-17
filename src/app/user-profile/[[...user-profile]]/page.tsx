@@ -1,31 +1,27 @@
-'use client'
+"use client";
 
-import { UserProfile } from '@clerk/nextjs'
-
-const DotIcon = () => {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor">
-      <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512z" />
-    </svg>
-  )
-}
-
-const CustomPage = () => {
-  return (
-    <div>
-      <h1>Custom Profile Page</h1>
-      <p>This is the custom profile page</p>
-    </div>
-  )
-}
+import { UserProfile } from "@clerk/nextjs";
+import PreferenceSelector from "~/app/_components/clerkpreferenceselector";
+import { MdTune } from "react-icons/md";
 
 const UserProfilePage = () => (
-  <UserProfile path="/user-profile" routing="path">
-    {/* You can pass the content as a component */}
-    <UserProfile.Page label="Custom Page" labelIcon={<DotIcon />} url="custom-page">
-      <CustomPage />
-    </UserProfile.Page>
-  </UserProfile>
-)
+  <div className="flex flex-row place-content-center">
+    <div className="p-5">
+      <UserProfile path="/user-profile" routing="path">
+        <UserProfile.Page
+          label="Preferences"
+          labelIcon={
+            <div className="flex flex-row place-content-center">
+              <MdTune size="1.5em" />
+            </div>
+          }
+          url="preferences"
+        >
+          <PreferenceSelector />
+        </UserProfile.Page>
+      </UserProfile>
+    </div>
+  </div>
+);
 
-export default UserProfilePage
+export default UserProfilePage;

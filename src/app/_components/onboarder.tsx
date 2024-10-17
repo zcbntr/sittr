@@ -15,45 +15,36 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Checkbox } from "~/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import { onboardingPreferencesFormSchema } from "~/lib/schema";
+import { userPreferencesSchema } from "~/lib/schema";
 
 export default function Onboarder() {
-  const form = useForm<z.infer<typeof onboardingPreferencesFormSchema>>({
-    resolver: zodResolver(onboardingPreferencesFormSchema),
+  const form = useForm<z.infer<typeof userPreferencesSchema>>({
+    resolver: zodResolver(userPreferencesSchema),
     defaultValues: {
-      role: "Owner",
-      pet: false,
-      house: false,
-      baby: false,
-      plant: false,
+      wantPetSitting: false,
+      wantHouseSitting: false,
+      wantPlantSitting: false,
+      wantBabySitting: false,
+      sitForPets: false,
+      sitForHouses: false,
+      sitForPlants: false,
+      sitForBabies: false,
     },
   });
 
-  async function onSubmit(
-    values: z.infer<typeof onboardingPreferencesFormSchema>,
-  ) {
+  async function onSubmit(values: z.infer<typeof userPreferencesSchema>) {
     try {
-      const res: Response = await fetch("/api/onboard", {
+      const res: Response = await fetch("/api/preferences", {
         method: "POST",
-        mode: "cors",
         body: JSON.stringify(values),
         headers: {
           "content-type": "application/json",
         },
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const data = await res.json();
-      if (data) {
-        console.log(data);
-      }
+      const data: unknown = await res.json();
+      console.log("no idea if it worked lol");
+      console.log(data);
 
       // Redirect to the dashboard
     } catch (error) {
@@ -62,96 +53,142 @@ export default function Onboarder() {
   }
 
   return (
-    <>
-      <div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="w-2/3 space-y-6"
-            >
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
+          <h2 className="py-2 text-xs font-semibold">Owner Preferences</h2>
+          <div className="flex flex-row gap-4 py-2">
+            <FormField
+              control={form.control}
+              name="wantPetSitting"
+              render={({ field }) => {
+                return (
+                  <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                     <FormControl>
-                      <Select>
-                        {" "}
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue defaultValue="Owner" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="owner">Owner</SelectItem>
-                          <SelectItem value="sitter">Sitter</SelectItem>
-                        </SelectContent>{" "}
-                      </Select>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
-                    <FormDescription>
-                      Set your owner or sitter preference.
-                    </FormDescription>
-                    <FormMessage />
+                    <FormLabel className="font-normal">Pet Sitting</FormLabel>
                   </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="pet"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pet</FormLabel>
+                );
+              }}
+            />
+            <FormField
+              control={form.control}
+              name="wantHouseSitting"
+              render={({ field }) => {
+                return (
+                  <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                     <FormControl>
-                      <Checkbox />
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormLabel className="font-normal">House Sitting</FormLabel>
                   </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="house"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>House</FormLabel>
+                );
+              }}
+            />
+            <FormField
+              control={form.control}
+              name="wantPlantSitting"
+              render={({ field }) => {
+                return (
+                  <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                     <FormControl>
-                      <Checkbox />
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormLabel className="font-normal">Plant Sitting</FormLabel>
                   </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="baby"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Baby</FormLabel>
-                    <FormControl>
-                      <Checkbox />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="plant"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Plant</FormLabel>
-                    <FormControl>
-                      <Checkbox />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">Submit</Button>
-            </form>
-          </Form>
+                );
+              }}
+            />
+          </div>
         </div>
-      </div>
-    </>
+        <div>
+          <h2 className="pt-2 text-xs font-semibold">Sitter Preferences</h2>
+          <div className="flex w-full grow flex-row place-items-start gap-4">
+            <FormField
+              control={form.control}
+              name="sitForPets"
+              render={({ field }) => {
+                return (
+                  <div className="flex flex-col place-content-center">
+                    <FormItem className="flex flex-row items-start space-x-2 space-y-0 py-2">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">Pet Sitting</FormLabel>
+                    </FormItem>
+                  </div>
+                );
+              }}
+            />
+            <FormField
+              control={form.control}
+              name="sitForHouses"
+              render={({ field }) => {
+                return (
+                  <div className="flex flex-col place-content-center">
+                    <FormItem className="flex flex-row items-start space-x-2 space-y-0 py-2">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        House Sitting
+                      </FormLabel>
+                    </FormItem>
+                  </div>
+                );
+              }}
+            />
+            <FormField
+              control={form.control}
+              name="sitForPlants"
+              render={({ field }) => {
+                return (
+                  <div className="flex flex-col place-content-center">
+                    <FormItem className="flex flex-row items-start space-x-2 space-y-0 py-2">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Plant Sitting
+                      </FormLabel>
+                    </FormItem>
+                  </div>
+                );
+              }}
+            />
+            {/* Should be far to the right - for some reason place-self-end doesn't work */}
+            <div className="align-self-end right-0 flex h-full flex-col place-content-center place-self-end self-end justify-self-end">
+              <Button
+                type="submit"
+                variant="ghost"
+                size="sm"
+                className="text-sm"
+              >
+                Update
+              </Button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </Form>
   );
 }

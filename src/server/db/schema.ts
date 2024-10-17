@@ -35,7 +35,7 @@ export const wateringFrequencyEnum = pgEnum(
 export const createTable = pgTableCreator((name) => `sittr_${name}`);
 
 // User preferences for providing sitting services
-export const userSittingPreferances = createTable("user_sitting_preferences", {
+export const userSittingPreferences = createTable("user_sitting_preferences", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id", { length: 255 }).notNull(),
   houseSitting: boolean("house_sitting").notNull().default(false),

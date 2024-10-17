@@ -21,19 +21,21 @@ export default function RootLayout({
       <html lang="en" className={`${GeistSans.variable}`}>
         <body className={`${GeistSans.variable}`}>
           <SignedOut>
-            <div className="grid h-screen grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
+            <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
               <main className="overflow-y-scroll">
-                {children}
+                <div className="h-dvh">{children}</div>
+
                 <Footer />
               </main>
             </div>
           </SignedOut>
           <SignedIn>
-            <div className="grid h-screen grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
-              <TopNav />
-
+            <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
               <main className="overflow-y-scroll">
-                {children}
+                <div className="h-dvh">
+                  <TopNav />
+                  {children}
+                </div>
 
                 <Footer />
               </main>
