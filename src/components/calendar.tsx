@@ -172,7 +172,7 @@ export default function CalendarComponent() {
           to: event.end,
         },
         markedAsDone: event.markedAsDone,
-        markedAsDoneBy: event.markedAsDoneBy
+        markedAsDoneBy: event.markedAsDoneBy,
       });
       button.click();
     }
@@ -180,12 +180,6 @@ export default function CalendarComponent() {
 
   return (
     <div className="h-[38rem]">
-      <div>
-        <strong>
-          Click an event to see more info, or drag the mouse over the calendar
-          to select a date/time range.
-        </strong>
-      </div>
       <Calendar
         selectable
         localizer={localizer}

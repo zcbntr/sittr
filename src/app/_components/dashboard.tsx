@@ -4,7 +4,6 @@ ability to satisfy sitting requests (if sitter) */
 
 import CalendarComponent from "~/components/calendar";
 import { Button } from "~/components/ui/button";
-import { add } from "date-fns";
 import CreatePetDialog from "./createpetdialog";
 import CreateGroupDialog from "./creategroupdialog";
 import CreateTaskDialog from "./createtaskdialog";
@@ -13,7 +12,7 @@ import CreatePlantDialog from "./createplantdialog";
 
 export default function Dashboard() {
   return (
-    <div className="p-5">
+    <div className="flex flex-col gap-3 p-5">
       <h1 className="text-xl">Dashboard</h1>
       <div className="flex flex-row gap-3">
         <CreateTaskDialog>

@@ -14,7 +14,10 @@ export function TopNav() {
           <RoleSwapper />
           <div className="flex place-content-center">
             <SignedIn>
-              <UserButton />
+              <UserButton
+                userProfileMode="navigation"
+                userProfileUrl="/user-profile"
+              />
             </SignedIn>
           </div>
         </nav>
