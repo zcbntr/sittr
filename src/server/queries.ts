@@ -42,7 +42,6 @@ import {
   UserPreferences,
   userPreferencesSchema,
 } from "~/lib/schema";
-import { sha256 } from "crypto-hash";
 
 export async function getOwnedTasksStartingInRange(
   from: Date,
@@ -405,8 +404,6 @@ export async function getCurrentUserPreferences(): Promise<
 > {
   const { userId } = auth();
 
-  console.log(userId);
-
   if (!userId) {
     throw new Error("Unauthorized");
   }
@@ -422,7 +419,7 @@ export async function getCurrentUserPreferences(): Promise<
     .execute();
 
   if (preferences?.[0]) {
-    return userPreferencesSchema.parse({
+    const parseResult = userPreferencesSchema.safeParse({
       userId: preferences?.[0].user_owner_preferences.userId,
       wantPetSitting: preferences?.[0].user_owner_preferences.petSitting,
       wantHouseSitting: preferences?.[0].user_owner_preferences.houseSitting,
@@ -433,6 +430,12 @@ export async function getCurrentUserPreferences(): Promise<
       sitForBabies: preferences?.[0].user_sitting_preferences.babySitting,
       sitForPlants: preferences?.[0].user_sitting_preferences.plantSitting,
     });
+
+    if (parseResult.success) {
+      return parseResult.data;
+    } else {
+      throw new Error("Zod schema error: " + parseResult.error);
+    }
   }
 }
 

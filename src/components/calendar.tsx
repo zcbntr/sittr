@@ -1,4 +1,5 @@
 "use client";
+
 import { Calendar, momentLocalizer, type View } from "react-big-calendar";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -6,8 +7,7 @@ import { useEffect, useState } from "react";
 import moment from "moment";
 import { endOfMonth, startOfMonth } from "date-fns";
 import { Button } from "./ui/button";
-import { CreateTaskFormProps, Task, type SittingTypeEnum } from "~/lib/schema";
-import { type DateRange } from "react-day-picker";
+import { CreateTaskFormProps, Task } from "~/lib/schema";
 import EditTaskDialog from "~/app/_components/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/createtaskdialog";
 
