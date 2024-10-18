@@ -1,7 +1,10 @@
+"use client";
+
 import { SignedIn, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import RoleSwapper from "~/components/roleswapper";
+import { MdGroups } from "react-icons/md";
 
 export function TopNav() {
   return (
@@ -17,7 +20,19 @@ export function TopNav() {
               <UserButton
                 userProfileMode="navigation"
                 userProfileUrl="/user-profile"
-              />
+              >
+                <UserButton.MenuItems>
+                  <UserButton.Link
+                    label="My Groups"
+                    labelIcon={
+                      <div className="flex flex-row place-content-center">
+                        <MdGroups size="1.5em" />
+                      </div>
+                    }
+                    href="/mygroups"
+                  ></UserButton.Link>
+                </UserButton.MenuItems>
+              </UserButton>
             </SignedIn>
           </div>
         </nav>

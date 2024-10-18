@@ -39,7 +39,7 @@ import {
   type SittingSubject,
   type Task,
   taskSchema,
-  UserPreferences,
+  type UserPreferences,
   userPreferencesSchema,
 } from "~/lib/schema";
 

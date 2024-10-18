@@ -27,8 +27,7 @@ export const wateringFrequencyEnum = pgEnum(
 );
 
 /**
- * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
- * database instance for multiple projects.
+ * Multi-project schema feature of Drizzle ORM.
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
@@ -66,8 +65,7 @@ export const userOwnerPreferences = createTable("user_owner_preferences", {
   ),
 });
 
-// Tasks are small todos.
-// Can be either due at a certain time or span a certain time period
+// Tasks can be either due at a certain time or span a certain time period
 export const tasks = createTable("tasks", {
   id: serial("id").primaryKey(),
   ownerId: varchar("owner_id", { length: 255 }).notNull(),

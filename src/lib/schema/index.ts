@@ -317,8 +317,8 @@ export const groupSchema = z.object({
   id: z.number(),
   name: z.string(),
   description: z.string().optional().nullable(),
-  members: z.array(groupMemberSchema),
-  sittingSubjectIds: z.array(z.number()),
+  members: z.array(groupMemberSchema).optional(),
+  sittingSubjectIds: z.array(z.number()).optional(),
 });
 
 export type Group = z.infer<typeof groupSchema>;

@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { type z } from "zod";
 
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -24,14 +24,13 @@ export default function ClerkPreferenceSelector() {
   });
 
   React.useEffect(() => {
-    async function fetchPreferences() {
+    async function fetchPreferences(): Promise<void> {
       await fetch("../api/preferences")
         .then((res) => res.json())
         .then((data) => {
           if (data.error) {
-            console.log("Failed to fetch preferences");
             console.error(data.error);
-            return;
+            throw new Error("Failed to fetch preferences");
           }
 
           form.setValue("userId", data.userId);
@@ -47,7 +46,7 @@ export default function ClerkPreferenceSelector() {
     }
 
     void fetchPreferences();
-  }, []);
+  }, [form]);
 
   async function onSubmit(data: z.infer<typeof userPreferencesSchema>) {
     const res = await fetch("../api/preferences", {
@@ -63,9 +62,7 @@ export default function ClerkPreferenceSelector() {
       return;
     }
 
-    const resData = await res.json();
-
-    console.log(resData);
+    const resData: unknown = await res.json();
 
     if (!resData.error) {
       document.dispatchEvent(new Event("preferencesUpdated"));

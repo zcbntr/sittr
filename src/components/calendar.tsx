@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import moment from "moment";
 import { endOfMonth, startOfMonth } from "date-fns";
 import { Button } from "./ui/button";
-import { CreateTaskFormProps, Task } from "~/lib/schema";
+import { type CreateTaskFormProps, type Task } from "~/lib/schema";
 import EditTaskDialog from "~/app/_components/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/createtaskdialog";
 
