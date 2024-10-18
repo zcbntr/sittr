@@ -403,35 +403,35 @@ export async function currentUserCompletedOnboarding(): Promise<boolean> {
 export async function getCurrentUserPreferences(): Promise<
   UserPreferences | undefined
 > {
-  const user = auth();
+  const { userId } = auth();
 
-  if (!user.userId) {
+  console.log(userId);
+
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
-  const userOwnerPreferences = await db.query.userOwnerPreferences.findFirst({
-    where: (model, { eq }) => eq(model.userId, user.userId),
-    orderBy: (model, { desc }) => desc(model.createdAt),
-  });
+  const preferences = await db
+    .select()
+    .from(userOwnerPreferences)
+    .where(eq(userOwnerPreferences.userId, userId))
+    .innerJoin(
+      userSittingPreferences,
+      eq(userOwnerPreferences.userId, userSittingPreferences.userId),
+    )
+    .execute();
 
-  const userSitterPreferences = await db.query.userSittingPreferences.findFirst(
-    {
-      where: (model, { eq }) => eq(model.userId, user.userId),
-      orderBy: (model, { desc }) => desc(model.createdAt),
-    },
-  );
-
-  if (userOwnerPreferences && userSitterPreferences) {
+  if (preferences?.[0]) {
     return userPreferencesSchema.parse({
-      userId: userOwnerPreferences.userId,
-      wantPetSitting: userOwnerPreferences.petSitting,
-      wantHouseSitting: userOwnerPreferences.houseSitting,
-      wantBabySitting: userOwnerPreferences.babySitting,
-      wantPlantSitting: userOwnerPreferences.plantSitting,
-      sitForPets: userSitterPreferences.petSitting,
-      sitForHouses: userSitterPreferences.houseSitting,
-      sitForBabies: userSitterPreferences.babySitting,
-      sitForPlants: userSitterPreferences.plantSitting,
+      userId: preferences?.[0].user_owner_preferences.userId,
+      wantPetSitting: preferences?.[0].user_owner_preferences.petSitting,
+      wantHouseSitting: preferences?.[0].user_owner_preferences.houseSitting,
+      wantBabySitting: preferences?.[0].user_owner_preferences.babySitting,
+      wantPlantSitting: preferences?.[0].user_owner_preferences.plantSitting,
+      sitForPets: preferences?.[0].user_sitting_preferences.petSitting,
+      sitForHouses: preferences?.[0].user_sitting_preferences.houseSitting,
+      sitForBabies: preferences?.[0].user_sitting_preferences.babySitting,
+      sitForPlants: preferences?.[0].user_sitting_preferences.plantSitting,
     });
   }
 }

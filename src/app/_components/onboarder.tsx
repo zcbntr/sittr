@@ -8,11 +8,9 @@ import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "~/components/ui/form";
 import { Checkbox } from "~/components/ui/checkbox";
 import { userPreferencesSchema } from "~/lib/schema";

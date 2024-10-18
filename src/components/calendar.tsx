@@ -203,15 +203,15 @@ export default function CalendarComponent() {
           };
 
           // Replace with either group based colour or subject based colour
-          if (event.sittingType == "Pet") {
-            newStyle.backgroundColor = "#f54290";
-          } else if (event.sittingType == "House") {
-            newStyle.backgroundColor = "#424bf5";
-          } else if (event.sittingType == "Plant") {
-            newStyle.backgroundColor = "#87f542";
-          } else if (event.sittingType == "Baby") {
-            newStyle.backgroundColor = "#f5bf42";
-          }
+          // if (event.sittingType == "Pet") {
+          //   newStyle.backgroundColor = "#f54290";
+          // } else if (event.sittingType == "House") {
+          //   newStyle.backgroundColor = "#424bf5";
+          // } else if (event.sittingType == "Plant") {
+          //   newStyle.backgroundColor = "#87f542";
+          // } else if (event.sittingType == "Baby") {
+          //   newStyle.backgroundColor = "#f5bf42";
+          // }
 
           return {
             className: "",

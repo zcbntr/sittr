@@ -162,7 +162,7 @@ export default function CreateGroupDialog({
                             {
                               subjects.find(
                                 (x) => x.subjectId == selectedSubjectIds[0],
-                              ).name
+                              )?.name
                             }
                           </div>
                         )}
@@ -170,22 +170,22 @@ export default function CreateGroupDialog({
                           <div>
                             {subjects.find(
                               (x) => x.subjectId == selectedSubjectIds[0],
-                            ).name +
+                            )?.name +
                               " and " +
                               subjects.find(
                                 (x) => x.subjectId == selectedSubjectIds[1],
-                              ).name}
+                              )?.name}
                           </div>
                         )}
                         {selectedSubjectIds.length >= 3 && (
                           <div>
                             {subjects.find(
                               (x) => x.subjectId == selectedSubjectIds[0],
-                            ).name +
+                            )?.name +
                               ", " +
                               subjects.find(
                                 (x) => x.subjectId == selectedSubjectIds[1],
-                              ).name +
+                              )?.name +
                               ", and " +
                               (selectedSubjectIds.length - 2).toString() +
                               " more"}

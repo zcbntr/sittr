@@ -10,11 +10,9 @@ import { Checkbox } from "~/components/ui/checkbox";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "~/components/ui/form";
 import { userPreferencesSchema } from "~/lib/schema";
 
