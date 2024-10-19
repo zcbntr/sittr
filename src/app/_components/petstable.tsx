@@ -1,6 +1,6 @@
 import { getOwnedPets } from "~/server/queries";
 import { columns } from "~/components/ui/data-tables/pets-columns";
-import { DataTable } from "~/components/ui/data-tables/pets-data-table";
+import { DataTable } from "~/components/ui/data-table";
 
 export default async function PetsTable() {
   const pets = await getOwnedPets();
