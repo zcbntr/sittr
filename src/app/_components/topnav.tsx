@@ -4,7 +4,7 @@ import { SignedIn, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import RoleSwapper from "~/components/roleswapper";
-import { MdGroups } from "react-icons/md";
+import { MdGroups, MdPets } from "react-icons/md";
 
 export function TopNav() {
   return (
@@ -29,7 +29,16 @@ export function TopNav() {
                         <MdGroups size="1.5em" />
                       </div>
                     }
-                    href="/mygroups"
+                    href="/my-groups"
+                  ></UserButton.Link>
+                  <UserButton.Link
+                    label="My Pets, Houses, and Plants"
+                    labelIcon={
+                      <div className="flex flex-row place-content-center">
+                        <MdPets size="1.5em" />
+                      </div>
+                    }
+                    href="/my-subjects"
                   ></UserButton.Link>
                 </UserButton.MenuItems>
               </UserButton>
