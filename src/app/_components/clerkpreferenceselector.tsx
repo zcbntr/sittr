@@ -27,21 +27,46 @@ export default function ClerkPreferenceSelector() {
     async function fetchPreferences(): Promise<void> {
       await fetch("../api/preferences")
         .then((res) => res.json())
-        .then((data) => {
-          if (data.error) {
-            console.error(data.error);
+        .then((json) => userPreferencesSchema.safeParse(json))
+        .then((validatedPreferenceObject) => {
+          if (!validatedPreferenceObject.success) {
+            console.error(validatedPreferenceObject.error.message);
             throw new Error("Failed to fetch preferences");
           }
 
-          form.setValue("userId", data.userId);
-          form.setValue("wantPetSitting", data.wantPetSitting);
-          form.setValue("wantHouseSitting", data.wantHouseSitting);
-          form.setValue("wantPlantSitting", data.wantPlantSitting);
-          form.setValue("wantBabySitting", data.wantBabySitting);
-          form.setValue("sitForPets", data.sitForPets);
-          form.setValue("sitForHouses", data.sitForHouses);
-          form.setValue("sitForPlants", data.sitForPlants);
-          form.setValue("sitForBabies", data.sitForBabies);
+          form.setValue("userId", validatedPreferenceObject.data.userId);
+          form.setValue(
+            "wantPetSitting",
+            validatedPreferenceObject.data.wantPetSitting,
+          );
+          form.setValue(
+            "wantHouseSitting",
+            validatedPreferenceObject.data.wantHouseSitting,
+          );
+          form.setValue(
+            "wantPlantSitting",
+            validatedPreferenceObject.data.wantPlantSitting,
+          );
+          form.setValue(
+            "wantBabySitting",
+            validatedPreferenceObject.data.wantBabySitting,
+          );
+          form.setValue(
+            "sitForPets",
+            validatedPreferenceObject.data.sitForPets,
+          );
+          form.setValue(
+            "sitForHouses",
+            validatedPreferenceObject.data.sitForHouses,
+          );
+          form.setValue(
+            "sitForPlants",
+            validatedPreferenceObject.data.sitForPlants,
+          );
+          form.setValue(
+            "sitForBabies",
+            validatedPreferenceObject.data.sitForBabies,
+          );
         });
     }
 
@@ -49,26 +74,23 @@ export default function ClerkPreferenceSelector() {
   }, [form]);
 
   async function onSubmit(data: z.infer<typeof userPreferencesSchema>) {
-    const res = await fetch("../api/preferences", {
+    await fetch("../api/preferences", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    });
+    })
+      .then((res) => res.json())
+      .then((json) => userPreferencesSchema.safeParse(json))
+      .then((validatedPreferenceObject) => {
+        if (!validatedPreferenceObject.success) {
+          console.error(validatedPreferenceObject.error.message);
+          throw new Error("Failed to update user preferences");
+        }
 
-    if (!res.ok) {
-      console.log(res);
-      return;
-    }
-
-    const resData: unknown = await res.json();
-
-    if (!resData.error) {
-      document.dispatchEvent(new Event("preferencesUpdated"));
-    } else {
-      console.log(resData.error);
-    }
+        document.dispatchEvent(new Event("preferencesUpdated"));
+      });
   }
 
   return (

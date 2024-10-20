@@ -30,24 +30,24 @@ export default function Onboarder() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof userPreferencesSchema>) {
-    try {
-      const res: Response = await fetch("/api/preferences", {
-        method: "POST",
-        body: JSON.stringify(values),
-        headers: {
-          "content-type": "application/json",
-        },
+  async function onSubmit(data: z.infer<typeof userPreferencesSchema>) {
+    await fetch("/api/preferences", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((json) => userPreferencesSchema.safeParse(json))
+      .then((validatedPreferencesObject) => {
+        if (!validatedPreferencesObject.success) {
+          console.error(validatedPreferencesObject.error.message);
+          throw new Error("Failed to setPreferences");
+        }
+
+        document.dispatchEvent(new Event("preferencesSet"));
       });
-
-      const data: unknown = await res.json();
-      console.log("no idea if it worked lol");
-      console.log(data);
-
-      // Redirect to the dashboard
-    } catch (error) {
-      console.log(error);
-    }
   }
 
   return (

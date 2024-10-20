@@ -71,7 +71,7 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center py-4 gap-2">
         {/* Make this field via props - there are extensive docs https://tanstack.com/table/v8/docs/guide/filters */}
         <Input
-          placeholder="Filter name..."
+          placeholder="Search name..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)

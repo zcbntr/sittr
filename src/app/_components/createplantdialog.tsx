@@ -32,7 +32,11 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createPlantFormSchema, WateringFrequency } from "~/lib/schema/index";
+import {
+  createPlantFormSchema,
+  plantSchema,
+  WateringFrequency,
+} from "~/lib/schema/index";
 import {
   Select,
   SelectContent,
@@ -55,27 +59,23 @@ export default function CreatePlantDialog({
   });
 
   async function onSubmit(data: z.infer<typeof createPlantFormSchema>) {
-    const res = await fetch("api/plant", {
+    await fetch("/api/plant", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    });
+    })
+      .then((res) => res.json())
+      .then((json) => plantSchema.safeParse(json))
+      .then((validatedPlantObject) => {
+        if (!validatedPlantObject.success) {
+          console.error(validatedPlantObject.error.message);
+          throw new Error("Failed to create plant");
+        }
 
-    if (!res.ok) {
-      console.log(res);
-      return;
-    }
-
-    const resData = await res.json();
-
-    if (!resData.error) {
-      setOpen(false);
-      document.dispatchEvent(new Event("plantCreated"));
-    } else {
-      console.log(resData);
-    }
+        document.dispatchEvent(new Event("plantCreated"));
+      });
   }
 
   return (
@@ -83,7 +83,7 @@ export default function CreatePlantDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[454px]">
         <DialogHeader>
-          <DialogTitle>New Plant</DialogTitle>
+          <DialogTitle>NewPlant Details</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form

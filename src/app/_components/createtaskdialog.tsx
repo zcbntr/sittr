@@ -29,6 +29,7 @@ import {
   type DateRange,
   Group,
   type SittingSubject,
+  taskSchema,
 } from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
@@ -173,27 +174,23 @@ export default function CreateTaskDialog({
   );
 
   async function onSubmit(data: z.infer<typeof createTaskSchema>) {
-    const res = await fetch("api/task", {
+    await fetch("../api/task", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    });
+    })
+      .then((res) => res.json())
+      .then((json) => taskSchema.safeParse(json))
+      .then((validatedTaskObject) => {
+        if (!validatedTaskObject.success) {
+          console.error(validatedTaskObject.error.message);
+          throw new Error("Failed to create task");
+        }
 
-    if (!res.ok) {
-      console.log(res);
-      return;
-    }
-
-    const resData: unknown = await res.json();
-
-    if (!resData.error) {
-      setOpen(false);
-      document.dispatchEvent(new Event("taskCreated"));
-    } else {
-      console.log(resData);
-    }
+        document.dispatchEvent(new Event("taskCreated"));
+      });
   }
 
   return (

@@ -32,7 +32,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createPetFormSchema } from "~/lib/schema/index";
+import { createPetFormSchema, petSchema } from "~/lib/schema/index";
 
 export default function CreatePetDialog({
   children,
@@ -48,27 +48,23 @@ export default function CreatePetDialog({
   });
 
   async function onSubmit(data: z.infer<typeof createPetFormSchema>) {
-    const res = await fetch("api/pet", {
+    await fetch("/api/pet", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    });
+    })
+      .then((res) => res.json())
+      .then((json) => petSchema.safeParse(json))
+      .then((validatedPetObject) => {
+        if (!validatedPetObject.success) {
+          console.error(validatedPetObject.error.message);
+          throw new Error("Failed to create pet");
+        }
 
-    if (!res.ok) {
-      console.log(res);
-      return;
-    }
-
-    const resData = await res.json();
-
-    if (!resData.error) {
-      setOpen(false);
-      document.dispatchEvent(new Event("petCreated"));
-    } else {
-      console.log(resData);
-    }
+        document.dispatchEvent(new Event("petCreated"));
+      });
   }
 
   return (

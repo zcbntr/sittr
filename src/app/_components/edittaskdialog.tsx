@@ -511,7 +511,7 @@ export default function EditTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {groups.map((group) => (
-                        <SelectItem key={group.id} value={group.id.toString()}>
+                        <SelectItem key={group.plantId} value={group.plantId.toString()}>
                           {group.name}
                         </SelectItem>
                       ))}

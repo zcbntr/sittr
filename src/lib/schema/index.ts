@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+import { pets } from "~/server/db/schema";
 
 // -----------------------------------------------------------------------------
 // General schemas
@@ -249,8 +251,9 @@ export const userPreferencesSchema = z.object({
 export type UserPreferences = z.infer<typeof userPreferencesSchema>;
 
 export const petSchema = z.object({
-  id: z.number(),
+  petId: z.number(),
   subjectId: z.number(),
+  ownerId: z.string(),
   name: z.string(),
   species: z.string(),
   breed: z.string().optional().nullable(),
@@ -260,8 +263,9 @@ export const petSchema = z.object({
 export type Pet = z.infer<typeof petSchema>;
 
 export const houseSchema = z.object({
-  id: z.number(),
+  houseId: z.number(),
   subjectId: z.number(),
+  ownerId: z.string(),
   name: z.string(),
   address: z.string().optional().nullable(),
 });
@@ -269,8 +273,9 @@ export const houseSchema = z.object({
 export type House = z.infer<typeof houseSchema>;
 
 export const plantSchema = z.object({
-  id: z.number(),
+  plantId: z.number(),
   subjectId: z.number(),
+  ownerId: z.string(),
   name: z.string(),
   species: z.string().optional().nullable(),
   lastWatered: z.coerce.date().optional().nullable(),
@@ -296,13 +301,17 @@ export const taskSchema = z.object({
   dueDate: z.coerce.date().optional().nullable(),
   dateRange: dateRangeSchema.optional().nullable(),
   subjectId: z.number(),
-  groupId: z.number().optional().nullable(),
+  groupId: z.number().optional(),
   requiresVerification: z.boolean().optional().nullable(),
   markedAsDone: z.boolean(),
   markedAsDoneBy: z.string().optional().nullable(),
 });
 
 export type Task = z.infer<typeof taskSchema>;
+
+export const taskListSchema = z.array(taskSchema);
+
+export type TaskList = z.infer<typeof taskListSchema>;
 
 export const groupMemberSchema = z.object({
   id: z.number(),

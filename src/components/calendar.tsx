@@ -7,7 +7,11 @@ import { useEffect, useState } from "react";
 import moment from "moment";
 import { endOfMonth, startOfMonth } from "date-fns";
 import { Button } from "./ui/button";
-import { type CreateTaskFormProps, type Task } from "~/lib/schema";
+import {
+  taskListSchema,
+  type CreateTaskFormProps,
+  type Task,
+} from "~/lib/schema";
 import EditTaskDialog from "~/app/_components/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/createtaskdialog";
 
@@ -80,34 +84,36 @@ export default function CalendarComponent() {
 
   useEffect(() => {
     async function fetchData() {
-      try {
-        const tasksRes = await fetch(
-          "api/task?" +
-            new URLSearchParams({
-              from: startOfMonth(new Date()).toString(),
-              to: endOfMonth(new Date()).toString(),
-              all: "true",
-            }).toString(),
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
+      await fetch(
+        "api/task?" +
+          new URLSearchParams({
+            from: startOfMonth(new Date()).toString(),
+            to: endOfMonth(new Date()).toString(),
+            all: "true",
+          }).toString(),
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
           },
-        );
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const data: Task[] = await tasksRes.json();
+        },
+      )
+        .then((res) => res.json())
+        .then((json) => taskListSchema.safeParse(json))
+        .then((validatedTaskList) => {
+          if (!validatedTaskList.success) {
+            console.error(validatedTaskList.error.message);
+            throw new Error("Failed to fetch tasks");
+          }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-        if (data) {
-          const events: CalendarEvent[] = data.map((task) => {
+          const events: CalendarEvent[] = validatedTaskList.data.map((task) => {
             return new CalendarEvent(
               task.id,
               task.ownerId,
               task.name,
               task.dueMode,
-              new Date(task.dateRange?.from),
-              new Date(task.dateRange?.to),
+              new Date(task.dateRange?.from ? task.dateRange.from : ""),
+              new Date(task.dateRange?.to ? task.dateRange.to : ""),
               task.subjectId,
               task.markedAsDone,
               task.markedAsDoneBy ? task.markedAsDoneBy : undefined,
@@ -118,10 +124,7 @@ export default function CalendarComponent() {
           });
 
           setEvents(events);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
+        });
     }
 
     void fetchData();

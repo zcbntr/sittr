@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createHouseFormSchema } from "~/lib/schema/index";
+import { createHouseFormSchema, houseSchema } from "~/lib/schema/index";
 
 export default function CreateHouseDialog({
   children,
@@ -37,27 +37,23 @@ export default function CreateHouseDialog({
   });
 
   async function onSubmit(data: z.infer<typeof createHouseFormSchema>) {
-    const res = await fetch("api/house", {
+    await fetch("/api/house", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    });
+    })
+      .then((res) => res.json())
+      .then((json) => houseSchema.safeParse(json))
+      .then((validatedHouseObject) => {
+        if (!validatedHouseObject.success) {
+          console.error(validatedHouseObject.error.message);
+          throw new Error("Failed to create house");
+        }
 
-    if (!res.ok) {
-      console.log(res);
-      return;
-    }
-
-    const resData = await res.json();
-
-    if (!resData.error) {
-      setOpen(false);
-      document.dispatchEvent(new Event("houseCreated"));
-    } else {
-      console.log(resData);
-    }
+        document.dispatchEvent(new Event("houseCreated"));
+      });
   }
 
   return (

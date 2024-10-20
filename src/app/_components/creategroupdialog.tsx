@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createGroupFormSchema } from "~/lib/schema/index";
+import { createGroupFormSchema, groupSchema } from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
 import {
   DropdownMenu,
@@ -73,29 +73,23 @@ export default function CreateGroupDialog({
   }, []);
 
   async function onSubmit(data: z.infer<typeof createGroupFormSchema>) {
-    const res = await fetch("api/group", {
+    await fetch("/api/group", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    });
+    })
+      .then((res) => res.json())
+      .then((json) => groupSchema.safeParse(json))
+      .then((validatedGroupObject) => {
+        if (!validatedGroupObject.success) {
+          console.error(validatedGroupObject.error.message);
+          throw new Error("Failed to create group");
+        }
 
-    if (!res.ok) {
-      console.log(res);
-      return;
-    }
-
-    const resData = await res.json();
-
-    console.log(resData);
-
-    if (!resData.error) {
-      setOpen(false);
-      document.dispatchEvent(new Event("groupCreated"));
-    } else {
-      console.log(resData.error);
-    }
+        document.dispatchEvent(new Event("groupCreated"));
+      });
   }
 
   return (
