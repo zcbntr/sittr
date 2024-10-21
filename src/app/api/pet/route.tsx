@@ -1,6 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createPetFormSchema, basicGetAPIFormSchema, deleteAPIFormSchema } from "~/lib/schema";
-import { createPet, deletePet, getOwnedPets } from "~/server/queries";
+import {
+  createPetFormSchema,
+  basicGetAPIFormSchema,
+  deleteAPIFormSchema,
+  petSchema,
+} from "~/lib/schema";
+import { createPet, deletePet, getOwnedPets, updatePet } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -41,9 +46,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const pet = await createPet(
-      formData.data
-    );
+    const pet = await createPet(formData.data);
 
     return NextResponse.json(pet);
   } catch (error) {
@@ -55,7 +58,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = editPetFormSchema.safeParse(json);
+    const formData = petSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
@@ -64,13 +67,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await updatePet(
-      formData.data.subjectId,
-      formData.data.name,
-      formData.data.sittingType,
-      formData.data.dateRange.from,
-      formData.data.dateRange.to,
-    );
+    const pgRow = await updatePet(formData.data);
 
     return NextResponse.json(pgRow);
   } catch (error) {

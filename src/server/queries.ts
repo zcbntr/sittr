@@ -18,6 +18,7 @@ import {
 } from "./db/schema";
 import {
   type CreateGroupFormInput,
+  CreateHouseFormInput,
   type CreatePetFormInput,
   type CreatePlantFormInput,
   type CreateTask,
@@ -951,8 +952,9 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
     }
 
     return petSchema.parse({
-      id: newSittingSubject[0].entityId,
+      petId: newSittingSubject[0].entityId,
       subjectId: newSittingSubject[0].id,
+      ownerId: newSittingSubject[0].ownerId,
       name: pet.name,
       species: pet.species,
       breed: pet.breed,
@@ -980,6 +982,7 @@ export async function getOwnedPets(): Promise<Pet[]> {
       subjectId: sittingSubjects.id,
       entityType: sittingSubjects.entityType,
       entityId: sittingSubjects.entityId,
+      ownerId: sittingSubjects.ownerId,
     })
     .from(sittingSubjects)
     .where(
@@ -999,8 +1002,9 @@ export async function getOwnedPets(): Promise<Pet[]> {
   // Turn into zod pet type
   const petsList: Pet[] = joinedPets.map((petSubject) => {
     return petSchema.parse({
-      id: petSubject.owned_pet_subjects.entityId,
+      petId: petSubject.owned_pet_subjects.entityId,
       subjectId: petSubject.owned_pet_subjects.subjectId,
+      ownerId: petSubject.owned_pet_subjects.ownerId,
       name: petSubject.pets.name,
       species: petSubject.pets.species,
       breed: petSubject.pets.breed,
@@ -1009,6 +1013,40 @@ export async function getOwnedPets(): Promise<Pet[]> {
   });
 
   return petsList;
+}
+
+export async function updatePet(pet: Pet): Promise<Pet> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const updatedPet = await db
+    .update(pets)
+    .set({
+      name: pet.name,
+      species: pet.species,
+      breed: pet.breed,
+      dob: pet.dob,
+    })
+    .where(eq(pets.id, pet.petId))
+    .returning()
+    .execute();
+
+  if (!updatedPet?.[0]) {
+    throw new Error("Failed to update pet");
+  }
+
+  return petSchema.parse({
+    petId: updatedPet[0].id,
+    subjectId: pet.subjectId,
+    ownerId: pet.ownerId,
+    name: updatedPet[0].name,
+    species: updatedPet[0].species,
+    breed: updatedPet[0].breed,
+    dob: updatedPet[0].dob,
+  });
 }
 
 export async function deletePet(subjectId: number): Promise<Pet> {
@@ -1040,8 +1078,9 @@ export async function deletePet(subjectId: number): Promise<Pet> {
     }
 
     return petSchema.parse({
-      id: deletedPet[0].id,
+      petId: deletedPet[0].id,
       subjectId: deletedSubject[0].id,
+      ownerId: deletedSubject[0].ownerId,
       name: deletedPet[0].name,
       species: deletedPet[0].species,
       breed: deletedPet[0].breed,
@@ -1067,6 +1106,7 @@ export async function getOwnedHouses(): Promise<House[]> {
       subjectId: sittingSubjects.id,
       entityType: sittingSubjects.entityType,
       entityId: sittingSubjects.entityId,
+      ownerId: sittingSubjects.ownerId,
     })
     .from(sittingSubjects)
     .where(
@@ -1086,8 +1126,9 @@ export async function getOwnedHouses(): Promise<House[]> {
   // Turn into zod house type
   const housesList: House[] = joinedHouses.map((houseSubject) => {
     return houseSchema.parse({
-      id: houseSubject.owned_house_subjects.entityId,
+      houseId: houseSubject.owned_house_subjects.entityId,
       subjectId: houseSubject.owned_house_subjects.subjectId,
+      ownerId: houseSubject.owned_house_subjects.ownerId,
       name: houseSubject.houses.name,
       address: houseSubject.houses.address,
     });
@@ -1096,10 +1137,7 @@ export async function getOwnedHouses(): Promise<House[]> {
   return housesList;
 }
 
-export async function createHouse(
-  name: string,
-  address?: string,
-): Promise<House> {
+export async function createHouse(house: CreateHouseFormInput): Promise<House> {
   const user = auth();
 
   if (!user.userId) {
@@ -1110,8 +1148,8 @@ export async function createHouse(
     const newHouse = await db
       .insert(houses)
       .values({
-        name: name,
-        address: address,
+        name: house.name,
+        address: house.address,
       })
       .returning();
 
@@ -1135,16 +1173,47 @@ export async function createHouse(
     }
 
     return houseSchema.parse({
-      id: newHouse[0].id,
+      houseId: newHouse[0].id,
       subjectId: newSittingSubject[0].id,
-      name: name,
-      address: address,
+      ownerId: newSittingSubject[0].ownerId,
+      name: newHouse[0].name,
+      address: newHouse[0].address,
     });
   });
 
   if (houseToReturn) return houseToReturn;
 
   throw new Error("Failed to create house");
+}
+
+export async function updateHouse(house: House): Promise<House> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const updatedHouse = await db
+    .update(houses)
+    .set({
+      name: house.name,
+      address: house.address,
+    })
+    .where(eq(houses.id, house.houseId))
+    .returning()
+    .execute();
+
+  if (!updatedHouse?.[0]) {
+    throw new Error("Failed to update house");
+  }
+
+  return houseSchema.parse({
+    houseId: updatedHouse[0].id,
+    subjectId: house.subjectId,
+    ownerId: house.ownerId,
+    name: updatedHouse[0].name,
+    address: updatedHouse[0].address,
+  });
 }
 
 export async function deleteHouse(subjectId: number): Promise<House> {
@@ -1176,8 +1245,9 @@ export async function deleteHouse(subjectId: number): Promise<House> {
     }
 
     return houseSchema.parse({
-      id: deletedHouse[0].id,
+      houseId: deletedHouse[0].id,
       subjectId: deletedSubject[0].id,
+      ownerId: deletedSubject[0].ownerId,
       name: deletedHouse[0].name,
       address: deletedHouse[0].address,
     });
@@ -1201,6 +1271,7 @@ export async function getOwnedPlants(): Promise<Plant[]> {
       subjectId: sittingSubjects.id,
       entityType: sittingSubjects.entityType,
       entityId: sittingSubjects.entityId,
+      ownerId: sittingSubjects.ownerId,
     })
     .from(sittingSubjects)
     .where(
@@ -1220,8 +1291,9 @@ export async function getOwnedPlants(): Promise<Plant[]> {
   // Turn into zod plant type
   const plantsList: Plant[] = joinedPlants.map((plantSubject) => {
     return plantSchema.parse({
-      id: plantSubject.owned_plant_subjects.entityId,
+      plantId: plantSubject.owned_plant_subjects.entityId,
       subjectId: plantSubject.owned_plant_subjects.subjectId,
+      ownerId: plantSubject.owned_plant_subjects.ownerId,
       name: plantSubject.plants.name,
       species: plantSubject.plants.species,
       lastWatered: plantSubject.plants.lastWatered,
@@ -1270,8 +1342,9 @@ export async function createPlant(plant: CreatePlantFormInput): Promise<Plant> {
     }
 
     return plantSchema.parse({
-      id: newPlant[0].id,
+      plantId: newPlant[0].id,
       subjectId: newSittingSubject[0].id,
+      ownerId: newSittingSubject[0].ownerId,
       name: plant.name,
       species: plant.species,
       lastWatered: plant.lastWatered,
@@ -1282,6 +1355,40 @@ export async function createPlant(plant: CreatePlantFormInput): Promise<Plant> {
   if (plantToReturn) return plantToReturn;
 
   throw new Error("Failed to create plant");
+}
+
+export async function updatePlant(plant: Plant): Promise<Plant> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const updatedPlant = await db
+    .update(plants)
+    .set({
+      name: plant.name,
+      species: plant.species,
+      lastWatered: plant.lastWatered,
+      wateringFrequency: plant.wateringFrequency,
+    })
+    .where(eq(plants.id, plant.plantId))
+    .returning()
+    .execute();
+
+  if (!updatedPlant?.[0]) {
+    throw new Error("Failed to update plant");
+  }
+
+  return plantSchema.parse({
+    plantId: updatedPlant[0].id,
+    subjectId: plant.subjectId,
+    ownerId: plant.ownerId,
+    name: updatedPlant[0].name,
+    species: updatedPlant[0].species,
+    lastWatered: updatedPlant[0].lastWatered,
+    wateringFrequency: updatedPlant[0].wateringFrequency,
+  });
 }
 
 export async function deletePlant(subjectId: number): Promise<Plant> {
@@ -1313,8 +1420,9 @@ export async function deletePlant(subjectId: number): Promise<Plant> {
     }
 
     return plantSchema.parse({
-      id: deletedPlant[0].id,
+      plantId: deletedPlant[0].id,
       subjectId: deletedSubject[0].id,
+      ownerId: deletedSubject[0].ownerId,
       name: deletedPlant[0].name,
       species: deletedPlant[0].species,
       lastWatered: deletedPlant[0].lastWatered,

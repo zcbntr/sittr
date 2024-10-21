@@ -1,6 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createHouseFormSchema, basicGetAPIFormSchema, deleteAPIFormSchema } from "~/lib/schema";
-import { createHouse, deleteHouse, getOwnedHouses } from "~/server/queries";
+import {
+  createHouseFormSchema,
+  basicGetAPIFormSchema,
+  deleteAPIFormSchema,
+  houseSchema,
+} from "~/lib/schema";
+import {
+  createHouse,
+  deleteHouse,
+  getOwnedHouses,
+  updateHouse,
+} from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -42,7 +52,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await createHouse(formData.data.name, formData.data.address);
+    const pgRow = await createHouse(formData.data);
 
     return NextResponse.json(pgRow);
   } catch (error) {
@@ -54,23 +64,16 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = editHouseFormSchema.safeParse(json);
+    const formData = houseSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
-        "Edit House Form Data Parse Error: \n" +
-          formData.error.toString(),
+        "Edit House Form Data Parse Error: \n" + formData.error.toString(),
       );
       throw new Error("Invalid form data");
     }
 
-    const pgRow = await updateHouse(
-      formData.data.subjectId,
-      formData.data.name,
-      formData.data.sittingType,
-      formData.data.dateRange.from,
-      formData.data.dateRange.to,
-    );
+    const pgRow = await updateHouse(formData.data);
 
     return NextResponse.json(pgRow);
   } catch (error) {
@@ -86,8 +89,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
 
     if (!formData.success) {
       console.log(
-        "Delete House Form Data Parse Error: \n" +
-          formData.error.toString(),
+        "Delete House Form Data Parse Error: \n" + formData.error.toString(),
       );
       throw new Error("Invalid form data");
     }

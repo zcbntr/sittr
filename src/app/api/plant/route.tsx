@@ -3,8 +3,14 @@ import {
   createPlantFormSchema,
   basicGetAPIFormSchema,
   deleteAPIFormSchema,
+  plantSchema,
 } from "~/lib/schema";
-import { createPlant, deletePlant, getOwnedPlants } from "~/server/queries";
+import {
+  createPlant,
+  deletePlant,
+  getOwnedPlants,
+  updatePlant,
+} from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -58,7 +64,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = editPlantFormSchema.safeParse(json);
+    const formData = plantSchema.safeParse(json);
 
     if (!formData.success) {
       console.log(
