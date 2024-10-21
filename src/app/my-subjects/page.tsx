@@ -43,9 +43,6 @@ const MySubjectsPage = () => (
                 </Suspense>
               </div>
             </CardContent>
-            {/* <CardFooter>
-              <Button>Save changes</Button>
-            </CardFooter> */}
           </Card>
         </TabsContent>
         <TabsContent value="houses">

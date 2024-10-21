@@ -176,6 +176,7 @@ export default function CalendarComponent() {
         },
         markedAsDone: event.markedAsDone,
         markedAsDoneBy: event.markedAsDoneBy,
+        requiresVerification: false,
       });
       button.click();
     }

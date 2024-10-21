@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { pets } from "~/server/db/schema";
 
 // -----------------------------------------------------------------------------
@@ -262,6 +262,10 @@ export const petSchema = z.object({
 
 export type Pet = z.infer<typeof petSchema>;
 
+export const petListSchema = z.array(petSchema);
+
+export type PetList = z.infer<typeof petListSchema>;
+
 export const houseSchema = z.object({
   houseId: z.number(),
   subjectId: z.number(),
@@ -271,6 +275,10 @@ export const houseSchema = z.object({
 });
 
 export type House = z.infer<typeof houseSchema>;
+
+export const houseListSchema = z.array(houseSchema);
+
+export type HouseList = z.infer<typeof houseListSchema>;
 
 export const plantSchema = z.object({
   plantId: z.number(),
@@ -283,6 +291,10 @@ export const plantSchema = z.object({
 });
 
 export type Plant = z.infer<typeof plantSchema>;
+
+export const plantListSchema = z.array(plantSchema);
+
+export type PlantList = z.infer<typeof plantListSchema>;
 
 export const sittingSubjectSchema = z.union([
   petSchema,

@@ -17,8 +17,6 @@ import {
 import { userPreferencesSchema } from "~/lib/schema";
 
 export default function ClerkPreferenceSelector() {
-  // Need a use effect to get the user's current preferences from the server
-
   const form = useForm<z.infer<typeof userPreferencesSchema>>({
     resolver: zodResolver(userPreferencesSchema),
   });
