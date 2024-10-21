@@ -18,7 +18,7 @@ import {
 } from "./db/schema";
 import {
   type CreateGroupFormInput,
-  CreateHouseFormInput,
+  type CreateHouseFormInput,
   type CreatePetFormInput,
   type CreatePlantFormInput,
   type CreateTask,
@@ -435,7 +435,7 @@ export async function getCurrentUserPreferences(): Promise<
     if (parseResult.success) {
       return parseResult.data;
     } else {
-      throw new Error("Zod schema error: " + parseResult.error);
+      throw new Error("Zod schema error: " + parseResult.error.toString());
     }
   }
 }

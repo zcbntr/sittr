@@ -23,7 +23,11 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createGroupFormSchema, groupSchema } from "~/lib/schema/index";
+import {
+  createGroupFormSchema,
+  groupSchema,
+  sittingSubjectListSchema,
+} from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
 import {
   DropdownMenu,
@@ -52,18 +56,23 @@ export default function CreateGroupDialog({
 
   React.useEffect(() => {
     async function fetchSubjects() {
-      await fetch("api/sittingsubject?all=true")
+      await fetch("api/sittingsubject?all=true", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
         .then((res) => res.json())
-        .then((data) => {
-          if (data.error) {
-            setSubjectsEmpty(true);
-            console.error(data.error);
-            return;
+        .then((data) => sittingSubjectListSchema.safeParse(data))
+        .then((validatedSubjectListObject) => {
+          if (!validatedSubjectListObject.success) {
+            console.error(validatedSubjectListObject.error.message);
+            throw new Error("Failed to fetch subjects");
           }
 
-          if (data.length > 0) {
-            setSubjects(data);
-          } else if (data.length === 0) {
+          if (validatedSubjectListObject.data.length > 0) {
+            setSubjects(validatedSubjectListObject.data);
+          } else if (validatedSubjectListObject.data.length === 0) {
             setSubjectsEmpty(true);
           }
         });

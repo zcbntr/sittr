@@ -28,7 +28,9 @@ import {
   createTaskSchema,
   type DateRange,
   Group,
+  groupListSchema,
   type SittingSubject,
+  sittingSubjectListSchema,
   taskSchema,
 } from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
@@ -84,36 +86,46 @@ export default function CreateTaskDialog({
   React.useEffect(
     () => {
       async function fetchSubjects() {
-        await fetch("api/sittingsubject?all=true")
+        await fetch("api/sittingsubject?all=true", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
           .then((res) => res.json())
-          .then((data) => {
-            if (data.error) {
-              setSubjectsEmpty(true);
-              console.error(data.error);
-              return;
+          .then((json) => sittingSubjectListSchema.safeParse(json))
+          .then((validatedSubjectListObject) => {
+            if (!validatedSubjectListObject.success) {
+              console.error(validatedSubjectListObject.error.message);
+              throw new Error("Failed to get sitting subjects");
             }
 
-            if (data.length > 0) {
-              setSubjects(data);
-            } else if (data.length === 0) {
+            if (validatedSubjectListObject.data.length > 0) {
+              setSubjects(validatedSubjectListObject.data);
+            } else if (validatedSubjectListObject.data.length === 0) {
               setSubjectsEmpty(true);
             }
           });
       }
 
       async function fetchGroups() {
-        await fetch("api/group?all=true")
+        await fetch("api/group?all=true", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
           .then((res) => res.json())
-          .then((data) => {
-            if (data.error) {
-              setGroupsEmpty(true);
-              console.error(data.error);
-              return;
+          .then((json) => groupListSchema.safeParse(json))
+          .then((validatedGroupListObject) => {
+            if (!validatedGroupListObject.success) {
+              console.error(validatedGroupListObject.error.message);
+              throw new Error("Failed to get groups");
             }
 
-            if (data.length > 0) {
-              setGroups(data);
-            } else if (data.length === 0) {
+            if (validatedGroupListObject.data.length > 0) {
+              setGroups(validatedGroupListObject.data);
+            } else if (validatedGroupListObject.data.length === 0) {
               setGroupsEmpty(true);
             }
           });
