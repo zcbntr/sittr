@@ -124,7 +124,7 @@ export default function CreatePetDialog({
             />
             <FormField
               control={form.control}
-              name="birthdate"
+              name="dob"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Date</FormLabel>
@@ -167,6 +167,7 @@ export default function CreatePetDialog({
                 </FormItem>
               )}
             />
+
             <DialogFooter>
               <Button type="submit">Save Pet</Button>
             </DialogFooter>

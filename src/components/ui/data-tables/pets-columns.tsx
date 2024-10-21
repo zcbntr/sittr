@@ -64,7 +64,7 @@ export const columns: ColumnDef<Pet>[] = [
             >
               Copy
             </DropdownMenuItem>
-            <DropdownMenuItem>More Details</DropdownMenuItem>
+            <DropdownMenuItem>Edit</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Delete</DropdownMenuItem>
           </DropdownMenuContent>

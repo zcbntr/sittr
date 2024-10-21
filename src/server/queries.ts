@@ -928,7 +928,7 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
         name: pet.name,
         species: pet.species,
         breed: pet.breed,
-        dob: pet.birthdate,
+        dob: pet.dob,
       })
       .returning();
 
@@ -957,8 +957,8 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
       ownerId: newSittingSubject[0].ownerId,
       name: pet.name,
       species: pet.species,
-      breed: pet.breed,
-      dob: pet.birthdate,
+      breed: pet.breed ? pet.breed : undefined,
+      dob: pet.dob,
     });
   });
 
@@ -1007,7 +1007,7 @@ export async function getOwnedPets(): Promise<Pet[]> {
       ownerId: petSubject.owned_pet_subjects.ownerId,
       name: petSubject.pets.name,
       species: petSubject.pets.species,
-      breed: petSubject.pets.breed,
+      breed: petSubject.pets.breed ? petSubject.pets.breed : undefined,
       dob: petSubject.pets.dob,
     });
   });
@@ -1044,7 +1044,7 @@ export async function updatePet(pet: Pet): Promise<Pet> {
     ownerId: pet.ownerId,
     name: updatedPet[0].name,
     species: updatedPet[0].species,
-    breed: updatedPet[0].breed,
+    breed: updatedPet[0].breed ? updatedPet[0].breed : undefined,
     dob: updatedPet[0].dob,
   });
 }
@@ -1083,7 +1083,7 @@ export async function deletePet(subjectId: number): Promise<Pet> {
       ownerId: deletedSubject[0].ownerId,
       name: deletedPet[0].name,
       species: deletedPet[0].species,
-      breed: deletedPet[0].breed,
+      breed: deletedPet[0].breed ? deletedPet[0].breed : undefined,
       dob: deletedPet[0].dob,
     });
   });
@@ -1177,7 +1177,7 @@ export async function createHouse(house: CreateHouseFormInput): Promise<House> {
       subjectId: newSittingSubject[0].id,
       ownerId: newSittingSubject[0].ownerId,
       name: newHouse[0].name,
-      address: newHouse[0].address,
+      address: newHouse[0].address ? newHouse[0].address : undefined,
     });
   });
 
@@ -1212,7 +1212,7 @@ export async function updateHouse(house: House): Promise<House> {
     subjectId: house.subjectId,
     ownerId: house.ownerId,
     name: updatedHouse[0].name,
-    address: updatedHouse[0].address,
+    address: updatedHouse[0].address ? updatedHouse[0].address : undefined,
   });
 }
 
@@ -1249,7 +1249,7 @@ export async function deleteHouse(subjectId: number): Promise<House> {
       subjectId: deletedSubject[0].id,
       ownerId: deletedSubject[0].ownerId,
       name: deletedHouse[0].name,
-      address: deletedHouse[0].address,
+      address: deletedHouse[0].address ? deletedHouse[0].address : undefined,
     });
   });
 
@@ -1295,8 +1295,12 @@ export async function getOwnedPlants(): Promise<Plant[]> {
       subjectId: plantSubject.owned_plant_subjects.subjectId,
       ownerId: plantSubject.owned_plant_subjects.ownerId,
       name: plantSubject.plants.name,
-      species: plantSubject.plants.species,
-      lastWatered: plantSubject.plants.lastWatered,
+      species: plantSubject.plants.species
+        ? plantSubject.plants.species
+        : undefined,
+      lastWatered: plantSubject.plants.lastWatered
+        ? plantSubject.plants.lastWatered
+        : undefined,
       wateringFrequency: plantSubject.plants.wateringFrequency,
     });
   });
@@ -1346,8 +1350,8 @@ export async function createPlant(plant: CreatePlantFormInput): Promise<Plant> {
       subjectId: newSittingSubject[0].id,
       ownerId: newSittingSubject[0].ownerId,
       name: plant.name,
-      species: plant.species,
-      lastWatered: plant.lastWatered,
+      species: plant.species ? plant.species : undefined,
+      lastWatered: plant.lastWatered ? plant.lastWatered : undefined,
       wateringFrequency: plant.wateringFrequency,
     });
   });
@@ -1385,8 +1389,10 @@ export async function updatePlant(plant: Plant): Promise<Plant> {
     subjectId: plant.subjectId,
     ownerId: plant.ownerId,
     name: updatedPlant[0].name,
-    species: updatedPlant[0].species,
-    lastWatered: updatedPlant[0].lastWatered,
+    species: updatedPlant[0].species ? updatedPlant[0].species : undefined,
+    lastWatered: updatedPlant[0].lastWatered
+      ? updatedPlant[0].lastWatered
+      : undefined,
     wateringFrequency: updatedPlant[0].wateringFrequency,
   });
 }
@@ -1424,8 +1430,10 @@ export async function deletePlant(subjectId: number): Promise<Plant> {
       subjectId: deletedSubject[0].id,
       ownerId: deletedSubject[0].ownerId,
       name: deletedPlant[0].name,
-      species: deletedPlant[0].species,
-      lastWatered: deletedPlant[0].lastWatered,
+      species: deletedPlant[0].species ? deletedPlant[0].species : undefined,
+      lastWatered: deletedPlant[0].lastWatered
+        ? deletedPlant[0].lastWatered
+        : undefined,
       wateringFrequency: deletedPlant[0].wateringFrequency,
     });
   });

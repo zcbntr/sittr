@@ -37,6 +37,11 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 
 export default function EditPetDialog({
   props,
@@ -48,8 +53,7 @@ export default function EditPetDialog({
   const [open, setOpen] = React.useState<boolean>(false);
   const [dataChanged, setDataChanged] = React.useState<boolean>(false);
 
-  const [dueDate, setDueDate] = React.useState<Date | undefined>();
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
+  const [dob, setDOB] = React.useState<Date | undefined>();
 
   const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
 
@@ -83,6 +87,11 @@ export default function EditPetDialog({
       if (props?.breed) {
         form.setValue("breed", props.breed);
       }
+
+      if (props?.dob) {
+        form.setValue("dob", props.dob);
+        setDOB(props.dob);
+      }
     }
   }, [props]);
 
@@ -115,20 +124,23 @@ export default function EditPetDialog({
     // Fix this at some point with another dialog
     // eslint-disable-next-line no-alert
     if (window.confirm("Are you sure you want to delete this pet?")) {
-      const res = await fetch("api/pet", {
+      await fetch("api/pet", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ id: form.getValues().subjectId }),
-      });
+      })
+        .then((res) => res.json())
+        .then((json) => petSchema.safeParse(json))
+        .then((validatedPetObject) => {
+          if (!validatedPetObject.success) {
+            console.error(validatedPetObject.error.message);
+            throw new Error("Failed to delete pet");
+          }
 
-      if (res.ok) {
-        setOpen(false);
-        document.dispatchEvent(new Event("petDeleted"));
-      } else {
-        console.log(res);
-      }
+          document.dispatchEvent(new Event("petDeleted"));
+        });
     }
 
     setDeleteClicked(false);
@@ -165,15 +177,77 @@ export default function EditPetDialog({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="species"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Species</FormLabel>
                   <FormControl>
-                    <Textarea {...field} />
+                    <Input {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="breed"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Breed</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormDescription>(Not required)</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dob"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          id="date"
+                          variant={"outline"}
+                          className={cn(
+                            "justify-start text-left font-normal",
+                            !dob && "text-muted-foreground",
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        initialFocus
+                        mode="single"
+                        onSelect={(e) => {
+                          setDOB(e);
+                          field.onChange(e);
+                        }}
+                        numberOfMonths={2}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription>
+                    Your pet&apos;s date of birth
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

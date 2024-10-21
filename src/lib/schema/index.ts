@@ -124,12 +124,12 @@ export const createPetFormSchema = z
     name: z.string().min(3).max(50),
     species: z.string().min(3).max(50),
     breed: z.string().min(3).max(50).optional(),
-    birthdate: z.coerce.date(),
+    dob: z.coerce.date(),
   })
-  .refine((data) => data.birthdate < new Date(), {
+  .refine((data) => data.dob < new Date(), {
     message: "Birthdate must be in the past",
   })
-  .refine((data) => data.birthdate > new Date("1900-01-01"), {
+  .refine((data) => data.dob > new Date("1900-01-01"), {
     message: "Birthdate must be after 1900-01-01",
   });
 
@@ -256,7 +256,7 @@ export const petSchema = z.object({
   ownerId: z.string(),
   name: z.string(),
   species: z.string(),
-  breed: z.string().optional().nullable(),
+  breed: z.string().optional(),
   dob: z.coerce.date(),
 });
 
@@ -267,7 +267,7 @@ export const houseSchema = z.object({
   subjectId: z.number(),
   ownerId: z.string(),
   name: z.string(),
-  address: z.string().optional().nullable(),
+  address: z.string().optional(),
 });
 
 export type House = z.infer<typeof houseSchema>;
@@ -277,8 +277,8 @@ export const plantSchema = z.object({
   subjectId: z.number(),
   ownerId: z.string(),
   name: z.string(),
-  species: z.string().optional().nullable(),
-  lastWatered: z.coerce.date().optional().nullable(),
+  species: z.string().optional(),
+  lastWatered: z.coerce.date().optional(),
   wateringFrequency: WateringFrequency,
 });
 
@@ -306,7 +306,7 @@ export const taskSchema = z.object({
   dateRange: dateRangeSchema.optional().nullable(),
   subjectId: z.number(),
   groupId: z.number().optional(),
-  requiresVerification: z.boolean().optional().nullable(),
+  requiresVerification: z.boolean().optional().default(false),
   markedAsDone: z.boolean(),
   markedAsDoneBy: z.string().optional().nullable(),
 });
