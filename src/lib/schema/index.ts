@@ -292,11 +292,15 @@ export const sittingSubjectSchema = z.union([
 
 export type SittingSubject = z.infer<typeof sittingSubjectSchema>;
 
+export const sittingSubjectListSchema = z.array(sittingSubjectSchema);
+
+export type SittingSubjectList = z.infer<typeof sittingSubjectListSchema>;
+
 export const taskSchema = z.object({
   id: z.number(),
   ownerId: z.string(),
   name: z.string(),
-  description: z.string().optional().nullable(),
+  description: z.string().optional(),
   dueMode: z.boolean(),
   dueDate: z.coerce.date().optional().nullable(),
   dateRange: dateRangeSchema.optional().nullable(),
@@ -331,6 +335,10 @@ export const groupSchema = z.object({
 });
 
 export type Group = z.infer<typeof groupSchema>;
+
+export const groupListSchema = z.array(groupSchema);
+
+export type GroupList = z.infer<typeof groupListSchema>;
 
 export const groupInviteCodeSchema = z.object({
   id: z.number(),

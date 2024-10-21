@@ -129,9 +129,9 @@ export default function EditPetDialog({
       } else {
         console.log(res);
       }
-
-      setDeleteClicked(false);
     }
+
+    setDeleteClicked(false);
   }
 
   return (

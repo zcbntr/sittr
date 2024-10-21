@@ -43,7 +43,7 @@ export default function Onboarder() {
       .then((validatedPreferencesObject) => {
         if (!validatedPreferencesObject.success) {
           console.error(validatedPreferencesObject.error.message);
-          throw new Error("Failed to setPreferences");
+          throw new Error("Failed to set Preferences");
         }
 
         document.dispatchEvent(new Event("preferencesSet"));

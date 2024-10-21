@@ -33,7 +33,14 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { type SittingSubject, type Task, taskSchema } from "~/lib/schema/index";
+import {
+  Group,
+  groupListSchema,
+  type SittingSubject,
+  sittingSubjectListSchema,
+  type Task,
+  taskSchema,
+} from "~/lib/schema/index";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import {
   Select,
@@ -45,6 +52,7 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import { Checkbox } from "~/components/ui/checkbox";
+import { sittingSubjects } from "~/server/db/schema";
 
 export default function EditTaskDialog({
   props,
@@ -58,7 +66,7 @@ export default function EditTaskDialog({
 
   const [subjects, setSubjects] = React.useState<SittingSubject[]>([]);
   const [subjectsEmpty, setSubjectsEmpty] = React.useState<boolean>(false);
-  const [groups, setGroups] = React.useState<SittingSubject[]>([]);
+  const [groups, setGroups] = React.useState<Group[]>([]);
   const [groupsEmpty, setGroupsEmpty] = React.useState<boolean>(false);
 
   const [dueMode, setDueMode] = React.useState<boolean>(true);
@@ -75,36 +83,46 @@ export default function EditTaskDialog({
   React.useEffect(
     () => {
       async function fetchSubjects() {
-        await fetch("api/sittingsubject?all=true")
+        await fetch("api/sittingsubject?all=true", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
           .then((res) => res.json())
-          .then((data) => {
-            if (data.error) {
-              setSubjectsEmpty(true);
-              console.error(data.error);
-              return;
+          .then((json) => sittingSubjectListSchema.safeParse(json))
+          .then((validatedSubjectListObject) => {
+            if (!validatedSubjectListObject.success) {
+              console.error(validatedSubjectListObject.error.message);
+              throw new Error("Failed to get sitting subjects");
             }
 
-            if (data.length > 0) {
-              setSubjects(data);
-            } else if (data.length === 0) {
+            if (validatedSubjectListObject.data.length > 0) {
+              setSubjects(validatedSubjectListObject.data);
+            } else if (validatedSubjectListObject.data.length === 0) {
               setSubjectsEmpty(true);
             }
           });
       }
 
       async function fetchGroups() {
-        await fetch("api/group?all=true")
+        await fetch("api/group?all=true", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
           .then((res) => res.json())
-          .then((data) => {
-            if (data.error) {
-              setGroupsEmpty(true);
-              console.error(data.error);
-              return;
+          .then((json) => groupListSchema.safeParse(json))
+          .then((validatedGroupListObject) => {
+            if (!validatedGroupListObject.success) {
+              console.error(validatedGroupListObject.error.message);
+              throw new Error("Failed to get groups");
             }
 
-            if (data.length > 0) {
-              setGroups(data);
-            } else if (data.length === 0) {
+            if (validatedGroupListObject.data.length > 0) {
+              setGroups(validatedGroupListObject.data);
+            } else if (validatedGroupListObject.data.length === 0) {
               setGroupsEmpty(true);
             }
           });
@@ -174,50 +192,49 @@ export default function EditTaskDialog({
       return;
     }
 
-    const res = await fetch("api/task", {
+    await fetch("/api/task", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    });
+    })
+      .then((res) => res.json())
+      .then((json) => taskSchema.safeParse(json))
+      .then((validatedTaskObject) => {
+        if (!validatedTaskObject.success) {
+          console.error(validatedTaskObject.error.message);
+          throw new Error("Failed to updated task");
+        }
 
-    if (!res.ok) {
-      console.log(res);
-      return;
-    }
-
-    const resData: unknown = await res.json();
-
-    if (!resData.error) {
-      setOpen(false);
-      document.dispatchEvent(new Event("taskUpdated"));
-    } else {
-      console.log(resData);
-    }
+        document.dispatchEvent(new Event("taskUpdated"));
+      });
   }
 
   async function deleteTask() {
     // Fix this at some point with another dialog
     // eslint-disable-next-line no-alert
     if (window.confirm("Are you sure you want to delete this task?")) {
-      const res = await fetch("api/task", {
+      await fetch("api/task", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ id: form.getValues().id }),
-      });
+      })
+        .then((res) => res.json())
+        .then((json) => taskSchema.safeParse(json))
+        .then((validatedTaskObject) => {
+          if (!validatedTaskObject.success) {
+            console.error(validatedTaskObject.error.message);
+            throw new Error("Failed to delete task");
+          }
 
-      if (res.ok) {
-        setOpen(false);
-        document.dispatchEvent(new Event("taskDeleted"));
-      } else {
-        console.log(res);
-      }
-
-      setDeleteClicked(false);
+          document.dispatchEvent(new Event("taskDeleted"));
+        });
     }
+
+    setDeleteClicked(false);
   }
 
   return (
@@ -328,14 +345,14 @@ export default function EditTaskDialog({
                         <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
-                            selected={field.value}
+                            selected={field.value ? field.value : dueDate}
                             onSelect={field.onChange}
                             initialFocus
                           />
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
                               setDate={field.onChange}
-                              date={field.value}
+                              date={field.value ? field.value : dueDate}
                             />
                           </div>
                         </PopoverContent>
@@ -511,7 +528,7 @@ export default function EditTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {groups.map((group) => (
-                        <SelectItem key={group.plantId} value={group.plantId.toString()}>
+                        <SelectItem key={group.id} value={group.id.toString()}>
                           {group.name}
                         </SelectItem>
                       ))}
