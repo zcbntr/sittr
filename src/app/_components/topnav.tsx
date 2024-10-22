@@ -14,7 +14,7 @@ export function TopNav() {
           sittr
         </Link>
         <nav className="hidden items-center space-x-6 md:flex">
-          <RoleSwapper />
+          {/* <RoleSwapper /> */}
           <div className="flex place-content-center">
             <SignedIn>
               <UserButton
