@@ -35,7 +35,7 @@ class CalendarEvent {
   dueMode: boolean;
   start: Date;
   end: Date;
-  subjectId: number;
+  petId: number;
   groupId?: number;
   markedAsDone: boolean;
   markedAsDoneBy?: string;
@@ -50,7 +50,7 @@ class CalendarEvent {
     _dueMode: boolean,
     _start: Date,
     _endDate: Date,
-    _subjectId: number,
+    _petId: number,
     _markedAsDone: boolean,
     _markedAsDoneBy?: string,
     _groupId?: number,
@@ -65,7 +65,7 @@ class CalendarEvent {
     this.dueMode = _dueMode;
     this.start = _start;
     this.end = _endDate;
-    this.subjectId = _subjectId;
+    this.petId = _petId;
     this.groupId = _groupId;
     this.markedAsDone = _markedAsDone;
     this.markedAsDoneBy = _markedAsDoneBy;
@@ -114,7 +114,7 @@ export default function CalendarComponent() {
               task.dueMode,
               new Date(task.dateRange?.from ? task.dateRange.from : ""),
               new Date(task.dateRange?.to ? task.dateRange.to : ""),
-              task.subjectId,
+              task.petId ? task.petId : -1,
               task.markedAsDone,
               task.markedAsDoneBy ? task.markedAsDoneBy : undefined,
               task.groupId,
@@ -166,7 +166,7 @@ export default function CalendarComponent() {
         ownerId: event.ownerId,
         name: event.title,
         description: event.desc,
-        subjectId: event.subjectId,
+        petId: event.petId,
         groupId: event.groupId,
         dueMode: event.dueMode,
         dueDate: event.end,

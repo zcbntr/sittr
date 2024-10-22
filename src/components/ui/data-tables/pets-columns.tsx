@@ -76,8 +76,7 @@ export const columns: ColumnDef<Pet>[] = [
                   );
                   if (button) {
                     setEditPetDialogProps({
-                      petId: row.original.petId,
-                      subjectId: row.original.subjectId,
+                      id: row.original.id,
                       ownerId: row.original.ownerId,
                       name: row.original.name,
                       species: row.original.species,
@@ -103,7 +102,7 @@ export const columns: ColumnDef<Pet>[] = [
                       headers: {
                         "Content-Type": "application/json",
                       },
-                      body: JSON.stringify({ id: row.original.subjectId }),
+                      body: JSON.stringify({ id: row.original.id }),
                     })
                       .then((res) => res.json())
                       .then((json) => petSchema.safeParse(json))

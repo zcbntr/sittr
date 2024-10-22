@@ -56,12 +56,8 @@ export default function EditPetDialog({
   // Update state upon props change, Update form value upon props change
   React.useEffect(() => {
     if (props) {
-      if (props?.petId) {
-        form.setValue("petId", props.petId);
-      }
-
-      if (props?.subjectId) {
-        form.setValue("subjectId", props.subjectId);
+      if (props?.id) {
+        form.setValue("id", props.id);
       }
 
       if (props?.ownerId) {
@@ -93,7 +89,7 @@ export default function EditPetDialog({
       return;
     }
 
-    await fetch("../api/pet", {
+    await fetch("../api/pets", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -118,12 +114,12 @@ export default function EditPetDialog({
     // Fix this at some point with another dialog
     // eslint-disable-next-line no-alert
     if (window.confirm("Are you sure you want to delete this pet?")) {
-      await fetch("api/pet", {
+      await fetch("api/pets", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: form.getValues().subjectId }),
+        body: JSON.stringify({ id: form.getValues().id }),
       })
         .then((res) => res.json())
         .then((json) => petSchema.safeParse(json))

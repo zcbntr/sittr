@@ -36,8 +36,8 @@ import {
 import {
   Group,
   groupListSchema,
-  type SittingSubject,
-  sittingSubjectListSchema,
+  Pet,
+  petListSchema,
   type Task,
   taskSchema,
 } from "~/lib/schema/index";
@@ -52,7 +52,6 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import { Checkbox } from "~/components/ui/checkbox";
-import { sittingSubjects } from "~/server/db/schema";
 
 export default function EditTaskDialog({
   props,
@@ -64,8 +63,8 @@ export default function EditTaskDialog({
   const [open, setOpen] = React.useState<boolean>(false);
   const [dataChanged, setDataChanged] = React.useState<boolean>(false);
 
-  const [subjects, setSubjects] = React.useState<SittingSubject[]>([]);
-  const [subjectsEmpty, setSubjectsEmpty] = React.useState<boolean>(false);
+  const [pets, setPets] = React.useState<Pet[]>([]);
+  const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
   const [groups, setGroups] = React.useState<Group[]>([]);
   const [groupsEmpty, setGroupsEmpty] = React.useState<boolean>(false);
 
@@ -83,24 +82,24 @@ export default function EditTaskDialog({
   React.useEffect(
     () => {
       async function fetchSubjects() {
-        await fetch("api/sittingsubject?all=true", {
+        await fetch("api/pets?all=true", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
         })
           .then((res) => res.json())
-          .then((json) => sittingSubjectListSchema.safeParse(json))
+          .then((json) => petListSchema.safeParse(json))
           .then((validatedSubjectListObject) => {
             if (!validatedSubjectListObject.success) {
               console.error(validatedSubjectListObject.error.message);
-              throw new Error("Failed to get sitting subjects");
+              throw new Error("Failed to get sitting pets");
             }
 
             if (validatedSubjectListObject.data.length > 0) {
-              setSubjects(validatedSubjectListObject.data);
+              setPets(validatedSubjectListObject.data);
             } else if (validatedSubjectListObject.data.length === 0) {
-              setSubjectsEmpty(true);
+              setPetsEmpty(true);
             }
           });
       }
@@ -169,16 +168,12 @@ export default function EditTaskDialog({
           });
         }
 
-        if (props?.subjectId) {
-          form.setValue("subjectId", props.subjectId);
-        }
-
         if (props?.groupId) {
           form.setValue("groupId", props.groupId);
         }
       }
 
-      // Fetch all possible sitting subjects
+      // Fetch all possible sitting pets
       void fetchSubjects();
       void fetchGroups();
     },
@@ -465,22 +460,22 @@ export default function EditTaskDialog({
 
             <FormField
               control={form.control}
-              name="subjectId"
+              name="petId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Pet, House, or Plant</FormLabel>
                   <Select
                     onValueChange={(value) => {
-                      form.setValue("subjectId", parseInt(value));
+                      form.setValue("petId", parseInt(value));
                     }}
-                    disabled={subjectsEmpty}
+                    disabled={petsEmpty}
                     value={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue
                           placeholder={
-                            !subjectsEmpty
+                            !petsEmpty
                               ? "Select a pet, house or plant"
                               : "Nothing to show"
                           }
@@ -488,12 +483,9 @@ export default function EditTaskDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {subjects.map((subject) => (
-                        <SelectItem
-                          key={subject.subjectId}
-                          value={subject.subjectId.toString()}
-                        >
-                          {subject.name}
+                      {pets.map((pet) => (
+                        <SelectItem key={pet.id} value={pet.id.toString()}>
+                          {pet.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -1,13 +1,8 @@
 import { z } from "zod";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { pets } from "~/server/db/schema";
 
 // -----------------------------------------------------------------------------
 // General schemas
 // -----------------------------------------------------------------------------
-
-export const SittingTypeEnum = z.enum(["Pet", "House", "Baby", "Plant"]);
-export type SittingTypeEnum = z.infer<typeof SittingTypeEnum>;
 
 export const RoleEnum = z.enum(["Owner", "Sitter"]);
 export type RoleEnum = z.infer<typeof RoleEnum>;
@@ -51,7 +46,7 @@ export const createTaskSchema = z
     dueMode: z.boolean(),
     dueDate: z.coerce.date().optional(),
     dateRange: dateRangeSchema.optional(),
-    subjectId: z.number(),
+    petId: z.number(),
     groupId: z.number().optional(),
   })
   // Must have either due date or start and end date
@@ -113,7 +108,7 @@ export const createTaskFormProps = z.object({
   dueMode: z.boolean().optional(),
   dueDate: z.coerce.date().optional(),
   dateRange: dateRangeSchema.optional(),
-  subjectId: z.number().optional(),
+  petId: z.number().optional(),
   groupId: z.number().optional(),
 });
 
@@ -135,29 +130,6 @@ export const createPetFormSchema = z
 
 export type CreatePetFormInput = z.infer<typeof createPetFormSchema>;
 
-export const createHouseFormSchema = z.object({
-  name: z.string().min(3).max(50),
-  address: z.string().min(5).max(150).optional(),
-});
-
-export type CreateHouseFormInput = z.infer<typeof createHouseFormSchema>;
-
-export const createPlantFormSchema = z
-  .object({
-    name: z.string().min(3).max(50),
-    species: z.string().min(3).max(50).optional(),
-    lastWatered: z.coerce.date().optional(),
-    wateringFrequency: WateringFrequency,
-  })
-  .refine(
-    (data) => data.lastWatered == undefined || data.lastWatered < new Date(),
-    {
-      message: "Last watered must be in the past",
-    },
-  );
-
-export type CreatePlantFormInput = z.infer<typeof createPlantFormSchema>;
-
 export const createGroupFormSchema = z.object({
   name: z
     .string()
@@ -169,7 +141,7 @@ export const createGroupFormSchema = z.object({
       message: "Description must be less than 500 characters",
     })
     .optional(),
-  sittingSubjectIds: z.array(z.number()),
+  petIds: z.array(z.number()),
 });
 
 export type CreateGroupFormInput = z.infer<typeof createGroupFormSchema>;
@@ -186,7 +158,7 @@ export const editGroupFormSchema = z.object({
       message: "Description must be less than 500 characters",
     })
     .optional(),
-  sittingSubjectIds: z.array(z.number()),
+  petIds: z.array(z.number()),
   memberIds: z.array(z.string()),
 });
 
@@ -252,23 +224,8 @@ export type DeleteAPIFormInput = z.infer<typeof deleteAPIFormSchema>;
 // Response schemas - no refine methods - we trust the db
 // -----------------------------------------------------------------------------
 
-export const userPreferencesSchema = z.object({
-  userId: z.string().optional(),
-  wantPetSitting: z.boolean(),
-  wantHouseSitting: z.boolean(),
-  wantBabySitting: z.boolean(),
-  wantPlantSitting: z.boolean(),
-  sitForPets: z.boolean(),
-  sitForHouses: z.boolean(),
-  sitForBabies: z.boolean(),
-  sitForPlants: z.boolean(),
-});
-
-export type UserPreferences = z.infer<typeof userPreferencesSchema>;
-
 export const petSchema = z.object({
-  petId: z.number(),
-  subjectId: z.number(),
+  id: z.number(),
   ownerId: z.string(),
   name: z.string(),
   species: z.string(),
@@ -282,48 +239,6 @@ export const petListSchema = z.array(petSchema);
 
 export type PetList = z.infer<typeof petListSchema>;
 
-export const houseSchema = z.object({
-  houseId: z.number(),
-  subjectId: z.number(),
-  ownerId: z.string(),
-  name: z.string(),
-  address: z.string().optional(),
-});
-
-export type House = z.infer<typeof houseSchema>;
-
-export const houseListSchema = z.array(houseSchema);
-
-export type HouseList = z.infer<typeof houseListSchema>;
-
-export const plantSchema = z.object({
-  plantId: z.number(),
-  subjectId: z.number(),
-  ownerId: z.string(),
-  name: z.string(),
-  species: z.string().optional(),
-  lastWatered: z.coerce.date().optional(),
-  wateringFrequency: WateringFrequency,
-});
-
-export type Plant = z.infer<typeof plantSchema>;
-
-export const plantListSchema = z.array(plantSchema);
-
-export type PlantList = z.infer<typeof plantListSchema>;
-
-export const sittingSubjectSchema = z.union([
-  petSchema,
-  houseSchema,
-  plantSchema,
-]);
-
-export type SittingSubject = z.infer<typeof sittingSubjectSchema>;
-
-export const sittingSubjectListSchema = z.array(sittingSubjectSchema);
-
-export type SittingSubjectList = z.infer<typeof sittingSubjectListSchema>;
-
 export const taskSchema = z.object({
   id: z.number(),
   ownerId: z.string(),
@@ -332,7 +247,7 @@ export const taskSchema = z.object({
   dueMode: z.boolean(),
   dueDate: z.coerce.date().optional().nullable(),
   dateRange: dateRangeSchema.optional().nullable(),
-  subjectId: z.number(),
+  petId: z.number().optional(),
   groupId: z.number().optional(),
   requiresVerification: z.boolean().optional().default(false),
   markedAsDone: z.boolean(),
@@ -359,7 +274,7 @@ export const groupSchema = z.object({
   name: z.string(),
   description: z.string().optional().nullable(),
   members: z.array(groupMemberSchema).optional(),
-  sittingSubjectIds: z.array(z.number()).optional(),
+  petIds: z.array(z.number()).optional(),
 });
 
 export type Group = z.infer<typeof groupSchema>;

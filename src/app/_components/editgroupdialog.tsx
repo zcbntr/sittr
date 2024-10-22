@@ -1,3 +1,5 @@
+// Do no use this, instead use some of its code to make a specific edit page
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,8 +40,8 @@ import {
   Group,
   groupListSchema,
   groupSchema,
-  type SittingSubject,
-  sittingSubjectListSchema,
+  Pet,
+  petListSchema,
 } from "~/lib/schema/index";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import {
@@ -52,7 +54,6 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import { Checkbox } from "~/components/ui/checkbox";
-import { sittingSubjects } from "~/server/db/schema";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -70,11 +71,9 @@ export default function EditGroupDialog({
   const [open, setOpen] = React.useState<boolean>(false);
   const [dataChanged, setDataChanged] = React.useState<boolean>(false);
 
-  const [subjects, setSubjects] = React.useState<SittingSubject[]>([]);
-  const [selectedSubjectIds, setSelectedSubjectIds] = React.useState<number[]>(
-    [],
-  );
-  const [subjectsEmpty, setSubjectsEmpty] = React.useState<boolean>(false);
+  const [pets, setPets] = React.useState<Pet[]>([]);
+  const [selectedPetIds, setSelectedPetIds] = React.useState<number[]>([]);
+  const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 
   const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
 
@@ -85,25 +84,25 @@ export default function EditGroupDialog({
   // Update state upon props change, Update form value upon props change
   React.useEffect(
     () => {
-      async function fetchSubjects() {
-        await fetch("api/sittingsubject?all=true", {
+      async function fetchPets() {
+        await fetch("api/pets?all=true", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
         })
           .then((res) => res.json())
-          .then((json) => sittingSubjectListSchema.safeParse(json))
-          .then((validatedSubjectListObject) => {
-            if (!validatedSubjectListObject.success) {
-              console.error(validatedSubjectListObject.error.message);
-              throw new Error("Failed to get sitting subjects");
+          .then((json) => petListSchema.safeParse(json))
+          .then((validatedPetListObject) => {
+            if (!validatedPetListObject.success) {
+              console.error(validatedPetListObject.error.message);
+              throw new Error("Failed to get sitting pets");
             }
 
-            if (validatedSubjectListObject.data.length > 0) {
-              setSubjects(validatedSubjectListObject.data);
-            } else if (validatedSubjectListObject.data.length === 0) {
-              setSubjectsEmpty(true);
+            if (validatedPetListObject.data.length > 0) {
+              setPets(validatedPetListObject.data);
+            } else if (validatedPetListObject.data.length === 0) {
+              setPetsEmpty(true);
             }
           });
       }
@@ -123,13 +122,9 @@ export default function EditGroupDialog({
             props.members.map((m) => m.userId),
           );
         }
-
-        if (props?.sittingSubjectIds) {
-          form.setValue("sittingSubjectIds", props.sittingSubjectIds);
-        }
       }
 
-      void fetchSubjects();
+      void fetchPets();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [props],
@@ -243,96 +238,87 @@ export default function EditGroupDialog({
 
             <FormField
               control={form.control}
-              name="sittingSubjectIds"
+              name="petIds"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Sitting For</FormLabel>
                   <DropdownMenu>
-                    <DropdownMenuTrigger disabled={subjectsEmpty} asChild>
+                    <DropdownMenuTrigger disabled={petsEmpty} asChild>
                       <Button variant="outline">
                         {/* Probably a better way of doing this */}
-                        {!subjectsEmpty && selectedSubjectIds.length === 0 && (
+                        {!petsEmpty && selectedPetIds.length === 0 && (
                           <div>None</div>
                         )}
-                        {!subjectsEmpty && selectedSubjectIds.length === 1 && (
+                        {!petsEmpty && selectedPetIds.length === 1 && (
                           <div>
                             {
-                              subjects.find(
-                                (x) => x.subjectId == selectedSubjectIds[0],
-                              )?.name
+                              pets.find((x) => x.id == selectedPetIds[0])
+                                ?.name
                             }
                           </div>
                         )}
-                        {!subjectsEmpty && selectedSubjectIds.length === 2 && (
+                        {!petsEmpty && selectedPetIds.length === 2 && (
                           <div>
-                            {subjects.find(
-                              (x) => x.subjectId == selectedSubjectIds[0],
-                            )?.name +
+                            {pets.find((x) => x.id == selectedPetIds[0])
+                              ?.name +
                               " and " +
-                              subjects.find(
-                                (x) => x.subjectId == selectedSubjectIds[1],
-                              )?.name}
+                              pets.find((x) => x.id == selectedPetIds[1])
+                                ?.name}
                           </div>
                         )}
-                        {selectedSubjectIds.length >= 3 && (
+                        {selectedPetIds.length >= 3 && (
                           <div>
-                            {subjects.find(
-                              (x) => x.subjectId == selectedSubjectIds[0],
-                            )?.name +
+                            {pets.find((x) => x.id == selectedPetIds[0])
+                              ?.name +
                               ", " +
-                              subjects.find(
-                                (x) => x.subjectId == selectedSubjectIds[1],
-                              )?.name +
+                              pets.find((x) => x.id == selectedPetIds[1])
+                                ?.name +
                               ", and " +
-                              (selectedSubjectIds.length - 2).toString() +
+                              (selectedPetIds.length - 2).toString() +
                               " more"}
                           </div>
                         )}
-                        {subjectsEmpty && <div>Nothing to display</div>}
+                        {petsEmpty && <div>Nothing to display</div>}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
-                      {subjects.map(function (subject, i) {
+                      {pets.map(function (pet, i) {
                         return (
                           <DropdownMenuCheckboxItem
                             key={i}
-                            checked={selectedSubjectIds.includes(
-                              subject.subjectId,
-                            )}
+                            checked={selectedPetIds.includes(pet.id)}
                             onCheckedChange={() => {
-                              if (
-                                !selectedSubjectIds.includes(subject.subjectId)
-                              ) {
-                                setSelectedSubjectIds([
-                                  ...selectedSubjectIds,
-                                  subject.subjectId,
+                              if (!selectedPetIds.includes(pet.id)) {
+                                setSelectedPetIds([
+                                  ...selectedPetIds,
+                                  pet.id,
                                 ]);
                                 field.onChange([
-                                  ...selectedSubjectIds,
-                                  subject.subjectId,
+                                  ...selectedPetIds,
+                                  pet.id,
                                 ]);
                               } else {
-                                setSelectedSubjectIds(
-                                  selectedSubjectIds.filter(
-                                    (sId) => sId !== subject.subjectId,
+                                setSelectedPetIds(
+                                  selectedPetIds.filter(
+                                    (sId) => sId !== pet.id,
                                   ),
                                 );
                                 field.onChange(
-                                  selectedSubjectIds.filter(
-                                    (sId) => sId !== subject.subjectId,
+                                  selectedPetIds.filter(
+                                    (sId) => sId !== pet.id,
                                   ),
                                 );
                               }
                             }}
                           >
-                            {subject.name}
+                            {pet.name}
                           </DropdownMenuCheckboxItem>
                         );
                       })}
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <FormDescription>
-                    Who or what the group will sit for.
+                    Who the group will sit for.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

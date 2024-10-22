@@ -9,11 +9,8 @@ import CreateGroupDialog from "./creategroupdialog";
 import CreateTaskDialog from "./createtaskdialog";
 import CreateHouseDialog from "./createhousedialog";
 import CreatePlantDialog from "./createplantdialog";
-import { getCurrentUserPreferences } from "~/server/queries";
 
 export default async function Dashboard() {
-  const preferences = await getCurrentUserPreferences();
-
   return (
     <div className="flex flex-col gap-3 p-5">
       <h1 className="text-xl">Dashboard</h1>
@@ -23,23 +20,9 @@ export default async function Dashboard() {
             <Button variant="outline">New Task</Button>
           </CreateTaskDialog>
 
-          {preferences?.wantPetSitting && (
-            <CreatePetDialog>
-              <Button variant="outline">New Pet</Button>
-            </CreatePetDialog>
-          )}
-
-          {preferences?.wantHouseSitting && (
-            <CreateHouseDialog>
-              <Button variant="outline">New House</Button>
-            </CreateHouseDialog>
-          )}
-
-          {preferences?.wantPlantSitting && (
-            <CreatePlantDialog>
-              <Button variant="outline">New Plant</Button>
-            </CreatePlantDialog>
-          )}
+          <CreatePetDialog>
+            <Button variant="outline">New Pet</Button>
+          </CreatePetDialog>
 
           <CreateGroupDialog>
             <Button variant="outline">New Group</Button>

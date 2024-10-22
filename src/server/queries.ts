@@ -7,20 +7,15 @@ import {
   groupInviteCodes,
   groupMembers,
   groups,
-  houses,
   pets,
-  plants,
-  sittingSubjects,
-  subjectsToGroups,
   tasks,
   userSittingPreferences,
   userOwnerPreferences,
+  petsToGroups,
 } from "./db/schema";
 import {
   type CreateGroupFormInput,
-  type CreateHouseFormInput,
   type CreatePetFormInput,
-  type CreatePlantFormInput,
   type CreateTask,
   type Group,
   type GroupInviteCode,
@@ -29,19 +24,12 @@ import {
   groupMemberSchema,
   GroupRoleEnum,
   groupSchema,
-  type House,
-  houseSchema,
   type Pet,
   petSchema,
-  type Plant,
-  plantSchema,
   type RequestGroupInviteCodeFormInput,
   RoleEnum,
-  type SittingSubject,
   type Task,
   taskSchema,
-  type UserPreferences,
-  userPreferencesSchema,
 } from "~/lib/schema";
 
 export async function getOwnedTasksStartingInRange(
@@ -80,7 +68,7 @@ export async function getOwnedTasksStartingInRange(
           from: task.dateRangeFrom,
           to: task.dateRangeTo,
         },
-        subjectId: task.sittingSubject,
+        petId: task.pet,
         groupId: task.group,
         markedAsDone: task.markedAsDoneBy !== null,
         markedAsDoneBy: task.markedAsDoneBy,
@@ -119,7 +107,7 @@ export async function getOwnedTasks(): Promise<Task[]> {
         from: task.dateRangeFrom,
         to: task.dateRangeTo,
       },
-      subjectId: task.sittingSubject,
+      petId: task.pet,
       groupId: task.group,
       markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: task.markedAsDoneBy,
@@ -156,7 +144,7 @@ export async function getOwnedTask(taskId: number): Promise<Task> {
       from: task.dateRangeFrom,
       to: task.dateRangeTo,
     },
-    subjectId: task.sittingSubject,
+    petId: task.pet,
     groupId: task.group,
     markedAsDone: task.markedAsDoneBy !== null,
     markedAsDoneBy: task.markedAsDoneBy,
@@ -177,7 +165,7 @@ export async function getVisibleTasksInRange(
   const visibleTasksInRange = await db
     .select()
     .from(tasks)
-    .leftJoin(groups, eq(tasks.sittingSubject, groups.id))
+    .leftJoin(groups, eq(tasks.pet, groups.id))
     .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
     .where(
       and(
@@ -206,7 +194,7 @@ export async function getVisibleTasksInRange(
         from: joinedTaskRow.tasks.dateRangeFrom,
         to: joinedTaskRow.tasks.dateRangeTo,
       },
-      subjectId: joinedTaskRow.tasks.sittingSubject,
+      petId: joinedTaskRow.tasks.pet,
       groupId: joinedTaskRow.groups?.id ?? undefined,
       markedAsDone: joinedTaskRow.tasks.markedAsDoneBy !== null,
       markedAsDoneBy: joinedTaskRow.tasks.markedAsDoneBy,
@@ -240,7 +228,7 @@ export async function createTask(task: CreateTask): Promise<Task> {
       dateRangeTo: task.dateRange?.to,
       dueDate: task.dueDate,
       description: task.description,
-      sittingSubject: task.subjectId,
+      pet: task.petId,
       group: task.groupId,
     })
     .returning()
@@ -255,7 +243,7 @@ export async function createTask(task: CreateTask): Promise<Task> {
       dueMode: newTask[0].dueMode,
       dueDate: newTask[0].dueDate,
       dateRange: { from: newTask[0].dateRangeFrom, to: newTask[0].dateRangeTo },
-      subjectId: newTask[0].sittingSubject,
+      petId: newTask[0].pet,
       groupId: newTask[0].group,
       markedAsDone: newTask[0].markedAsDoneBy !== null,
       markedAsDoneBy: newTask[0].markedAsDoneBy,
@@ -281,7 +269,7 @@ export async function updateTask(task: Task): Promise<Task> {
       dateRangeTo: task.dateRange?.to,
       dueDate: task.dueDate,
       description: task.description,
-      sittingSubject: task.subjectId,
+      pet: task.petId,
     })
     .where(and(eq(tasks.id, task.id), eq(tasks.ownerId, user.userId)))
     .returning()
@@ -322,7 +310,7 @@ export async function updateTask(task: Task): Promise<Task> {
           from: updatedTaskChangedMarkedAsDoneBy[0].dateRangeFrom,
           to: updatedTaskChangedMarkedAsDoneBy[0].dateRangeTo,
         },
-        subjectId: updatedTaskChangedMarkedAsDoneBy[0].sittingSubject,
+        petId: updatedTaskChangedMarkedAsDoneBy[0].pet,
         groupId: updatedTaskChangedMarkedAsDoneBy[0].group,
         markedAsDone:
           updatedTaskChangedMarkedAsDoneBy[0].markedAsDoneBy !== null,
@@ -345,7 +333,7 @@ export async function updateTask(task: Task): Promise<Task> {
       from: updatedTask[0].dateRangeFrom,
       to: updatedTask[0].dateRangeTo,
     },
-    subjectId: updatedTask[0].sittingSubject,
+    petId: updatedTask[0].pet,
     groupId: updatedTask[0].group,
     markedAsDone: updatedTask[0].markedAsDoneBy !== null,
     markedAsDoneBy: updatedTask[0].markedAsDoneBy,
@@ -377,7 +365,7 @@ export async function deleteOwnedTask(id: number): Promise<Task> {
         from: deletedTask[0].dateRangeFrom,
         to: deletedTask[0].dateRangeTo,
       },
-      subjectId: deletedTask[0].sittingSubject,
+      petId: deletedTask[0].pet,
       groupId: deletedTask[0].group,
       markedAsDone: deletedTask[0].markedAsDoneBy !== null,
       markedAsDoneBy: deletedTask[0].markedAsDoneBy,
@@ -385,182 +373,6 @@ export async function deleteOwnedTask(id: number): Promise<Task> {
   }
 
   throw new Error("Failed to delete task");
-}
-
-export async function currentUserCompletedOnboarding(): Promise<boolean> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const userPreferances = await getCurrentUserPreferences();
-  if (userPreferances) return true;
-
-  return false;
-}
-
-export async function getCurrentUserPreferences(): Promise<
-  UserPreferences | undefined
-> {
-  const { userId } = auth();
-
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const preferences = await db
-    .select()
-    .from(userOwnerPreferences)
-    .where(eq(userOwnerPreferences.userId, userId))
-    .innerJoin(
-      userSittingPreferences,
-      eq(userOwnerPreferences.userId, userSittingPreferences.userId),
-    )
-    .execute();
-
-  if (preferences?.[0]) {
-    const parseResult = userPreferencesSchema.safeParse({
-      userId: preferences?.[0].user_owner_preferences.userId,
-      wantPetSitting: preferences?.[0].user_owner_preferences.petSitting,
-      wantHouseSitting: preferences?.[0].user_owner_preferences.houseSitting,
-      wantBabySitting: preferences?.[0].user_owner_preferences.babySitting,
-      wantPlantSitting: preferences?.[0].user_owner_preferences.plantSitting,
-      sitForPets: preferences?.[0].user_sitting_preferences.petSitting,
-      sitForHouses: preferences?.[0].user_sitting_preferences.houseSitting,
-      sitForBabies: preferences?.[0].user_sitting_preferences.babySitting,
-      sitForPlants: preferences?.[0].user_sitting_preferences.plantSitting,
-    });
-
-    if (parseResult.success) {
-      return parseResult.data;
-    } else {
-      throw new Error("Zod schema error: " + parseResult.error.toString());
-    }
-  }
-}
-
-export async function setUserPreferences(
-  preferences: UserPreferences,
-): Promise<UserPreferences> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  if (preferences.userId !== user.userId && preferences.userId !== undefined) {
-    throw new Error("User ID does not match");
-  }
-
-  // First check if the user already has preferences set
-  const existingUserPreferences = await getCurrentUserPreferences();
-
-  // If the user already has preferences set, update them
-  if (existingUserPreferences) {
-    const updatedUserPreferences = await db.transaction(async (db) => {
-      const updatedUserOwnerPreferences = await db
-        .update(userOwnerPreferences)
-        .set({
-          petSitting: preferences.wantPetSitting,
-          houseSitting: preferences.wantHouseSitting,
-          babySitting: preferences.wantBabySitting,
-          plantSitting: preferences.wantPlantSitting,
-        })
-        .where(eq(userOwnerPreferences.userId, user.userId))
-        .returning()
-        .execute();
-
-      if (!updatedUserOwnerPreferences?.[0]) {
-        db.rollback();
-        throw new Error("Failed to update user owner preferences");
-      }
-
-      const updatedUserSitterPreferences = await db
-        .update(userSittingPreferences)
-        .set({
-          petSitting: preferences.sitForPets,
-          houseSitting: preferences.sitForHouses,
-          babySitting: preferences.sitForBabies,
-          plantSitting: preferences.sitForPlants,
-        })
-        .where(eq(userSittingPreferences.userId, user.userId))
-        .returning()
-        .execute();
-
-      if (!updatedUserSitterPreferences?.[0]) {
-        db.rollback();
-        throw new Error("Failed to update user sitter preferences");
-      }
-
-      return userPreferencesSchema.parse({
-        userId: updatedUserOwnerPreferences[0].userId,
-        wantPetSitting: updatedUserOwnerPreferences[0].petSitting,
-        wantHouseSitting: updatedUserOwnerPreferences[0].houseSitting,
-        wantBabySitting: updatedUserOwnerPreferences[0].babySitting,
-        wantPlantSitting: updatedUserOwnerPreferences[0].plantSitting,
-        sitForPets: updatedUserSitterPreferences[0].petSitting,
-        sitForHouses: updatedUserSitterPreferences[0].houseSitting,
-        sitForBabies: updatedUserSitterPreferences[0].babySitting,
-        sitForPlants: updatedUserSitterPreferences[0].plantSitting,
-      });
-    });
-
-    if (updatedUserPreferences) return updatedUserPreferences;
-  }
-
-  // If the user does not have preferences set, create them
-  const newUserPreferences = await db.transaction(async (db) => {
-    const preferencesRowSitter = await db
-      .insert(userSittingPreferences)
-      .values({
-        userId: user.userId,
-        petSitting: preferences.sitForPets,
-        houseSitting: preferences.sitForHouses,
-        babySitting: preferences.sitForBabies,
-        plantSitting: preferences.sitForPlants,
-      })
-      .returning();
-
-    if (!preferencesRowSitter?.[0]) {
-      db.rollback();
-      console.log("Failed to set user sitting preferences");
-      throw new Error("Failed to set user sitting preferences");
-    }
-
-    const preferencesRowOwner = await db
-      .insert(userOwnerPreferences)
-      .values({
-        userId: user.userId,
-        petSitting: preferences.wantPetSitting,
-        houseSitting: preferences.wantHouseSitting,
-        babySitting: preferences.wantBabySitting,
-        plantSitting: preferences.wantPlantSitting,
-      })
-      .returning();
-
-    if (!preferencesRowOwner?.[0]) {
-      db.rollback();
-      console.log("Failed to set user owner preferences");
-      throw new Error("Failed to set user owner preferences");
-    }
-
-    return userPreferencesSchema.parse({
-      userId: preferencesRowOwner[0].userId,
-      wantPetSitting: preferencesRowOwner[0].petSitting,
-      wantHouseSitting: preferencesRowOwner[0].houseSitting,
-      wantBabySitting: preferencesRowOwner[0].babySitting,
-      wantPlantSitting: preferencesRowOwner[0].plantSitting,
-      sitForPets: preferencesRowSitter[0].petSitting,
-      sitForHouses: preferencesRowSitter[0].houseSitting,
-      sitForBabys: preferencesRowSitter[0].babySitting,
-      sitForPlants: preferencesRowSitter[0].plantSitting,
-    });
-  });
-
-  if (newUserPreferences) return newUserPreferences;
-
-  throw new Error("Failed to set user sitting preferences");
 }
 
 export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
@@ -604,12 +416,12 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
     }
 
     // Add sitting subjects to group
-    for (const subjectId of group.sittingSubjectIds) {
+    for (const petId of group.petIds) {
       const subject = await db
-        .insert(subjectsToGroups)
+        .insert(petsToGroups)
         .values({
           groupId: newGroup[0].id,
-          subjectId: subjectId,
+          petId: petId,
         })
         .returning()
         .execute();
@@ -632,7 +444,7 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
           role: groupMember[0].role,
         }),
       ],
-      sittingSubjectIds: group.sittingSubjectIds,
+      petIds: group.petIds,
     });
   });
 
@@ -925,6 +737,7 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
     const newPet = await db
       .insert(pets)
       .values({
+        ownerId: user.userId,
         name: pet.name,
         species: pet.species,
         breed: pet.breed,
@@ -937,24 +750,9 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
       throw new Error("Failed to create pet in pet table");
     }
 
-    const newSittingSubject = await db
-      .insert(sittingSubjects)
-      .values({
-        ownerId: user.userId,
-        entityId: newPet[0].id,
-        entityType: "Pet",
-      })
-      .returning();
-
-    if (!newSittingSubject?.[0]) {
-      db.rollback();
-      throw new Error("Failed to create pet link in sittingSubjects table");
-    }
-
     return petSchema.parse({
-      petId: newSittingSubject[0].entityId,
-      subjectId: newSittingSubject[0].id,
-      ownerId: newSittingSubject[0].ownerId,
+      petId: newPet[0].id,
+      ownerId: newPet[0].ownerId,
       name: pet.name,
       species: pet.species,
       breed: pet.breed ? pet.breed : undefined,
@@ -976,39 +774,19 @@ export async function getOwnedPets(): Promise<Pet[]> {
     throw new Error("Unauthorized");
   }
 
-  // Join sittingSubjects with pets
-  const subjectsList = db
-    .select({
-      subjectId: sittingSubjects.id,
-      entityType: sittingSubjects.entityType,
-      entityId: sittingSubjects.entityId,
-      ownerId: sittingSubjects.ownerId,
-    })
-    .from(sittingSubjects)
-    .where(
-      and(
-        eq(sittingSubjects.ownerId, user.userId),
-        eq(sittingSubjects.entityType, "Pet"),
-      ),
-    )
-    .as("owned_pet_subjects");
-
-  const joinedPets = await db
-    .select()
-    .from(subjectsList)
-    .innerJoin(pets, eq(subjectsList.entityId, pets.id))
-    .execute();
+  const ownedPets = await db.query.pets.findMany({
+    where: (model, { eq }) => eq(model.ownerId, user.userId),
+  });
 
   // Turn into zod pet type
-  const petsList: Pet[] = joinedPets.map((petSubject) => {
+  const petsList: Pet[] = ownedPets.map((pet) => {
     return petSchema.parse({
-      petId: petSubject.owned_pet_subjects.entityId,
-      subjectId: petSubject.owned_pet_subjects.subjectId,
-      ownerId: petSubject.owned_pet_subjects.ownerId,
-      name: petSubject.pets.name,
-      species: petSubject.pets.species,
-      breed: petSubject.pets.breed ? petSubject.pets.breed : undefined,
-      dob: petSubject.pets.dob,
+      petId: pet.id,
+      ownerId: pet.ownerId,
+      name: pet.name,
+      species: pet.species,
+      breed: pet.breed ? pet.breed : undefined,
+      dob: pet.dob,
     });
   });
 
@@ -1030,7 +808,7 @@ export async function updatePet(pet: Pet): Promise<Pet> {
       breed: pet.breed,
       dob: pet.dob,
     })
-    .where(eq(pets.id, pet.petId))
+    .where(eq(pets.id, pet.id))
     .returning()
     .execute();
 
@@ -1040,8 +818,7 @@ export async function updatePet(pet: Pet): Promise<Pet> {
 
   return petSchema.parse({
     petId: updatedPet[0].id,
-    subjectId: pet.subjectId,
-    ownerId: pet.ownerId,
+    ownerId: updatedPet[0].ownerId,
     name: updatedPet[0].name,
     species: updatedPet[0].species,
     breed: updatedPet[0].breed ? updatedPet[0].breed : undefined,
@@ -1049,7 +826,7 @@ export async function updatePet(pet: Pet): Promise<Pet> {
   });
 }
 
-export async function deletePet(subjectId: number): Promise<Pet> {
+export async function deletePet(id: number): Promise<Pet> {
   const user = auth();
 
   if (!user.userId) {
@@ -1057,20 +834,7 @@ export async function deletePet(subjectId: number): Promise<Pet> {
   }
 
   const petToReturn = await db.transaction(async (db) => {
-    const deletedSubject = await db
-      .delete(sittingSubjects)
-      .where(eq(sittingSubjects.id, subjectId))
-      .returning();
-
-    if (!deletedSubject?.[0]) {
-      db.rollback();
-      throw new Error("Failed to delete pet from sittingSubjects table");
-    }
-
-    const deletedPet = await db
-      .delete(pets)
-      .where(eq(pets.id, deletedSubject[0].entityId))
-      .returning();
+    const deletedPet = await db.delete(pets).where(eq(pets.id, id)).returning();
 
     if (!deletedPet?.[0]) {
       db.rollback();
@@ -1079,8 +843,7 @@ export async function deletePet(subjectId: number): Promise<Pet> {
 
     return petSchema.parse({
       petId: deletedPet[0].id,
-      subjectId: deletedSubject[0].id,
-      ownerId: deletedSubject[0].ownerId,
+      ownerId: deletedPet[0].ownerId,
       name: deletedPet[0].name,
       species: deletedPet[0].species,
       breed: deletedPet[0].breed ? deletedPet[0].breed : undefined,
@@ -1091,373 +854,4 @@ export async function deletePet(subjectId: number): Promise<Pet> {
   if (petToReturn) return petToReturn;
 
   throw new Error("Failed to delete pet");
-}
-
-export async function getOwnedHouses(): Promise<House[]> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  // Join sittingSubjects with houses
-  const subjectsList = db
-    .select({
-      subjectId: sittingSubjects.id,
-      entityType: sittingSubjects.entityType,
-      entityId: sittingSubjects.entityId,
-      ownerId: sittingSubjects.ownerId,
-    })
-    .from(sittingSubjects)
-    .where(
-      and(
-        eq(sittingSubjects.ownerId, user.userId),
-        eq(sittingSubjects.entityType, "House"),
-      ),
-    )
-    .as("owned_house_subjects");
-
-  const joinedHouses = await db
-    .select()
-    .from(subjectsList)
-    .innerJoin(houses, eq(subjectsList.entityId, houses.id))
-    .execute();
-
-  // Turn into zod house type
-  const housesList: House[] = joinedHouses.map((houseSubject) => {
-    return houseSchema.parse({
-      houseId: houseSubject.owned_house_subjects.entityId,
-      subjectId: houseSubject.owned_house_subjects.subjectId,
-      ownerId: houseSubject.owned_house_subjects.ownerId,
-      name: houseSubject.houses.name,
-      address: houseSubject.houses.address,
-    });
-  });
-
-  return housesList;
-}
-
-export async function createHouse(house: CreateHouseFormInput): Promise<House> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const houseToReturn = await db.transaction(async (db) => {
-    const newHouse = await db
-      .insert(houses)
-      .values({
-        name: house.name,
-        address: house.address,
-      })
-      .returning();
-
-    if (!newHouse?.[0]) {
-      db.rollback();
-      throw new Error("Failed to create house in house table");
-    }
-
-    const newSittingSubject = await db
-      .insert(sittingSubjects)
-      .values({
-        ownerId: user.userId,
-        entityId: newHouse[0].id,
-        entityType: "House",
-      })
-      .returning();
-
-    if (!newSittingSubject?.[0]) {
-      db.rollback();
-      throw new Error("Failed to create house link in sittingSubjects table");
-    }
-
-    return houseSchema.parse({
-      houseId: newHouse[0].id,
-      subjectId: newSittingSubject[0].id,
-      ownerId: newSittingSubject[0].ownerId,
-      name: newHouse[0].name,
-      address: newHouse[0].address ? newHouse[0].address : undefined,
-    });
-  });
-
-  if (houseToReturn) return houseToReturn;
-
-  throw new Error("Failed to create house");
-}
-
-export async function updateHouse(house: House): Promise<House> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const updatedHouse = await db
-    .update(houses)
-    .set({
-      name: house.name,
-      address: house.address,
-    })
-    .where(eq(houses.id, house.houseId))
-    .returning()
-    .execute();
-
-  if (!updatedHouse?.[0]) {
-    throw new Error("Failed to update house");
-  }
-
-  return houseSchema.parse({
-    houseId: updatedHouse[0].id,
-    subjectId: house.subjectId,
-    ownerId: house.ownerId,
-    name: updatedHouse[0].name,
-    address: updatedHouse[0].address ? updatedHouse[0].address : undefined,
-  });
-}
-
-export async function deleteHouse(subjectId: number): Promise<House> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const houseToReturn = await db.transaction(async (db) => {
-    const deletedSubject = await db
-      .delete(sittingSubjects)
-      .where(eq(sittingSubjects.id, subjectId))
-      .returning();
-
-    if (!deletedSubject?.[0]) {
-      db.rollback();
-      throw new Error("Failed to delete house from sittingSubjects table");
-    }
-
-    const deletedHouse = await db
-      .delete(houses)
-      .where(eq(houses.id, deletedSubject[0].entityId))
-      .returning();
-
-    if (!deletedHouse?.[0]) {
-      db.rollback();
-      throw new Error("Failed to delete house from house table");
-    }
-
-    return houseSchema.parse({
-      houseId: deletedHouse[0].id,
-      subjectId: deletedSubject[0].id,
-      ownerId: deletedSubject[0].ownerId,
-      name: deletedHouse[0].name,
-      address: deletedHouse[0].address ? deletedHouse[0].address : undefined,
-    });
-  });
-
-  if (houseToReturn) return houseToReturn;
-
-  throw new Error("Failed to delete house");
-}
-
-export async function getOwnedPlants(): Promise<Plant[]> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  // Join sittingSubjects with plants
-  const subjectsList = db
-    .select({
-      subjectId: sittingSubjects.id,
-      entityType: sittingSubjects.entityType,
-      entityId: sittingSubjects.entityId,
-      ownerId: sittingSubjects.ownerId,
-    })
-    .from(sittingSubjects)
-    .where(
-      and(
-        eq(sittingSubjects.ownerId, user.userId),
-        eq(sittingSubjects.entityType, "Plant"),
-      ),
-    )
-    .as("owned_plant_subjects");
-
-  const joinedPlants = await db
-    .select()
-    .from(subjectsList)
-    .innerJoin(plants, eq(subjectsList.entityId, plants.id))
-    .execute();
-
-  // Turn into zod plant type
-  const plantsList: Plant[] = joinedPlants.map((plantSubject) => {
-    return plantSchema.parse({
-      plantId: plantSubject.owned_plant_subjects.entityId,
-      subjectId: plantSubject.owned_plant_subjects.subjectId,
-      ownerId: plantSubject.owned_plant_subjects.ownerId,
-      name: plantSubject.plants.name,
-      species: plantSubject.plants.species
-        ? plantSubject.plants.species
-        : undefined,
-      lastWatered: plantSubject.plants.lastWatered
-        ? plantSubject.plants.lastWatered
-        : undefined,
-      wateringFrequency: plantSubject.plants.wateringFrequency,
-    });
-  });
-
-  return plantsList;
-}
-
-export async function createPlant(plant: CreatePlantFormInput): Promise<Plant> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const plantToReturn = await db.transaction(async (db) => {
-    const newPlant = await db
-      .insert(plants)
-      .values({
-        name: plant.name,
-        species: plant.species,
-        lastWatered: plant.lastWatered,
-        wateringFrequency: plant.wateringFrequency,
-      })
-      .returning();
-
-    if (!newPlant?.[0]) {
-      db.rollback();
-      throw new Error("Failed to create plant in plant table");
-    }
-
-    const newSittingSubject = await db
-      .insert(sittingSubjects)
-      .values({
-        ownerId: user.userId,
-        entityId: newPlant[0].id,
-        entityType: "Plant",
-      })
-      .returning();
-
-    if (!newSittingSubject?.[0]) {
-      db.rollback();
-      throw new Error("Failed to create plant link in sittingSubjects table");
-    }
-
-    return plantSchema.parse({
-      plantId: newPlant[0].id,
-      subjectId: newSittingSubject[0].id,
-      ownerId: newSittingSubject[0].ownerId,
-      name: plant.name,
-      species: plant.species ? plant.species : undefined,
-      lastWatered: plant.lastWatered ? plant.lastWatered : undefined,
-      wateringFrequency: plant.wateringFrequency,
-    });
-  });
-
-  if (plantToReturn) return plantToReturn;
-
-  throw new Error("Failed to create plant");
-}
-
-export async function updatePlant(plant: Plant): Promise<Plant> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const updatedPlant = await db
-    .update(plants)
-    .set({
-      name: plant.name,
-      species: plant.species,
-      lastWatered: plant.lastWatered,
-      wateringFrequency: plant.wateringFrequency,
-    })
-    .where(eq(plants.id, plant.plantId))
-    .returning()
-    .execute();
-
-  if (!updatedPlant?.[0]) {
-    throw new Error("Failed to update plant");
-  }
-
-  return plantSchema.parse({
-    plantId: updatedPlant[0].id,
-    subjectId: plant.subjectId,
-    ownerId: plant.ownerId,
-    name: updatedPlant[0].name,
-    species: updatedPlant[0].species ? updatedPlant[0].species : undefined,
-    lastWatered: updatedPlant[0].lastWatered
-      ? updatedPlant[0].lastWatered
-      : undefined,
-    wateringFrequency: updatedPlant[0].wateringFrequency,
-  });
-}
-
-export async function deletePlant(subjectId: number): Promise<Plant> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const plantToReturn = await db.transaction(async (db) => {
-    const deletedSubject = await db
-      .delete(sittingSubjects)
-      .where(eq(sittingSubjects.id, subjectId))
-      .returning();
-
-    if (!deletedSubject?.[0]) {
-      db.rollback();
-      throw new Error("Failed to delete plant from sittingSubjects table");
-    }
-
-    const deletedPlant = await db
-      .delete(plants)
-      .where(eq(plants.id, deletedSubject[0].entityId))
-      .returning();
-
-    if (!deletedPlant?.[0]) {
-      db.rollback();
-      throw new Error("Failed to delete plant from plant table");
-    }
-
-    return plantSchema.parse({
-      plantId: deletedPlant[0].id,
-      subjectId: deletedSubject[0].id,
-      ownerId: deletedSubject[0].ownerId,
-      name: deletedPlant[0].name,
-      species: deletedPlant[0].species ? deletedPlant[0].species : undefined,
-      lastWatered: deletedPlant[0].lastWatered
-        ? deletedPlant[0].lastWatered
-        : undefined,
-      wateringFrequency: deletedPlant[0].wateringFrequency,
-    });
-  });
-
-  if (plantToReturn) return plantToReturn;
-
-  throw new Error("Failed to delete plant");
-}
-
-// Make this a return a defined type with zod so the frontend can be made nicer
-export async function getOwnedSubjects(): Promise<SittingSubject[]> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  // Get pets, houses, and plants
-  const petsList = await getOwnedPets();
-  const housesList = await getOwnedHouses();
-  const plantsList = await getOwnedPlants();
-
-  // Combine all subjects
-  const allSubjects = [...petsList, ...housesList, ...plantsList];
-
-  return allSubjects;
 }

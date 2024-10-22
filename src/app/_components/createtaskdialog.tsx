@@ -29,8 +29,8 @@ import {
   type DateRange,
   Group,
   groupListSchema,
-  type SittingSubject,
-  sittingSubjectListSchema,
+  Pet,
+  petListSchema,
   taskSchema,
 } from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
@@ -65,8 +65,8 @@ export default function CreateTaskDialog({
   const defaultFromDate = add(new Date(), { hours: 1 });
   const defaultToDate = add(new Date(), { days: 1, hours: 1 });
 
-  const [subjects, setSubjects] = React.useState<SittingSubject[]>([]);
-  const [subjectsEmpty, setSubjectsEmpty] = React.useState<boolean>(false);
+  const [pets, setPets] = React.useState<Pet[]>([]);
+  const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 
   const [groups, setGroups] = React.useState<Group[]>([]);
   const [groupsEmpty, setGroupsEmpty] = React.useState<boolean>(false);
@@ -93,17 +93,17 @@ export default function CreateTaskDialog({
           },
         })
           .then((res) => res.json())
-          .then((json) => sittingSubjectListSchema.safeParse(json))
+          .then((json) => petListSchema.safeParse(json))
           .then((validatedSubjectListObject) => {
             if (!validatedSubjectListObject.success) {
               console.error(validatedSubjectListObject.error.message);
-              throw new Error("Failed to get sitting subjects");
+              throw new Error("Failed to get sitting pets");
             }
 
             if (validatedSubjectListObject.data.length > 0) {
-              setSubjects(validatedSubjectListObject.data);
+              setPets(validatedSubjectListObject.data);
             } else if (validatedSubjectListObject.data.length === 0) {
-              setSubjectsEmpty(true);
+              setPetsEmpty(true);
             }
           });
       }
@@ -168,16 +168,12 @@ export default function CreateTaskDialog({
           });
         }
 
-        if (props?.subjectId) {
-          form.setValue("subjectId", props.subjectId);
-        }
-
         if (props?.groupId) {
           form.setValue("groupId", props.groupId);
         }
       }
 
-      // Fetch all possible sitting subjects
+      // Fetch all possible sitting pets
       void fetchSubjects();
       void fetchGroups();
     },
@@ -428,21 +424,21 @@ export default function CreateTaskDialog({
 
             <FormField
               control={form.control}
-              name="subjectId"
+              name="petId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Pet, House, or Plant</FormLabel>
                   <Select
                     onValueChange={(value) => {
-                      form.setValue("subjectId", parseInt(value));
+                      form.setValue("petId", parseInt(value));
                     }}
-                    disabled={subjectsEmpty}
+                    disabled={petsEmpty}
                   >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue
                           placeholder={
-                            !subjectsEmpty
+                            !petsEmpty
                               ? "Select a pet, house or plant"
                               : "Nothing to show"
                           }
@@ -450,12 +446,12 @@ export default function CreateTaskDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {subjects.map((subject) => (
+                      {pets.map((pet) => (
                         <SelectItem
-                          key={subject.subjectId}
-                          value={subject.subjectId.toString()}
+                          key={pet.id}
+                          value={pet.id.toString()}
                         >
-                          {subject.name}
+                          {pet.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
