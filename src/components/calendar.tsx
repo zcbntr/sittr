@@ -232,7 +232,7 @@ export default function CalendarComponent() {
       </CreateTaskDialog>
 
       <EditTaskDialog props={editTaskDialogProps}>
-        <Button id="openEditTaskDialogHiddenButton" className="hidden"></Button>
+        <Button id="openEditTaskDialogHiddenButton" className="hidden" />
       </EditTaskDialog>
     </div>
   );

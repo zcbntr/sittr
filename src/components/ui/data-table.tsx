@@ -25,7 +25,6 @@ import {
 } from "~/components/ui/table";
 
 import { Button } from "./button";
-import { Input } from "~/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -33,6 +32,8 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Search } from "./search";
+import { useState } from "react";
+import { Pet } from "~/lib/schema";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -69,8 +70,8 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      <div className="flex items-center py-4 gap-2">
-        {/* Make this field via props - there are extensive docs https://tanstack.com/table/v8/docs/guide/filters */}
+      <div className="flex items-center gap-2 py-4">
+        {/* Make this a variable via a prop - there are extensive docs https://tanstack.com/table/v8/docs/guide/filters */}
         <Search
           placeholder="Search name..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}

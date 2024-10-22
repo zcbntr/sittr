@@ -32,15 +32,7 @@ const MySubjectsPage = () => (
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="space-y-1">
-                <Suspense
-                  fallback={
-                    <div className="flex flex-row place-content-center p-5">
-                      Loading Pets...
-                    </div>
-                  }
-                >
-                  <PetsTable />
-                </Suspense>
+                <PetsTable />
               </div>
             </CardContent>
           </Card>

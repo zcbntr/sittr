@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Calendar } from "~/components/ui/calendar";
-import { type DateRange } from "react-day-picker";
+
 import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import {
@@ -28,15 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { Pet, petSchema, type SittingSubject } from "~/lib/schema/index";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import { Textarea } from "~/components/ui/textarea";
+import { Pet, petSchema } from "~/lib/schema/index";
 import {
   Popover,
   PopoverContent,
@@ -117,6 +109,8 @@ export default function EditPetDialog({
         }
 
         document.dispatchEvent(new Event("petUpdated"));
+        setOpen(false);
+        return;
       });
   }
 
@@ -140,6 +134,8 @@ export default function EditPetDialog({
           }
 
           document.dispatchEvent(new Event("petDeleted"));
+          setOpen(false);
+          return;
         });
     }
 

@@ -1,19 +1,15 @@
 "use client";
 
-import { getOwnedPets } from "~/server/queries";
 import { columns } from "~/components/ui/data-tables/pets-columns";
 import { DataTable } from "~/components/ui/data-table";
-import EditPetDialog from "./editpetdialog";
-import { Button } from "~/components/ui/button";
-import { useState } from "react";
 import { Pet, petListSchema } from "~/lib/schema";
 import React from "react";
 
-export default async function PetsTable() {
+export default function PetsTable() {
   const [pets, setPets] = React.useState<Pet[]>([]);
 
   React.useEffect(() => {
-    async function fetchPreferences(): Promise<void> {
+    async function fetchPets(): Promise<void> {
       await fetch("../api/pet?all=true", {
         method: "GET",
       })
@@ -29,23 +25,24 @@ export default async function PetsTable() {
         });
     }
 
-    void fetchPreferences();
+    void fetchPets();
+
+    document.addEventListener("petCreated", () => {
+      void fetchPets();
+    });
+
+    document.addEventListener("petUpdated", () => {
+      void fetchPets();
+    });
+
+    document.addEventListener("petDeleted", () => {
+      void fetchPets();
+    });
   }, []);
 
   return (
     <div className="container mx-auto">
       <DataTable columns={columns} data={pets} />
-      <EditPetHiddenButton />
     </div>
-  );
-}
-
-function EditPetHiddenButton() {
-  const [editPetDialogProps, setPetDialogProps] = useState<Pet>();
-
-  return (
-    <EditPetDialog props={editPetDialogProps}>
-      <Button id="openEditPetDialogHiddenButton" className="hidden"></Button>
-    </EditPetDialog>
   );
 }
