@@ -208,6 +208,8 @@ export default function EditTaskDialog({
         }
 
         document.dispatchEvent(new Event("taskUpdated"));
+        setOpen(false);
+        return;
       });
   }
 
@@ -231,6 +233,8 @@ export default function EditTaskDialog({
           }
 
           document.dispatchEvent(new Event("taskDeleted"));
+          setOpen(false);
+          return;
         });
     }
 
@@ -248,7 +252,6 @@ export default function EditTaskDialog({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              console.log(form.getValues());
               void onSubmit(form.getValues());
             }}
             onChange={() => setDataChanged(true)}

@@ -169,10 +169,26 @@ export const createGroupFormSchema = z.object({
       message: "Description must be less than 500 characters",
     })
     .optional(),
-  sittingSubjects: z.array(z.number()),
+  sittingSubjectIds: z.array(z.number()),
 });
 
 export type CreateGroupFormInput = z.infer<typeof createGroupFormSchema>;
+
+export const editGroupFormSchema = z.object({
+  id: z.number(),
+  name: z
+    .string()
+    .min(3, { message: "Name must be at least 3 characters" })
+    .max(50, { message: "Name must be less than 50 characters" }),
+  description: z
+    .string()
+    .max(500, {
+      message: "Description must be less than 500 characters",
+    })
+    .optional(),
+  sittingSubjectIds: z.array(z.number()),
+  memberIds: z.array(z.string()),
+});
 
 export const requestGroupInviteCodeFormInput = z.object({
   groupId: z.number(),

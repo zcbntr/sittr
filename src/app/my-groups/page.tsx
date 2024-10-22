@@ -1,14 +1,19 @@
 import { Suspense } from "react";
-import GroupList from "~/app/_components/grouplist";
+import GroupsTable from "../_components/groupstable";
 
 const MyGroupsPage = () => (
-  <section>
-    <Suspense fallback={<div>Loading...</div>}>
-      <div>
-        <GroupList />
-      </div>
-    </Suspense>
-  </section>
+  <>
+    <section className="container mx-auto py-4">
+      <h1 className="text-3xl">My Groups</h1>
+    </section>
+    <section>
+      <Suspense fallback={<div>Loading...</div>}>
+        <div>
+          <GroupsTable />
+        </div>
+      </Suspense>
+    </section>
+  </>
 );
 
 export default MyGroupsPage;

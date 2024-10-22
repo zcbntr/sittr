@@ -604,7 +604,7 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
     }
 
     // Add sitting subjects to group
-    for (const subjectId of group.sittingSubjects) {
+    for (const subjectId of group.sittingSubjectIds) {
       const subject = await db
         .insert(subjectsToGroups)
         .values({
@@ -632,7 +632,7 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
           role: groupMember[0].role,
         }),
       ],
-      sittingSubjectIds: group.sittingSubjects,
+      sittingSubjectIds: group.sittingSubjectIds,
     });
   });
 

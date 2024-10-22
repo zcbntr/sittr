@@ -42,7 +42,12 @@ export default function PetsTable() {
 
   return (
     <div className="container mx-auto">
-      <DataTable columns={columns} data={pets} />
+      <DataTable
+        columns={columns}
+        data={pets}
+        searchable={true}
+        filterable={true}
+      />
     </div>
   );
 }
