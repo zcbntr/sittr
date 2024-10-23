@@ -84,6 +84,7 @@ export function GroupOwnerPage({
   //     form.setValue("groupId", props.groupId);
   //   }
   // }
+  
   React.useEffect(() => {
     // Get the owned pets of the user, NOT THE GROUP - this is passed as a prop
     async function fetchOwnedPets() {
@@ -110,7 +111,7 @@ export function GroupOwnerPage({
     }
 
     void fetchOwnedPets();
-  });
+  }, []);
 
   const addMember = () => {
     if (newMemberName) {
