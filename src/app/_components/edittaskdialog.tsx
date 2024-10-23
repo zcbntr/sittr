@@ -105,7 +105,7 @@ export default function EditTaskDialog({
       }
 
       async function fetchGroups() {
-        await fetch("api/group?all=true", {
+        await fetch("api/groups?all=true", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -187,7 +187,7 @@ export default function EditTaskDialog({
       return;
     }
 
-    await fetch("/api/task", {
+    await fetch("/api/tasks", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -212,7 +212,7 @@ export default function EditTaskDialog({
     // Fix this at some point with another dialog
     // eslint-disable-next-line no-alert
     if (window.confirm("Are you sure you want to delete this task?")) {
-      await fetch("api/task", {
+      await fetch("api/tasks", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

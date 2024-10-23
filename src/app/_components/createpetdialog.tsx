@@ -48,7 +48,7 @@ export default function CreatePetDialog({
   });
 
   async function onSubmit(data: z.infer<typeof createPetFormSchema>) {
-    await fetch("/api/pet", {
+    await fetch("/api/pets", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -64,6 +64,8 @@ export default function CreatePetDialog({
         }
 
         document.dispatchEvent(new Event("petCreated"));
+        setOpen(false);
+        return;
       });
   }
 
@@ -127,7 +129,7 @@ export default function CreatePetDialog({
               name="dob"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date</FormLabel>
+                  <FormLabel>Date of Birth</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>

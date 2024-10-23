@@ -85,8 +85,8 @@ export default function CreateTaskDialog({
   // Update state upon props change, Update form value upon props change
   React.useEffect(
     () => {
-      async function fetchSubjects() {
-        await fetch("api/sittingsubject?all=true", {
+      async function fetchPets() {
+        await fetch("api/pets?all=true", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -109,7 +109,7 @@ export default function CreateTaskDialog({
       }
 
       async function fetchGroups() {
-        await fetch("api/group?all=true", {
+        await fetch("api/groups?all=true", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -174,7 +174,7 @@ export default function CreateTaskDialog({
       }
 
       // Fetch all possible sitting pets
-      void fetchSubjects();
+      void fetchPets();
       void fetchGroups();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -182,7 +182,7 @@ export default function CreateTaskDialog({
   );
 
   async function onSubmit(data: z.infer<typeof createTaskSchema>) {
-    await fetch("../api/task", {
+    await fetch("../api/tasks", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -447,10 +447,7 @@ export default function CreateTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {pets.map((pet) => (
-                        <SelectItem
-                          key={pet.id}
-                          value={pet.id.toString()}
-                        >
+                        <SelectItem key={pet.id} value={pet.id.toString()}>
                           {pet.name}
                         </SelectItem>
                       ))}

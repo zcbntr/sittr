@@ -97,7 +97,7 @@ export const columns: ColumnDef<Pet>[] = [
                   if (
                     window.confirm("Are you sure you want to delete this pet?")
                   ) {
-                    await fetch("api/pet", {
+                    await fetch("api/pets", {
                       method: "DELETE",
                       headers: {
                         "Content-Type": "application/json",

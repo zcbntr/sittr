@@ -10,7 +10,7 @@ export default function PetsTable() {
 
   React.useEffect(() => {
     async function fetchPets(): Promise<void> {
-      await fetch("../api/pet?all=true", {
+      await fetch("../api/pets?all=true", {
         method: "GET",
       })
         .then((res) => res.json())

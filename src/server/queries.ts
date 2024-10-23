@@ -9,8 +9,6 @@ import {
   groups,
   pets,
   tasks,
-  userSittingPreferences,
-  userOwnerPreferences,
   petsToGroups,
 } from "./db/schema";
 import {
@@ -733,38 +731,29 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
     throw new Error("Unauthorized");
   }
 
-  const petToReturn = await db.transaction(async (db) => {
-    const newPet = await db
-      .insert(pets)
-      .values({
-        ownerId: user.userId,
-        name: pet.name,
-        species: pet.species,
-        breed: pet.breed,
-        dob: pet.dob,
-      })
-      .returning();
-
-    if (!newPet?.[0]) {
-      db.rollback();
-      throw new Error("Failed to create pet in pet table");
-    }
-
-    return petSchema.parse({
-      petId: newPet[0].id,
-      ownerId: newPet[0].ownerId,
+  const newPet = await db
+    .insert(pets)
+    .values({
+      ownerId: user.userId,
       name: pet.name,
       species: pet.species,
-      breed: pet.breed ? pet.breed : undefined,
+      breed: pet.breed,
       dob: pet.dob,
-    });
-  });
+    })
+    .returning();
 
-  if (petToReturn) {
-    return petToReturn;
+  if (!newPet?.[0]) {
+    throw new Error("Failed to create pet");
   }
 
-  throw new Error("Failed to create pet");
+  return petSchema.parse({
+    id: newPet[0].id,
+    ownerId: newPet[0].ownerId,
+    name: newPet[0].name,
+    species: newPet[0].species,
+    breed: newPet[0].breed ? pet.breed : undefined,
+    dob: newPet[0].dob,
+  });
 }
 
 export async function getOwnedPets(): Promise<Pet[]> {
@@ -781,7 +770,7 @@ export async function getOwnedPets(): Promise<Pet[]> {
   // Turn into zod pet type
   const petsList: Pet[] = ownedPets.map((pet) => {
     return petSchema.parse({
-      petId: pet.id,
+      id: pet.id,
       ownerId: pet.ownerId,
       name: pet.name,
       species: pet.species,
@@ -817,7 +806,7 @@ export async function updatePet(pet: Pet): Promise<Pet> {
   }
 
   return petSchema.parse({
-    petId: updatedPet[0].id,
+    id: updatedPet[0].id,
     ownerId: updatedPet[0].ownerId,
     name: updatedPet[0].name,
     species: updatedPet[0].species,
@@ -842,7 +831,7 @@ export async function deletePet(id: number): Promise<Pet> {
     }
 
     return petSchema.parse({
-      petId: deletedPet[0].id,
+      id: deletedPet[0].id,
       ownerId: deletedPet[0].ownerId,
       name: deletedPet[0].name,
       species: deletedPet[0].species,

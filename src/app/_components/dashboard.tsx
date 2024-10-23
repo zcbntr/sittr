@@ -7,8 +7,6 @@ import { Button } from "~/components/ui/button";
 import CreatePetDialog from "./createpetdialog";
 import CreateGroupDialog from "./creategroupdialog";
 import CreateTaskDialog from "./createtaskdialog";
-import CreateHouseDialog from "./createhousedialog";
-import CreatePlantDialog from "./createplantdialog";
 
 export default async function Dashboard() {
   return (

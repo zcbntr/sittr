@@ -32,13 +32,13 @@ export function TopNav() {
                     href="/my-groups"
                   ></UserButton.Link>
                   <UserButton.Link
-                    label="My Pets, Houses, and Plants"
+                    label="My Pets"
                     labelIcon={
                       <div className="flex flex-row place-content-center">
                         <MdPets size="1.5em" />
                       </div>
                     }
-                    href="/my-subjects"
+                    href="/my-pets"
                   ></UserButton.Link>
                 </UserButton.MenuItems>
               </UserButton>

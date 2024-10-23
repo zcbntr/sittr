@@ -30,38 +30,6 @@ export const wateringFrequencyEnum = pgEnum(
  */
 export const createTable = pgTableCreator((name) => `sittr_${name}`);
 
-// User preferences for providing sitting services
-export const userSittingPreferences = createTable("user_sitting_preferences", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id", { length: 255 }).notNull(),
-  houseSitting: boolean("house_sitting").notNull().default(false),
-  petSitting: boolean("pet_sitting").notNull().default(false),
-  babySitting: boolean("baby_sitting").notNull().default(false),
-  plantSitting: boolean("plant_sitting").notNull().default(false),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
-
-// User preferences for receiving sitting services
-export const userOwnerPreferences = createTable("user_owner_preferences", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id", { length: 255 }).notNull(),
-  houseSitting: boolean("house_sitting").notNull().default(false),
-  petSitting: boolean("pet_sitting").notNull().default(false),
-  babySitting: boolean("baby_sitting").notNull().default(false),
-  plantSitting: boolean("plant_sitting").notNull().default(false),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
-
 // Tasks can be either due at a certain time or span a certain time period
 export const tasks = createTable("tasks", {
   id: serial("id").primaryKey(),
@@ -104,7 +72,7 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
   }),
 }));
 
-export const petsToGroups = createTable("subjects_to_groups", {
+export const petsToGroups = createTable("pets_to_groups", {
   id: serial("id").primaryKey(),
   groupId: integer("group_id")
     .references(() => groups.id, { onDelete: "cascade" })
