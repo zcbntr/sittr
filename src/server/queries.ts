@@ -373,7 +373,7 @@ export async function deleteOwnedTask(id: string): Promise<Task> {
   throw new Error("Failed to delete task");
 }
 
-export async function getGroupById(id: string): Promise<Group> {
+export async function getGroupById(id: string): Promise<Group | null> {
   const user = auth();
 
   if (!user.userId) {
@@ -385,7 +385,7 @@ export async function getGroupById(id: string): Promise<Group> {
   });
 
   if (!group) {
-    throw new Error("Group not found");
+    return null;
   }
 
   return groupSchema.parse({
@@ -703,6 +703,48 @@ export async function getGroupMembers(groupId: string) {
   });
 
   return groupMembersList;
+}
+
+export async function updateGroup(group: Group) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check user is the owner of the group
+  const groupMember = await db.query.groupMembers.findFirst({
+    where: (model, { and, eq }) =>
+      and(
+        eq(model.groupId, group.id),
+        eq(model.userId, user.userId),
+        eq(model.role, "Owner"),
+      ),
+  });
+
+  if (!groupMember) {
+    throw new Error("User is not the owner of the group");
+  }
+
+  const updatedGroup = await db
+    .update(groups)
+    .set({
+      name: group.name,
+      description: group.description,
+    })
+    .where(eq(groups.id, group.id))
+    .returning()
+    .execute();
+
+  if (!updatedGroup?.[0]) {
+    throw new Error("Failed to update group");
+  }
+
+  return groupSchema.parse({
+    id: updatedGroup[0].id,
+    name: updatedGroup[0].name,
+    description: updatedGroup[0].description,
+  });
 }
 
 export async function deleteGroup(groupId: string): Promise<Group> {

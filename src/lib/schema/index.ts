@@ -138,22 +138,6 @@ export const createGroupFormSchema = z.object({
 
 export type CreateGroupFormInput = z.infer<typeof createGroupFormSchema>;
 
-export const editGroupFormSchema = z.object({
-  id: z.string(),
-  name: z
-    .string()
-    .min(3, { message: "Name must be at least 3 characters" })
-    .max(50, { message: "Name must be less than 50 characters" }),
-  description: z
-    .string()
-    .max(500, {
-      message: "Description must be less than 500 characters",
-    })
-    .optional(),
-  petIds: z.array(z.string()),
-  memberIds: z.array(z.string()),
-});
-
 export const requestGroupInviteCodeFormInput = z.object({
   groupId: z.string(),
   maxUses: z.number(),

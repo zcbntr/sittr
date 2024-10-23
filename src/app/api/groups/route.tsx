@@ -1,10 +1,17 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { basicGetAPIFormSchema, createGroupFormSchema } from "~/lib/schema";
+import {
+  basicGetAPIFormSchema,
+  createGroupFormSchema,
+  deleteAPIFormSchema,
+  groupSchema,
+} from "~/lib/schema";
 import {
   createGroup,
+  deleteGroup,
   getGroupById,
   getGroupsByIds,
   getGroupsUserIsIn,
+  updateGroup,
 } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
@@ -60,6 +67,48 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
     const group = await createGroup(formData.data);
 
     return NextResponse.json(group);
+  } catch (error) {
+    return NextResponse.json({ error });
+  }
+}
+
+export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
+  try {
+    const json: unknown = await req.json();
+
+    const formData = groupSchema.safeParse(json);
+
+    if (!formData.success) {
+      console.log(
+        "Edit Group Form Data Parse Error: \n" + formData.error.toString(),
+      );
+      throw new Error("Invalid form data");
+    }
+
+    const pgRow = await updateGroup(formData.data);
+
+    return NextResponse.json(pgRow);
+  } catch (error) {
+    return NextResponse.json({ error });
+  }
+}
+
+export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
+  try {
+    const json: unknown = await req.json();
+
+    const formData = deleteAPIFormSchema.safeParse(json);
+
+    if (!formData.success) {
+      console.log(
+        "Delete Group Form Data Parse Error: \n" + formData.error.toString(),
+      );
+      throw new Error("Invalid form data");
+    }
+
+    const pgRow = await deleteGroup(formData.data.id);
+
+    return NextResponse.json(pgRow);
   } catch (error) {
     return NextResponse.json({ error });
   }

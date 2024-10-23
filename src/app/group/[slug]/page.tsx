@@ -11,25 +11,21 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { Textarea } from "~/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { X, Plus, Pencil, Save } from "lucide-react";
 import React from "react";
-import { type Group, groupSchema, petListSchema } from "~/lib/schema";
+import { type Group, groupSchema, Pet, petListSchema } from "~/lib/schema";
+import { GroupNameDescriptionForm } from "~/app/_components/group-page/name-description-form";
 
 export default function Page({ params }: { params: { slug: string } }) {
+  const [groupDoesNotExist, setGroupDoesNotExist] = useState(false);
   const [group, setGroup] = useState<Group>();
   const [members, setMembers] = useState([
     { id: 1, name: "Alice Johnson", avatar: "/placeholder-avatar-1.jpg" },
     { id: 2, name: "Bob Smith", avatar: "/placeholder-avatar-2.jpg" },
     { id: 3, name: "Carol Williams", avatar: "/placeholder-avatar-3.jpg" },
   ]);
-  const [pets, setPets] = useState([
-    { id: 1, name: "Max", type: "Dog", avatar: "/placeholder-pet-1.jpg" },
-    { id: 2, name: "Whiskers", type: "Cat", avatar: "/placeholder-pet-2.jpg" },
-    { id: 3, name: "Tweety", type: "Bird", avatar: "/placeholder-pet-3.jpg" },
-  ]);
+  const [pets, setPets] = useState<Pet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState(false);
   const [newMemberName, setNewMemberName] = useState("");
   const [newPetName, setNewPetName] = useState("");
@@ -39,6 +35,13 @@ export default function Page({ params }: { params: { slug: string } }) {
   // Update state upon props change, Update form value upon props change
   React.useEffect(
     () => {
+      async function getData() {
+        await fetchGroup();
+        if (!groupDoesNotExist) {
+          await fetchPets();
+        }
+      }
+
       // Get the data for the group from the slug
       async function fetchGroup() {
         await fetch("../api/groups?id=" + params.slug, {
@@ -48,6 +51,14 @@ export default function Page({ params }: { params: { slug: string } }) {
           },
         })
           .then((res) => res.json())
+          .then((json) => {
+            console.log(json);
+            if (json == null) {
+              // No such group exists, set the flag
+              setGroupDoesNotExist(true);
+              return;
+            }
+          })
           .then((json) => groupSchema.safeParse(json))
           .then((validatedGroupObject) => {
             if (!validatedGroupObject.success) {
@@ -129,8 +140,7 @@ export default function Page({ params }: { params: { slug: string } }) {
       // }
 
       // Fetch all possible sitting pets
-      void fetchGroup();
-      void fetchPets();
+      void getData();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -176,7 +186,22 @@ export default function Page({ params }: { params: { slug: string } }) {
 
   return (
     <div className="container mx-auto space-y-6 p-4">
-      {isEditing ? (
+      {groupDoesNotExist && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h3 className="text-lg font-semibold">Group Not Found</h3>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              The group you are looking for does not exist.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {!groupDoesNotExist && isEditing && (
         <Card>
           <CardHeader>
             <CardTitle>
@@ -184,35 +209,12 @@ export default function Page({ params }: { params: { slug: string } }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              {/* Turn into form */}
-
-              <Label htmlFor="group-name">Group Name</Label>
-              <Input
-                id="group-name"
-                value={group?.name}
-                onChange={(e) => setGroupName(e.target.value)}
-                placeholder="Enter group name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="group-description">Group Description</Label>
-              <Textarea
-                id="group-description"
-                value={group?.description ? group.description : ""}
-                onChange={(e) => setGroupDescription(e.target.value)}
-                placeholder="Enter group description"
-              />
-            </div>
+            <GroupNameDescriptionForm group={group} />
           </CardContent>
-          <CardFooter>
-            <Button onClick={() => setIsEditing(false)}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Save Changes
-            </Button>
-          </CardFooter>
         </Card>
-      ) : (
+      )}
+
+      {!groupDoesNotExist && !isEditing && (
         <Card>
           <CardHeader>
             <CardTitle>
@@ -295,7 +297,7 @@ export default function Page({ params }: { params: { slug: string } }) {
                 <div>
                   <div>{pet.name}</div>
                   <div className="text-sm text-muted-foreground">
-                    {pet.type}
+                    {pet.species}
                   </div>
                 </div>
                 <Button
