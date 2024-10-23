@@ -26,7 +26,7 @@ import {
 import {
   createGroupFormSchema,
   groupSchema,
-  Pet,
+  type Pet,
   petListSchema,
 } from "~/lib/schema/index";
 import { Textarea } from "~/components/ui/textarea";
@@ -45,9 +45,7 @@ export default function CreateGroupDialog({
   const [open, setOpen] = React.useState(false);
 
   const [pets, setPets] = React.useState<Pet[]>([]);
-  const [selectedPetIds, setSelectedPetIds] = React.useState<number[]>(
-    [],
-  );
+  const [selectedPetIds, setSelectedPetIds] = React.useState<number[]>([]);
   const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 
   const form = useForm<z.infer<typeof createGroupFormSchema>>({
@@ -82,7 +80,7 @@ export default function CreateGroupDialog({
   }, []);
 
   async function onSubmit(data: z.infer<typeof createGroupFormSchema>) {
-    await fetch("/api/group", {
+    await fetch("/api/groups", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -98,6 +96,8 @@ export default function CreateGroupDialog({
         }
 
         document.dispatchEvent(new Event("groupCreated"));
+        setOpen(false);
+        return;
       });
   }
 
@@ -162,33 +162,22 @@ export default function CreateGroupDialog({
                         )}
                         {!petsEmpty && selectedPetIds.length === 1 && (
                           <div>
-                            {
-                              pets.find(
-                                (x) => x.id == selectedPetIds[0],
-                              )?.name
-                            }
+                            {pets.find((x) => x.id == selectedPetIds[0])?.name}
                           </div>
                         )}
                         {!petsEmpty && selectedPetIds.length === 2 && (
                           <div>
-                            {pets.find(
-                              (x) => x.id == selectedPetIds[0],
-                            )?.name +
+                            {pets.find((x) => x.id == selectedPetIds[0])?.name +
                               " and " +
-                              pets.find(
-                                (x) => x.id == selectedPetIds[1],
-                              )?.name}
+                              pets.find((x) => x.id == selectedPetIds[1])?.name}
                           </div>
                         )}
                         {selectedPetIds.length >= 3 && (
                           <div>
-                            {pets.find(
-                              (x) => x.id == selectedPetIds[0],
-                            )?.name +
+                            {pets.find((x) => x.id == selectedPetIds[0])?.name +
                               ", " +
-                              pets.find(
-                                (x) => x.id == selectedPetIds[1],
-                              )?.name +
+                              pets.find((x) => x.id == selectedPetIds[1])
+                                ?.name +
                               ", and " +
                               (selectedPetIds.length - 2).toString() +
                               " more"}
@@ -202,21 +191,14 @@ export default function CreateGroupDialog({
                         return (
                           <DropdownMenuCheckboxItem
                             key={i}
-                            checked={selectedPetIds.includes(
-                              subject.id,
-                            )}
+                            checked={selectedPetIds.includes(subject.id)}
                             onCheckedChange={() => {
-                              if (
-                                !selectedPetIds.includes(subject.id)
-                              ) {
+                              if (!selectedPetIds.includes(subject.id)) {
                                 setSelectedPetIds([
                                   ...selectedPetIds,
                                   subject.id,
                                 ]);
-                                field.onChange([
-                                  ...selectedPetIds,
-                                  subject.id,
-                                ]);
+                                field.onChange([...selectedPetIds, subject.id]);
                               } else {
                                 setSelectedPetIds(
                                   selectedPetIds.filter(

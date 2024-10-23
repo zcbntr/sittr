@@ -32,15 +32,21 @@ export default async function GroupsTable() {
             <TableRow key={group.id}>
               <TableCell>
                 <GroupRedirectButton groupId={group.id}>
-                  {group.name}
+                  <div className="font-semibold">{group.name}</div>
                 </GroupRedirectButton>
               </TableCell>
-              <TableCell>{group.description?.substring(0, 20)}</TableCell>
+              <TableCell>
+                {group.description
+                  ? group.description.length <= 27
+                    ? group.description
+                    : group.description.substring(0, 27) + "..."
+                  : ""}
+              </TableCell>
               <TableCell>
                 {group.members ? group.members.length : "No members"}
               </TableCell>
               <TableCell>
-                {group.petIds ? group.petIds.length : 0}
+                {group.petIds ? group.petIds.length : "No pets"}
               </TableCell>
             </TableRow>
           ))}

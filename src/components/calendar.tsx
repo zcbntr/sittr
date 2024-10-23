@@ -85,7 +85,7 @@ export default function CalendarComponent() {
   useEffect(() => {
     async function fetchData() {
       await fetch(
-        "api/task?" +
+        "api/tasks?" +
           new URLSearchParams({
             from: startOfMonth(new Date()).toString(),
             to: endOfMonth(new Date()).toString(),
