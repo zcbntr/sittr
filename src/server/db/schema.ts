@@ -1,27 +1,17 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
-  index,
   integer,
   pgEnum,
   pgTableCreator,
-  primaryKey,
-  serial,
   text,
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
-import {
-  GroupRoleEnum,
-  WateringFrequency,
-} from "~/lib/schema";
+import { v4 as uuid } from "uuid";
+import { GroupRoleEnum } from "~/lib/schema";
 
 export const groupRoleEnum = pgEnum("role", GroupRoleEnum.options);
-
-export const wateringFrequencyEnum = pgEnum(
-  "watering_frequency",
-  WateringFrequency.options,
-);
 
 /**
  * Multi-project schema feature of Drizzle ORM.
@@ -32,8 +22,10 @@ export const createTable = pgTableCreator((name) => `sittr_${name}`);
 
 // Tasks can be either due at a certain time or span a certain time period
 export const tasks = createTable("tasks", {
-  id: serial("id").primaryKey(),
-  ownerId: varchar("owner_id", { length: 255 }).notNull(),
+  id: text("id")
+    .$defaultFn(() => uuid())
+    .primaryKey(),
+  ownerId: text("owner_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   completed: boolean("completed").notNull().default(false),
@@ -41,15 +33,12 @@ export const tasks = createTable("tasks", {
   dueDate: timestamp("due_date", { withTimezone: true }),
   dateRangeFrom: timestamp("date_range_from", { withTimezone: true }),
   dateRangeTo: timestamp("date_range_to", { withTimezone: true }),
-  pet: integer("pet").references(
-    () => pets.id,
-    { onDelete: "cascade" },
-  ),
-  group: integer("group").references(() => groups.id, {
+  pet: text("pet").references(() => pets.id, { onDelete: "cascade" }),
+  group: text("group").references(() => groups.id, {
     onDelete: "cascade",
   }),
   // If the task is marked as done, the user who marked it as done
-  markedAsDoneBy: varchar("marked_as_done_by", { length: 255 }),
+  markedAsDoneBy: text("marked_as_done_by"),
   requiresVerification: boolean("requires_verification")
     .notNull()
     .default(false),
@@ -73,11 +62,13 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
 }));
 
 export const petsToGroups = createTable("pets_to_groups", {
-  id: serial("id").primaryKey(),
-  groupId: integer("group_id")
+  id: text("id")
+    .$defaultFn(() => uuid())
+    .primaryKey(),
+  groupId: text("group_id")
     .references(() => groups.id, { onDelete: "cascade" })
     .notNull(),
-  petId: integer("pet_id")
+  petId: text("pet_id")
     .references(() => pets.id, { onDelete: "cascade" })
     .notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -88,23 +79,22 @@ export const petsToGroups = createTable("pets_to_groups", {
   ),
 });
 
-export const petsToGroupsRelations = relations(
-  petsToGroups,
-  ({ one }) => ({
-    group: one(groups, {
-      fields: [petsToGroups.groupId],
-      references: [groups.id],
-    }),
-    pet: one(pets, {
-      fields: [petsToGroups.petId],
-      references: [pets.id],
-    }),
+export const petsToGroupsRelations = relations(petsToGroups, ({ one }) => ({
+  group: one(groups, {
+    fields: [petsToGroups.groupId],
+    references: [groups.id],
   }),
-);
+  pet: one(pets, {
+    fields: [petsToGroups.petId],
+    references: [pets.id],
+  }),
+}));
 
 export const pets = createTable("pets", {
-  id: serial("id").primaryKey(),
-  ownerId: varchar("owner_id", { length: 255 }).notNull(),
+  id: text("id")
+    .$defaultFn(() => uuid())
+    .primaryKey(),
+  ownerId: text("owner_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   species: varchar("species", { length: 255 }).notNull(),
   breed: varchar("breed", { length: 255 }),
@@ -122,8 +112,10 @@ export const petRelations = relations(pets, ({ one }) => ({
 }));
 
 export const petNotes = createTable("pet_notes", {
-  id: serial("id").primaryKey(),
-  petId: integer("pet_id")
+  id: text("id")
+    .$defaultFn(() => uuid())
+    .primaryKey(),
+  petId: text("pet_id")
     .references(() => pets.id, { onDelete: "cascade" })
     .notNull(),
   note: text("note").notNull(),
@@ -143,7 +135,9 @@ export const petNotesRelations = relations(petNotes, ({ one }) => ({
 }));
 
 export const groups = createTable("groups", {
-  id: serial("id").primaryKey(),
+  id: text("id")
+    .$defaultFn(() => uuid())
+    .primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -162,11 +156,13 @@ export const groupsRelations = relations(groups, ({ many }) => ({
 }));
 
 export const groupMembers = createTable("group_members", {
-  id: serial("id").primaryKey(),
-  groupId: integer("group_id")
+  id: text("id")
+    .$defaultFn(() => uuid())
+    .primaryKey(),
+  groupId: text("group_id")
     .references(() => groups.id, { onDelete: "cascade" })
     .notNull(),
-  userId: varchar("user_id", { length: 255 }).notNull(),
+  userId: text("user_id").notNull(),
   role: groupRoleEnum("role").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
@@ -184,8 +180,10 @@ export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
 }));
 
 export const groupInviteCodes = createTable("group_invite_codes", {
-  id: serial("id").primaryKey(),
-  groupId: integer("group_id")
+  id: text("id")
+    .$defaultFn(() => uuid())
+    .primaryKey(),
+  groupId: text("group_id")
     .references(() => groups.id, { onDelete: "cascade" })
     .notNull(),
   code: varchar("code", { length: 255 }).notNull().unique(),

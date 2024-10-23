@@ -28,7 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { Pet, petSchema } from "~/lib/schema/index";
+import { type Pet, petSchema } from "~/lib/schema/index";
 import {
   Popover,
   PopoverContent,
@@ -81,6 +81,7 @@ export default function EditPetDialog({
         setDOB(props.dob);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props]);
 
   async function onSubmit(data: z.infer<typeof petSchema>) {

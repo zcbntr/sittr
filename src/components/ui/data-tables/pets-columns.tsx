@@ -1,11 +1,10 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 
 import { MoreHorizontal } from "lucide-react";
-import { useState } from "react";
-import EditPetDialog from "~/app/_components/editpetdialog";
+import Link from "next/link";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -47,8 +46,6 @@ export const columns: ColumnDef<Pet>[] = [
     cell: ({ row }) => {
       const pet = row.original;
 
-      const [editPetDialogProps, setEditPetDialogProps] = useState<Pet>();
-
       return (
         <>
           <DropdownMenu>
@@ -69,25 +66,8 @@ export const columns: ColumnDef<Pet>[] = [
               >
                 Copy
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  const button = document.getElementById(
-                    "openEditPetDialogHiddenButton",
-                  );
-                  if (button) {
-                    setEditPetDialogProps({
-                      id: row.original.id,
-                      ownerId: row.original.ownerId,
-                      name: row.original.name,
-                      species: row.original.species,
-                      breed: row.original.breed,
-                      dob: row.original.dob,
-                    });
-                    button.click();
-                  }
-                }}
-              >
-                Edit
+              <DropdownMenuItem>
+                <Link className="flex flex-row grow" href={"pet/" + pet.id}>Edit</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -121,9 +101,6 @@ export const columns: ColumnDef<Pet>[] = [
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <EditPetDialog props={editPetDialogProps}>
-            <Button id="openEditPetDialogHiddenButton" className="hidden" />
-          </EditPetDialog>
         </>
       );
     },

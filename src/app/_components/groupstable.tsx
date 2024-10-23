@@ -17,14 +17,13 @@ export default async function GroupsTable() {
   return (
     <div className="container mx-auto">
       <Table>
-        {/* Show the owner of the group? */}
-        <TableCaption>A list of groups you are part of.</TableCaption>
+        {/* Show the owner of the group? Maybe a group info zod schema for owner, members, pets as well as basic group info */}
         <TableHeader>
           <TableRow>
             <TableHead className="max-w-36">Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Members</TableHead>
-            <TableHead>Pets, Houses, Plants</TableHead>
+            <TableHead>Pets</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -52,6 +51,11 @@ export default async function GroupsTable() {
           ))}
         </TableBody>
       </Table>
+      {groups.length === 0 && (
+        <div className="flex grow flex-row place-content-center py-4 text-xl">
+          No groups found.
+        </div>
+      )}
     </div>
   );
 }

@@ -45,7 +45,7 @@ export default function CreateGroupDialog({
   const [open, setOpen] = React.useState(false);
 
   const [pets, setPets] = React.useState<Pet[]>([]);
-  const [selectedPetIds, setSelectedPetIds] = React.useState<number[]>([]);
+  const [selectedPetIds, setSelectedPetIds] = React.useState<string[]>([]);
   const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 
   const form = useForm<z.infer<typeof createGroupFormSchema>>({

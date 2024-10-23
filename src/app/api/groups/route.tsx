@@ -1,10 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { basicGetAPIFormSchema, createGroupFormSchema } from "~/lib/schema";
-import { createGroup, getGroupsUserIsIn } from "~/server/queries";
+import {
+  createGroup,
+  getGroupById,
+  getGroupsByIds,
+  getGroupsUserIsIn,
+} from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const requestParams = basicGetAPIFormSchema.safeParse({
+      id: req.nextUrl.searchParams.get("id"),
       ids: req.nextUrl.searchParams.get("ids"),
       all: req.nextUrl.searchParams.get("all") === "true",
     });
@@ -21,6 +27,14 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
       const groupsIn = await getGroupsUserIsIn();
 
       return NextResponse.json(groupsIn);
+    } else if (requestParams.data.id) {
+      const group = await getGroupById(requestParams.data.id);
+
+      return NextResponse.json(group);
+    } else if (requestParams.data.ids) {
+      const groups = await getGroupsByIds(requestParams.data.ids);
+
+      return NextResponse.json(groups);
     }
 
     return NextResponse.json({ error: "Invalid request params" });
@@ -43,9 +57,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const group = await createGroup(
-      formData.data
-    );
+    const group = await createGroup(formData.data);
 
     return NextResponse.json(group);
   } catch (error) {

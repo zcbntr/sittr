@@ -34,9 +34,9 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import {
-  Group,
+  type Group,
   groupListSchema,
-  Pet,
+  type Pet,
   petListSchema,
   type Task,
   taskSchema,
@@ -70,6 +70,8 @@ export default function EditTaskDialog({
 
   const [dueMode, setDueMode] = React.useState<boolean>(true);
   const [dueDate, setDueDate] = React.useState<Date | undefined>();
+  // This variable is actually used, just not detected by the linter as its properties are used not its value itself
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
   const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
@@ -81,7 +83,7 @@ export default function EditTaskDialog({
   // Update state upon props change, Update form value upon props change
   React.useEffect(
     () => {
-      async function fetchSubjects() {
+      async function fetchPets() {
         await fetch("api/pets?all=true", {
           method: "GET",
           headers: {
@@ -174,7 +176,7 @@ export default function EditTaskDialog({
       }
 
       // Fetch all possible sitting pets
-      void fetchSubjects();
+      void fetchPets();
       void fetchGroups();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -466,7 +468,7 @@ export default function EditTaskDialog({
                   <FormLabel>Pet, House, or Plant</FormLabel>
                   <Select
                     onValueChange={(value) => {
-                      form.setValue("petId", parseInt(value));
+                      form.setValue("petId", value);
                     }}
                     disabled={petsEmpty}
                     value={field.value?.toString()}
@@ -506,9 +508,10 @@ export default function EditTaskDialog({
                   <FormLabel>Group</FormLabel>
                   <Select
                     onValueChange={(value) => {
-                      form.setValue("groupId", parseInt(value));
+                      form.setValue("groupId", value);
                     }}
                     disabled={groupsEmpty}
+                    value={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>

@@ -10,14 +10,6 @@ export type RoleEnum = z.infer<typeof RoleEnum>;
 export const GroupRoleEnum = z.enum(["Owner", "Member", "Pending"]);
 export type GroupRoleEnum = z.infer<typeof GroupRoleEnum>;
 
-export const WateringFrequency = z.enum([
-  "Daily",
-  "Weekly",
-  "Biweekly",
-  "Monthly",
-]);
-export type WateringFrequency = z.infer<typeof WateringFrequency>;
-
 export const dateRangeSchema = z
   .object({
     from: z.coerce.date(),
@@ -46,8 +38,8 @@ export const createTaskSchema = z
     dueMode: z.boolean(),
     dueDate: z.coerce.date().optional(),
     dateRange: dateRangeSchema.optional(),
-    petId: z.number(),
-    groupId: z.number().optional(),
+    petId: z.string(),
+    groupId: z.string().optional(),
   })
   // Must have either due date or start and end date
   .refine(
@@ -108,8 +100,8 @@ export const createTaskFormProps = z.object({
   dueMode: z.boolean().optional(),
   dueDate: z.coerce.date().optional(),
   dateRange: dateRangeSchema.optional(),
-  petId: z.number().optional(),
-  groupId: z.number().optional(),
+  petId: z.string().optional(),
+  groupId: z.string().optional(),
 });
 
 export type CreateTaskFormProps = z.infer<typeof createTaskFormProps>;
@@ -141,13 +133,13 @@ export const createGroupFormSchema = z.object({
       message: "Description must be less than 500 characters",
     })
     .optional(),
-  petIds: z.array(z.number()),
+  petIds: z.array(z.string()),
 });
 
 export type CreateGroupFormInput = z.infer<typeof createGroupFormSchema>;
 
 export const editGroupFormSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   name: z
     .string()
     .min(3, { message: "Name must be at least 3 characters" })
@@ -158,12 +150,12 @@ export const editGroupFormSchema = z.object({
       message: "Description must be less than 500 characters",
     })
     .optional(),
-  petIds: z.array(z.number()),
+  petIds: z.array(z.string()),
   memberIds: z.array(z.string()),
 });
 
 export const requestGroupInviteCodeFormInput = z.object({
-  groupId: z.number(),
+  groupId: z.string(),
   maxUses: z.number(),
   expiresAt: z.coerce.date(),
   requiresApproval: z.boolean(),
@@ -179,8 +171,8 @@ export type RequestGroupInviteCodeFormInput = z.infer<
 
 export const basicGetAPIFormSchema = z
   .object({
-    id: z.number().optional().nullable(),
-    ids: z.array(z.number()).optional().nullable(),
+    id: z.string().optional().nullable(),
+    ids: z.array(z.string()).optional().nullable(),
     all: z.boolean().optional().nullable(),
   })
   // Ensure that either ids or all is provided
@@ -196,8 +188,8 @@ export type BasicGetAPIFormSchema = z.infer<typeof basicGetAPIFormSchema>;
 
 export const basicGetAPIFormSchemaWithDateRange = z
   .object({
-    id: z.number().optional().nullable(),
-    ids: z.array(z.number()).optional().nullable(),
+    id: z.string().optional().nullable(),
+    ids: z.array(z.string()).optional().nullable(),
     all: z.boolean().optional().nullable(),
     dateRange: dateRangeSchema.optional().nullable(),
   })
@@ -215,7 +207,7 @@ export type BasicGetAPIFormSchemaWithDateRange = z.infer<
 >;
 
 export const deleteAPIFormSchema = z.object({
-  id: z.number(),
+  id: z.string(),
 });
 
 export type DeleteAPIFormInput = z.infer<typeof deleteAPIFormSchema>;
@@ -225,7 +217,7 @@ export type DeleteAPIFormInput = z.infer<typeof deleteAPIFormSchema>;
 // -----------------------------------------------------------------------------
 
 export const petSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   ownerId: z.string(),
   name: z.string(),
   species: z.string(),
@@ -240,15 +232,15 @@ export const petListSchema = z.array(petSchema);
 export type PetList = z.infer<typeof petListSchema>;
 
 export const taskSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   ownerId: z.string(),
   name: z.string(),
   description: z.string().optional(),
   dueMode: z.boolean(),
   dueDate: z.coerce.date().optional().nullable(),
   dateRange: dateRangeSchema.optional().nullable(),
-  petId: z.number().optional(),
-  groupId: z.number().optional(),
+  petId: z.string().optional(),
+  groupId: z.string().optional(),
   requiresVerification: z.boolean().optional().default(false),
   markedAsDone: z.boolean(),
   markedAsDoneBy: z.string().optional().nullable(),
@@ -261,20 +253,18 @@ export const taskListSchema = z.array(taskSchema);
 export type TaskList = z.infer<typeof taskListSchema>;
 
 export const groupMemberSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   userId: z.string(),
-  groupId: z.number(),
+  groupId: z.string(),
   role: GroupRoleEnum,
 });
 
 export type GroupMember = z.infer<typeof groupMemberSchema>;
 
 export const groupSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   name: z.string(),
   description: z.string().optional().nullable(),
-  members: z.array(groupMemberSchema).optional(),
-  petIds: z.array(z.number()).optional(),
 });
 
 export type Group = z.infer<typeof groupSchema>;
@@ -284,9 +274,10 @@ export const groupListSchema = z.array(groupSchema);
 export type GroupList = z.infer<typeof groupListSchema>;
 
 export const groupInviteCodeSchema = z.object({
-  id: z.number(),
+  id: z.string(),
+  createdBy: z.string(),
   code: z.string(),
-  groupId: z.number(),
+  groupId: z.string(),
   uses: z.number(),
   maxUses: z.number(),
   expiresAt: z.coerce.date(),

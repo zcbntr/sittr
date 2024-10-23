@@ -27,9 +27,9 @@ import {
   type CreateTaskFormProps,
   createTaskSchema,
   type DateRange,
-  Group,
+  type Group,
   groupListSchema,
-  Pet,
+  type Pet,
   petListSchema,
   taskSchema,
 } from "~/lib/schema/index";
@@ -425,12 +425,12 @@ export default function CreateTaskDialog({
             <FormField
               control={form.control}
               name="petId"
-              render={({ field }) => (
+              render={({}) => (
                 <FormItem>
-                  <FormLabel>Pet, House, or Plant</FormLabel>
+                  <FormLabel>Pet</FormLabel>
                   <Select
                     onValueChange={(value) => {
-                      form.setValue("petId", parseInt(value));
+                      form.setValue("petId", value);
                     }}
                     disabled={petsEmpty}
                   >
@@ -464,12 +464,12 @@ export default function CreateTaskDialog({
             <FormField
               control={form.control}
               name="groupId"
-              render={({ field }) => (
+              render={({}) => (
                 <FormItem>
                   <FormLabel>Group</FormLabel>
                   <Select
                     onValueChange={(value) => {
-                      form.setValue("groupId", parseInt(value));
+                      form.setValue("groupId", value);
                     }}
                     disabled={groupsEmpty}
                   >

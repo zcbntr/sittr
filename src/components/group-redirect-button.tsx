@@ -6,7 +6,7 @@ export default function GroupRedirectButton({
   groupId,
   children,
 }: {
-  groupId: number;
+  groupId: string;
   children: React.ReactNode;
 }) {
   return (

@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
-import { eq, and, or, lte, gte } from "drizzle-orm";
+import { eq, and, or, lte, gte, inArray } from "drizzle-orm";
 import {
   groupInviteCodes,
   groupMembers,
@@ -115,7 +115,7 @@ export async function getOwnedTasks(): Promise<Task[]> {
   return tasksList;
 }
 
-export async function getOwnedTask(taskId: number): Promise<Task> {
+export async function getOwnedTask(taskId: string): Promise<Task> {
   const user = auth();
 
   if (!user.userId) {
@@ -338,7 +338,7 @@ export async function updateTask(task: Task): Promise<Task> {
   });
 }
 
-export async function deleteOwnedTask(id: number): Promise<Task> {
+export async function deleteOwnedTask(id: string): Promise<Task> {
   const user = auth();
 
   if (!user.userId) {
@@ -371,6 +371,53 @@ export async function deleteOwnedTask(id: number): Promise<Task> {
   }
 
   throw new Error("Failed to delete task");
+}
+
+export async function getGroupById(id: string): Promise<Group> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const group = await db.query.groups.findFirst({
+    where: (model, { eq }) => eq(model.id, id),
+  });
+
+  if (!group) {
+    throw new Error("Group not found");
+  }
+
+  return groupSchema.parse({
+    id: group.id,
+    name: group.name,
+    description: group.description,
+  });
+}
+
+export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const groupsList = await db
+    .select()
+    .from(groups)
+    .where(inArray(groups.id, ids));
+
+  if (!groupsList) {
+    throw new Error("Failed to get groups by ids");
+  }
+
+  return groupsList.map((group) => {
+    return groupSchema.parse({
+      id: group.id,
+      name: group.name,
+      description: group.description,
+    });
+  });
 }
 
 export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
@@ -607,7 +654,7 @@ export async function joinGroup(inviteCode: string): Promise<GroupMember> {
   });
 }
 
-export async function leaveGroup(groupId: number): Promise<GroupMember> {
+export async function leaveGroup(groupId: string): Promise<GroupMember> {
   const user = auth();
 
   if (!user.userId) {
@@ -644,7 +691,7 @@ export async function leaveGroup(groupId: number): Promise<GroupMember> {
   });
 }
 
-export async function getGroupMembers(groupId: number) {
+export async function getGroupMembers(groupId: string) {
   const user = auth();
 
   if (!user.userId) {
@@ -658,7 +705,7 @@ export async function getGroupMembers(groupId: number) {
   return groupMembersList;
 }
 
-export async function deleteGroup(groupId: number): Promise<Group> {
+export async function deleteGroup(groupId: string): Promise<Group> {
   const user = auth();
 
   if (!user.userId) {
@@ -815,7 +862,7 @@ export async function updatePet(pet: Pet): Promise<Pet> {
   });
 }
 
-export async function deletePet(id: number): Promise<Pet> {
+export async function deletePet(petId: string): Promise<Pet> {
   const user = auth();
 
   if (!user.userId) {
@@ -823,7 +870,10 @@ export async function deletePet(id: number): Promise<Pet> {
   }
 
   const petToReturn = await db.transaction(async (db) => {
-    const deletedPet = await db.delete(pets).where(eq(pets.id, id)).returning();
+    const deletedPet = await db
+      .delete(pets)
+      .where(eq(pets.id, petId))
+      .returning();
 
     if (!deletedPet?.[0]) {
       db.rollback();
