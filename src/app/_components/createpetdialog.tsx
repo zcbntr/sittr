@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { createPetFormSchema, petSchema } from "~/lib/schema/index";
+import { useRouter } from "next/navigation";
 
 export default function CreatePetDialog({
   children,
@@ -64,6 +65,8 @@ export default function CreatePetDialog({
         }
 
         document.dispatchEvent(new Event("petCreated"));
+        const router = useRouter();
+        router.refresh();
         setOpen(false);
         return;
       });

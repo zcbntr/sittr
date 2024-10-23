@@ -10,6 +10,8 @@ import {
 } from "~/components/ui/table";
 import { getGroupsUserIsIn } from "~/server/queries";
 import GroupRedirectButton from "~/components/group-redirect-button";
+import CreateGroupDialog from "./creategroupdialog";
+import { Button } from "~/components/ui/button";
 
 export default async function GroupsTable() {
   const groups = await getGroupsUserIsIn();
@@ -53,7 +55,7 @@ export default async function GroupsTable() {
       </Table>
       {groups.length === 0 && (
         <div className="flex grow flex-row place-content-center py-4 text-xl">
-          No groups found.
+          No groups found. Create or join a group to get started.
         </div>
       )}
     </div>

@@ -22,6 +22,8 @@ import {
   groupMemberSchema,
   GroupRoleEnum,
   groupSchema,
+  GroupWithMembers,
+  groupWithMembersSchema,
   type Pet,
   petSchema,
   type RequestGroupInviteCodeFormInput,
@@ -395,6 +397,44 @@ export async function getGroupById(id: string): Promise<Group | null> {
   });
 }
 
+export async function getGroupWithMembersById(
+  id: string,
+): Promise<GroupWithMembers | null> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Get group, join members, join pets
+  const group = await db.query.groups.findFirst({
+    where: (model, { eq }) => eq(model.id, id),
+    with: {
+      groupMembers: true,
+    },
+  });
+
+  if (!group) {
+    return null;
+  }
+
+  return groupWithMembersSchema.parse({
+    group: {
+      id: group.id,
+      name: group.name,
+      description: group.description,
+    },
+    members: group.groupMembers.map((member) => {
+      return {
+        id: member.userId,
+        groupId: member.groupId,
+        role: member.role,
+        userId: member.userId,
+      };
+    }),
+  });
+}
+
 export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
   const user = auth();
 
@@ -416,6 +456,35 @@ export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
       id: group.id,
       name: group.name,
       description: group.description,
+    });
+  });
+}
+
+export async function getPetsOfGroup(groupId: string): Promise<Pet[]> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const petsList = await db
+    .select()
+    .from(pets)
+    .leftJoin(petsToGroups, eq(petsToGroups.petId, pets.id))
+    .where(eq(petsToGroups.groupId, groupId));
+
+  if (!petsList) {
+    throw new Error("Failed to get pets of group");
+  }
+
+  return petsList.map((pet) => {
+    return petSchema.parse({
+      id: pet.pets.id,
+      ownerId: pet.pets.ownerId,
+      name: pet.pets.name,
+      species: pet.pets.species,
+      breed: pet.pets.breed,
+      dob: pet.pets.dob,
     });
   });
 }

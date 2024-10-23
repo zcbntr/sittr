@@ -257,6 +257,13 @@ export const groupListSchema = z.array(groupSchema);
 
 export type GroupList = z.infer<typeof groupListSchema>;
 
+export const groupWithMembersSchema = z.object({
+  group: groupSchema,
+  members: z.array(groupMemberSchema),
+});
+
+export type GroupWithMembers = z.infer<typeof groupWithMembersSchema>;
+
 export const groupInviteCodeSchema = z.object({
   id: z.string(),
   createdBy: z.string(),

@@ -18,14 +18,11 @@ export default function Home() {
 
           <div className="flex flex-row gap-4">
             <Button asChild className="p-7 text-3xl">
-              <Link href="/onboarding?role=owner">
-                A Sitter
-              </Link>
+              <Link href="/onboarding?role=owner">A Sitter</Link>
             </Button>
+            {/* Give user the option to enter a group invite code to join a group */}
             <Button asChild className="p-7 text-3xl">
-              <Link href="/onboarding?role=sitter">
-                To Sit
-              </Link>
+              <Link href="/onboarding?role=sitter">To Sit</Link>
             </Button>
           </div>
         </div>

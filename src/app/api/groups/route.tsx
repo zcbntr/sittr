@@ -11,6 +11,7 @@ import {
   getGroupById,
   getGroupsByIds,
   getGroupsUserIsIn,
+  getGroupWithMembersById,
   updateGroup,
 } from "~/server/queries";
 
@@ -32,11 +33,9 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
 
     if (requestParams.data.all) {
       const groupsIn = await getGroupsUserIsIn();
-
       return NextResponse.json(groupsIn);
     } else if (requestParams.data.id) {
-      const group = await getGroupById(requestParams.data.id);
-
+      const group = await getGroupWithMembersById(requestParams.data.id);
       return NextResponse.json(group);
     } else if (requestParams.data.ids) {
       const groups = await getGroupsByIds(requestParams.data.ids);

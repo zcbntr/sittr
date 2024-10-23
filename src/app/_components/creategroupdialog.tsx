@@ -36,6 +36,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
 
 export default function CreateGroupDialog({
   children,
@@ -96,6 +97,8 @@ export default function CreateGroupDialog({
         }
 
         document.dispatchEvent(new Event("groupCreated"));
+        const router = useRouter();
+        router.refresh();
         setOpen(false);
         return;
       });
@@ -220,7 +223,7 @@ export default function CreateGroupDialog({
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <FormDescription>
-                    Who or what the group will sit for.
+                    The pets the group will sit for.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
