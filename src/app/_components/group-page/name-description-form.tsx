@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
-import { MdDelete, MdEdit } from "react-icons/md";
+import { MdDelete, MdCancel, MdEdit } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -26,6 +26,10 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
   const form = useForm<z.infer<typeof groupSchema>>({
     resolver: zodResolver(groupSchema),
   });
+
+  form.setValue("id", group.id);
+  form.setValue("name", group.name);
+  form.setValue("description", group.description);
 
   async function onSubmit(data: z.infer<typeof groupSchema>) {
     if (deleteClicked) {
@@ -119,14 +123,29 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
         />
 
         <div className="flex grow flex-row place-content-between">
-          <Button type="submit">
-            <div className="flex flex-row gap-2">
-              <div className="flex flex-col place-content-center">
-                <MdEdit size={"1.2rem"} />
+          <div className="flex flex-row gap-2">
+            <Button type="submit">
+              <div className="flex flex-row gap-2">
+                <div className="flex flex-col place-content-center">
+                  <MdEdit size={"1.2rem"} />
+                </div>
+                Update Group
               </div>
-              Update Group
-            </div>
-          </Button>
+            </Button>
+
+            <Button
+              type="reset"
+              id="cancelGroupEditButton"
+              onClick={() => document.dispatchEvent(new Event("cancelEdit"))}
+            >
+              <div className="flex flex-row gap-2">
+                <div className="flex flex-col place-content-center">
+                  <MdCancel size={"1.2rem"} />
+                </div>
+                Cancel
+              </div>
+            </Button>
+          </div>
 
           <Button
             id="deleteGroupButton"

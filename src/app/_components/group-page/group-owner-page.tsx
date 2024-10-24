@@ -39,52 +39,16 @@ export function GroupOwnerPage({
   const [newPetType, setNewPetType] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
-  // if (group) {
-  //   if (props?.id) {
-  //     form.setValue("id", props.id);
-  //   }
+  document.addEventListener("groupUpdated", () => {
+    setIsEditing(false);
+    // Invalidate the group data and refetch
+    
+  });
 
-  //   if (props?.ownerId) {
-  //     form.setValue("ownerId", props.ownerId);
-  //   }
+  document.addEventListener("cancelEdit", () => {
+    setIsEditing(false);
+  });
 
-  //   if (props?.dueMode !== undefined) {
-  //     setDueMode(props.dueMode);
-  //     form.setValue("dueMode", props.dueMode);
-  //   }
-
-  //   if (props?.dueDate) setDueDate(props?.dueDate);
-
-  //   if (props?.dateRange)
-  //     setDateRange({
-  //       from: props?.dateRange?.from,
-  //       to: props?.dateRange?.to,
-  //     });
-
-  //   if (props?.name) {
-  //     form.setValue("name", props.name);
-  //   }
-
-  //   if (props?.description) {
-  //     form.setValue("description", props.description);
-  //   }
-
-  //   if (props?.dueDate) {
-  //     form.setValue("dueDate", props.dueDate);
-  //   }
-
-  //   if (props?.dateRange) {
-  //     form.setValue("dateRange", {
-  //       from: props?.dateRange?.from,
-  //       to: props?.dateRange?.to,
-  //     });
-  //   }
-
-  //   if (props?.groupId) {
-  //     form.setValue("groupId", props.groupId);
-  //   }
-  // }
-  
   React.useEffect(() => {
     // Get the owned pets of the user, NOT THE GROUP - this is passed as a prop
     async function fetchOwnedPets() {
