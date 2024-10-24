@@ -22,8 +22,6 @@ import {
   groupMemberSchema,
   GroupRoleEnum,
   groupSchema,
-  GroupWithMembers,
-  groupWithMembersSchema,
   type Pet,
   petSchema,
   type RequestGroupInviteCodeFormInput,
@@ -31,6 +29,7 @@ import {
   type Task,
   taskSchema,
 } from "~/lib/schema";
+import { group } from "console";
 
 export async function getOwnedTasksStartingInRange(
   from: Date,
@@ -384,6 +383,9 @@ export async function getGroupById(id: string): Promise<Group | null> {
 
   const group = await db.query.groups.findFirst({
     where: (model, { eq }) => eq(model.id, id),
+    with: {
+      groupMembers: true,
+    },
   });
 
   if (!group) {
@@ -394,36 +396,6 @@ export async function getGroupById(id: string): Promise<Group | null> {
     id: group.id,
     name: group.name,
     description: group.description,
-  });
-}
-
-export async function getGroupWithMembersById(
-  id: string,
-): Promise<GroupWithMembers | null> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  // Get group, join members, join pets
-  const group = await db.query.groups.findFirst({
-    where: (model, { eq }) => eq(model.id, id),
-    with: {
-      groupMembers: true,
-    },
-  });
-
-  if (!group) {
-    return null;
-  }
-
-  return groupWithMembersSchema.parse({
-    group: {
-      id: group.id,
-      name: group.name,
-      description: group.description,
-    },
     members: group.groupMembers.map((member) => {
       return {
         id: member.userId,
@@ -865,7 +837,11 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
   const groupMemberList = await db.query.groupMembers.findMany({
     where: (model, { eq }) => eq(model.userId, user.userId),
     with: {
-      group: true,
+      group: {
+        with: {
+          groupMembers: true,
+        },
+      },
     },
   });
 
@@ -878,6 +854,14 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
       id: groupMember.groupId,
       name: groupMember.group.name,
       description: groupMember.group.description,
+      members: groupMember.group.groupMembers.map((member) => {
+        return {
+          id: member.userId,
+          groupId: member.groupId,
+          role: member.role,
+          userId: member.userId,
+        };
+      }),
     });
   });
 }
@@ -911,6 +895,32 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
     species: newPet[0].species,
     breed: newPet[0].breed ? pet.breed : undefined,
     dob: newPet[0].dob,
+  });
+}
+
+export async function getPetById(petId: string): Promise<Pet> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const pet = await db.query.pets.findFirst({
+    where: (model, { and, eq }) =>
+      and(eq(model.id, petId), eq(model.ownerId, user.userId)),
+  });
+
+  if (!pet) {
+    throw new Error("Pet not found");
+  }
+
+  return petSchema.parse({
+    id: pet.id,
+    ownerId: pet.ownerId,
+    name: pet.name,
+    species: pet.species,
+    breed: pet.breed ? pet.breed : undefined,
+    dob: pet.dob,
   });
 }
 

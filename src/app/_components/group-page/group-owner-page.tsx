@@ -4,8 +4,6 @@ import { useState } from "react";
 import { GroupNameDescriptionForm } from "~/app/_components/group-page/name-description-form";
 import {
   type Group,
-  groupWithMembersSchema,
-  GroupWithMembers,
   Pet,
   petListSchema,
   GroupMember,
@@ -28,7 +26,7 @@ export function GroupOwnerPage({
   group,
   petsOfGroup,
 }: {
-  group: GroupWithMembers;
+  group: Group;
   petsOfGroup: Pet[];
 }) {
   const [members, setMembers] = useState<GroupMember[]>([]);
@@ -125,18 +123,18 @@ export function GroupOwnerPage({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <GroupNameDescriptionForm group={group.group} />
+            <GroupNameDescriptionForm group={group} />
           </CardContent>
         </Card>
       ) : (
         <Card>
           <CardHeader>
             <CardTitle>
-              <h3 className="text-lg font-semibold">{group?.group.name}</h3>
+              <h3 className="text-lg font-semibold">{group?.name}</h3>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">{group?.group.description}</p>
+            <p className="text-muted-foreground">{group?.description}</p>
           </CardContent>
           <CardFooter>
             <Button onClick={() => setIsEditing(true)}>

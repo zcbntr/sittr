@@ -1,12 +1,12 @@
 "use client";
 
-import { GroupWithMembers, Pet } from "~/lib/schema";
+import { Group, Pet } from "~/lib/schema";
 
 export function GroupMemberPage({
   group,
   petsOfGroup,
 }: {
-  group: GroupWithMembers;
+  group: Group;
   petsOfGroup: Pet[];
 }) {
   return <></>;

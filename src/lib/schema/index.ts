@@ -249,6 +249,7 @@ export const groupSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional().nullable(),
+  members: z.array(groupMemberSchema).optional(),
 });
 
 export type Group = z.infer<typeof groupSchema>;
@@ -256,13 +257,6 @@ export type Group = z.infer<typeof groupSchema>;
 export const groupListSchema = z.array(groupSchema);
 
 export type GroupList = z.infer<typeof groupListSchema>;
-
-export const groupWithMembersSchema = z.object({
-  group: groupSchema,
-  members: z.array(groupMemberSchema),
-});
-
-export type GroupWithMembers = z.infer<typeof groupWithMembersSchema>;
 
 export const groupInviteCodeSchema = z.object({
   id: z.string(),
