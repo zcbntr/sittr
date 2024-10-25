@@ -6,10 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { getGroupById, getPetsOfGroup } from "~/server/queries";
+import {
+  getGroupById,
+  getGroupMembers,
+  getIsUserGroupOwner,
+  getPetsOfGroup,
+} from "~/server/queries";
 import { GroupMemberPage } from "~/app/_components/group-page/group-member-page";
 import { GroupOwnerPage } from "~/app/_components/group-page/group-owner-page";
-import { auth } from "@clerk/nextjs/server";
 
 export default async function Page({ params }: { params: { slug: string } }) {
   // Get the data for the group from the slug
@@ -20,16 +24,12 @@ export default async function Page({ params }: { params: { slug: string } }) {
 
     return <GroupDoesNotExistPage />;
   } else {
-    // Fetch pets of the group
-    const petsOfGroup = await getPetsOfGroup(group.id);
-
     // Check if user is the owner of the group
-    const { userId } = await auth();
-    const owner = group.members?.find((x) => x.role === "Owner");
-    if (owner?.userId == userId) {
-      return <GroupOwnerPage group={group} petsOfGroup={petsOfGroup} />;
+    const userIsOwner = await getIsUserGroupOwner(group.id);
+    if (userIsOwner) {
+      return <GroupOwnerPage group={group} />;
     } else {
-      return <GroupMemberPage group={group} petsOfGroup={petsOfGroup} />;
+      return <GroupMemberPage group={group} />;
     }
   }
 }

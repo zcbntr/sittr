@@ -151,11 +151,11 @@ export const groups = createTable("groups", {
 export const groupsRelations = relations(groups, ({ many }) => ({
   tasks: many(tasks),
   groupInviteCodes: many(groupInviteCodes),
-  groupMembers: many(groupMembers),
+  usersToGroups: many(usersToGroups),
   petsToGroups: many(petsToGroups),
 }));
 
-export const groupMembers = createTable("group_members", {
+export const usersToGroups = createTable("users_to_groups", {
   id: text("id")
     .$defaultFn(() => uuid())
     .primaryKey(),
@@ -172,9 +172,9 @@ export const groupMembers = createTable("group_members", {
   ),
 });
 
-export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
+export const usersToGroupsRelations = relations(usersToGroups, ({ one }) => ({
   group: one(groups, {
-    fields: [groupMembers.groupId],
+    fields: [usersToGroups.groupId],
     references: [groups.id],
   }),
 }));

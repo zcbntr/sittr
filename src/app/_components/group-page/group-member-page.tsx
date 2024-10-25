@@ -2,12 +2,6 @@
 
 import { Group, Pet } from "~/lib/schema";
 
-export function GroupMemberPage({
-  group,
-  petsOfGroup,
-}: {
-  group: Group;
-  petsOfGroup: Pet[];
-}) {
+export function GroupMemberPage({ group }: { group: Group }) {
   return <></>;
 }

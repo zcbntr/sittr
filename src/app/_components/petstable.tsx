@@ -1,6 +1,6 @@
 "use client";
 
-import { columns } from "~/components/ui/data-tables/pets-columns";
+import { columns } from "~/components/ui/data-tables/my-pets-columns";
 import { DataTable } from "~/components/ui/data-table";
 import { Pet, petListSchema } from "~/lib/schema";
 import React from "react";

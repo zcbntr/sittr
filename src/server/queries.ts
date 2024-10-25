@@ -1,33 +1,36 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, and, or, lte, gte, inArray } from "drizzle-orm";
 import {
   groupInviteCodes,
-  groupMembers,
+  usersToGroups,
   groups,
   pets,
   tasks,
   petsToGroups,
 } from "./db/schema";
 import {
+  petToGroupFormInput,
   type CreateGroupFormInput,
   type CreatePetFormInput,
   type CreateTask,
   type Group,
   type GroupInviteCode,
   groupInviteCodeSchema,
-  type GroupMember,
-  groupMemberSchema,
+  type UserToGroup,
+  userToGroupSchema,
   GroupRoleEnum,
   groupSchema,
   type Pet,
   petSchema,
+  PetToGroup,
   type RequestGroupInviteCodeFormInput,
   RoleEnum,
   type Task,
   taskSchema,
+  GroupMember,
 } from "~/lib/schema";
 import { group } from "console";
 
@@ -165,11 +168,11 @@ export async function getVisibleTasksInRange(
     .select()
     .from(tasks)
     .leftJoin(groups, eq(tasks.pet, groups.id))
-    .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
+    .leftJoin(usersToGroups, eq(groups.id, usersToGroups.groupId))
     .where(
       and(
         or(
-          eq(groupMembers.userId, user.userId),
+          eq(usersToGroups.userId, user.userId),
           eq(tasks.ownerId, user.userId),
         ),
         or(
@@ -383,9 +386,6 @@ export async function getGroupById(id: string): Promise<Group | null> {
 
   const group = await db.query.groups.findFirst({
     where: (model, { eq }) => eq(model.id, id),
-    with: {
-      groupMembers: true,
-    },
   });
 
   if (!group) {
@@ -396,14 +396,6 @@ export async function getGroupById(id: string): Promise<Group | null> {
     id: group.id,
     name: group.name,
     description: group.description,
-    members: group.groupMembers.map((member) => {
-      return {
-        id: member.userId,
-        groupId: member.groupId,
-        role: member.role,
-        userId: member.userId,
-      };
-    }),
   });
 }
 
@@ -487,7 +479,7 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
 
     // Add current user to groupMembers table
     const groupMember = await db
-      .insert(groupMembers)
+      .insert(usersToGroups)
       .values({
         groupId: newGroup[0].id,
         userId: user.userId,
@@ -523,7 +515,7 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
       name: newGroup[0].name,
       description: newGroup[0].description,
       members: [
-        groupMemberSchema.parse({
+        userToGroupSchema.parse({
           id: groupMember[0].id,
           groupId: groupMember[0].groupId,
           userId: groupMember[0].userId,
@@ -549,7 +541,7 @@ export async function getNewGroupInviteCode(
   }
 
   // Check user is the owner of the group
-  const groupMember = await db.query.groupMembers.findFirst({
+  const ownerRow = await db.query.usersToGroups.findFirst({
     where: (model, { and, eq }) =>
       and(
         eq(model.groupId, request.groupId),
@@ -558,7 +550,7 @@ export async function getNewGroupInviteCode(
       ),
   });
 
-  if (groupMember) {
+  if (!ownerRow) {
     throw new Error(
       "User is not the owner of the group, not a member, or the group doesn't exist",
     );
@@ -604,7 +596,7 @@ export async function getNewGroupInviteCode(
   });
 }
 
-export async function joinGroup(inviteCode: string): Promise<GroupMember> {
+export async function joinGroup(inviteCode: string): Promise<UserToGroup> {
   const user = auth();
 
   if (!user.userId) {
@@ -643,7 +635,7 @@ export async function joinGroup(inviteCode: string): Promise<GroupMember> {
   }
 
   // Check if the user is already in the group
-  const existingGroupRow = await db.query.groupMembers.findFirst({
+  const existingGroupRow = await db.query.usersToGroups.findFirst({
     where: (model, { and, eq }) =>
       and(
         eq(model.groupId, inviteCodeRow.groupId),
@@ -657,7 +649,7 @@ export async function joinGroup(inviteCode: string): Promise<GroupMember> {
 
   // Add the user to the group
   const newGroupMember = await db
-    .insert(groupMembers)
+    .insert(usersToGroups)
     .values({
       groupId: inviteCodeRow.groupId,
       userId: user.userId,
@@ -688,21 +680,21 @@ export async function joinGroup(inviteCode: string): Promise<GroupMember> {
       .execute();
   }
 
-  return groupMemberSchema.parse({
+  return userToGroupSchema.parse({
     groupId: newGroupMember[0].groupId,
     userId: newGroupMember[0].userId,
     role: newGroupMember[0].role,
   });
 }
 
-export async function leaveGroup(groupId: string): Promise<GroupMember> {
+export async function leaveGroup(groupId: string): Promise<UserToGroup> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const groupMember = await db.query.groupMembers.findFirst({
+  const groupMember = await db.query.usersToGroups.findFirst({
     where: (model, { and, eq }) =>
       and(eq(model.groupId, groupId), eq(model.userId, user.userId)),
   });
@@ -712,11 +704,11 @@ export async function leaveGroup(groupId: string): Promise<GroupMember> {
   }
 
   const deletedGroupMember = await db
-    .delete(groupMembers)
+    .delete(usersToGroups)
     .where(
       and(
-        eq(groupMembers.userId, user.userId),
-        eq(groupMembers.groupId, groupId),
+        eq(usersToGroups.userId, user.userId),
+        eq(usersToGroups.groupId, groupId),
       ),
     )
     .returning();
@@ -725,28 +717,73 @@ export async function leaveGroup(groupId: string): Promise<GroupMember> {
     throw new Error("Failed to delete group member");
   }
 
-  return groupMemberSchema.parse({
+  return userToGroupSchema.parse({
     groupId: deletedGroupMember[0].groupId,
     userId: deletedGroupMember[0].userId,
     role: deletedGroupMember[0].role,
   });
 }
 
-export async function getGroupMembers(groupId: string) {
+export async function getIsUserGroupOwner(groupId: string): Promise<boolean> {
   const user = auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
   }
 
-  const groupMembersList = await db.query.groupMembers.findMany({
+  const groupMember = await db.query.usersToGroups.findFirst({
+    where: (model, { and, eq }) =>
+      and(
+        eq(model.groupId, groupId),
+        eq(model.userId, user.userId),
+        eq(model.role, "Owner"),
+      ),
+  });
+
+  return !!groupMember;
+}
+
+export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const userToGroupRows = await db.query.usersToGroups.findMany({
     where: (model, { eq }) => eq(model.groupId, groupId),
   });
 
-  return groupMembersList;
+  const userId = userToGroupRows.map((row) => row.userId);
+
+  const users = await clerkClient.users.getUserList({ userId });
+
+  if (!users) {
+    throw new Error("Failed to get users from Clerk");
+  }
+
+  return userToGroupRows.map((row) => {
+    const user = users.data.find((user) => user.id === row.userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return {
+      id: row.id,
+      groupId: row.groupId,
+      userId: user.id,
+      name: user.firstName ? user.firstName + " " + user.lastName : "Unknown",
+      avatar: user.imageUrl,
+      role: row.role,
+    };
+  });
 }
 
-export async function updateGroup(group: Group) {
+export async function addMemberToGroup(
+  userId: string,
+  groupId: string,
+): Promise<UserToGroup> {
   const user = auth();
 
   if (!user.userId) {
@@ -754,7 +791,199 @@ export async function updateGroup(group: Group) {
   }
 
   // Check user is the owner of the group
-  const groupMember = await db.query.groupMembers.findFirst({
+  const groupMember = await db.query.usersToGroups.findFirst({
+    where: (model, { and, eq }) =>
+      and(
+        eq(model.groupId, groupId),
+        eq(model.userId, user.userId),
+        eq(model.role, "Owner"),
+      ),
+  });
+
+  if (!groupMember) {
+    throw new Error("User is not the owner of the group");
+  }
+
+  const newGroupMember = await db
+    .insert(usersToGroups)
+    .values({
+      groupId: groupId,
+      userId: userId,
+      role: GroupRoleEnum.Values.Member,
+    })
+    .returning()
+    .execute();
+
+  if (!newGroupMember?.[0]) {
+    throw new Error("Failed to add member to group");
+  }
+
+  return userToGroupSchema.parse({
+    groupId: newGroupMember[0].groupId,
+    userId: newGroupMember[0].userId,
+    role: newGroupMember[0].role,
+  });
+}
+
+export async function removeUserFromGroup(
+  groupMember: UserToGroup,
+): Promise<UserToGroup> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check user is the owner of the group
+  const ownerRow = await db.query.usersToGroups.findFirst({
+    where: (model, { and, eq }) =>
+      and(
+        eq(model.groupId, groupMember.groupId),
+        eq(model.userId, user.userId),
+        eq(model.role, "Owner"),
+      ),
+  });
+
+  if (!ownerRow) {
+    throw new Error("User is not the owner of the group");
+  }
+
+  const removedGroupMember = await db
+    .delete(usersToGroups)
+    .where(
+      and(
+        eq(usersToGroups.groupId, groupMember.groupId),
+        eq(usersToGroups.userId, groupMember.userId),
+      ),
+    )
+    .returning();
+
+  if (!removedGroupMember[0]) {
+    throw new Error("Failed to remove member from group");
+  }
+
+  return userToGroupSchema.parse({
+    groupId: removedGroupMember[0].groupId,
+    userId: removedGroupMember[0].userId,
+    role: removedGroupMember[0].role,
+  });
+}
+
+export async function getGroupPets(groupId: string): Promise<Pet[]> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const groupPetsList = await db
+    .select()
+    .from(pets)
+    .leftJoin(petsToGroups, eq(petsToGroups.petId, pets.id))
+    .where(eq(petsToGroups.groupId, groupId));
+
+  if (!groupPetsList) {
+    throw new Error("Failed to get pets of group");
+  }
+
+  return groupPetsList.map((pet) => {
+    return petSchema.parse({
+      id: pet.pets.id,
+      ownerId: pet.pets.ownerId,
+      name: pet.pets.name,
+      species: pet.pets.species,
+      breed: pet.pets.breed,
+      dob: pet.pets.dob,
+    });
+  });
+}
+
+export async function addPetToGroup(petToGroup: petToGroupFormInput) {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check user is the owner of the group
+  const groupMember = await db.query.usersToGroups.findFirst({
+    where: (model, { and, eq }) =>
+      and(
+        eq(model.groupId, petToGroup.groupId),
+        eq(model.userId, user.userId),
+        eq(model.role, "Owner"),
+      ),
+  });
+
+  if (!groupMember) {
+    throw new Error("User is not the owner of the group");
+  }
+
+  const newPetToGroup = await db
+    .insert(petsToGroups)
+    .values({
+      groupId: petToGroup.groupId,
+      petId: petToGroup.petId,
+    })
+    .returning()
+    .execute();
+
+  if (!newPetToGroup?.[0]) {
+    throw new Error("Failed to add pet to group");
+  }
+
+  return newPetToGroup[0];
+}
+
+export async function removePetFromGroup(
+  petToGroup: petToGroupFormInput,
+): Promise<PetToGroup> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check user is the owner of the group
+  const groupMember = await db.query.usersToGroups.findFirst({
+    where: (model, { and, eq }) =>
+      and(
+        eq(model.groupId, petToGroup.groupId),
+        eq(model.userId, user.userId),
+        eq(model.role, "Owner"),
+      ),
+  });
+
+  if (!groupMember) {
+    throw new Error("User is not the owner of the group");
+  }
+
+  const removedPetFromGroup = await db
+    .delete(petsToGroups)
+    .where(
+      and(
+        eq(petsToGroups.groupId, petToGroup.groupId),
+        eq(petsToGroups.petId, petToGroup.petId),
+      ),
+    )
+    .returning();
+
+  if (!removedPetFromGroup[0]) {
+    throw new Error("Failed to remove pet from group");
+  }
+
+  return removedPetFromGroup[0];
+}
+
+export async function updateGroup(group: Group): Promise<Group> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check user is the owner of the group
+  const groupMember = await db.query.usersToGroups.findFirst({
     where: (model, { and, eq }) =>
       and(
         eq(model.groupId, group.id),
@@ -796,7 +1025,7 @@ export async function deleteGroup(groupId: string): Promise<Group> {
   }
 
   // Check user is the owner of the group
-  const groupMember = await db.query.groupMembers.findFirst({
+  const groupMember = await db.query.usersToGroups.findFirst({
     where: (model, { and, eq }) =>
       and(
         eq(model.groupId, groupId),
@@ -834,12 +1063,12 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
     throw new Error("Unauthorized");
   }
 
-  const groupMemberList = await db.query.groupMembers.findMany({
+  const groupMemberList = await db.query.usersToGroups.findMany({
     where: (model, { eq }) => eq(model.userId, user.userId),
     with: {
       group: {
         with: {
-          groupMembers: true,
+          usersToGroups: true,
         },
       },
     },
@@ -854,14 +1083,6 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
       id: groupMember.groupId,
       name: groupMember.group.name,
       description: groupMember.group.description,
-      members: groupMember.group.groupMembers.map((member) => {
-        return {
-          id: member.userId,
-          groupId: member.groupId,
-          role: member.role,
-          userId: member.userId,
-        };
-      }),
     });
   });
 }

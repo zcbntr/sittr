@@ -149,6 +149,13 @@ export type RequestGroupInviteCodeFormInput = z.infer<
   typeof requestGroupInviteCodeFormInput
 >;
 
+export const petToGroupFormInput = z.object({
+  petId: z.string(),
+  groupId: z.string(),
+});
+
+export type petToGroupFormInput = z.infer<typeof petToGroupFormInput>;
+
 // -----------------------------------------------------------------------------
 // API form schemas
 // -----------------------------------------------------------------------------
@@ -236,27 +243,14 @@ export const taskListSchema = z.array(taskSchema);
 
 export type TaskList = z.infer<typeof taskListSchema>;
 
-export const groupMemberSchema = z.object({
+export const userToGroupSchema = z.object({
   id: z.string(),
   userId: z.string(),
   groupId: z.string(),
   role: GroupRoleEnum,
 });
 
-export type GroupMember = z.infer<typeof groupMemberSchema>;
-
-export const groupSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().optional().nullable(),
-  members: z.array(groupMemberSchema).optional(),
-});
-
-export type Group = z.infer<typeof groupSchema>;
-
-export const groupListSchema = z.array(groupSchema);
-
-export type GroupList = z.infer<typeof groupListSchema>;
+export type UserToGroup = z.infer<typeof userToGroupSchema>;
 
 export const groupInviteCodeSchema = z.object({
   id: z.string(),
@@ -270,3 +264,55 @@ export const groupInviteCodeSchema = z.object({
 });
 
 export type GroupInviteCode = z.infer<typeof groupInviteCodeSchema>;
+
+export const petToGroupSchema = z.object({
+  id: z.string(),
+  petId: z.string(),
+  groupId: z.string(),
+});
+
+export type PetToGroup = z.infer<typeof petToGroupSchema>;
+
+export const petAndGroupIdSchema = z.object({
+  pet: petSchema,
+  groupId: z.string(),
+});
+
+export type PetAndGroupId = z.infer<typeof petAndGroupIdSchema>;
+
+export const user = z.object({
+  id: z.string(),
+  name: z.string(),
+  avatar: z.string().optional(),
+});
+
+export type User = z.infer<typeof user>;
+
+export const groupMemberSchema = z.object({
+  id: z.string(),
+  groupId: z.string(),
+  userId: z.string(),
+  name: z.string(),
+  avatar: z.string().optional(),
+  role: GroupRoleEnum,
+});
+
+export type GroupMember = z.infer<typeof groupMemberSchema>;
+
+export const groupMemberListSchema = z.array(groupMemberSchema);
+
+export type GroupMemberList = z.infer<typeof groupMemberListSchema>;
+
+export const groupSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional().nullable(),
+  members: z.array(groupMemberSchema).optional(),
+  pets: z.array(petSchema).optional(),
+});
+
+export type Group = z.infer<typeof groupSchema>;
+
+export const groupListSchema = z.array(groupSchema);
+
+export type GroupList = z.infer<typeof groupListSchema>;

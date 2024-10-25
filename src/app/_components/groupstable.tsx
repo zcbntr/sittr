@@ -10,8 +10,6 @@ import {
 } from "~/components/ui/table";
 import { getGroupsUserIsIn } from "~/server/queries";
 import GroupRedirectButton from "~/components/group-redirect-button";
-import CreateGroupDialog from "./creategroupdialog";
-import { Button } from "~/components/ui/button";
 
 export default async function GroupsTable() {
   const groups = await getGroupsUserIsIn();
@@ -47,7 +45,7 @@ export default async function GroupsTable() {
                 {group.members ? group.members.length : "No members"}
               </TableCell>
               <TableCell>
-                {group.petIds ? group.petIds.length : "No pets"}
+                {group.pets ? group.pets.length : "No pets"}
               </TableCell>
             </TableRow>
           ))}

@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 import { GroupNameDescriptionForm } from "~/app/_components/group-page/name-description-form";
-import {
-  type Group,
-  Pet,
-  petListSchema,
-  GroupMember,
-} from "~/lib/schema";
-import { Input } from "~/components/ui/input";
+import { type Group, Pet, petListSchema, UserToGroup } from "~/lib/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { X, Plus, Pencil, Save } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -21,15 +15,11 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import React from "react";
+import GroupPetsTable from "./group-pets-table";
+import GroupMembersTable from "./group-members-table";
 
-export function GroupOwnerPage({
-  group,
-  petsOfGroup,
-}: {
-  group: Group;
-  petsOfGroup: Pet[];
-}) {
-  const [members, setMembers] = useState<GroupMember[]>([]);
+export function GroupOwnerPage({ group }: { group: Group }) {
+  const [members, setMembers] = useState<UserToGroup[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
   const [ownedPetsEmpty, setOwnedPetsEmpty] = useState(false);
   const [newMemberName, setNewMemberName] = useState("");
@@ -40,7 +30,6 @@ export function GroupOwnerPage({
   document.addEventListener("groupUpdated", () => {
     setIsEditing(false);
     // Invalidate the group data and refetch
-    
   });
 
   document.addEventListener("cancelEdit", () => {
@@ -153,33 +142,11 @@ export function GroupOwnerPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-4">
-            {members.map((member) => (
-              <div
-                key={member.id}
-                className="flex items-center space-x-2 rounded-md bg-secondary p-2"
-              >
-                <Avatar>
-                  <AvatarImage src={member.avatar} alt={member.name} />
-                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div>{member.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {member.role}
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeMember(member.id)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-          <div className="flex space-x-2">
+          <GroupMembersTable groupId={group.id} />
+
+          {/* Make this shit work */}
+
+          {/* <div className="flex space-x-2">
             <Input
               value={newMemberName}
               onChange={(e) => setNewMemberName(e.target.value)}
@@ -189,7 +156,7 @@ export function GroupOwnerPage({
               <Plus className="mr-2 h-4 w-4" />
               Add Member
             </Button>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
 
@@ -201,48 +168,16 @@ export function GroupOwnerPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-4">
-            {petsOfGroup.map((pet) => (
-              <div
-                key={pet.id}
-                className="flex items-center space-x-2 rounded-md bg-secondary p-2"
-              >
-                <Avatar>
-                  <AvatarImage src={pet.avatar} alt={pet.name} />
-                  <AvatarFallback>{pet.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div>{pet.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {pet.species}
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removePet(pet.id)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-          <div className="flex space-x-2">
-            <Input
-              value={newPetName}
-              onChange={(e) => setNewPetName(e.target.value)}
-              placeholder="Pet name"
-            />
-            <Input
-              value={newPetType}
-              onChange={(e) => setNewPetType(e.target.value)}
-              placeholder="Pet type"
-            />
+          <GroupPetsTable groupId={group.id} />
+
+          {/* Make this shit work */}
+
+          {/* <div className="flex space-x-2">
             <Button onClick={addPet}>
               <Plus className="mr-2 h-4 w-4" />
               Add Pet
             </Button>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>
