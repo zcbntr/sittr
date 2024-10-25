@@ -15,10 +15,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { PetAndGroupId, petSchema } from "~/lib/schema";
+import {
+  GroupPet,
+  groupPetSchema,
+  petSchema,
+  petToGroupSchema,
+} from "~/lib/schema";
 
 // Add a column for notes? Column for small image of pet?
-export const columns: ColumnDef<PetAndGroupId>[] = [
+export const columns: ColumnDef<GroupPet>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => {
@@ -32,6 +37,11 @@ export const columns: ColumnDef<PetAndGroupId>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => {
+      const pet = row.original;
+
+      return <Link href={`/pets/${pet.petId}`}>{pet.name}</Link>;
+    },
   },
   {
     accessorKey: "species",
@@ -44,9 +54,6 @@ export const columns: ColumnDef<PetAndGroupId>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const pet = row.original.pet;
-      const groupId = row.original.groupId;
-
       return (
         <>
           <DropdownMenu>
@@ -61,7 +68,7 @@ export const columns: ColumnDef<PetAndGroupId>[] = [
               <DropdownMenuItem
                 onClick={() =>
                   navigator.clipboard.writeText(
-                    `${pet.name} - ${pet.species} ${pet.breed ? "(" + pet.breed + ")" : ""}`,
+                    `${row.original.name} - ${row.original.species} ${row.original.breed ? "(" + row.original.breed + ")" : ""}`,
                   )
                 }
               >
@@ -75,18 +82,23 @@ export const columns: ColumnDef<PetAndGroupId>[] = [
                   if (
                     window.confirm("Are you sure you want to remove this pet?")
                   ) {
-                    await fetch("../api/petsToGroups", {
+                    await fetch("../api/group-pets", {
                       method: "DELETE",
                       headers: {
                         "Content-Type": "application/json",
                       },
-                      body: JSON.stringify({ groupId: groupId, petId: pet.id }),
+                      body: JSON.stringify({
+                        groupId: row.original.groupId,
+                        petId: row.original.petId,
+                      }),
                     })
                       .then((res) => res.json())
-                      .then((json) => petSchema.safeParse(json))
-                      .then((validatedPetObject) => {
-                        if (!validatedPetObject.success) {
-                          console.error(validatedPetObject.error.message);
+                      .then((json) => petToGroupSchema.safeParse(json))
+                      .then((validatedPetToGroupObject) => {
+                        if (!validatedPetToGroupObject.success) {
+                          console.error(
+                            validatedPetToGroupObject.error.message,
+                          );
                           throw new Error("Failed to remove pet");
                         }
 

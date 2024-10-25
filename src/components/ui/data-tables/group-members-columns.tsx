@@ -20,6 +20,23 @@ import { GroupMember, userToGroupSchema } from "~/lib/schema";
 // Column for avatar?
 export const columns: ColumnDef<GroupMember>[] = [
   {
+    accessorKey: "avatar",
+    header: "Avatar",
+    cell: ({ row }) => {
+      const member = row.original;
+
+      return (
+        <Link href={`/profile/${member.userId}`}>
+          <img
+            src={member.avatar}
+            alt={`${member.name}'s avatar`}
+            className="h-8 w-8 rounded-full"
+          />
+        </Link>
+      );
+    },
+  },
+  {
     accessorKey: "name",
     header: ({ column }) => {
       return (
@@ -31,6 +48,11 @@ export const columns: ColumnDef<GroupMember>[] = [
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
+    },
+    cell: ({ row }) => {
+      const member = row.original;
+
+      return <Link href={`/profile/${member.userId}`}>{member.name}</Link>;
     },
   },
   {

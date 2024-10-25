@@ -26,9 +26,9 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     }
 
     if (requestParams.data.id) {
-      const pets = await getGroupPets(requestParams.data.id);
+      const groupPets = await getGroupPets(requestParams.data.id);
 
-      return NextResponse.json(pets);
+      return NextResponse.json(groupPets);
     }
 
     return NextResponse.json({ error: "Invalid request params" });

@@ -32,6 +32,8 @@ import {
   taskSchema,
   GroupMember,
   UserGroupPair,
+  GroupPet,
+  groupPetSchema,
 } from "~/lib/schema";
 import { group } from "console";
 
@@ -848,7 +850,7 @@ export async function removeUserFromGroup(
   });
 }
 
-export async function getGroupPets(groupId: string): Promise<Pet[]> {
+export async function getGroupPets(groupId: string): Promise<GroupPet[]> {
   const user = auth();
 
   if (!user.userId) {
@@ -866,8 +868,10 @@ export async function getGroupPets(groupId: string): Promise<Pet[]> {
   }
 
   return groupPetsList.map((pet) => {
-    return petSchema.parse({
-      id: pet.pets.id,
+    return groupPetSchema.parse({
+      id: pet.pets_to_groups.id,
+      petId: pet.pets.id,
+      groupId: pet.pets_to_groups.groupId,
       ownerId: pet.pets.ownerId,
       name: pet.pets.name,
       species: pet.pets.species,

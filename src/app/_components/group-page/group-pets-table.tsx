@@ -2,11 +2,11 @@
 
 import { columns } from "~/components/ui/data-tables/group-pets-columns";
 import { DataTable } from "~/components/ui/data-table";
-import { Pet, petListSchema } from "~/lib/schema";
+import { GroupPet, groupPetListSchema } from "~/lib/schema";
 import React from "react";
 
 export default function GroupPetsTable({ groupId }: { groupId: string }) {
-  const [groupPets, setGroupPets] = React.useState<Pet[]>([]);
+  const [groupPets, setGroupPets] = React.useState<GroupPet[]>([]);
 
   React.useEffect(() => {
     async function fetchGroupPets(): Promise<void> {
@@ -14,7 +14,7 @@ export default function GroupPetsTable({ groupId }: { groupId: string }) {
         method: "GET",
       })
         .then((res) => res.json())
-        .then((json) => petListSchema.safeParse(json))
+        .then((json) => groupPetListSchema.safeParse(json))
         .then((validatedGroupPetListObject) => {
           if (!validatedGroupPetListObject.success) {
             console.error(validatedGroupPetListObject.error.message);

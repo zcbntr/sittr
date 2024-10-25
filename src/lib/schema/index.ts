@@ -280,12 +280,22 @@ export const petToGroupSchema = z.object({
 
 export type PetToGroup = z.infer<typeof petToGroupSchema>;
 
-export const petAndGroupIdSchema = z.object({
-  pet: petSchema,
+export const groupPetSchema = z.object({
+  id: z.string(),
+  petId: z.string(),
+  ownerId: z.string(),
+  name: z.string(),
+  species: z.string(),
+  breed: z.string().optional(),
+  dob: z.coerce.date(),
   groupId: z.string(),
 });
 
-export type PetAndGroupId = z.infer<typeof petAndGroupIdSchema>;
+export type GroupPet = z.infer<typeof groupPetSchema>;
+
+export const groupPetListSchema = z.array(groupPetSchema);
+
+export type GroupPetList = z.infer<typeof groupPetListSchema>;
 
 export const user = z.object({
   id: z.string(),
