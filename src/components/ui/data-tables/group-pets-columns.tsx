@@ -75,7 +75,7 @@ export const columns: ColumnDef<PetAndGroupId>[] = [
                   if (
                     window.confirm("Are you sure you want to remove this pet?")
                   ) {
-                    await fetch("api/petsToGroups", {
+                    await fetch("../api/petsToGroups", {
                       method: "DELETE",
                       headers: {
                         "Content-Type": "application/json",

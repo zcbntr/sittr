@@ -31,6 +31,7 @@ import {
   type Task,
   taskSchema,
   GroupMember,
+  UserGroupPair,
 } from "~/lib/schema";
 import { group } from "console";
 
@@ -424,35 +425,6 @@ export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
   });
 }
 
-export async function getPetsOfGroup(groupId: string): Promise<Pet[]> {
-  const user = auth();
-
-  if (!user.userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const petsList = await db
-    .select()
-    .from(pets)
-    .leftJoin(petsToGroups, eq(petsToGroups.petId, pets.id))
-    .where(eq(petsToGroups.groupId, groupId));
-
-  if (!petsList) {
-    throw new Error("Failed to get pets of group");
-  }
-
-  return petsList.map((pet) => {
-    return petSchema.parse({
-      id: pet.pets.id,
-      ownerId: pet.pets.ownerId,
-      name: pet.pets.name,
-      species: pet.pets.species,
-      breed: pet.pets.breed,
-      dob: pet.pets.dob,
-    });
-  });
-}
-
 export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
   const user = auth();
 
@@ -826,7 +798,7 @@ export async function addMemberToGroup(
 }
 
 export async function removeUserFromGroup(
-  groupMember: UserToGroup,
+  userGroupPair: UserGroupPair,
 ): Promise<UserToGroup> {
   const user = auth();
 
@@ -838,7 +810,7 @@ export async function removeUserFromGroup(
   const ownerRow = await db.query.usersToGroups.findFirst({
     where: (model, { and, eq }) =>
       and(
-        eq(model.groupId, groupMember.groupId),
+        eq(model.groupId, userGroupPair.groupId),
         eq(model.userId, user.userId),
         eq(model.role, "Owner"),
       ),
@@ -848,12 +820,19 @@ export async function removeUserFromGroup(
     throw new Error("User is not the owner of the group");
   }
 
+  // Check if the user is trying to remove themselves
+  if (user.userId === userGroupPair.userId) {
+    throw new Error(
+      "User cannot remove themselves from the group as they are the owner, they need to delete the group instead",
+    );
+  }
+
   const removedGroupMember = await db
     .delete(usersToGroups)
     .where(
       and(
-        eq(usersToGroups.groupId, groupMember.groupId),
-        eq(usersToGroups.userId, groupMember.userId),
+        eq(usersToGroups.groupId, userGroupPair.groupId),
+        eq(usersToGroups.userId, userGroupPair.userId),
       ),
     )
     .returning();

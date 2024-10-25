@@ -1,16 +1,12 @@
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
 import {
   getGroupById,
-  getGroupMembers,
   getIsUserGroupOwner,
-  getPetsOfGroup,
 } from "~/server/queries";
 import { GroupMemberPage } from "~/app/_components/group-page/group-member-page";
 import { GroupOwnerPage } from "~/app/_components/group-page/group-owner-page";

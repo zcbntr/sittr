@@ -37,7 +37,7 @@ export function GroupOwnerPage({ group }: { group: Group }) {
   });
 
   React.useEffect(() => {
-    // Get the owned pets of the user, NOT THE GROUP - this is passed as a prop
+    // Get the owned pets of the user, who is the group owner, so they can be added to the group
     async function fetchOwnedPets() {
       await fetch("../api/pets?all=true", {
         method: "GET",

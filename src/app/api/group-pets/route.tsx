@@ -1,6 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { basicGetAPIFormSchema, deleteAPIFormSchema } from "~/lib/schema";
-import { getGroupPets } from "~/server/queries";
+import {
+  basicGetAPIFormSchema,
+  petToGroupFormInputSchema,
+} from "~/lib/schema";
+import {
+  addPetToGroup,
+  getGroupPets,
+  removePetFromGroup,
+} from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -12,7 +19,8 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
 
     if (!requestParams.success) {
       console.log(
-        "Owned Pets Form Data Parse Error: \n" + requestParams.error.toString(),
+        "Get Group Pets Form Data Parse Error: \n" +
+          requestParams.error.toString(),
       );
       throw new Error("Invalid form data");
     }
@@ -29,65 +37,46 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   }
 }
 
-// export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
-//   try {
-//     const json: unknown = await req.json();
+export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
+  try {
+    const json: unknown = await req.json();
 
-//     const formData = createPetFormSchema.safeParse(json);
+    const formData = petToGroupFormInputSchema.safeParse(json);
 
-//     if (!formData.success) {
-//       console.log(
-//         "Create Pet Form Data Parse Error: \n" + formData.error.toString(),
-//       );
-//       throw new Error("Invalid form data");
-//     }
+    if (!formData.success) {
+      console.log(
+        "Add Pet To Group Form Data Parse Error: \n" +
+          formData.error.toString(),
+      );
+      throw new Error("Invalid form data");
+    }
 
-//     const pet = await createPet(formData.data);
+    const pet = await addPetToGroup(formData.data);
 
-//     return NextResponse.json(pet);
-//   } catch (error) {
-//     return NextResponse.json({ error });
-//   }
-// }
+    return NextResponse.json(pet);
+  } catch (error) {
+    return NextResponse.json({ error });
+  }
+}
 
-// export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
-//   try {
-//     const json: unknown = await req.json();
+export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
+  try {
+    const json: unknown = await req.json();
 
-//     const formData = petSchema.safeParse(json);
+    const formData = petToGroupFormInputSchema.safeParse(json);
 
-//     if (!formData.success) {
-//       console.log(
-//         "Edit Pet Form Data Parse Error: \n" + formData.error.toString(),
-//       );
-//       throw new Error("Invalid form data");
-//     }
+    if (!formData.success) {
+      console.log(
+        "Remove Pet From Group Form Data Parse Error: \n" +
+          formData.error.toString(),
+      );
+      throw new Error("Invalid form data");
+    }
 
-//     const pgRow = await updatePet(formData.data);
+    const pgRow = await removePetFromGroup(formData.data);
 
-//     return NextResponse.json(pgRow);
-//   } catch (error) {
-//     return NextResponse.json({ error });
-//   }
-// }
-
-// export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
-//   try {
-//     const json: unknown = await req.json();
-
-//     const formData = deleteAPIFormSchema.safeParse(json);
-
-//     if (!formData.success) {
-//       console.log(
-//         "Delete Pet Form Data Parse Error: \n" + formData.error.toString(),
-//       );
-//       throw new Error("Invalid form data");
-//     }
-
-//     const pgRow = await deletePet(formData.data.id);
-
-//     return NextResponse.json(pgRow);
-//   } catch (error) {
-//     return NextResponse.json({ error });
-//   }
-// }
+    return NextResponse.json(pgRow);
+  } catch (error) {
+    return NextResponse.json({ error });
+  }
+}

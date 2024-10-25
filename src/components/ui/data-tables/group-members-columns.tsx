@@ -62,43 +62,48 @@ export const columns: ColumnDef<GroupMember>[] = [
               >
                 Copy
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={async () => {
-                  // Fix this at some point with another dialog
-                  // eslint-disable-next-line no-alert
-                  if (
-                    window.confirm(
-                      "Are you sure you want to remove this member?",
-                    )
-                  ) {
-                    await fetch("api/users-to-groups", {
-                      method: "DELETE",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        groupId: member.groupId,
-                        userId: member.userId,
-                      }),
-                    })
-                      .then((res) => res.json())
-                      .then((json) => userToGroupSchema.safeParse(json))
-                      .then((validatedUserToGroupObject) => {
-                        if (!validatedUserToGroupObject.success) {
-                          console.error(
-                            validatedUserToGroupObject.error.message,
-                          );
-                          throw new Error("Failed to remove group member");
-                        }
 
-                        document.dispatchEvent(new Event("memberRemoved"));
-                      });
-                  }
-                }}
-              >
-                Remove
-              </DropdownMenuItem>
+              {row.original.role !== "Owner" && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      // Fix this at some point with another dialog
+                      // eslint-disable-next-line no-alert
+                      if (
+                        window.confirm(
+                          "Are you sure you want to remove this member?",
+                        )
+                      ) {
+                        await fetch("../api/group-members", {
+                          method: "DELETE",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            groupId: member.groupId,
+                            userId: member.userId,
+                          }),
+                        })
+                          .then((res) => res.json())
+                          .then((json) => userToGroupSchema.safeParse(json))
+                          .then((validatedUserToGroupObject) => {
+                            if (!validatedUserToGroupObject.success) {
+                              console.error(
+                                validatedUserToGroupObject.error.message,
+                              );
+                              throw new Error("Failed to remove group member");
+                            }
+
+                            document.dispatchEvent(new Event("memberRemoved"));
+                          });
+                      }
+                    }}
+                  >
+                    Remove
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </>

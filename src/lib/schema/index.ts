@@ -138,7 +138,7 @@ export const createGroupFormSchema = z.object({
 
 export type CreateGroupFormInput = z.infer<typeof createGroupFormSchema>;
 
-export const requestGroupInviteCodeFormInput = z.object({
+export const requestGroupInviteCodeFormInputSchema = z.object({
   groupId: z.string(),
   maxUses: z.number(),
   expiresAt: z.coerce.date(),
@@ -146,15 +146,22 @@ export const requestGroupInviteCodeFormInput = z.object({
 });
 
 export type RequestGroupInviteCodeFormInput = z.infer<
-  typeof requestGroupInviteCodeFormInput
+  typeof requestGroupInviteCodeFormInputSchema
 >;
 
-export const petToGroupFormInput = z.object({
+export const petToGroupFormInputSchema = z.object({
   petId: z.string(),
   groupId: z.string(),
 });
 
-export type petToGroupFormInput = z.infer<typeof petToGroupFormInput>;
+export type petToGroupFormInput = z.infer<typeof petToGroupFormInputSchema>;
+
+export const userGroupPairSchema = z.object({
+  userId: z.string(),
+  groupId: z.string(),
+});
+
+export type UserGroupPair = z.infer<typeof userGroupPairSchema>;
 
 // -----------------------------------------------------------------------------
 // API form schemas
