@@ -2,7 +2,7 @@
 
 import { columns } from "~/components/ui/data-tables/group-pets-columns";
 import { DataTable } from "~/components/ui/data-table";
-import { GroupPet, groupPetListSchema } from "~/lib/schema";
+import { type GroupPet, groupPetListSchema } from "~/lib/schema";
 import React from "react";
 import { Button } from "~/components/ui/button";
 import AddPetToGroupDialog from "./add-pet-to-group-dialog";
@@ -49,12 +49,11 @@ export default function GroupPetsTable({ groupId }: { groupId: string }) {
         data={groupPets}
         searchable={true}
         filterable={true}
-        children={
-          <AddPetToGroupDialog groupId={groupId}>
-            <Button>Add Pet</Button>
-          </AddPetToGroupDialog>
-        }
-      />
+      >
+        <AddPetToGroupDialog groupId={groupId}>
+          <Button>Add Pet</Button>
+        </AddPetToGroupDialog>{" "}
+      </DataTable>
     </div>
   );
 }

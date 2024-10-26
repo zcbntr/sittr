@@ -150,12 +150,18 @@ export type RequestGroupInviteCodeFormInput = z.infer<
 >;
 
 export const petToGroupFormInputSchema = z.object({
-  petId: z.string().optional(),
-  petIds: z.array(z.string()).optional(),
+  petId: z.string(),
   groupId: z.string(),
 });
 
 export type petToGroupFormInput = z.infer<typeof petToGroupFormInputSchema>;
+
+export const petsToGroupFormInputSchema = z.object({
+  petIds: z.array(z.string()),
+  groupId: z.string(),
+});
+
+export type PetsToGroupFormInput = z.infer<typeof petsToGroupFormInputSchema>;
 
 export const userGroupPairSchema = z.object({
   userId: z.string(),

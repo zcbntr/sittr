@@ -1,5 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { basicGetAPIFormSchema, petToGroupFormInputSchema } from "~/lib/schema";
+import {
+  basicGetAPIFormSchema,
+  petsToGroupFormInputSchema,
+  petToGroupFormInputSchema,
+} from "~/lib/schema";
 import {
   addPetsToGroup,
   addPetToGroup,
@@ -42,22 +46,21 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = petToGroupFormInputSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
-        "Add Pet To Group Form Data Parse Error: \n" +
-          formData.error.toString(),
-      );
-      throw new Error("Invalid form data");
+      const formData = petsToGroupFormInputSchema.safeParse(json);
+      if (!formData.success) {
+        console.log(
+          "Add Pet or Pets To Group Form Data Parse Error: \n" +
+            formData.error.toString(),
+        );
+        throw new Error("Invalid form data");
+      } else {
+        const pgRows = await addPetsToGroup(formData.data);
+        return NextResponse.json(pgRows);
+      }
     }
 
-    if (formData.data.petId) {
-      const pet = await addPetToGroup(formData.data);
-      return NextResponse.json(pet);
-    } else if (formData.data.petIds) {
-      const pets = await addPetsToGroup(formData.data);
-      return NextResponse.json(pets);
-    }
-
-    return NextResponse.json({ error: "Invalid form data" });
+    const pet = await addPetToGroup(formData.data);
+    return NextResponse.json(pet);
   } catch (error) {
     return NextResponse.json({ error });
   }

@@ -15,18 +15,15 @@ import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import {
   Form,
-  FormControl,
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "~/components/ui/form";
 import {
-  idList,
   type Pet,
   petListSchema,
-  petToGroupFormInputSchema,
+  petsToGroupFormInputSchema,
   petToGroupListSchema,
 } from "~/lib/schema/index";
 import {
@@ -49,8 +46,8 @@ export default function AddPetToGroupDialog({
   const [selectedPetIds, setSelectedPetIds] = React.useState<string[]>([]);
   const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 
-  const form = useForm<z.infer<typeof petToGroupFormInputSchema>>({
-    resolver: zodResolver(petToGroupFormInputSchema),
+  const form = useForm<z.infer<typeof petsToGroupFormInputSchema>>({
+    resolver: zodResolver(petsToGroupFormInputSchema),
     defaultValues: {
       groupId: groupId,
       petIds: [],
@@ -88,8 +85,7 @@ export default function AddPetToGroupDialog({
     void fetchPets();
   }, []);
 
-  async function onSubmit(data: z.infer<typeof petToGroupFormInputSchema>) {
-    console.log(data);
+  async function onSubmit(data: z.infer<typeof petsToGroupFormInputSchema>) {
     await fetch("../api/group-pets", {
       method: "PUT",
       headers: {

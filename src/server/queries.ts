@@ -35,6 +35,7 @@ import {
   GroupPet,
   groupPetSchema,
   PetToGroupList,
+  PetsToGroupFormInput,
 } from "~/lib/schema";
 
 export async function getOwnedTasksStartingInRange(
@@ -912,7 +913,7 @@ export async function addPetToGroup(
 }
 
 export async function addPetsToGroup(
-  petToGroup: petToGroupFormInput,
+  petToGroup: PetsToGroupFormInput,
 ): Promise<PetToGroupList> {
   const user = auth();
 
@@ -932,10 +933,6 @@ export async function addPetsToGroup(
 
   if (!groupMember) {
     throw new Error("User is not the owner of the group");
-  }
-
-  if (!petToGroup.petIds) {
-    throw new Error("No pet ids provided");
   }
 
   const newPetToGroups = await db
