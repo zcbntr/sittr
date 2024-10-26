@@ -35,7 +35,6 @@ import {
   GroupPet,
   groupPetSchema,
 } from "~/lib/schema";
-import { group } from "console";
 
 export async function getOwnedTasksStartingInRange(
   from: Date,
@@ -488,15 +487,6 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
       id: newGroup[0].id,
       name: newGroup[0].name,
       description: newGroup[0].description,
-      members: [
-        userToGroupSchema.parse({
-          id: groupMember[0].id,
-          groupId: groupMember[0].groupId,
-          userId: groupMember[0].userId,
-          role: groupMember[0].role,
-        }),
-      ],
-      petIds: group.petIds,
     });
   });
 

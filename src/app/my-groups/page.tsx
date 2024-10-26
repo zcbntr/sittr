@@ -18,7 +18,7 @@ const MyGroupsPage = () => (
     </section>
     <section>
       <Suspense fallback={<div>Loading...</div>}>
-        <div>
+        <div className="container mx-auto">
           <GroupsTable />
         </div>
       </Suspense>

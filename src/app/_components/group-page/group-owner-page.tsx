@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { GroupNameDescriptionForm } from "~/app/_components/group-page/name-description-form";
-import { type Group, Pet, petListSchema, UserToGroup } from "~/lib/schema";
+import {
+  type Group,
+  groupSchema,
+  Pet,
+  petListSchema,
+  UserToGroup,
+} from "~/lib/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { X, Plus, Pencil, Save } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -26,15 +32,6 @@ export function GroupOwnerPage({ group }: { group: Group }) {
   const [newPetName, setNewPetName] = useState("");
   const [newPetType, setNewPetType] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-
-  document.addEventListener("groupUpdated", () => {
-    setIsEditing(false);
-    // Invalidate the group data and refetch
-  });
-
-  document.addEventListener("cancelEdit", () => {
-    setIsEditing(false);
-  });
 
   React.useEffect(() => {
     // Get the owned pets of the user, who is the group owner, so they can be added to the group
@@ -60,6 +57,35 @@ export function GroupOwnerPage({ group }: { group: Group }) {
           }
         });
     }
+
+    async function fetchGroup() {
+      await fetch("../api/groups?id=" + group.id, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((json) => groupSchema.safeParse(json))
+        .then((validatedGroupObject) => {
+          if (!validatedGroupObject.success) {
+            console.error(validatedGroupObject.error.message);
+            throw new Error("Failed to get group");
+          }
+
+          group = validatedGroupObject.data;
+        });
+    }
+
+    document.addEventListener("groupUpdated", () => {
+      setIsEditing(false);
+      // Invalidate the group data and refetch
+      fetchGroup();
+    });
+
+    document.addEventListener("cancelEdit", () => {
+      setIsEditing(false);
+    });
 
     void fetchOwnedPets();
   }, []);

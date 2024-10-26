@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
 import { MdDelete, MdCancel, MdEdit } from "react-icons/md";
@@ -25,11 +25,18 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
 
   const form = useForm<z.infer<typeof groupSchema>>({
     resolver: zodResolver(groupSchema),
+    defaultValues: {
+      id: group.id,
+      name: group.name,
+      description: group.description,
+    },
   });
 
-  form.setValue("id", group.id);
-  form.setValue("name", group.name);
-  form.setValue("description", group.description);
+  useEffect(() => {
+    // form.setValue("id", group.id);
+    // form.setValue("name", group.name);
+    // form.setValue("description", group.description);
+  }, []);
 
   async function onSubmit(data: z.infer<typeof groupSchema>) {
     if (deleteClicked) {
@@ -49,7 +56,7 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
       .then((validatedGroupObject) => {
         if (!validatedGroupObject.success) {
           console.error(validatedGroupObject.error.message);
-          throw new Error("Failed to updated group");
+          throw new Error("Failed to update group");
         }
 
         document.dispatchEvent(new Event("groupUpdated"));
@@ -79,7 +86,7 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
 
           // Redirect to /my-groups
           const router = useRouter();
-          router.push("/my-groups");
+          router.replace("/my-groups");
           return;
         });
     }

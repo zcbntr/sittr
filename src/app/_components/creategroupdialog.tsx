@@ -81,6 +81,7 @@ export default function CreateGroupDialog({
   }, []);
 
   async function onSubmit(data: z.infer<typeof createGroupFormSchema>) {
+    console.log(data);
     await fetch("/api/groups", {
       method: "PUT",
       headers: {
@@ -98,7 +99,7 @@ export default function CreateGroupDialog({
 
         document.dispatchEvent(new Event("groupCreated"));
         const router = useRouter();
-        router.refresh();
+        router.replace("/groups/" + validatedGroupObject.data.id);
         setOpen(false);
         return;
       });

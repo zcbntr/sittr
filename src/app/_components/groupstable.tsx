@@ -15,7 +15,7 @@ export default async function GroupsTable() {
   const groups = await getGroupsUserIsIn();
 
   return (
-    <div className="container mx-auto">
+    <>
       <Table>
         {/* Show the owner of the group? Maybe a group info zod schema for owner, members, pets as well as basic group info */}
         <TableHeader>
@@ -56,6 +56,6 @@ export default async function GroupsTable() {
           No groups found. Create or join a group to get started.
         </div>
       )}
-    </div>
+    </>
   );
 }
