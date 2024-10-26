@@ -17,8 +17,6 @@ import {
 } from "~/components/ui/dropdown-menu";
 import {
   GroupPet,
-  groupPetSchema,
-  petSchema,
   petToGroupSchema,
 } from "~/lib/schema";
 

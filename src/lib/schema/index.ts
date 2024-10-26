@@ -150,7 +150,8 @@ export type RequestGroupInviteCodeFormInput = z.infer<
 >;
 
 export const petToGroupFormInputSchema = z.object({
-  petId: z.string(),
+  petId: z.string().optional(),
+  petIds: z.array(z.string()).optional(),
   groupId: z.string(),
 });
 
@@ -209,6 +210,12 @@ export const deleteAPIFormSchema = z.object({
 });
 
 export type DeleteAPIFormInput = z.infer<typeof deleteAPIFormSchema>;
+
+export const idList = z.object({
+  ids: z.array(z.string()),
+});
+
+export type IdList = z.infer<typeof idList>;
 
 // -----------------------------------------------------------------------------
 // Response schemas - no refine methods - we trust the db
@@ -279,6 +286,10 @@ export const petToGroupSchema = z.object({
 });
 
 export type PetToGroup = z.infer<typeof petToGroupSchema>;
+
+export const petToGroupListSchema = z.array(petToGroupSchema);
+
+export type PetToGroupList = z.infer<typeof petToGroupListSchema>;
 
 export const groupPetSchema = z.object({
   id: z.string(),

@@ -206,7 +206,7 @@ export default function CalendarComponent() {
             color: "black",
           };
 
-          // Replace with either group based colour or subject based colour
+          // Replace with either group based colour or pet based colour
           // if (event.sittingType == "Pet") {
           //   newStyle.backgroundColor = "#f54290";
           // } else if (event.sittingType == "House") {

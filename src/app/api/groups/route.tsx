@@ -24,7 +24,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
 
     if (!requestParams.success) {
       console.log(
-        "Get Subjects API Data Parse Error: \n" +
+        "Get Groups API Data Parse Error: \n" +
           requestParams.error.toString(),
       );
       throw new Error("Invalid request params");

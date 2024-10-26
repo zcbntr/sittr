@@ -1,9 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { basicGetAPIFormSchema, petToGroupFormInputSchema } from "~/lib/schema";
 import {
-  basicGetAPIFormSchema,
-  petToGroupFormInputSchema,
-} from "~/lib/schema";
-import {
+  addPetsToGroup,
   addPetToGroup,
   getGroupPets,
   removePetFromGroup,
@@ -51,9 +49,15 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const pet = await addPetToGroup(formData.data);
+    if (formData.data.petId) {
+      const pet = await addPetToGroup(formData.data);
+      return NextResponse.json(pet);
+    } else if (formData.data.petIds) {
+      const pets = await addPetsToGroup(formData.data);
+      return NextResponse.json(pets);
+    }
 
-    return NextResponse.json(pet);
+    return NextResponse.json({ error: "Invalid form data" });
   } catch (error) {
     return NextResponse.json({ error });
   }

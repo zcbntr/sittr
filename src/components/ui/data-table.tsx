@@ -40,6 +40,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   searchable: boolean;
   filterable: boolean;
+  children?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -47,6 +48,7 @@ export function DataTable<TData, TValue>({
   data,
   searchable,
   filterable,
+  children,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -74,8 +76,8 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      {(searchable || filterable) && (
-        <div className="flex items-center gap-2 py-4">
+      {(searchable || filterable || children) && (
+        <div className="flex flex-row content-start gap-2 py-4">
           {/* Make this a variable via a prop - there are extensive docs https://tanstack.com/table/v8/docs/guide/filters */}
           {searchable && (
             <Search
@@ -89,12 +91,11 @@ export function DataTable<TData, TValue>({
               className="max-w-sm"
             />
           )}
+
           {filterable && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
-                  Columns
-                </Button>
+                <Button variant="outline">Columns</Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {table
@@ -116,6 +117,12 @@ export function DataTable<TData, TValue>({
                   })}
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+
+          {children && (
+            <div className="flex grow flex-row place-content-end">
+              {children}
+            </div>
           )}
         </div>
       )}

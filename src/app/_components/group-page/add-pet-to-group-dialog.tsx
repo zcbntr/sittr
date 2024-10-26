@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { Input } from "~/components/ui/input";
 import * as React from "react";
 import { type z } from "zod";
 import { useForm } from "react-hook-form";
@@ -24,23 +23,24 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import {
-  createGroupFormSchema,
-  groupSchema,
+  idList,
   type Pet,
   petListSchema,
+  petToGroupFormInputSchema,
+  petToGroupListSchema,
 } from "~/lib/schema/index";
-import { Textarea } from "~/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { useRouter } from "next/navigation";
 
-export default function CreateGroupDialog({
+export default function AddPetToGroupDialog({
+  groupId,
   children,
 }: {
+  groupId: string;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -49,13 +49,17 @@ export default function CreateGroupDialog({
   const [selectedPetIds, setSelectedPetIds] = React.useState<string[]>([]);
   const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 
-  const form = useForm<z.infer<typeof createGroupFormSchema>>({
-    resolver: zodResolver(createGroupFormSchema),
+  const form = useForm<z.infer<typeof petToGroupFormInputSchema>>({
+    resolver: zodResolver(petToGroupFormInputSchema),
+    defaultValues: {
+      groupId: groupId,
+      petIds: [],
+    },
   });
 
   React.useEffect(() => {
     async function fetchPets() {
-      await fetch("api/pets?all=true", {
+      await fetch("../api/pets-not-in-group?id=" + groupId, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -77,12 +81,16 @@ export default function CreateGroupDialog({
         });
     }
 
+    document.addEventListener("petRemoved", () => {
+      void fetchPets();
+    });
+
     void fetchPets();
   }, []);
 
-  async function onSubmit(data: z.infer<typeof createGroupFormSchema>) {
+  async function onSubmit(data: z.infer<typeof petToGroupFormInputSchema>) {
     console.log(data);
-    await fetch("/api/groups", {
+    await fetch("../api/group-pets", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -90,17 +98,16 @@ export default function CreateGroupDialog({
       body: JSON.stringify(data),
     })
       .then((res) => res.json())
-      .then((json) => groupSchema.safeParse(json))
-      .then((validatedGroupObject) => {
-        if (!validatedGroupObject.success) {
-          console.error(validatedGroupObject.error.message);
-          throw new Error("Failed to create group");
+      .then((json) => petToGroupListSchema.safeParse(json))
+      .then((validatedPetToGroupListObject) => {
+        if (!validatedPetToGroupListObject.success) {
+          console.error(validatedPetToGroupListObject.error.message);
+          throw new Error("Failed to add pets to group");
         }
 
-        document.dispatchEvent(new Event("groupCreated"));
-        const router = useRouter();
-        router.replace("/groups/" + validatedGroupObject.data.id);
+        document.dispatchEvent(new Event("petsUpdated"));
         setOpen(false);
+        form.setValue("petIds", []);
         return;
       });
   }
@@ -108,9 +115,9 @@ export default function CreateGroupDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[454px]">
+      <DialogContent className="">
         <DialogHeader>
-          <DialogTitle>Group Details</DialogTitle>
+          <DialogTitle>Add Pet(s)</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -120,43 +127,9 @@ export default function CreateGroupDialog({
           >
             <FormField
               control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Jake's little helpers" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Friends who can pop round to feed Jake while we are away"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Describe the group and its purpose. This will be visible to
-                    users who join the group.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="petIds"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Sitting For</FormLabel>
                   <DropdownMenu>
                     <DropdownMenuTrigger disabled={petsEmpty} asChild>
                       <Button variant="outline">
@@ -198,10 +171,7 @@ export default function CreateGroupDialog({
                             checked={selectedPetIds.includes(pet.id)}
                             onCheckedChange={() => {
                               if (!selectedPetIds.includes(pet.id)) {
-                                setSelectedPetIds([
-                                  ...selectedPetIds,
-                                  pet.id,
-                                ]);
+                                setSelectedPetIds([...selectedPetIds, pet.id]);
                                 field.onChange([...selectedPetIds, pet.id]);
                               } else {
                                 setSelectedPetIds(
@@ -224,15 +194,19 @@ export default function CreateGroupDialog({
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <FormDescription>
-                    The pets the group will sit for.
+                    Choose additional pets for the group to sit for.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter>
-              <Button type="submit" disabled={petsEmpty}>
-                Create Group
+              <Button
+                type="submit"
+                disabled={petsEmpty || selectedPetIds.length == 0}
+              >
+                {selectedPetIds.length <= 1 && <div>Add Pet</div>}
+                {selectedPetIds.length > 1 && <div>Add Pets</div>}
               </Button>
             </DialogFooter>
           </form>

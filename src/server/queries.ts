@@ -34,6 +34,7 @@ import {
   UserGroupPair,
   GroupPet,
   groupPetSchema,
+  PetToGroupList,
 } from "~/lib/schema";
 
 export async function getOwnedTasksStartingInRange(
@@ -433,7 +434,7 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
     throw new Error("Unauthorized");
   }
 
-  // Create group, add user to groupMembers, add subjects to subjects, all in a transaction
+  // Create group, add user to groupMembers, add pets to group, all in a transaction
   const groupToReturn = await db.transaction(async (db) => {
     // Create group
     const newGroup = await db
@@ -466,9 +467,9 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
       throw new Error("Failed to add user to group");
     }
 
-    // Add sitting subjects to group
+    // Add pets to group
     for (const petId of group.petIds) {
-      const subject = await db
+      const petToGroupRow = await db
         .insert(petsToGroups)
         .values({
           groupId: newGroup[0].id,
@@ -477,9 +478,9 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
         .returning()
         .execute();
 
-      if (!subject?.[0]) {
+      if (!petToGroupRow?.[0]) {
         db.rollback();
-        throw new Error("Failed to add subject to group");
+        throw new Error("Failed to add pet to group");
       }
     }
 
@@ -871,7 +872,9 @@ export async function getGroupPets(groupId: string): Promise<GroupPet[]> {
   });
 }
 
-export async function addPetToGroup(petToGroup: petToGroupFormInput) {
+export async function addPetToGroup(
+  petToGroup: petToGroupFormInput,
+): Promise<PetToGroup> {
   const user = auth();
 
   if (!user.userId) {
@@ -906,6 +909,90 @@ export async function addPetToGroup(petToGroup: petToGroupFormInput) {
   }
 
   return newPetToGroup[0];
+}
+
+export async function addPetsToGroup(
+  petToGroup: petToGroupFormInput,
+): Promise<PetToGroupList> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check user is the owner of the group
+  const groupMember = await db.query.usersToGroups.findFirst({
+    where: (model, { and, eq }) =>
+      and(
+        eq(model.groupId, petToGroup.groupId),
+        eq(model.userId, user.userId),
+        eq(model.role, "Owner"),
+      ),
+  });
+
+  if (!groupMember) {
+    throw new Error("User is not the owner of the group");
+  }
+
+  if (!petToGroup.petIds) {
+    throw new Error("No pet ids provided");
+  }
+
+  const newPetToGroups = await db
+    .insert(petsToGroups)
+    .values(
+      petToGroup.petIds.map((petId) => ({
+        groupId: petToGroup.groupId,
+        petId,
+      })),
+    )
+    .returning()
+    .execute();
+
+  if (newPetToGroups.length == 0) {
+    throw new Error("Failed to add pets to group");
+  }
+
+  return newPetToGroups;
+}
+
+export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
+  const user = auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const petsNotInGroup = await db.query.pets.findMany({
+    where: (model, { and, not, inArray }) =>
+      and(
+        not(
+          inArray(
+            model.id,
+            db
+              .select({ petId: petsToGroups.petId })
+              .from(petsToGroups)
+              .where(eq(petsToGroups.groupId, groupId)),
+          ),
+        ),
+        eq(model.ownerId, user.userId),
+      ),
+  });
+
+  if (!petsNotInGroup) {
+    throw new Error("Failed to get users pets not in group");
+  }
+
+  return petsNotInGroup.map((pet) => {
+    return petSchema.parse({
+      id: pet.id,
+      ownerId: pet.ownerId,
+      name: pet.name,
+      species: pet.species,
+      breed: pet.breed,
+      dob: pet.dob,
+    });
+  });
 }
 
 export async function removePetFromGroup(
@@ -1020,7 +1107,7 @@ export async function deleteGroup(groupId: string): Promise<Group> {
     throw new Error("Failed to delete group");
   }
 
-  // Database cascade should delete groupMembers and subjectsToGroups, fingers crossed!
+  // Database cascade should delete usersToGroups and petsToGroups, fingers crossed!
 
   return groupSchema.parse({
     id: deletedGroup[0].id,

@@ -84,7 +84,7 @@ export default function EditTaskDialog({
   React.useEffect(
     () => {
       async function fetchPets() {
-        await fetch("api/pets?all=true", {
+        await fetch("../api/pets?all=true", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -92,22 +92,22 @@ export default function EditTaskDialog({
         })
           .then((res) => res.json())
           .then((json) => petListSchema.safeParse(json))
-          .then((validatedSubjectListObject) => {
-            if (!validatedSubjectListObject.success) {
-              console.error(validatedSubjectListObject.error.message);
-              throw new Error("Failed to get sitting pets");
+          .then((validatedPetListObject) => {
+            if (!validatedPetListObject.success) {
+              console.error(validatedPetListObject.error.message);
+              throw new Error("Failed to get user's pets");
             }
 
-            if (validatedSubjectListObject.data.length > 0) {
-              setPets(validatedSubjectListObject.data);
-            } else if (validatedSubjectListObject.data.length === 0) {
+            if (validatedPetListObject.data.length > 0) {
+              setPets(validatedPetListObject.data);
+            } else if (validatedPetListObject.data.length === 0) {
               setPetsEmpty(true);
             }
           });
       }
 
       async function fetchGroups() {
-        await fetch("api/groups?all=true", {
+        await fetch("../api/groups?all=true", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -118,7 +118,7 @@ export default function EditTaskDialog({
           .then((validatedGroupListObject) => {
             if (!validatedGroupListObject.success) {
               console.error(validatedGroupListObject.error.message);
-              throw new Error("Failed to get groups");
+              throw new Error("Failed to get user's groups");
             }
 
             if (validatedGroupListObject.data.length > 0) {
