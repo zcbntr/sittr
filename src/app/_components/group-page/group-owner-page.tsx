@@ -16,9 +16,11 @@ import {
 import React from "react";
 import GroupPetsTable from "./group-pets-table";
 import GroupMembersTable from "./group-members-table";
+import { useRouter } from "next/navigation";
 
 export function GroupOwnerPage({ group }: { group: Group }) {
   const [isEditing, setIsEditing] = useState(false);
+  const router = useRouter();
 
   React.useEffect(() => {
     async function fetchGroup() {
@@ -48,6 +50,11 @@ export function GroupOwnerPage({ group }: { group: Group }) {
 
     document.addEventListener("cancelEdit", () => {
       setIsEditing(false);
+    });
+
+    document.addEventListener("groupDeleted", () => {
+      // Redirect to the groups page
+      router.replace("/my-groups");
     });
   }, []);
 

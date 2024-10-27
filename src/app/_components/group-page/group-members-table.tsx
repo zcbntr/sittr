@@ -2,8 +2,10 @@
 
 import { columns } from "~/components/ui/data-tables/group-members-columns";
 import { DataTable } from "~/components/ui/data-table";
-import { GroupMember, groupMemberListSchema } from "~/lib/schema";
+import { type GroupMember, groupMemberListSchema } from "~/lib/schema";
 import React from "react";
+import CreateGroupInviteDialog from "./create-group-invite-dialog";
+import { Button } from "~/components/ui/button";
 
 export default function GroupMembersTable({ groupId }: { groupId: string }) {
   const [groupMembers, setGroupMembers] = React.useState<GroupMember[]>([]);
@@ -34,7 +36,7 @@ export default function GroupMembersTable({ groupId }: { groupId: string }) {
     document.addEventListener("memberRemoved", () => {
       void fetchGroupMembers();
     });
-  }, []);
+  }, [groupId]);
 
   return (
     <div className="container mx-auto">
@@ -43,7 +45,11 @@ export default function GroupMembersTable({ groupId }: { groupId: string }) {
         data={groupMembers}
         searchable={true}
         filterable={true}
-      />
+      >
+        <CreateGroupInviteDialog groupId={groupId}>
+          <Button>Create Invite</Button>
+        </CreateGroupInviteDialog>
+      </DataTable>
     </div>
   );
 }

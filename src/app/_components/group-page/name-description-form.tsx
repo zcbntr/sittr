@@ -9,7 +9,6 @@ import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,7 +17,6 @@ import {
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { type Group, groupSchema } from "~/lib/schema";
-import { useRouter } from "next/navigation";
 
 export function GroupNameDescriptionForm({ group }: { group: Group }) {
   const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
@@ -83,10 +81,6 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
           }
 
           document.dispatchEvent(new Event("groupDeleted"));
-
-          // Redirect to /my-groups
-          const router = useRouter();
-          router.replace("/my-groups");
           return;
         });
     }
@@ -157,9 +151,9 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
           <Button
             id="deleteGroupButton"
             className="bg-red-600 hover:bg-red-700"
-            onClick={() => {
+            onClick={async () => {
               setDeleteClicked(true);
-              deleteGroup();
+              await deleteGroup();
             }}
           >
             <div className="flex flex-row gap-2">

@@ -40,7 +40,7 @@ export default function GroupPetsTable({ groupId }: { groupId: string }) {
     document.addEventListener("petsUpdated", () => {
       void fetchGroupPets();
     });
-  }, []);
+  }, [groupId]);
 
   return (
     <div className="container mx-auto">

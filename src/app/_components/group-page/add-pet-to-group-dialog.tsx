@@ -83,7 +83,7 @@ export default function AddPetToGroupDialog({
     });
 
     void fetchPets();
-  }, []);
+  }, [groupId]);
 
   async function onSubmit(data: z.infer<typeof petsToGroupFormInputSchema>) {
     await fetch("../api/group-pets", {

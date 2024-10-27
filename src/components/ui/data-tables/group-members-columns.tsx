@@ -15,7 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { GroupMember, userToGroupSchema } from "~/lib/schema";
+import { type GroupMember, userToGroupSchema } from "~/lib/schema";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
 // Column for avatar?
 export const columns: ColumnDef<GroupMember>[] = [
@@ -27,11 +28,11 @@ export const columns: ColumnDef<GroupMember>[] = [
 
       return (
         <Link href={`/profile/${member.userId}`}>
-          <img
-            src={member.avatar}
-            alt={`${member.name}'s avatar`}
-            className="h-8 w-8 rounded-full"
-          />
+          <Avatar>
+            <AvatarImage src={member.avatar} alt={`${member.name}'s avatar`} />
+            {/* Make this actually be the initials rather than first letter */}
+            <AvatarFallback>{member.name.substring(0, 1)}</AvatarFallback>
+          </Avatar>
         </Link>
       );
     },

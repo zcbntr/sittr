@@ -49,6 +49,8 @@ export default function CreateGroupDialog({
   const [selectedPetIds, setSelectedPetIds] = React.useState<string[]>([]);
   const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 
+  const router = useRouter();
+
   const form = useForm<z.infer<typeof createGroupFormSchema>>({
     resolver: zodResolver(createGroupFormSchema),
   });
@@ -98,7 +100,6 @@ export default function CreateGroupDialog({
         }
 
         document.dispatchEvent(new Event("groupCreated"));
-        const router = useRouter();
         router.replace("/groups/" + validatedGroupObject.data.id);
         setOpen(false);
         return;
@@ -198,10 +199,7 @@ export default function CreateGroupDialog({
                             checked={selectedPetIds.includes(pet.id)}
                             onCheckedChange={() => {
                               if (!selectedPetIds.includes(pet.id)) {
-                                setSelectedPetIds([
-                                  ...selectedPetIds,
-                                  pet.id,
-                                ]);
+                                setSelectedPetIds([...selectedPetIds, pet.id]);
                                 field.onChange([...selectedPetIds, pet.id]);
                               } else {
                                 setSelectedPetIds(

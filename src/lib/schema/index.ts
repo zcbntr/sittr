@@ -170,6 +170,18 @@ export const userGroupPairSchema = z.object({
 
 export type UserGroupPair = z.infer<typeof userGroupPairSchema>;
 
+export const groupInviteLinkOptionsSchema = z.object({
+  linkId: z.string(),
+  groupId: z.string(),
+  maxUses: z.number(),
+  expiresAt: z.coerce.date(),
+  requiresApproval: z.boolean(),
+});
+
+export type GroupInviteLinkOptions = z.infer<
+  typeof groupInviteLinkOptionsSchema
+>;
+
 // -----------------------------------------------------------------------------
 // API form schemas
 // -----------------------------------------------------------------------------
