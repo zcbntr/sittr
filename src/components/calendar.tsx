@@ -15,6 +15,17 @@ import {
 import EditTaskDialog from "~/app/_components/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/createtaskdialog";
 
+const coloursList: string[] = [
+  "#f54290",
+  "#424bf5",
+  "#87f542",
+  "#f5bf42",
+  "#f54290",
+  "#424bf5",
+  "#87f542",
+  "#f5bf42",
+];
+
 // Start the week on a monday, and set the first week of the year to be the one that contains the first Thursday
 moment.locale("en-GB", {
   week: {
@@ -206,16 +217,12 @@ export default function CalendarComponent() {
             color: "black",
           };
 
-          // Replace with either group based colour or pet based colour
-          // if (event.sittingType == "Pet") {
-          //   newStyle.backgroundColor = "#f54290";
-          // } else if (event.sittingType == "House") {
-          //   newStyle.backgroundColor = "#424bf5";
-          // } else if (event.sittingType == "Plant") {
-          //   newStyle.backgroundColor = "#87f542";
-          // } else if (event.sittingType == "Baby") {
-          //   newStyle.backgroundColor = "#f5bf42";
-          // }
+          // Map the event to a colour based on the petId - needs testing!
+          const petId = event.petId;
+          if (petId) {
+            const colour = coloursList[parseInt(petId) % coloursList.length];
+            if (colour) newStyle.backgroundColor = colour;
+          }
 
           return {
             className: "",
