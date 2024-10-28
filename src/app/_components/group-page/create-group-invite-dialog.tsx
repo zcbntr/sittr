@@ -28,6 +28,7 @@ import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { MdCopyAll } from "react-icons/md";
 import { addDays } from "date-fns";
+import { useToast } from "~/hooks/use-toast";
 
 export default function CreateGroupInviteDialog({
   groupId,
@@ -38,6 +39,8 @@ export default function CreateGroupInviteDialog({
 }) {
   const [open, setOpen] = React.useState(false);
   const [code, setCode] = React.useState<string | undefined>();
+
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof groupInviteLinkOptionsSchema>>({
     resolver: zodResolver(groupInviteLinkOptionsSchema),
@@ -90,7 +93,7 @@ export default function CreateGroupInviteDialog({
     }
 
     void fetchGroupInvite();
-  });
+  }, [groupId]);
 
   async function onSubmit(data: z.infer<typeof groupInviteLinkOptionsSchema>) {
     await fetch("../api/group-invites", {
@@ -127,7 +130,23 @@ export default function CreateGroupInviteDialog({
             </Label>
             <Input id="link" value={code} defaultValue="loading..." readOnly />
           </div>
-          <Button type="submit" size="sm" className="px-3">
+          <Button
+            type="submit"
+            size="sm"
+            className="px-3"
+            onClick={() =>
+              // Copy the code to the clipboard and display a success toast
+              {
+                if (code) {
+                  navigator.clipboard.writeText(code);
+                  toast({
+                    title: "Code copied",
+                    description: `${code}`,
+                  });
+                }
+              }
+            }
+          >
             <span className="sr-only">Copy</span>
             <MdCopyAll className="h-4 w-4" />
           </Button>

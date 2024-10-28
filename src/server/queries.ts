@@ -535,7 +535,7 @@ export async function getNewGroupInviteCode(
     throw new Error("Failed to generate invite code");
   }
 
-  const newInviteCode = await db
+  const newInviteCodeRow = await db
     .insert(groupInviteCodes)
     .values({
       groupId: request.groupId,
@@ -547,18 +547,19 @@ export async function getNewGroupInviteCode(
     .returning()
     .execute();
 
-  if (!newInviteCode?.[0]) {
+  if (!newInviteCodeRow?.[0]) {
     throw new Error("Failed to create invite code");
   }
 
   return groupInviteCodeSchema.parse({
-    id: newInviteCode[0].id,
-    groupId: newInviteCode[0].groupId,
-    code: newInviteCode[0].code,
-    maxUses: newInviteCode[0].maxUses,
-    uses: newInviteCode[0].uses,
-    expiresAt: newInviteCode[0].expiresAt,
-    requiresApproval: newInviteCode[0].requiresApproval,
+    id: newInviteCodeRow[0].id,
+    groupId: newInviteCodeRow[0].groupId,
+    createdBy: user.userId,
+    code: newInviteCodeRow[0].code,
+    maxUses: newInviteCodeRow[0].maxUses,
+    uses: newInviteCodeRow[0].uses,
+    expiresAt: newInviteCodeRow[0].expiresAt,
+    requiresApproval: newInviteCodeRow[0].requiresApproval,
   });
 }
 
