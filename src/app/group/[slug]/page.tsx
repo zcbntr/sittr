@@ -3,9 +3,12 @@ import { getGroupById, getIsUserGroupOwner } from "~/server/queries";
 import { GroupMemberPage } from "~/app/_components/group-page/group-member-page";
 import { GroupOwnerPage } from "~/app/_components/group-page/group-owner-page";
 
-export default async function Page({ params }: { params: { slug: string } }) {
+export default async function Page(props: {
+  params: { slug: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   // Get the data for the group from the slug
-  const { slug } = await params;
+  const { slug } = await props.params;
   const group = await getGroupById(slug);
 
   if (group == null) {
@@ -23,7 +26,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
   }
 }
 
-export function GroupDoesNotExistPage() {
+function GroupDoesNotExistPage() {
   return (
     <Card>
       <CardHeader>

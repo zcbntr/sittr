@@ -134,11 +134,11 @@ export default function CreateGroupInviteDialog({
             type="submit"
             size="sm"
             className="px-3"
-            onClick={() =>
+            onClick={async () =>
               // Copy the code to the clipboard and display a success toast
               {
                 if (code) {
-                  navigator.clipboard.writeText(code);
+                  await navigator.clipboard.writeText(code);
                   toast({
                     title: "Code copied",
                     description: `${code}`,

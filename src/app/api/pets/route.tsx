@@ -9,7 +9,7 @@ import { createPet, deletePet, getOwnedPets, updatePet } from "~/server/queries"
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
-    const searchParams = await req.nextUrl.searchParams;
+    const searchParams = req.nextUrl.searchParams;
     const requestParams = basicGetAPIFormSchema.safeParse({
       ids: searchParams.get("ids"),
       all: searchParams.get("all") === "true",

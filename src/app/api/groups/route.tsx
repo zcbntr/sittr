@@ -16,7 +16,7 @@ import {
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
-    const searchParams = await req.nextUrl.searchParams;
+    const searchParams = req.nextUrl.searchParams;
     const requestParams = basicGetAPIFormSchema.safeParse({
       id: searchParams.get("id"),
       ids: searchParams.get("ids"),

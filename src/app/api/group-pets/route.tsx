@@ -13,7 +13,7 @@ import {
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
-    const searchParams = await req.nextUrl.searchParams;
+    const searchParams = req.nextUrl.searchParams;
     const requestParams = basicGetAPIFormSchema.safeParse({
       id: searchParams.get("id"),
       ids: searchParams.get("ids"),
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
 
     if (requestParams.data.id) {
       const groupPets = await getGroupPets(requestParams.data.id);
-      
+
       return NextResponse.json(groupPets);
     }
 

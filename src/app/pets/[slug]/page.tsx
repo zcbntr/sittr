@@ -3,9 +3,12 @@ import { getPetById } from "~/server/queries";
 import { auth } from "@clerk/nextjs/server";
 import { PetOwnerPage } from "~/app/_components/pet-page/pet-owner-page";
 
-export default async function Page({ params }: { params: { slug: string } }) {
+export default async function Page(props: {
+  params: { slug: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   // Get the data for the group from the slug
-  const { slug } = await params;
+  const { slug } = await props.params;
   const pet = await getPetById(slug);
 
   if (pet == null) {
