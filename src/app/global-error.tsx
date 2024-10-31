@@ -2,7 +2,7 @@
 
 import Error from "next/error";
 
-export default function GlobalError(props: { error: unknown }) {
+export default function GlobalError() {
   return (
     <html>
       <body>

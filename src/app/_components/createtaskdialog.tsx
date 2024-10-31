@@ -137,15 +137,25 @@ export default function CreateTaskDialog({
           form.setValue("dueMode", props.dueMode);
         }
 
-        if (props?.dueDate) setDueDate(props?.dueDate);
+        if (props?.dueDate) {
+          setDueDate(props?.dueDate);
+          form.setValue("dueDate", props.dueDate);
+        }
 
-        if (props?.dateRange)
+        if (props?.dateRange) {
           setDateRange({
             from: props?.dateRange?.from
               ? props.dateRange.from
               : defaultFromDate,
             to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
           });
+          form.setValue("dateRange", {
+            from: props?.dateRange?.from
+              ? props.dateRange.from
+              : defaultFromDate,
+            to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+          });
+        }
 
         if (props?.name) {
           form.setValue("name", props.name);
@@ -153,19 +163,6 @@ export default function CreateTaskDialog({
 
         if (props?.description) {
           form.setValue("description", props.description);
-        }
-
-        if (props?.dueDate) {
-          form.setValue("dueDate", props.dueDate);
-        }
-
-        if (props?.dateRange) {
-          form.setValue("dateRange", {
-            from: props?.dateRange?.from
-              ? props.dateRange.from
-              : defaultFromDate,
-            to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
-          });
         }
 
         if (props?.groupId) {

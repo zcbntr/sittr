@@ -3,7 +3,6 @@
 import { SignedIn, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
-import RoleSwapper from "~/components/roleswapper";
 import { MdGroups, MdPets } from "react-icons/md";
 
 export function TopNav() {

@@ -3,12 +3,17 @@ import { getGroupById, getIsUserGroupOwner } from "~/server/queries";
 import { GroupMemberPage } from "~/app/_components/group-page/group-member-page";
 import { GroupOwnerPage } from "~/app/_components/group-page/group-owner-page";
 
+type Params = Promise<{ slug: string }>;
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
 export default async function Page(props: {
-  params: { slug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Params;
+  searchParams: SearchParams;
 }) {
   // Get the data for the group from the slug
-  const { slug } = await props.params;
+  const params = await props.params;
+  const slug = params.slug;
+
   const group = await getGroupById(slug);
 
   if (group == null) {

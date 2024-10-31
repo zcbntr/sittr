@@ -12,7 +12,7 @@ import {
   petsToGroups,
 } from "./db/schema";
 import {
-  petToGroupFormInput,
+  type petToGroupFormInput,
   type CreateGroupFormInput,
   type CreatePetFormInput,
   type CreateTask,
@@ -25,17 +25,17 @@ import {
   groupSchema,
   type Pet,
   petSchema,
-  PetToGroup,
+  type PetToGroup,
   type RequestGroupInviteCodeFormInput,
   RoleEnum,
   type Task,
   taskSchema,
-  GroupMember,
-  UserGroupPair,
-  GroupPet,
+  type GroupMember,
+  type UserGroupPair,
+  type GroupPet,
   groupPetSchema,
-  PetToGroupList,
-  PetsToGroupFormInput,
+  type PetToGroupList,
+  type PetsToGroupFormInput,
 } from "~/lib/schema";
 
 import { createClerkClient } from "@clerk/backend";

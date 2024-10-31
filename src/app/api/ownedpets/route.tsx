@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getOwnedPets } from "~/server/queries";
 
-export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
+export async function GET(): Promise<NextResponse<unknown>> {
   try {
     const pets = await getOwnedPets();
 

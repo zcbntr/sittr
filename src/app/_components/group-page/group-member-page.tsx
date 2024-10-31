@@ -1,6 +1,6 @@
 "use client";
 
-import { Group, Pet } from "~/lib/schema";
+import { Group } from "~/lib/schema";
 
 export function GroupMemberPage({ group }: { group: Group }) {
   return <></>;

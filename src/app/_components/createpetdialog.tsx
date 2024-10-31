@@ -44,6 +44,8 @@ export default function CreatePetDialog({
 
   const [dob, setDOB] = React.useState<Date | undefined>();
 
+  const router = useRouter();
+
   const form = useForm<z.infer<typeof createPetFormSchema>>({
     resolver: zodResolver(createPetFormSchema),
   });
@@ -65,7 +67,6 @@ export default function CreatePetDialog({
         }
 
         document.dispatchEvent(new Event("petCreated"));
-        const router = useRouter();
         router.refresh();
         setOpen(false);
         return;

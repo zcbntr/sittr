@@ -1,21 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { GroupNameDescriptionForm } from "~/app/_components/group-page/name-description-form";
-import {
-  type Group,
-  Pet,
-  petListSchema,
-  UserToGroup,
-} from "~/lib/schema";
-import { Input } from "~/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { X, Plus, Pencil, Save } from "lucide-react";
+import { PetEditForm } from "~/app/_components/pet-page/pet-edit-form";
+import { Pet } from "~/lib/schema";
+import { Pencil } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -44,7 +36,7 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <GroupNameDescriptionForm group={group.group} />
+            <PetEditForm pet={pet} />
           </CardContent>
         </Card>
       ) : (
