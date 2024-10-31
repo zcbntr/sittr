@@ -5,7 +5,8 @@ import { PetOwnerPage } from "~/app/_components/pet-page/pet-owner-page";
 
 export default async function Page({ params }: { params: { slug: string } }) {
   // Get the data for the group from the slug
-  const pet = await getPetById(params.slug);
+  const { slug } = await params;
+  const pet = await getPetById(slug);
 
   if (pet == null) {
     // No such group exists, return group empty page

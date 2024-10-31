@@ -1,6 +1,6 @@
 "use server";
 
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, and, or, lte, gte, inArray } from "drizzle-orm";
 import {
@@ -38,11 +38,17 @@ import {
   PetsToGroupFormInput,
 } from "~/lib/schema";
 
+import { createClerkClient } from "@clerk/backend";
+
+const clerkClient = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY,
+});
+
 export async function getOwnedTasksStartingInRange(
   from: Date,
   to: Date,
 ): Promise<Task[]> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -89,7 +95,7 @@ export async function getOwnedTasksStartingInRange(
 }
 
 export async function getOwnedTasks(): Promise<Task[]> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -124,7 +130,7 @@ export async function getOwnedTasks(): Promise<Task[]> {
 }
 
 export async function getOwnedTask(taskId: string): Promise<Task> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -161,7 +167,7 @@ export async function getVisibleTasksInRange(
   from: Date,
   to: Date,
 ): Promise<Task[]> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -218,7 +224,7 @@ export async function getVisibleTasksInRange(
 }
 
 export async function createTask(task: CreateTask): Promise<Task> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -260,7 +266,7 @@ export async function createTask(task: CreateTask): Promise<Task> {
 }
 
 export async function updateTask(task: Task): Promise<Task> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -347,7 +353,7 @@ export async function updateTask(task: Task): Promise<Task> {
 }
 
 export async function deleteOwnedTask(id: string): Promise<Task> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -382,7 +388,7 @@ export async function deleteOwnedTask(id: string): Promise<Task> {
 }
 
 export async function getGroupById(id: string): Promise<Group | null> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -404,7 +410,7 @@ export async function getGroupById(id: string): Promise<Group | null> {
 }
 
 export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -429,7 +435,7 @@ export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
 }
 
 export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -500,7 +506,7 @@ export async function createGroup(group: CreateGroupFormInput): Promise<Group> {
 export async function getNewGroupInviteCode(
   request: RequestGroupInviteCodeFormInput,
 ): Promise<GroupInviteCode> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -564,7 +570,7 @@ export async function getNewGroupInviteCode(
 }
 
 export async function joinGroup(inviteCode: string): Promise<UserToGroup> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -655,7 +661,7 @@ export async function joinGroup(inviteCode: string): Promise<UserToGroup> {
 }
 
 export async function leaveGroup(groupId: string): Promise<UserToGroup> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -692,7 +698,7 @@ export async function leaveGroup(groupId: string): Promise<UserToGroup> {
 }
 
 export async function getIsUserGroupOwner(groupId: string): Promise<boolean> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -711,7 +717,7 @@ export async function getIsUserGroupOwner(groupId: string): Promise<boolean> {
 }
 
 export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -721,16 +727,20 @@ export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
     where: (model, { eq }) => eq(model.groupId, groupId),
   });
 
-  const userId = userToGroupRows.map((row) => row.userId);
+  const loggedInUserId = userToGroupRows.map((row) => row.userId)[0];
 
-  const users = await clerkClient.users.getUserList({ userId });
+  if (!loggedInUserId) {
+    throw new Error("Failed to get userId");
+  }
 
-  if (!users) {
+  const clerkUsers = await clerkClient.users.getUserList();
+
+  if (!clerkUsers) {
     throw new Error("Failed to get users from Clerk");
   }
 
   return userToGroupRows.map((row) => {
-    const user = users.data.find((user) => user.id === row.userId);
+    const user = clerkUsers.data.find((user) => user.id === row.userId);
 
     if (!user) {
       throw new Error("User not found");
@@ -751,7 +761,7 @@ export async function addMemberToGroup(
   userId: string,
   groupId: string,
 ): Promise<UserToGroup> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -795,7 +805,7 @@ export async function addMemberToGroup(
 export async function removeUserFromGroup(
   userGroupPair: UserGroupPair,
 ): Promise<UserToGroup> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -844,7 +854,7 @@ export async function removeUserFromGroup(
 }
 
 export async function getGroupPets(groupId: string): Promise<GroupPet[]> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -877,7 +887,7 @@ export async function getGroupPets(groupId: string): Promise<GroupPet[]> {
 export async function addPetToGroup(
   petToGroup: petToGroupFormInput,
 ): Promise<PetToGroup> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -916,7 +926,7 @@ export async function addPetToGroup(
 export async function addPetsToGroup(
   petToGroup: PetsToGroupFormInput,
 ): Promise<PetToGroupList> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -955,7 +965,7 @@ export async function addPetsToGroup(
 }
 
 export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -996,7 +1006,7 @@ export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
 export async function removePetFromGroup(
   petToGroup: petToGroupFormInput,
 ): Promise<PetToGroup> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -1034,7 +1044,7 @@ export async function removePetFromGroup(
 }
 
 export async function updateGroup(group: Group): Promise<Group> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -1076,7 +1086,7 @@ export async function updateGroup(group: Group): Promise<Group> {
 }
 
 export async function deleteGroup(groupId: string): Promise<Group> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -1115,7 +1125,7 @@ export async function deleteGroup(groupId: string): Promise<Group> {
 }
 
 export async function getGroupsUserIsIn(): Promise<Group[]> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -1146,7 +1156,7 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
 }
 
 export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -1178,7 +1188,7 @@ export async function createPet(pet: CreatePetFormInput): Promise<Pet> {
 }
 
 export async function getPetById(petId: string): Promise<Pet> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -1204,7 +1214,7 @@ export async function getPetById(petId: string): Promise<Pet> {
 }
 
 export async function getOwnedPets(): Promise<Pet[]> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -1230,7 +1240,7 @@ export async function getOwnedPets(): Promise<Pet[]> {
 }
 
 export async function updatePet(pet: Pet): Promise<Pet> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");
@@ -1263,7 +1273,7 @@ export async function updatePet(pet: Pet): Promise<Pet> {
 }
 
 export async function deletePet(petId: string): Promise<Pet> {
-  const user = auth();
+  const user = await auth();
 
   if (!user.userId) {
     throw new Error("Unauthorized");

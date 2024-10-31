@@ -4,8 +4,9 @@ import { getUsersPetsNotInGroup } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
+    const searchParams = req.nextUrl.searchParams;
     const requestParams = basicGetAPIFormSchema.safeParse({
-      id: req.nextUrl.searchParams.get("id"),
+      id: searchParams.get("id"),
     });
 
     if (!requestParams.success) {

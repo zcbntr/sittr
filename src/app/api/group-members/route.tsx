@@ -4,10 +4,11 @@ import { getGroupMembers, removeUserFromGroup } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
+    const searchParams = await req.nextUrl.searchParams;
     const requestParams = basicGetAPIFormSchema.safeParse({
-      id: req.nextUrl.searchParams.get("id"),
-      ids: req.nextUrl.searchParams.get("ids"),
-      all: req.nextUrl.searchParams.get("all") === "true",
+      id: searchParams.get("id"),
+      ids: searchParams.get("ids"),
+      all: searchParams.get("all") === "true",
     });
 
     if (!requestParams.success) {

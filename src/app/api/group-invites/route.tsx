@@ -23,44 +23,44 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
   }
 }
 
-export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
-  try {
-    const json: unknown = await req.json();
+// export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
+//   try {
+//     const json: unknown = await req.json();
 
-    const formData = petSchema.safeParse(json);
+//     const formData = petSchema.safeParse(json);
 
-    if (!formData.success) {
-      console.log(
-        "Edit Pet Form Data Parse Error: \n" + formData.error.toString(),
-      );
-      throw new Error("Invalid form data");
-    }
+//     if (!formData.success) {
+//       console.log(
+//         "Edit Pet Form Data Parse Error: \n" + formData.error.toString(),
+//       );
+//       throw new Error("Invalid form data");
+//     }
 
-    const pgRow = await updatePet(formData.data);
+//     const pgRow = await updatePet(formData.data);
 
-    return NextResponse.json(pgRow);
-  } catch (error) {
-    return NextResponse.json({ error });
-  }
-}
+//     return NextResponse.json(pgRow);
+//   } catch (error) {
+//     return NextResponse.json({ error });
+//   }
+// }
 
-export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
-  try {
-    const json: unknown = await req.json();
+// export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
+//   try {
+//     const json: unknown = await req.json();
 
-    const formData = deleteAPIFormSchema.safeParse(json);
+//     const formData = deleteAPIFormSchema.safeParse(json);
 
-    if (!formData.success) {
-      console.log(
-        "Delete Pet Form Data Parse Error: \n" + formData.error.toString(),
-      );
-      throw new Error("Invalid form data");
-    }
+//     if (!formData.success) {
+//       console.log(
+//         "Delete Pet Form Data Parse Error: \n" + formData.error.toString(),
+//       );
+//       throw new Error("Invalid form data");
+//     }
 
-    const pgRow = await deletePet(formData.data.id);
+//     const pgRow = await deletePet(formData.data.id);
 
-    return NextResponse.json(pgRow);
-  } catch (error) {
-    return NextResponse.json({ error });
-  }
-}
+//     return NextResponse.json(pgRow);
+//   } catch (error) {
+//     return NextResponse.json({ error });
+//   }
+// }

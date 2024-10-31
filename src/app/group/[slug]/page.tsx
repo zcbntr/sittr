@@ -1,19 +1,12 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import {
-  getGroupById,
-  getIsUserGroupOwner,
-} from "~/server/queries";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { getGroupById, getIsUserGroupOwner } from "~/server/queries";
 import { GroupMemberPage } from "~/app/_components/group-page/group-member-page";
 import { GroupOwnerPage } from "~/app/_components/group-page/group-owner-page";
 
 export default async function Page({ params }: { params: { slug: string } }) {
   // Get the data for the group from the slug
-  const group = await getGroupById(params.slug);
+  const { slug } = await params;
+  const group = await getGroupById(slug);
 
   if (group == null) {
     // No such group exists, return group empty page

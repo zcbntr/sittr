@@ -4,13 +4,13 @@ const isSometimesProectedRoute = createRouteMatcher(["/"]);
 
 const isTenantRoute = createRouteMatcher(["/onboarding", "/sitters/(.*)"]);
 
-export default clerkMiddleware((auth, request) => {
-  if (auth().userId && isSometimesProectedRoute(request)) {
-    auth().protect();
+export default clerkMiddleware(async (auth, request) => {
+  if ((await auth()).userId && isSometimesProectedRoute(request)) {
+    await auth.protect();
   }
 
   if (isTenantRoute(request)) {
-    auth().protect();
+    await auth.protect();
   }
 });
 
