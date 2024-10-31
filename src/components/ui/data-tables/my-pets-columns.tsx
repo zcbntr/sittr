@@ -67,7 +67,7 @@ export const columns: ColumnDef<Pet>[] = [
                 Copy
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link className="flex flex-row grow" href={"pet/" + pet.id}>Edit</Link>
+                <Link className="flex flex-row grow" href={"pets/" + pet.id}>Edit</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

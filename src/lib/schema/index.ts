@@ -182,6 +182,12 @@ export type GroupInviteLinkOptions = z.infer<
   typeof groupInviteLinkOptionsSchema
 >;
 
+export const joinGroupFormSchema = z.object({
+  inviteCode: z.string(),
+});
+
+export type JoinGroupFormInput = z.infer<typeof joinGroupFormSchema>;
+
 // -----------------------------------------------------------------------------
 // API form schemas
 // -----------------------------------------------------------------------------

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import GroupsTable from "../_components/groupstable";
 import CreateGroupDialog from "../_components/creategroupdialog";
 import { Button } from "~/components/ui/button";
+import JoinGroupDialog from "../_components/join-group-dialog";
 
 const MyGroupsPage = () => (
   <>
@@ -11,9 +12,9 @@ const MyGroupsPage = () => (
         <CreateGroupDialog>
           <Button variant="outline">New Group</Button>
         </CreateGroupDialog>
-        {/* <JoinGroupDialog>
+        <JoinGroupDialog>
           <Button variant="outline">Join Group</Button>
-        </JoinGroupDialog> */}
+        </JoinGroupDialog>
       </div>
     </section>
     <section>
