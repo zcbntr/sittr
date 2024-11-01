@@ -10,20 +10,31 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     });
 
     if (!requestParams.success) {
-      console.log(
-        "Pets not in group Form Data Parse Error: \n" + requestParams.error.toString(),
+      throw new Error(
+        "Pets not in group Form Data Parse Error: \n" +
+          requestParams.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
     if (requestParams.data.id) {
-      const pets = await getUsersPetsNotInGroup(requestParams.data.id);
+      const petsOrErrorMessage = await getUsersPetsNotInGroup(
+        requestParams.data.id,
+      );
 
-      return NextResponse.json(pets);
+      if (typeof petsOrErrorMessage === "string") {
+        return NextResponse.json({ error: petsOrErrorMessage });
+      }
+
+      return NextResponse.json(petsOrErrorMessage);
     }
 
     return NextResponse.json({ error: "Invalid request params" });
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

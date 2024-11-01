@@ -26,35 +26,40 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     });
 
     if (!requestParams.success) {
-      console.log(
-        "GET Request URL Params Parse Error: \n" +
-          requestParams.error.toString(),
+      throw new Error(
+        "Get Tasks Params Parse Error: \n" + requestParams.error.toString(),
       );
-      throw new Error("Invalid URL params");
     }
 
     if (requestParams.data.id) {
-      const task = await getOwnedTask(requestParams.data.id);
+      const taskOrErrorMessage = await getOwnedTask(requestParams.data.id);
 
-      if (!task) {
-        return NextResponse.json({ error: "Task not found" });
+      if (typeof taskOrErrorMessage === "string") {
+        return NextResponse.json({ error: taskOrErrorMessage });
       }
 
-      return NextResponse.json(task);
-    }
-
-    if (requestParams.data.dateRange) {
-      const pgRows = await getVisibleTasksInRange(
+      return NextResponse.json(taskOrErrorMessage);
+    } else if (requestParams.data.dateRange) {
+      const tasksInRangeOrErrorMessage = await getVisibleTasksInRange(
         requestParams.data.dateRange.from,
         requestParams.data.dateRange.to,
       );
 
-      return NextResponse.json(pgRows);
+      if (typeof tasksInRangeOrErrorMessage === "string") {
+        return NextResponse.json({ error: tasksInRangeOrErrorMessage });
+      }
+
+      return NextResponse.json(tasksInRangeOrErrorMessage);
     }
 
     return NextResponse.json({ error: "Request type not currently supported" });
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -65,17 +70,25 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = createTaskSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
+      throw new Error(
         "Create Task Form Data Parse Error: \n" + formData.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
-    const pgRow = await createTask(formData.data);
+    const taskOrErrorMessage = await createTask(formData.data);
 
-    return NextResponse.json(pgRow);
+    if (typeof taskOrErrorMessage === "string") {
+      return NextResponse.json({ error: taskOrErrorMessage });
+    }
+
+    return NextResponse.json(taskOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -86,18 +99,25 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = taskSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
+      throw new Error(
         "Edit Task Form Data Parse Error: \n" + formData.error.toString(),
       );
-      console.log(json);
-      throw new Error("Invalid form data");
     }
 
-    const pgRow = await updateTask(formData.data);
+    const taskOrErrorMessage = await updateTask(formData.data);
 
-    return NextResponse.json(pgRow);
+    if (typeof taskOrErrorMessage === "string") {
+      return NextResponse.json({ error: taskOrErrorMessage });
+    }
+
+    return NextResponse.json(taskOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -108,16 +128,24 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = deleteAPIFormSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
+      throw new Error(
         "Delete Task Form Data Parse Error: \n" + formData.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
-    const pgRow = await deleteOwnedTask(formData.data.id);
+    const taskOrErrorMessage = await deleteOwnedTask(formData.data.id);
 
-    return NextResponse.json(pgRow);
+    if (typeof taskOrErrorMessage === "string") {
+      return NextResponse.json({ error: taskOrErrorMessage });
+    }
+
+    return NextResponse.json(taskOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

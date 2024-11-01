@@ -21,22 +21,30 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     });
 
     if (!requestParams.success) {
-      console.log(
+      throw new Error(
         "Get Group Pets Form Data Parse Error: \n" +
           requestParams.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
     if (requestParams.data.id) {
-      const groupPets = await getGroupPets(requestParams.data.id);
+      const groupPetsOrErrorMessage = await getGroupPets(requestParams.data.id);
 
-      return NextResponse.json(groupPets);
+      if (typeof groupPetsOrErrorMessage === "string") {
+        return NextResponse.json({ error: groupPetsOrErrorMessage });
+      }
+
+      return NextResponse.json(groupPetsOrErrorMessage);
     }
 
     return NextResponse.json({ error: "Invalid request params" });
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -49,21 +57,37 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
     if (!formData.success) {
       const formData = petsToGroupFormInputSchema.safeParse(json);
       if (!formData.success) {
-        console.log(
+        throw new Error(
           "Add Pet or Pets To Group Form Data Parse Error: \n" +
             formData.error.toString(),
         );
-        throw new Error("Invalid form data");
       } else {
-        const pgRows = await addPetsToGroup(formData.data);
-        return NextResponse.json(pgRows);
+        const petToGroupListOrErrorMessage = await addPetsToGroup(
+          formData.data,
+        );
+
+        if (typeof petToGroupListOrErrorMessage === "string") {
+          return NextResponse.json({ error: petToGroupListOrErrorMessage });
+        }
+
+        return NextResponse.json(petToGroupListOrErrorMessage);
       }
     }
 
-    const pet = await addPetToGroup(formData.data);
-    return NextResponse.json(pet);
+    const petToGroupOrErrorMessage = await addPetToGroup(formData.data);
+
+    if (typeof petToGroupOrErrorMessage === "string") {
+      return NextResponse.json({ error: petToGroupOrErrorMessage });
+    }
+
+    return NextResponse.json(petToGroupOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -74,17 +98,25 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = petToGroupFormInputSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
+      throw new Error(
         "Remove Pet From Group Form Data Parse Error: \n" +
           formData.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
-    const pgRow = await removePetFromGroup(formData.data);
+    const petToGroupOrErrorMessage = await removePetFromGroup(formData.data);
 
-    return NextResponse.json(pgRow);
+    if (typeof petToGroupOrErrorMessage === "string") {
+      return NextResponse.json({ error: petToGroupOrErrorMessage });
+    }
+
+    return NextResponse.json(petToGroupOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

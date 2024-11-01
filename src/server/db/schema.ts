@@ -6,6 +6,7 @@ import {
   pgTableCreator,
   text,
   timestamp,
+  unique,
   varchar,
 } from "drizzle-orm/pg-core";
 import { v4 as uuid } from "uuid";
@@ -61,23 +62,29 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
   }),
 }));
 
-export const petsToGroups = createTable("pets_to_groups", {
-  id: text("id")
-    .$defaultFn(() => uuid())
-    .primaryKey(),
-  groupId: text("group_id")
-    .references(() => groups.id, { onDelete: "cascade" })
-    .notNull(),
-  petId: text("pet_id")
-    .references(() => pets.id, { onDelete: "cascade" })
-    .notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
+export const petsToGroups = createTable(
+  "pets_to_groups",
+  {
+    id: text("id")
+      .$defaultFn(() => uuid())
+      .primaryKey(),
+    groupId: text("group_id")
+      .references(() => groups.id, { onDelete: "cascade" })
+      .notNull(),
+    petId: text("pet_id")
+      .references(() => pets.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+      () => new Date(),
+    ),
+  },
+  (t) => ({
+    unique: unique().on(t.groupId, t.petId),
+  }),
+);
 
 export const petsToGroupsRelations = relations(petsToGroups, ({ one }) => ({
   group: one(groups, {
@@ -155,22 +162,28 @@ export const groupsRelations = relations(groups, ({ many }) => ({
   petsToGroups: many(petsToGroups),
 }));
 
-export const usersToGroups = createTable("users_to_groups", {
-  id: text("id")
-    .$defaultFn(() => uuid())
-    .primaryKey(),
-  groupId: text("group_id")
-    .references(() => groups.id, { onDelete: "cascade" })
-    .notNull(),
-  userId: text("user_id").notNull(),
-  role: groupRoleEnum("role").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
+export const usersToGroups = createTable(
+  "users_to_groups",
+  {
+    id: text("id")
+      .$defaultFn(() => uuid())
+      .primaryKey(),
+    groupId: text("group_id")
+      .references(() => groups.id, { onDelete: "cascade" })
+      .notNull(),
+    userId: text("user_id").notNull(),
+    role: groupRoleEnum("role").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+      () => new Date(),
+    ),
+  },
+  (t) => ({
+    unique: unique().on(t.groupId, t.userId),
+  }),
+);
 
 export const usersToGroupsRelations = relations(usersToGroups, ({ one }) => ({
   group: one(groups, {

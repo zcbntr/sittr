@@ -5,7 +5,12 @@ import {
   deleteAPIFormSchema,
   petSchema,
 } from "~/lib/schema";
-import { createPet, deletePet, getOwnedPets, updatePet } from "~/server/queries";
+import {
+  createPet,
+  deletePet,
+  getOwnedPets,
+  updatePet,
+} from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -16,21 +21,29 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     });
 
     if (!requestParams.success) {
-      console.log(
-        "Owned Pets Form Data Parse Error: \n" + requestParams.error.toString(),
+      throw new Error(
+        "Get Pets Form Data Parse Error: \n" + requestParams.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
     if (requestParams.data.all) {
-      const pets = await getOwnedPets();
+      const petsOrErrorMessage = await getOwnedPets();
 
-      return NextResponse.json(pets);
+      if (typeof petsOrErrorMessage === "string") {
+        return NextResponse.json({ error: petsOrErrorMessage });
+      }
+
+      return NextResponse.json(petsOrErrorMessage);
     }
 
     return NextResponse.json({ error: "Invalid request params" });
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -41,17 +54,25 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = createPetFormSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
+      throw new Error(
         "Create Pet Form Data Parse Error: \n" + formData.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
-    const pet = await createPet(formData.data);
+    const petOrErrorMessage = await createPet(formData.data);
 
-    return NextResponse.json(pet);
+    if (typeof petOrErrorMessage === "string") {
+      return NextResponse.json({ error: petOrErrorMessage });
+    }
+
+    return NextResponse.json(petOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -62,17 +83,25 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = petSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
+      throw new Error(
         "Edit Pet Form Data Parse Error: \n" + formData.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
-    const pgRow = await updatePet(formData.data);
+    const petOrErrorMessage = await updatePet(formData.data);
 
-    return NextResponse.json(pgRow);
+    if (typeof petOrErrorMessage === "string") {
+      return NextResponse.json({ error: petOrErrorMessage });
+    }
+
+    return NextResponse.json(petOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -83,16 +112,24 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = deleteAPIFormSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
+      throw new Error(
         "Delete Pet Form Data Parse Error: \n" + formData.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
-    const pgRow = await deletePet(formData.data.id);
+    const petOrErrorMessage = await deletePet(formData.data.id);
 
-    return NextResponse.json(pgRow);
+    if (typeof petOrErrorMessage === "string") {
+      return NextResponse.json({ error: petOrErrorMessage });
+    }
+
+    return NextResponse.json(petOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

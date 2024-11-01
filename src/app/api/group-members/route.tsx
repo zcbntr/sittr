@@ -12,22 +12,32 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     });
 
     if (!requestParams.success) {
-      console.log(
+      throw new Error(
         "Group Members Form Data Parse Error: \n" +
           requestParams.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
     if (requestParams.data.id) {
-      const members = await getGroupMembers(requestParams.data.id);
+      const membersOrErrorMessage = await getGroupMembers(
+        requestParams.data.id,
+      );
 
-      return NextResponse.json(members);
+      if (typeof membersOrErrorMessage === "string") {
+        return NextResponse.json({ error: membersOrErrorMessage });
+      }
+
+      return NextResponse.json(membersOrErrorMessage);
     }
 
     return NextResponse.json({ error: "Invalid request params" });
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -38,17 +48,25 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = userToGroupSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
+      throw new Error(
         "Remove User From Group Form Data Parse Error: \n" +
           formData.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
-    const pgRow = await removeUserFromGroup(formData.data);
+    const userToGroupOrErrorMessage = await removeUserFromGroup(formData.data);
 
-    return NextResponse.json(pgRow);
+    if (typeof userToGroupOrErrorMessage === "string") {
+      return NextResponse.json({ error: userToGroupOrErrorMessage });
+    }
+
+    return NextResponse.json(userToGroupOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

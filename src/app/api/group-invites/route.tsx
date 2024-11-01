@@ -15,11 +15,20 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
       );
     }
 
-    const invite = await getNewGroupInviteCode(formData.data);
+    const inviteOrErrorMessage = await getNewGroupInviteCode(formData.data);
 
-    return NextResponse.json(invite);
+    if (typeof inviteOrErrorMessage === "string") {
+      return NextResponse.json({ error: inviteOrErrorMessage });
+    }
+
+    return NextResponse.json(inviteOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 

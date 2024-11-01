@@ -24,29 +24,45 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     });
 
     if (!requestParams.success) {
-      console.log(
-        "Get Groups API Data Parse Error: \n" +
-          requestParams.error.toString(),
+      throw new Error(
+        "Get Groups API Data Parse Error: \n" + requestParams.error.toString(),
       );
-      throw new Error("Invalid request params");
     }
 
     if (requestParams.data.all) {
-      const groupsIn = await getGroupsUserIsIn();
-      return NextResponse.json(groupsIn);
-    } else if (requestParams.data.id) {
-      const group = await getGroupById(requestParams.data.id);
-      return NextResponse.json(group);
-    } else if (requestParams.data.ids) {
-      const groups = await getGroupsByIds(requestParams.data.ids);
+      const groupsInOrErrorMessage = await getGroupsUserIsIn();
 
-      return NextResponse.json(groups);
+      if (typeof groupsInOrErrorMessage === "string") {
+        return NextResponse.json({ error: groupsInOrErrorMessage });
+      }
+
+      return NextResponse.json(groupsInOrErrorMessage);
+    } else if (requestParams.data.id) {
+      const groupOrErrorMessage = await getGroupById(requestParams.data.id);
+
+      if (typeof groupOrErrorMessage === "string") {
+        return NextResponse.json({ error: groupOrErrorMessage });
+      }
+
+      return NextResponse.json(groupOrErrorMessage);
+    } else if (requestParams.data.ids) {
+      const groupsOrErrorMessage = await getGroupsByIds(requestParams.data.ids);
+
+      if (typeof groupsOrErrorMessage === "string") {
+        return NextResponse.json({ error: groupsOrErrorMessage });
+      }
+
+      return NextResponse.json(groupsOrErrorMessage);
     }
 
     return NextResponse.json({ error: "Invalid request params" });
-    // Todo - add else if for ids
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -57,17 +73,25 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = createGroupFormSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
+      throw new Error(
         "Create Pet Form Data Parse Error: \n" + formData.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
-    const group = await createGroup(formData.data);
+    const groupOrErrorMessage = await createGroup(formData.data);
 
-    return NextResponse.json(group);
+    if (typeof groupOrErrorMessage === "string") {
+      return NextResponse.json({ error: groupOrErrorMessage });
+    }
+
+    return NextResponse.json(groupOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -78,17 +102,25 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = groupSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
+      throw new Error(
         "Edit Group Form Data Parse Error: \n" + formData.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
-    const pgRow = await updateGroup(formData.data);
+    const groupOrErrorMessage = await updateGroup(formData.data);
 
-    return NextResponse.json(pgRow);
+    if (typeof groupOrErrorMessage === "string") {
+      return NextResponse.json({ error: groupOrErrorMessage });
+    }
+
+    return NextResponse.json(groupOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -99,16 +131,24 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = deleteAPIFormSchema.safeParse(json);
 
     if (!formData.success) {
-      console.log(
+      throw new Error(
         "Delete Group Form Data Parse Error: \n" + formData.error.toString(),
       );
-      throw new Error("Invalid form data");
     }
 
-    const pgRow = await deleteGroup(formData.data.id);
+    const groupOrErrorMessage = await deleteGroup(formData.data.id);
 
-    return NextResponse.json(pgRow);
+    if (typeof groupOrErrorMessage === "string") {
+      return NextResponse.json({ error: groupOrErrorMessage });
+    }
+
+    return NextResponse.json(groupOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ error });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
