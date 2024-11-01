@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useEffect } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
 import { MdDelete, MdCancel, MdEdit } from "react-icons/md";
@@ -17,9 +17,21 @@ import {
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { type Group, groupSchema } from "~/lib/schema";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function GroupNameDescriptionForm({ group }: { group: Group }) {
   const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  function exitEditMode() {
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("editing");
+
+    router.replace(`${pathname}?${nextSearchParams}`);
+  }
 
   const form = useForm<z.infer<typeof groupSchema>>({
     resolver: zodResolver(groupSchema),
@@ -29,12 +41,6 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
       description: group.description,
     },
   });
-
-  useEffect(() => {
-    // form.setValue("id", group.id);
-    // form.setValue("name", group.name);
-    // form.setValue("description", group.description);
-  }, []);
 
   async function onSubmit(data: z.infer<typeof groupSchema>) {
     if (deleteClicked) {
@@ -57,7 +63,7 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
           throw new Error("Failed to update group");
         }
 
-        document.dispatchEvent(new Event("groupUpdated"));
+        exitEditMode();
       });
   }
 
@@ -80,8 +86,7 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
             throw new Error("Failed to delete group");
           }
 
-          document.dispatchEvent(new Event("groupDeleted"));
-          return;
+          exitEditMode();
         });
     }
 
@@ -137,7 +142,7 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
             <Button
               type="reset"
               id="cancelGroupEditButton"
-              onClick={() => document.dispatchEvent(new Event("cancelEdit"))}
+              onClick={exitEditMode}
             >
               <div className="flex flex-row gap-2">
                 <div className="flex flex-col place-content-center">

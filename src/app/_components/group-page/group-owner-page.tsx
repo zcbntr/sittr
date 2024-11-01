@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { GroupNameDescriptionForm } from "~/app/_components/group-page/name-description-form";
-import { type Group, groupSchema } from "~/lib/schema";
+import { type Group } from "~/lib/schema";
 import { MdEdit } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import {
@@ -16,47 +15,12 @@ import {
 import React from "react";
 import GroupPetsTable from "./group-pets-table";
 import GroupMembersTable from "./group-members-table";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function GroupOwnerPage({ group }: { group: Group }) {
-  const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
-
-  React.useEffect(() => {
-    async function fetchGroup() {
-      await fetch("../api/groups?id=" + group.id, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-        .then((res) => res.json())
-        .then((json) => groupSchema.safeParse(json))
-        .then((validatedGroupObject) => {
-          if (!validatedGroupObject.success) {
-            console.error(validatedGroupObject.error.message);
-            throw new Error("Failed to get group");
-          }
-
-          group = validatedGroupObject.data;
-        });
-    }
-
-    document.addEventListener("groupUpdated", () => {
-      setIsEditing(false);
-      // Invalidate the group data and refetch
-      void fetchGroup();
-    });
-
-    document.addEventListener("cancelEdit", () => {
-      setIsEditing(false);
-    });
-
-    document.addEventListener("groupDeleted", () => {
-      // Redirect to the groups page
-      router.replace("/my-groups");
-    });
-  }, []);
+  const searchParams = useSearchParams();
+  const isEditing = searchParams.get("editing");
 
   return (
     <div className="container mx-auto space-y-6 p-4">
@@ -82,7 +46,7 @@ export function GroupOwnerPage({ group }: { group: Group }) {
             <p className="text-muted-foreground">{group?.description}</p>
           </CardContent>
           <CardFooter>
-            <Button onClick={() => setIsEditing(true)}>
+            <Button onClick={() => router.replace("?editing=true")}>
               <MdEdit className="mr-2 h-4 w-4" />
               Edit Group Info
             </Button>

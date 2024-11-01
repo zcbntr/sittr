@@ -52,8 +52,6 @@ export function PetEditForm({ pet }: { pet: Pet }) {
   function exitEditMode() {
     const nextSearchParams = new URLSearchParams(searchParams.toString());
     nextSearchParams.delete("editing");
-    console.log("nextSearchParams", nextSearchParams);
-    console.log("pathname", pathname);
 
     router.replace(`${pathname}?${nextSearchParams}`);
   }

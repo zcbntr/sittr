@@ -46,10 +46,7 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
             </div>
           </CardContent>
           <CardFooter>
-            <Button
-              onClick={() => router.replace("?editing=true")}
-              className={buttonVariants({ variant: "default" })}
-            >
+            <Button onClick={() => router.replace("?editing=true")}>
               <Pencil className="mr-2 h-4 w-4" />
               Edit Pet Info
             </Button>
