@@ -572,11 +572,11 @@ export async function getNewGroupInviteCode(
 
 export async function joinGroup(
   inviteCode: JoinGroupFormInput,
-): Promise<UserToGroup> {
+): Promise<UserToGroup | string> {
   const user = await auth();
 
   if (!user.userId) {
-    throw new Error("Unauthorized");
+    return "Unauthorized";
   }
 
   // This needs to be a find many if there becomes lots of groups
@@ -585,7 +585,7 @@ export async function joinGroup(
   });
 
   if (!inviteCodeRow) {
-    throw new Error("Invite code not found");
+    return "Invite code not found";
   }
 
   // Check if the invite code has expired
@@ -596,7 +596,7 @@ export async function joinGroup(
       .where(eq(groupInviteCodes.id, inviteCodeRow.id))
       .execute();
 
-    throw new Error("Invite code has expired");
+    return "Invite code has expired";
   }
 
   // Check if the invite code has reached its max uses
@@ -607,7 +607,7 @@ export async function joinGroup(
       .where(eq(groupInviteCodes.id, inviteCodeRow.id))
       .execute();
 
-    throw new Error("Invite code has reached its max uses");
+    return "Invite code has reached its max uses";
   }
 
   // Check if the user is already in the group
@@ -620,7 +620,7 @@ export async function joinGroup(
   });
 
   if (existingGroupRow) {
-    throw new Error("User is already in the group");
+    return "You are already in the group";
   }
 
   // Add the user to the group
@@ -637,7 +637,7 @@ export async function joinGroup(
     .execute();
 
   if (!newGroupMember?.[0]) {
-    throw new Error("Failed to add user to group");
+    throw new Error("Database insert failed");
   }
 
   // Check if incrementing the invite code will cause it to reach its max uses
@@ -874,6 +874,10 @@ export async function getGroupPets(groupId: string): Promise<GroupPet[]> {
   }
 
   return groupPetsList.map((pet) => {
+    if (pet.pets_to_groups === null) {
+      throw new Error("Failed to get pets of group");
+    }
+
     return groupPetSchema.parse({
       id: pet.pets_to_groups.id,
       petId: pet.pets.id,

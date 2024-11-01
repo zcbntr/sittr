@@ -15,10 +15,19 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
       throw new Error("Invalid form data");
     }
 
-    const groupOrError = await joinGroup(formData.data);
+    const groupOrErrorMessage = await joinGroup(formData.data);
 
-    return NextResponse.json(groupOrError);
+    if (typeof groupOrErrorMessage === "string") {
+      return NextResponse.json({ error: groupOrErrorMessage });
+    }
+
+    return NextResponse.json(groupOrErrorMessage);
   } catch (error) {
-    return NextResponse.json({ UnexpectedError: error });
+    console.log(error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

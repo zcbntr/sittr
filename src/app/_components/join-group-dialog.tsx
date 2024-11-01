@@ -40,26 +40,41 @@ export default function JoinGroupDialog({
   });
 
   async function onSubmit(data: z.infer<typeof joinGroupFormSchema>) {
-    await fetch("/api/join-group", {
+    const res = await fetch("/api/join-group", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((json) => groupSchema.safeParse(json))
-      .then((validatedPetObject) => {
-        if (!validatedPetObject.success) {
-          console.error(validatedPetObject.error.message);
-          throw new Error("Failed to join group");
-        }
+    });
 
-        document.dispatchEvent(new Event("groupJoined"));
-        router.refresh();
-        setOpen(false);
-        return;
+    // Unexpected error
+    if (!res.ok) {
+      form.setError("inviteCode", {
+        type: "manual",
+        message: "Internal server error.",
       });
+    }
+
+    const json = await res.json();
+
+    // Expected error
+    if (json.error) {
+      form.setError("inviteCode", {
+        type: "manual",
+        message: json.error,
+      });
+      return;
+    }
+
+    const validatedGroupObject = groupSchema.safeParse(json);
+    if (!validatedGroupObject.success) {
+      console.error(validatedGroupObject.error.message);
+      throw new Error("Failed to join group");
+    }
+
+    router.refresh();
+    setOpen(false);
   }
 
   return (
