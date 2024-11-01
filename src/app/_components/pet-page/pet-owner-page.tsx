@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Button, buttonVariants } from "~/components/ui/button";
 import { PetEditForm } from "~/app/_components/pet-page/pet-edit-form";
 import { Pet } from "~/lib/schema";
 import { Pencil } from "lucide-react";
-import { Button } from "~/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,18 +12,12 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function PetOwnerPage({ pet }: { pet: Pet }) {
-  const [isEditing, setIsEditing] = useState(false);
-
-  document.addEventListener("petUpdated", () => {
-    setIsEditing(false);
-    // Invalidate the pet data and refetch
-  });
-
-  document.addEventListener("cancelEdit", () => {
-    setIsEditing(false);
-  });
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isEditing = searchParams.get("editing");
 
   return (
     <div className="container mx-auto space-y-6 p-4">
@@ -53,7 +46,10 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
             </div>
           </CardContent>
           <CardFooter>
-            <Button onClick={() => setIsEditing(true)}>
+            <Button
+              onClick={() => router.replace("?editing=true")}
+              className={buttonVariants({ variant: "default" })}
+            >
               <Pencil className="mr-2 h-4 w-4" />
               Edit Pet Info
             </Button>

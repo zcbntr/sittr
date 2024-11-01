@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useEffect } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
 import { MdDelete, MdCancel, MdEdit } from "react-icons/md";
@@ -17,7 +17,7 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { type Pet, petSchema } from "~/lib/schema";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Popover,
   PopoverContent,
@@ -34,6 +34,8 @@ export function PetEditForm({ pet }: { pet: Pet }) {
   const [dob, setDOB] = React.useState<Date | undefined>();
 
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const form = useForm<z.infer<typeof petSchema>>({
     resolver: zodResolver(petSchema),
@@ -47,14 +49,14 @@ export function PetEditForm({ pet }: { pet: Pet }) {
     },
   });
 
-  useEffect(() => {
-    // form.setValue("id", pet.id);
-    // form.setValue("ownerId", pet.ownerId);
-    // form.setValue("name", pet.name);
-    // form.setValue("species", pet.species);
-    // form.setValue("dob", pet.dob);
-    // form.setValue("breed", pet.breed);
-  }, []);
+  function exitEditMode() {
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("editing");
+    console.log("nextSearchParams", nextSearchParams);
+    console.log("pathname", pathname);
+
+    router.replace(`${pathname}?${nextSearchParams}`);
+  }
 
   async function onSubmit(data: z.infer<typeof petSchema>) {
     if (deleteClicked) {
@@ -77,7 +79,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
           throw new Error("Failed to update pet");
         }
 
-        document.dispatchEvent(new Event("petUpdated"));
+        exitEditMode();
       });
   }
 
@@ -85,7 +87,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
     // Fix this at some point with another dialog
     // eslint-disable-next-line no-alert
     if (window.confirm("Are you sure you want to delete this pet?")) {
-      await fetch("../api/groups", {
+      await fetch("../api/pets", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -99,8 +101,6 @@ export function PetEditForm({ pet }: { pet: Pet }) {
             console.error(validatedGroupObject.error.message);
             throw new Error("Failed to delete pet");
           }
-
-          document.dispatchEvent(new Event("petDeleted"));
 
           // Redirect to my pets page
           router.push("/my-pets");
@@ -215,7 +215,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
             <Button
               type="reset"
               id="cancelPetEditButton"
-              onClick={() => document.dispatchEvent(new Event("cancelEdit"))}
+              onClick={exitEditMode}
             >
               <div className="flex flex-row gap-2">
                 <div className="flex flex-col place-content-center">

@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { getPetById } from "~/server/queries";
 import { auth } from "@clerk/nextjs/server";
 import { PetOwnerPage } from "~/app/_components/pet-page/pet-owner-page";
+import { PetNonOwnerPage } from "~/app/_components/pet-page/pet-non-owner-page";
 
 export default async function Page(props: {
   params: { slug: string };
