@@ -36,6 +36,7 @@ import {
   groupPetSchema,
   type PetToGroupList,
   type PetsToGroupFormInput,
+  JoinGroupFormInput,
 } from "~/lib/schema";
 
 import { createClerkClient } from "@clerk/backend";
@@ -569,7 +570,9 @@ export async function getNewGroupInviteCode(
   });
 }
 
-export async function joinGroup(inviteCode: string): Promise<UserToGroup> {
+export async function joinGroup(
+  inviteCode: JoinGroupFormInput,
+): Promise<UserToGroup> {
   const user = await auth();
 
   if (!user.userId) {
@@ -578,7 +581,7 @@ export async function joinGroup(inviteCode: string): Promise<UserToGroup> {
 
   // This needs to be a find many if there becomes lots of groups
   const inviteCodeRow = await db.query.groupInviteCodes.findFirst({
-    where: (model, { eq }) => eq(model.code, inviteCode),
+    where: (model, { eq }) => eq(model.code, inviteCode.inviteCode),
   });
 
   if (!inviteCodeRow) {
