@@ -27,7 +27,7 @@ export default async function Page(props: {
   }
 }
 
-export function PetDoesNotExistPage() {
+function PetDoesNotExistPage() {
   return (
     <Card>
       <CardHeader>
