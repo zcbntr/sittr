@@ -23,8 +23,14 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { groupSchema, joinGroupFormSchema } from "~/lib/schema/index";
 import { useRouter } from "next/navigation";
+import { fetchApi } from "~/lib/utils";
+import {
+  errorSchema,
+  InviteApiError,
+  joinGroupFormSchema,
+  successSchema,
+} from "../api/join-group/[slug]/route";
 
 export default function JoinGroupDialog({
   children,
@@ -40,41 +46,39 @@ export default function JoinGroupDialog({
   });
 
   async function onSubmit(data: z.infer<typeof joinGroupFormSchema>) {
-    const res = await fetch("/api/join-group", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await fetchApi(
+      "/api/join-group/" + data.inviteCode,
+      successSchema,
+      errorSchema,
+    );
 
-    // Unexpected error
-    if (!res.ok) {
-      form.setError("inviteCode", {
-        type: "manual",
-        message: "Internal server error.",
-      });
+    if (response.status === "success") {
+      router.refresh();
+      setOpen(false);
+    } else if (response.status === "error") {
+      switch (response.error.errorType) {
+        case InviteApiError.InviteNotFound:
+          form.setError("inviteCode", {
+            type: "manual",
+            message: "Invite not found.",
+          });
+          break;
+        case InviteApiError.Unauthorized:
+          form.setError("inviteCode", {
+            type: "manual",
+            message: "Unauthorized.",
+          });
+          break;
+        case InviteApiError.GroupNotFound:
+          form.setError("inviteCode", {
+            type: "manual",
+            message: "Group not found.",
+          });
+          break;
+        default:
+          console.log("Unknown error occurred.");
+      }
     }
-
-    const json = await res.json();
-
-    // Expected error
-    if (json.error) {
-      form.setError("inviteCode", {
-        type: "manual",
-        message: json.error,
-      });
-      return;
-    }
-
-    const validatedGroupObject = groupSchema.safeParse(json);
-    if (!validatedGroupObject.success) {
-      console.error(validatedGroupObject.error.message);
-      throw new Error("Failed to join group");
-    }
-
-    router.refresh();
-    setOpen(false);
   }
 
   return (

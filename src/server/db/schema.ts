@@ -10,7 +10,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { v4 as uuid } from "uuid";
-import { GroupRoleEnum } from "~/lib/schema";
+import { GroupRoleEnum } from "~/lib/schema/groupschemas";
 
 export const groupRoleEnum = pgEnum("role", GroupRoleEnum.options);
 

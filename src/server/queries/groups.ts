@@ -2,384 +2,42 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
-import { eq, and, or, lte, gte, inArray } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import {
   groupInviteCodes,
   usersToGroups,
   groups,
   pets,
-  tasks,
   petsToGroups,
-} from "./db/schema";
+} from "../db/schema";
 import {
   type petToGroupFormInput,
   type CreateGroupFormInput,
-  type CreatePetFormInput,
-  type CreateTask,
+  type RequestGroupInviteCodeFormInput,
+  type UserGroupPair,
+  type PetsToGroupFormInput,
+} from "~/lib/schema";
+import {
   type Group,
   type GroupInviteCode,
   groupInviteCodeSchema,
-  type UserToGroup,
-  userToGroupSchema,
-  GroupRoleEnum,
-  groupSchema,
-  type Pet,
-  petSchema,
-  type PetToGroup,
-  type RequestGroupInviteCodeFormInput,
-  RoleEnum,
-  type Task,
-  taskSchema,
   type GroupMember,
-  type UserGroupPair,
   type GroupPet,
   groupPetSchema,
+  GroupRoleEnum,
+  groupSchema,
+  type PetToGroup,
   type PetToGroupList,
-  type PetsToGroupFormInput,
-  type JoinGroupFormInput,
-} from "~/lib/schema";
-
+  RoleEnum,
+  type UserToGroup,
+  userToGroupSchema,
+} from "~/lib/schema/groupschemas";
+import { type Pet, petSchema } from "~/lib/schema/petschemas";
 import { createClerkClient } from "@clerk/backend";
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
 });
-
-export async function getOwnedTasksStartingInRange(
-  from: Date,
-  to: Date,
-): Promise<Task[] | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const tasksInRange = await db.query.tasks.findMany({
-    where: (model, { eq, gte, lte, and }) =>
-      and(
-        eq(model.ownerId, user.userId),
-        or(
-          and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
-          gte(model.dueDate, to),
-        ),
-      ),
-    orderBy: (model, { desc }) => desc(model.createdAt),
-  });
-
-  // Turn into task schema
-  const tasksList: Task[] = tasksInRange.map((task) => {
-    return taskSchema.parse({
-      id: task.id,
-      ownerId: task.ownerId,
-      name: task.name,
-      description: task.description,
-      dueMode: task.dueMode,
-      dueDate: task.dueDate,
-      dateRange: {
-        from: task.dateRangeFrom,
-        to: task.dateRangeTo,
-      },
-      petId: task.pet,
-      groupId: task.group,
-      markedAsDone: task.markedAsDoneBy !== null,
-      markedAsDoneBy: task.markedAsDoneBy,
-    });
-  });
-
-  return tasksList;
-}
-
-export async function getOwnedTasks(): Promise<Task[] | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const userTasks = await db.query.tasks.findMany({
-    where: (model, { eq }) => eq(model.ownerId, user.userId),
-    orderBy: (model, { desc }) => desc(model.createdAt),
-  });
-
-  // Turn into task schema
-  const tasksList: Task[] = userTasks.map((task) => {
-    return taskSchema.parse({
-      id: task.id,
-      ownerId: task.ownerId,
-      name: task.name,
-      description: task.description,
-      dueMode: task.dueMode,
-      dueDate: task.dueDate,
-      dateRange: {
-        from: task.dateRangeFrom,
-        to: task.dateRangeTo,
-      },
-      petId: task.pet,
-      groupId: task.group,
-      markedAsDone: task.markedAsDoneBy !== null,
-      markedAsDoneBy: task.markedAsDoneBy,
-    });
-  });
-
-  return tasksList;
-}
-
-export async function getOwnedTask(taskId: string): Promise<Task | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const task = await db.query.tasks.findFirst({
-    where: (model, { and, eq }) =>
-      and(eq(model.id, taskId), eq(model.ownerId, user.userId)),
-  });
-
-  if (!task) {
-    return "Task not found";
-  }
-
-  return taskSchema.parse({
-    id: task.id,
-    ownerId: task.ownerId,
-    name: task.name,
-    description: task.description,
-    dueMode: task.dueMode,
-    dueDate: task.dueDate,
-    dateRange: {
-      from: task.dateRangeFrom,
-      to: task.dateRangeTo,
-    },
-    petId: task.pet,
-    groupId: task.group,
-    markedAsDone: task.markedAsDoneBy !== null,
-    markedAsDoneBy: task.markedAsDoneBy,
-  });
-}
-
-export async function getVisibleTasksInRange(
-  from: Date,
-  to: Date,
-): Promise<Task[] | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  // Get tasks in range where the user is the owner or in the group the task is assigned to
-  const visibleTasksInRange = await db
-    .select()
-    .from(tasks)
-    .leftJoin(groups, eq(tasks.pet, groups.id))
-    .leftJoin(usersToGroups, eq(groups.id, usersToGroups.groupId))
-    .where(
-      and(
-        or(
-          eq(usersToGroups.userId, user.userId),
-          eq(tasks.ownerId, user.userId),
-        ),
-        or(
-          and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
-          gte(tasks.dueDate, to),
-        ),
-      ),
-    )
-    .execute();
-
-  // Turn into task schema
-  const tasksList: Task[] = visibleTasksInRange.map((joinedTaskRow) => {
-    const parse = taskSchema.safeParse({
-      id: joinedTaskRow.tasks.id,
-      ownerId: joinedTaskRow.tasks.ownerId,
-      name: joinedTaskRow.tasks.name,
-      description: joinedTaskRow.tasks.description,
-      dueMode: joinedTaskRow.tasks.dueMode,
-      dueDate: joinedTaskRow.tasks.dueDate,
-      dateRange: {
-        from: joinedTaskRow.tasks.dateRangeFrom,
-        to: joinedTaskRow.tasks.dateRangeTo,
-      },
-      petId: joinedTaskRow.tasks.pet,
-      groupId: joinedTaskRow.groups?.id ?? undefined,
-      markedAsDone: joinedTaskRow.tasks.markedAsDoneBy !== null,
-      markedAsDoneBy: joinedTaskRow.tasks.markedAsDoneBy,
-    });
-
-    if (!parse.success) {
-      throw new Error("Failed to parse task");
-    }
-
-    return parse.data;
-  });
-
-  return tasksList;
-}
-
-export async function createTask(task: CreateTask): Promise<Task | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const newTask = await db
-    .insert(tasks)
-    .values({
-      name: task.name,
-      dueMode: task.dueMode,
-      ownerId: user.userId,
-      dateRangeFrom: task.dateRange?.from,
-      dateRangeTo: task.dateRange?.to,
-      dueDate: task.dueDate,
-      description: task.description,
-      pet: task.petId,
-      group: task.groupId,
-    })
-    .returning()
-    .execute();
-
-  if (newTask[0]) {
-    return taskSchema.parse({
-      id: newTask[0].id,
-      ownerId: newTask[0].ownerId,
-      name: newTask[0].name,
-      description: newTask[0].description,
-      dueMode: newTask[0].dueMode,
-      dueDate: newTask[0].dueDate,
-      dateRange: { from: newTask[0].dateRangeFrom, to: newTask[0].dateRangeTo },
-      petId: newTask[0].pet,
-      groupId: newTask[0].group,
-      markedAsDone: newTask[0].markedAsDoneBy !== null,
-      markedAsDoneBy: newTask[0].markedAsDoneBy,
-    });
-  }
-
-  throw new Error("Failed to create task");
-}
-
-export async function updateTask(task: Task): Promise<Task | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const updatedTask = await db
-    .update(tasks)
-    .set({
-      name: task.name,
-      dueMode: task.dueMode,
-      dateRangeFrom: task.dateRange?.from,
-      dateRangeTo: task.dateRange?.to,
-      dueDate: task.dueDate,
-      description: task.description,
-      pet: task.petId,
-    })
-    .where(and(eq(tasks.id, task.id), eq(tasks.ownerId, user.userId)))
-    .returning()
-    .execute();
-
-  if (!updatedTask?.[0]) {
-    return "Task not found";
-  }
-
-  // Check if the task has been marked as done
-  // If so, update the markedAsDoneBy field, if the user is the owner or the task is unmarked, or the user is the one who marked it
-  if (
-    updatedTask[0].markedAsDoneBy != user.userId &&
-    (user.userId == updatedTask[0].ownerId ||
-      updatedTask[0].markedAsDoneBy == null ||
-      user.userId == updatedTask[0].markedAsDoneBy)
-  ) {
-    const updatedTaskChangedMarkedAsDoneBy = await db
-      .update(tasks)
-      .set({
-        markedAsDoneBy: user.userId,
-      })
-      .where(eq(tasks.id, task.id))
-      .returning()
-      .execute();
-
-    // Return a task object with the data from the updated task including the markedAsDoneBy field
-    if (updatedTaskChangedMarkedAsDoneBy[0]) {
-      return taskSchema.parse({
-        id: updatedTaskChangedMarkedAsDoneBy[0].id,
-        ownerId: updatedTaskChangedMarkedAsDoneBy[0].ownerId,
-        name: updatedTaskChangedMarkedAsDoneBy[0].name,
-        description: updatedTaskChangedMarkedAsDoneBy[0].description,
-        dueMode: updatedTaskChangedMarkedAsDoneBy[0].dueMode,
-        dueDate: updatedTaskChangedMarkedAsDoneBy[0].dueDate,
-        dateRange: {
-          from: updatedTaskChangedMarkedAsDoneBy[0].dateRangeFrom,
-          to: updatedTaskChangedMarkedAsDoneBy[0].dateRangeTo,
-        },
-        petId: updatedTaskChangedMarkedAsDoneBy[0].pet,
-        groupId: updatedTaskChangedMarkedAsDoneBy[0].group,
-        markedAsDone:
-          updatedTaskChangedMarkedAsDoneBy[0].markedAsDoneBy !== null,
-        markedAsDoneBy: updatedTaskChangedMarkedAsDoneBy[0].markedAsDoneBy,
-      });
-    }
-
-    throw new Error("Failed to mark task as done");
-  }
-
-  // Return a task object with the data from the updated task
-  return taskSchema.parse({
-    id: updatedTask[0].id,
-    ownerId: updatedTask[0].ownerId,
-    name: updatedTask[0].name,
-    description: updatedTask[0].description,
-    dueMode: updatedTask[0].dueMode,
-    dueDate: updatedTask[0].dueDate,
-    dateRange: {
-      from: updatedTask[0].dateRangeFrom,
-      to: updatedTask[0].dateRangeTo,
-    },
-    petId: updatedTask[0].pet,
-    groupId: updatedTask[0].group,
-    markedAsDone: updatedTask[0].markedAsDoneBy !== null,
-    markedAsDoneBy: updatedTask[0].markedAsDoneBy,
-  });
-}
-
-export async function deleteOwnedTask(id: string): Promise<Task | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const deletedTask = await db
-    .delete(tasks)
-    .where(and(eq(tasks.id, id), eq(tasks.ownerId, user.userId)))
-    .returning()
-    .execute();
-
-  if (deletedTask[0]) {
-    return taskSchema.parse({
-      id: deletedTask[0].id,
-      ownerId: deletedTask[0].ownerId,
-      name: deletedTask[0].name,
-      description: deletedTask[0].description,
-      dueMode: deletedTask[0].dueMode,
-      dueDate: deletedTask[0].dueDate,
-      dateRange: {
-        from: deletedTask[0].dateRangeFrom,
-        to: deletedTask[0].dateRangeTo,
-      },
-      petId: deletedTask[0].pet,
-      groupId: deletedTask[0].group,
-      markedAsDone: deletedTask[0].markedAsDoneBy !== null,
-      markedAsDoneBy: deletedTask[0].markedAsDoneBy,
-    });
-  }
-
-  throw new Error("Failed to delete task");
-}
 
 export async function getGroupById(id: string): Promise<Group | string> {
   const user = await auth();
@@ -563,22 +221,31 @@ export async function getNewGroupInviteCode(
   });
 }
 
+export enum InviteApiError {
+  GroupNotFound = "GroupNotFound",
+  InviteNotFound = "InviteNotFound",
+  InviteExpired = "InviteExpired",
+  InviteMaxUsesReached = "InviteMaxUsesReached",
+  UserAlreadyInGroup = "UserAlreadyInGroup",
+  Unauthorized = "Unauthorized",
+}
+
 export async function joinGroup(
-  inviteCode: JoinGroupFormInput,
-): Promise<UserToGroup | string> {
+  inviteCode: string,
+): Promise<undefined | InviteApiError> {
   const user = await auth();
 
   if (!user.userId) {
-    return "Unauthorized";
+    return InviteApiError.Unauthorized;
   }
 
   // This needs to be a find many if there becomes lots of groups
   const inviteCodeRow = await db.query.groupInviteCodes.findFirst({
-    where: (model, { eq }) => eq(model.code, inviteCode.inviteCode),
+    where: (model, { eq }) => eq(model.code, inviteCode),
   });
 
   if (!inviteCodeRow) {
-    return "Invite code not found";
+    return InviteApiError.InviteNotFound;
   }
 
   // Check if the invite code has expired
@@ -589,7 +256,7 @@ export async function joinGroup(
       .where(eq(groupInviteCodes.id, inviteCodeRow.id))
       .execute();
 
-    return "Invite code has expired";
+    return InviteApiError.InviteExpired;
   }
 
   // Check if the invite code has reached its max uses
@@ -600,7 +267,7 @@ export async function joinGroup(
       .where(eq(groupInviteCodes.id, inviteCodeRow.id))
       .execute();
 
-    return "Invite code has reached its max uses";
+    return InviteApiError.InviteMaxUsesReached;
   }
 
   // Check if the user is already in the group
@@ -613,7 +280,7 @@ export async function joinGroup(
   });
 
   if (existingGroupRow) {
-    return "You are already in the group";
+    return InviteApiError.UserAlreadyInGroup;
   }
 
   // Add the user to the group
@@ -648,12 +315,6 @@ export async function joinGroup(
       .where(eq(groupInviteCodes.id, inviteCodeRow.id))
       .execute();
   }
-
-  return userToGroupSchema.parse({
-    groupId: newGroupMember[0].groupId,
-    userId: newGroupMember[0].userId,
-    role: newGroupMember[0].role,
-  });
 }
 
 export async function leaveGroup(
@@ -1161,156 +822,4 @@ export async function getGroupsUserIsIn(): Promise<Group[] | string> {
       description: groupMember.group.description,
     });
   });
-}
-
-export async function createPet(
-  pet: CreatePetFormInput,
-): Promise<Pet | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const newPet = await db
-    .insert(pets)
-    .values({
-      ownerId: user.userId,
-      name: pet.name,
-      species: pet.species,
-      breed: pet.breed,
-      dob: pet.dob,
-    })
-    .returning();
-
-  if (!newPet?.[0]) {
-    throw new Error("Failed to create pet");
-  }
-
-  return petSchema.parse({
-    id: newPet[0].id,
-    ownerId: newPet[0].ownerId,
-    name: newPet[0].name,
-    species: newPet[0].species,
-    breed: newPet[0].breed ? pet.breed : undefined,
-    dob: newPet[0].dob,
-  });
-}
-
-export async function getPetById(petId: string): Promise<Pet | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const pet = await db.query.pets.findFirst({
-    where: (model, { and, eq }) =>
-      and(eq(model.id, petId), eq(model.ownerId, user.userId)),
-  });
-
-  if (!pet) {
-    throw new Error("Pet not found");
-  }
-
-  return petSchema.parse({
-    id: pet.id,
-    ownerId: pet.ownerId,
-    name: pet.name,
-    species: pet.species,
-    breed: pet.breed ? pet.breed : undefined,
-    dob: pet.dob,
-  });
-}
-
-export async function getOwnedPets(): Promise<Pet[] | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const ownedPets = await db.query.pets.findMany({
-    where: (model, { eq }) => eq(model.ownerId, user.userId),
-  });
-
-  // Turn into zod pet type
-  const petsList: Pet[] = ownedPets.map((pet) => {
-    return petSchema.parse({
-      id: pet.id,
-      ownerId: pet.ownerId,
-      name: pet.name,
-      species: pet.species,
-      breed: pet.breed ? pet.breed : undefined,
-      dob: pet.dob,
-    });
-  });
-
-  return petsList;
-}
-
-export async function updatePet(pet: Pet): Promise<Pet | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const updatedPet = await db
-    .update(pets)
-    .set({
-      name: pet.name,
-      species: pet.species,
-      breed: pet.breed,
-      dob: pet.dob,
-    })
-    .where(eq(pets.id, pet.id))
-    .returning()
-    .execute();
-
-  if (!updatedPet?.[0]) {
-    throw new Error("Failed to update pet");
-  }
-
-  return petSchema.parse({
-    id: updatedPet[0].id,
-    ownerId: updatedPet[0].ownerId,
-    name: updatedPet[0].name,
-    species: updatedPet[0].species,
-    breed: updatedPet[0].breed ? updatedPet[0].breed : undefined,
-    dob: updatedPet[0].dob,
-  });
-}
-
-export async function deletePet(petId: string): Promise<Pet | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const petToReturn = await db.transaction(async (db) => {
-    const deletedPet = await db
-      .delete(pets)
-      .where(eq(pets.id, petId))
-      .returning();
-
-    if (!deletedPet?.[0]) {
-      db.rollback();
-      throw new Error("Failed to delete pet from pet table");
-    }
-
-    return petSchema.parse({
-      id: deletedPet[0].id,
-      ownerId: deletedPet[0].ownerId,
-      name: deletedPet[0].name,
-      species: deletedPet[0].species,
-      breed: deletedPet[0].breed ? deletedPet[0].breed : undefined,
-      dob: deletedPet[0].dob,
-    });
-  });
-
-  if (petToReturn) return petToReturn;
-
-  throw new Error("Failed to delete pet");
 }

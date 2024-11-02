@@ -4,12 +4,6 @@ import { z } from "zod";
 // General schemas
 // -----------------------------------------------------------------------------
 
-export const RoleEnum = z.enum(["Owner", "Sitter"]);
-export type RoleEnum = z.infer<typeof RoleEnum>;
-
-export const GroupRoleEnum = z.enum(["Owner", "Member", "Pending"]);
-export type GroupRoleEnum = z.infer<typeof GroupRoleEnum>;
-
 export const dateRangeSchema = z
   .object({
     from: z.coerce.date(),
@@ -106,22 +100,6 @@ export const createTaskFormProps = z.object({
 
 export type CreateTaskFormProps = z.infer<typeof createTaskFormProps>;
 
-export const createPetFormSchema = z
-  .object({
-    name: z.string().min(3).max(50),
-    species: z.string().min(3).max(50),
-    breed: z.string().min(3).max(50).optional(),
-    dob: z.coerce.date(),
-  })
-  .refine((data) => data.dob < new Date(), {
-    message: "Birthdate must be in the past",
-  })
-  .refine((data) => data.dob > new Date("1900-01-01"), {
-    message: "Birthdate must be after 1900-01-01",
-  });
-
-export type CreatePetFormInput = z.infer<typeof createPetFormSchema>;
-
 export const createGroupFormSchema = z.object({
   name: z
     .string()
@@ -182,12 +160,6 @@ export type GroupInviteLinkOptions = z.infer<
   typeof groupInviteLinkOptionsSchema
 >;
 
-export const joinGroupFormSchema = z.object({
-  inviteCode: z.string(),
-});
-
-export type JoinGroupFormInput = z.infer<typeof joinGroupFormSchema>;
-
 // -----------------------------------------------------------------------------
 // API form schemas
 // -----------------------------------------------------------------------------
@@ -240,131 +212,3 @@ export const idList = z.object({
 });
 
 export type IdList = z.infer<typeof idList>;
-
-// -----------------------------------------------------------------------------
-// Response schemas - no refine methods - we trust the db
-// -----------------------------------------------------------------------------
-
-export const petSchema = z.object({
-  id: z.string(),
-  ownerId: z.string(),
-  name: z.string(),
-  species: z.string(),
-  breed: z.string().optional(),
-  dob: z.coerce.date(),
-});
-
-export type Pet = z.infer<typeof petSchema>;
-
-export const petListSchema = z.array(petSchema);
-
-export type PetList = z.infer<typeof petListSchema>;
-
-export const taskSchema = z.object({
-  id: z.string(),
-  ownerId: z.string(),
-  name: z.string(),
-  description: z.string().optional(),
-  dueMode: z.boolean(),
-  dueDate: z.coerce.date().optional().nullable(),
-  dateRange: dateRangeSchema.optional().nullable(),
-  petId: z.string().optional(),
-  groupId: z.string().optional(),
-  requiresVerification: z.boolean().optional().default(false),
-  markedAsDone: z.boolean(),
-  markedAsDoneBy: z.string().optional().nullable(),
-});
-
-export type Task = z.infer<typeof taskSchema>;
-
-export const taskListSchema = z.array(taskSchema);
-
-export type TaskList = z.infer<typeof taskListSchema>;
-
-export const userToGroupSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  groupId: z.string(),
-  role: GroupRoleEnum,
-});
-
-export type UserToGroup = z.infer<typeof userToGroupSchema>;
-
-export const groupInviteCodeSchema = z.object({
-  id: z.string(),
-  createdBy: z.string(),
-  code: z.string(),
-  groupId: z.string(),
-  uses: z.number(),
-  maxUses: z.number(),
-  expiresAt: z.coerce.date(),
-  requiresApproval: z.boolean(),
-});
-
-export type GroupInviteCode = z.infer<typeof groupInviteCodeSchema>;
-
-export const petToGroupSchema = z.object({
-  id: z.string(),
-  petId: z.string(),
-  groupId: z.string(),
-});
-
-export type PetToGroup = z.infer<typeof petToGroupSchema>;
-
-export const petToGroupListSchema = z.array(petToGroupSchema);
-
-export type PetToGroupList = z.infer<typeof petToGroupListSchema>;
-
-export const groupPetSchema = z.object({
-  id: z.string(),
-  petId: z.string(),
-  ownerId: z.string(),
-  name: z.string(),
-  species: z.string(),
-  breed: z.string().optional(),
-  dob: z.coerce.date(),
-  groupId: z.string(),
-});
-
-export type GroupPet = z.infer<typeof groupPetSchema>;
-
-export const groupPetListSchema = z.array(groupPetSchema);
-
-export type GroupPetList = z.infer<typeof groupPetListSchema>;
-
-export const user = z.object({
-  id: z.string(),
-  name: z.string(),
-  avatar: z.string().optional(),
-});
-
-export type User = z.infer<typeof user>;
-
-export const groupMemberSchema = z.object({
-  id: z.string(),
-  groupId: z.string(),
-  userId: z.string(),
-  name: z.string(),
-  avatar: z.string().optional(),
-  role: GroupRoleEnum,
-});
-
-export type GroupMember = z.infer<typeof groupMemberSchema>;
-
-export const groupMemberListSchema = z.array(groupMemberSchema);
-
-export type GroupMemberList = z.infer<typeof groupMemberListSchema>;
-
-export const groupSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().optional().nullable(),
-  members: z.array(groupMemberSchema).optional(),
-  pets: z.array(petSchema).optional(),
-});
-
-export type Group = z.infer<typeof groupSchema>;
-
-export const groupListSchema = z.array(groupSchema);
-
-export type GroupList = z.infer<typeof groupListSchema>;

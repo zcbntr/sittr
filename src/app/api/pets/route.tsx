@@ -1,16 +1,48 @@
 import { type NextRequest, NextResponse } from "next/server";
-import {
-  createPetFormSchema,
-  basicGetAPIFormSchema,
-  deleteAPIFormSchema,
-  petSchema,
-} from "~/lib/schema";
+import { basicGetAPIFormSchema, deleteAPIFormSchema } from "~/lib/schema";
 import {
   createPet,
   deletePet,
   getOwnedPets,
+  getPetById,
   updatePet,
-} from "~/server/queries";
+} from "~/server/queries/pets";
+import { z } from "zod";
+import { petSchema } from "~/lib/schema/petschemas";
+
+export const createPetFormSchema = z
+  .object({
+    name: z.string().min(3).max(50),
+    species: z.string().min(3).max(50),
+    breed: z.string().min(3).max(50).optional(),
+    dob: z.coerce.date(),
+  })
+  .refine((data) => data.dob < new Date(), {
+    message: "Birthdate must be in the past",
+  })
+  .refine((data) => data.dob > new Date("1900-01-01"), {
+    message: "Birthdate must be after 1900-01-01",
+  });
+
+export type CreatePetFormInput = z.infer<typeof createPetFormSchema>;
+
+export enum PetApiError {
+  PetNotFound = "PetNotFound",
+  InvalidCredentials = "InvalidCredentials",
+  Unauthorized = "Unauthorized",
+  // Add other expected error types as needed
+}
+
+export const successSchema = z.object({
+  status: z.literal("success"),
+  data: petSchema,
+});
+
+// Define your error schema using the enum values
+export const errorSchema = z.object({
+  status: z.literal("error"),
+  errorType: z.nativeEnum(PetApiError),
+});
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -21,8 +53,12 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     });
 
     if (!requestParams.success) {
-      throw new Error(
-        "Get Pets Form Data Parse Error: \n" + requestParams.error.toString(),
+      return NextResponse.json(
+        {
+          status: "error",
+          error: "Invalid request params",
+        },
+        { status: 400 },
       );
     }
 
@@ -30,20 +66,43 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
       const petsOrErrorMessage = await getOwnedPets();
 
       if (typeof petsOrErrorMessage === "string") {
-        return NextResponse.json({ error: petsOrErrorMessage });
+        return NextResponse.json(
+          {
+            status: "error",
+            error: petsOrErrorMessage,
+          },
+          { status: 400 },
+        );
       }
 
-      return NextResponse.json(petsOrErrorMessage);
+      return NextResponse.json(
+        { status: "success", data: petsOrErrorMessage },
+        { status: 200 },
+      );
+    } else if (requestParams.data.id) {
+      const petOrErrorMessage = await getPetById(requestParams.data.id);
+
+      if (typeof petOrErrorMessage === "string") {
+        return NextResponse.json({
+          status: "error",
+          error: petOrErrorMessage,
+        });
+      }
+
+      return NextResponse.json({ status: "success", data: petOrErrorMessage });
     }
 
-    return NextResponse.json({ error: "Invalid request params" });
+    return NextResponse.json({
+      status: "error",
+      error: "Invalid request params",
+    });
   } catch (error) {
     console.error(error);
 
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({
+      status: 500,
+      error: "Internal Server Error",
+    });
   }
 }
 
