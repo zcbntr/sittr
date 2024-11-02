@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { basicGetAPIFormSchema, deleteAPIFormSchema } from "~/lib/schema";
+import { basicGetAPIFormSchema, deleteAPIFormSchema } from "~/lib/schemas";
 import {
   createPet,
   deletePet,
@@ -8,7 +8,7 @@ import {
   updatePet,
 } from "~/server/queries/pets";
 import { z } from "zod";
-import { petSchema } from "~/lib/schema/petschemas";
+import { petSchema } from "~/lib/schemas/pets";
 
 export const createPetFormSchema = z
   .object({
@@ -83,13 +83,19 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
       const petOrErrorMessage = await getPetById(requestParams.data.id);
 
       if (typeof petOrErrorMessage === "string") {
-        return NextResponse.json({
-          status: "error",
-          error: petOrErrorMessage,
-        });
+        return NextResponse.json(
+          {
+            status: "error",
+            error: petOrErrorMessage,
+          },
+          { status: 400 },
+        );
       }
 
-      return NextResponse.json({ status: "success", data: petOrErrorMessage });
+      return NextResponse.json(
+        { status: "success", data: petOrErrorMessage },
+        { status: 200 },
+      );
     }
 
     return NextResponse.json({
@@ -113,23 +119,33 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = createPetFormSchema.safeParse(json);
 
     if (!formData.success) {
-      throw new Error(
-        "Create Pet Form Data Parse Error: \n" + formData.error.toString(),
+      return NextResponse.json(
+        {
+          status: "error",
+          error: "Invalid pet data: " + formData.error.toString(),
+        },
+        { status: 400 },
       );
     }
 
     const petOrErrorMessage = await createPet(formData.data);
 
     if (typeof petOrErrorMessage === "string") {
-      return NextResponse.json({ error: petOrErrorMessage });
+      return NextResponse.json(
+        { status: "error", error: petOrErrorMessage },
+        { status: 400 },
+      );
     }
 
-    return NextResponse.json(petOrErrorMessage);
+    return NextResponse.json(
+      { status: "success", error: petOrErrorMessage },
+      { status: 200 },
+    );
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { status: "error", error: "Internal Server Error" },
       { status: 500 },
     );
   }
@@ -142,23 +158,35 @@ export async function PATCH(req: NextRequest): Promise<NextResponse<unknown>> {
     const formData = petSchema.safeParse(json);
 
     if (!formData.success) {
-      throw new Error(
-        "Edit Pet Form Data Parse Error: \n" + formData.error.toString(),
+      return NextResponse.json(
+        {
+          status: "error",
+          error: "Invalid pet data: " + formData.error.toString(),
+        },
+        { status: 400 },
       );
     }
 
     const petOrErrorMessage = await updatePet(formData.data);
 
     if (typeof petOrErrorMessage === "string") {
-      return NextResponse.json({ error: petOrErrorMessage });
+      return NextResponse.json(
+        { status: "error", error: petOrErrorMessage },
+        {
+          status: 400,
+        },
+      );
     }
 
-    return NextResponse.json(petOrErrorMessage);
+    return NextResponse.json(
+      { status: "success", data: petOrErrorMessage },
+      { status: 200 },
+    );
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { status: "error", error: "Internal Server Error" },
       { status: 500 },
     );
   }
@@ -179,15 +207,21 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
     const petOrErrorMessage = await deletePet(formData.data.id);
 
     if (typeof petOrErrorMessage === "string") {
-      return NextResponse.json({ error: petOrErrorMessage });
+      return NextResponse.json(
+        { status: "error", error: petOrErrorMessage },
+        { status: 400 },
+      );
     }
 
-    return NextResponse.json(petOrErrorMessage);
+    return NextResponse.json(
+      { status: "success", data: petOrErrorMessage },
+      { status: 200 },
+    );
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { status: "error", error: "Internal Server Error" },
       { status: 500 },
     );
   }

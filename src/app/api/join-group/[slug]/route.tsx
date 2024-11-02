@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { groupInviteCodeSchema } from "~/lib/schema/groupschemas";
+import { groupInviteCodeSchema } from "~/lib/schemas/groups";
 import { InviteApiError, joinGroup } from "~/server/queries/groups";
 
 export const successSchema = z.object({

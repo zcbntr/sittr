@@ -27,10 +27,10 @@ import { useRouter } from "next/navigation";
 import { fetchApi } from "~/lib/utils";
 import {
   errorSchema,
-  InviteApiError,
-  joinGroupFormSchema,
   successSchema,
 } from "../api/join-group/[slug]/route";
+import { InviteApiError } from "~/server/queries/groups";
+import { joinGroupFormSchema } from "~/lib/schemas/groups";
 
 export default function JoinGroupDialog({
   children,

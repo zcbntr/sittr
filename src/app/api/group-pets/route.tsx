@@ -3,7 +3,7 @@ import {
   basicGetAPIFormSchema,
   petsToGroupFormInputSchema,
   petToGroupFormInputSchema,
-} from "~/lib/schema";
+} from "~/lib/schemas";
 import {
   addPetsToGroup,
   addPetToGroup,

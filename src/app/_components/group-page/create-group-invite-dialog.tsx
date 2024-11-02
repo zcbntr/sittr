@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import {
   groupInviteLinkOptionsSchema,
   groupInviteCodeSchema,
-} from "~/lib/schema/index";
+} from "~/lib/schemas/index";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { MdCopyAll } from "react-icons/md";

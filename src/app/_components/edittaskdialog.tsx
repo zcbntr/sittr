@@ -40,7 +40,7 @@ import {
   petListSchema,
   type Task,
   taskSchema,
-} from "~/lib/schema/index";
+} from "~/lib/schemas/index";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import {
   Select,

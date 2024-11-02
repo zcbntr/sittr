@@ -32,7 +32,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createPetFormSchema, petSchema } from "~/lib/schema/index";
+import { createPetFormSchema, petSchema } from "~/lib/schemas/index";
 import { useRouter } from "next/navigation";
 
 export default function CreatePetDialog({

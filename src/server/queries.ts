@@ -9,7 +9,7 @@ import {
   groups,
   pets,
   petsToGroups,
-} from "../db/schema";
+} from "./db/schema";
 import {
   type petToGroupFormInput,
   type CreateGroupFormInput,
@@ -221,22 +221,13 @@ export async function getNewGroupInviteCode(
   });
 }
 
-export enum InviteApiError {
-  GroupNotFound = "GroupNotFound",
-  InviteNotFound = "InviteNotFound",
-  InviteExpired = "InviteExpired",
-  InviteMaxUsesReached = "InviteMaxUsesReached",
-  UserAlreadyInGroup = "UserAlreadyInGroup",
-  Unauthorized = "Unauthorized",
-}
-
 export async function joinGroup(
   inviteCode: string,
-): Promise<undefined | InviteApiError> {
+) {
   const user = await auth();
 
   if (!user.userId) {
-    return InviteApiError.Unauthorized;
+    return "Unauthorized";
   }
 
   // This needs to be a find many if there becomes lots of groups
@@ -245,7 +236,7 @@ export async function joinGroup(
   });
 
   if (!inviteCodeRow) {
-    return InviteApiError.InviteNotFound;
+    return "Invite code not found";
   }
 
   // Check if the invite code has expired
@@ -256,7 +247,7 @@ export async function joinGroup(
       .where(eq(groupInviteCodes.id, inviteCodeRow.id))
       .execute();
 
-    return InviteApiError.InviteExpired;
+    return "Invite code has expired";
   }
 
   // Check if the invite code has reached its max uses
@@ -267,7 +258,7 @@ export async function joinGroup(
       .where(eq(groupInviteCodes.id, inviteCodeRow.id))
       .execute();
 
-    return InviteApiError.InviteMaxUsesReached;
+    return "Invite code has reached its max uses";
   }
 
   // Check if the user is already in the group
@@ -280,7 +271,7 @@ export async function joinGroup(
   });
 
   if (existingGroupRow) {
-    return InviteApiError.UserAlreadyInGroup;
+    return "You are already in the group";
   }
 
   // Add the user to the group
@@ -315,6 +306,12 @@ export async function joinGroup(
       .where(eq(groupInviteCodes.id, inviteCodeRow.id))
       .execute();
   }
+
+  return userToGroupSchema.parse({
+    groupId: newGroupMember[0].groupId,
+    userId: newGroupMember[0].userId,
+    role: newGroupMember[0].role,
+  });
 }
 
 export async function leaveGroup(

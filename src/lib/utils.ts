@@ -20,6 +20,7 @@ type ApiResponse<Data, ErrorType> =
   | SuccessResponse<Data>
   | ExpectedErrorResponse<ErrorType>;
 
+// Modify to add request body as an optional parameter
 export async function fetchApi<Data, ErrorType>(
   url: string,
   successSchema: z.ZodSchema<Data>,

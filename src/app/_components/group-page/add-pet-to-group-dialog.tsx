@@ -25,7 +25,7 @@ import {
   petListSchema,
   petsToGroupFormInputSchema,
   petToGroupListSchema,
-} from "~/lib/schema/index";
+} from "~/lib/schemas/index";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,

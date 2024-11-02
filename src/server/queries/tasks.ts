@@ -1,11 +1,11 @@
 "use server";
 
-import { type Task, taskSchema } from "~/lib/schema/taskschemas";
+import { type Task, taskSchema } from "~/lib/schemas/tasks";
 import { eq, and, or, lte, gte, inArray } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "../db";
 import { groups, tasks, usersToGroups } from "../db/schema";
-import { type CreateTask } from "~/lib/schema";
+import { type CreateTask } from "~/lib/schemas";
 
 export async function getOwnedTasksStartingInRange(
   from: Date,

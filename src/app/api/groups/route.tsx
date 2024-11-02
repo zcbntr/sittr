@@ -3,8 +3,8 @@ import {
   basicGetAPIFormSchema,
   createGroupFormSchema,
   deleteAPIFormSchema,
-} from "~/lib/schema";
-import { groupSchema } from "~/lib/schema/groupschemas";
+} from "~/lib/schemas";
+import { groupSchema } from "~/lib/schemas/groups";
 import {
   createGroup,
   deleteGroup,

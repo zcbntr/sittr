@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { petSchema } from "./petschemas";
+import { petSchema } from "./pets";
 
 export const RoleEnum = z.enum(["Owner", "Sitter"]);
 export type RoleEnum = z.infer<typeof RoleEnum>;
@@ -86,3 +86,9 @@ export type GroupPet = z.infer<typeof groupPetSchema>;
 export const groupPetListSchema = z.array(groupPetSchema);
 
 export type GroupPetList = z.infer<typeof groupPetListSchema>;
+
+export const joinGroupFormSchema = z.object({
+  inviteCode: z.string(),
+});
+
+export type JoinGroupFormData = z.infer<typeof joinGroupFormSchema>;

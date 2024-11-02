@@ -1,7 +1,7 @@
 "use client";
 
 import { GroupNameDescriptionForm } from "~/app/_components/group-page/name-description-form";
-import { type Group } from "~/lib/schema";
+import { type Group } from "~/lib/schemas";
 import { MdEdit } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import {

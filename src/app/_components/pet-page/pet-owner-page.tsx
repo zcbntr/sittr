@@ -2,7 +2,7 @@
 
 import { Button, buttonVariants } from "~/components/ui/button";
 import { PetEditForm } from "~/app/_components/pet-page/pet-edit-form";
-import { Pet } from "~/lib/schema";
+import { Pet } from "~/lib/schemas";
 import { Pencil } from "lucide-react";
 import {
   Card,

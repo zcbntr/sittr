@@ -2,7 +2,7 @@
 
 import { columns } from "~/components/ui/data-tables/group-members-columns";
 import { DataTable } from "~/components/ui/data-table";
-import { type GroupMember, groupMemberListSchema } from "~/lib/schema";
+import { type GroupMember, groupMemberListSchema } from "~/lib/schemas";
 import React from "react";
 import CreateGroupInviteDialog from "./create-group-invite-dialog";
 import { Button } from "~/components/ui/button";

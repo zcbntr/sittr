@@ -28,7 +28,7 @@ import {
   groupSchema,
   type Pet,
   petListSchema,
-} from "~/lib/schema/index";
+} from "~/lib/schemas/index";
 import { Textarea } from "~/components/ui/textarea";
 import {
   DropdownMenu,

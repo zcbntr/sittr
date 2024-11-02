@@ -28,7 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { type Pet, petSchema } from "~/lib/schema/index";
+import { type Pet, petSchema } from "~/lib/schemas/index";
 import {
   Popover,
   PopoverContent,

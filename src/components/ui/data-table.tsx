@@ -33,7 +33,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Search } from "./search";
 import { useState } from "react";
-import { Pet } from "~/lib/schema";
+import { Pet } from "~/lib/schemas";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

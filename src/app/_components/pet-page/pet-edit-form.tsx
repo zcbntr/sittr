@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { type Pet, petSchema } from "~/lib/schema";
+import { type Pet, petSchema } from "~/lib/schemas";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Popover,

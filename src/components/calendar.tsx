@@ -11,7 +11,7 @@ import {
   taskListSchema,
   type CreateTaskFormProps,
   type Task,
-} from "~/lib/schema";
+} from "~/lib/schemas";
 import EditTaskDialog from "~/app/_components/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/createtaskdialog";
 

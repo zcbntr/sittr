@@ -4,7 +4,7 @@ import {
   createTaskSchema,
   deleteAPIFormSchema,
   taskSchema,
-} from "~/lib/schema";
+} from "~/lib/schemas";
 import {
   createTask,
   deleteOwnedTask,

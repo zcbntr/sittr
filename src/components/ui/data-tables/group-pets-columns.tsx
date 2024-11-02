@@ -18,7 +18,7 @@ import {
 import {
   GroupPet,
   petToGroupSchema,
-} from "~/lib/schema";
+} from "~/lib/schemas";
 
 // Add a column for notes? Column for small image of pet?
 export const columns: ColumnDef<GroupPet>[] = [

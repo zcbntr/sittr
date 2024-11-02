@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { requestGroupInviteCodeFormInputSchema } from "~/lib/schema";
+import { requestGroupInviteCodeFormInputSchema } from "~/lib/schemas";
 import { getNewGroupInviteCode } from "~/server/queries";
 
 export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {

@@ -32,7 +32,7 @@ import {
   type Pet,
   petListSchema,
   taskSchema,
-} from "~/lib/schema/index";
+} from "~/lib/schemas/index";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import {

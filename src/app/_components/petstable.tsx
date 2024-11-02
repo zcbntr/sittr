@@ -2,7 +2,7 @@
 
 import { columns } from "~/components/ui/data-tables/my-pets-columns";
 import { DataTable } from "~/components/ui/data-table";
-import { type Pet, petListSchema } from "~/lib/schema";
+import { type Pet, petListSchema } from "~/lib/schemas";
 import React from "react";
 
 export default function PetsTable() {
