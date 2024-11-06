@@ -10,6 +10,7 @@ import {
 } from "./zsa-procedures";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export const createTaskAction = authenticatedProcedure
   .createServerAction()
@@ -31,6 +32,8 @@ export const createTaskAction = authenticatedProcedure
         group: input.groupId,
       })
       .execute();
+
+    revalidatePath("/tasks");
   });
 
 export const updateTaskAction = ownsTaskProcedure
@@ -78,12 +81,12 @@ export const deleteTaskAction = ownsTaskProcedure
   .createServerAction()
   .input(taskSchema.pick({ id: true }))
   .handler(async ({ input, ctx }) => {
-    const { user, task } = ctx;
+    const { user } = ctx;
 
     await db
       .delete(tasks)
       .where(and(eq(tasks.id, input.id), eq(tasks.ownerId, user.userId)))
       .execute();
 
-    revalidatePath(`/tasks/${task.id}`);
+    redirect("/tasks");
   });

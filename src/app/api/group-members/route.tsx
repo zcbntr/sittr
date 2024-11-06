@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { basicGetAPIFormSchema } from "~/lib/schemas";
-import { userToGroupSchema } from "~/lib/schemas/groups";
-import { getGroupMembers, removeUserFromGroup } from "~/server/queries";
+import { getGroupMembers } from "~/server/queries";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -32,36 +31,6 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     }
 
     return NextResponse.json({ error: "Invalid request params" });
-  } catch (error) {
-    console.error(error);
-
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
-  }
-}
-
-export async function DELETE(req: NextRequest): Promise<NextResponse<unknown>> {
-  try {
-    const json: unknown = await req.json();
-
-    const formData = userToGroupSchema.safeParse(json);
-
-    if (!formData.success) {
-      throw new Error(
-        "Remove User From Group Form Data Parse Error: \n" +
-          formData.error.toString(),
-      );
-    }
-
-    const userToGroupOrErrorMessage = await removeUserFromGroup(formData.data);
-
-    if (typeof userToGroupOrErrorMessage === "string") {
-      return NextResponse.json({ error: userToGroupOrErrorMessage });
-    }
-
-    return NextResponse.json(userToGroupOrErrorMessage);
   } catch (error) {
     console.error(error);
 

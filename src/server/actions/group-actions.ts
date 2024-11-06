@@ -2,13 +2,27 @@
 
 import {
   createGroupInputSchema,
+  GroupRoleEnum,
   groupSchema,
+  petsToGroupFormInputSchema,
+  petToGroupFormInputSchema,
+  requestGroupInviteCodeFormInputSchema,
   RoleEnum,
+  userGroupPairSchema,
 } from "~/lib/schemas/groups";
 import { db } from "../db";
 import { authenticatedProcedure, ownsGroupProcedure } from "./zsa-procedures";
-import { groups, petsToGroups, usersToGroups } from "../db/schema";
-import { eq } from "drizzle-orm";
+import {
+  groupInviteCodes,
+  groups,
+  petsToGroups,
+  usersToGroups,
+} from "../db/schema";
+import { and, eq } from "drizzle-orm";
+import { z } from "zod";
+import { deleteAPIFormSchema } from "~/lib/schemas";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export const createGroupAction = authenticatedProcedure
   .createServerAction()
@@ -66,6 +80,8 @@ export const createGroupAction = authenticatedProcedure
         }
       }
     });
+
+    revalidatePath("/groups");
   });
 
 export const updateGroupDetailsAction = ownsGroupProcedure
@@ -80,11 +96,291 @@ export const updateGroupDetailsAction = ownsGroupProcedure
       })
       .where(eq(groups.id, input.id))
       .execute();
+
+    revalidatePath(`/groups/${input.id}`);
   });
 
 export const deleteGroupAction = ownsGroupProcedure
   .createServerAction()
-  .input(groupSchema.pick({ id: true }))
+  .input(deleteAPIFormSchema)
   .handler(async ({ input }) => {
     await db.delete(groups).where(eq(groups.id, input.id)).execute();
+
+    redirect("/groups");
+  });
+
+export const addPetToGroupAction = ownsGroupProcedure
+  .createServerAction()
+  .input(petToGroupFormInputSchema)
+  .handler(async ({ input }) => {
+    await db
+      .insert(petsToGroups)
+      .values({
+        groupId: input.groupId,
+        petId: input.petId,
+      })
+      .execute();
+
+    revalidatePath(`/groups/${input.groupId}`);
+  });
+
+export const addPetsToGroupAction = ownsGroupProcedure
+  .createServerAction()
+  .input(petsToGroupFormInputSchema)
+  .handler(async ({ input }) => {
+    await db.transaction(async (db) => {
+      for (const petId of input.petIds) {
+        await db
+          .insert(petsToGroups)
+          .values({
+            groupId: input.groupId,
+            petId: petId,
+          })
+          .execute();
+      }
+    });
+
+    revalidatePath(`/groups/${input.groupId}`);
+  });
+
+export const removePetFromGroupAction = ownsGroupProcedure
+  .createServerAction()
+  .input(petToGroupFormInputSchema)
+  .handler(async ({ input }) => {
+    await db
+      .delete(petsToGroups)
+      .where(
+        and(
+          eq(petsToGroups.groupId, input.groupId),
+          eq(petsToGroups.petId, input.petId),
+        ),
+      )
+      .execute();
+
+    revalidatePath(`/groups/${input.groupId}`);
+  });
+
+export const addUserToGroupAction = ownsGroupProcedure
+  .createServerAction()
+  .input(userGroupPairSchema)
+  .handler(async ({ input }) => {
+    // Check user is not trying to add themselves
+    if (input.userId === input.groupId) {
+      throw new Error("Cannot add yourself to your own group");
+    }
+
+    await db
+      .insert(usersToGroups)
+      .values({
+        groupId: input.groupId,
+        userId: input.userId,
+        role: GroupRoleEnum.Values.Member,
+      })
+      .execute();
+
+    revalidatePath(`/groups/${input.groupId}`);
+  });
+
+export const removeUserFromGroupAction = ownsGroupProcedure
+  .createServerAction()
+  .input(userGroupPairSchema)
+  .handler(async ({ input }) => {
+    // Check if user is trying to remove themselves
+    if (input.userId === input.groupId) {
+      throw new Error("Cannot remove yourself from your own group");
+    }
+
+    // Check if user is the last owner of the group
+    const ownerCount = await db
+      .select()
+      .from(usersToGroups)
+      .where(
+        and(
+          eq(usersToGroups.groupId, input.groupId),
+          eq(usersToGroups.role, RoleEnum.Values.Owner),
+        ),
+      )
+      .execute()
+      .then((rows) => rows.length);
+
+    if (ownerCount === 1) {
+      throw new Error(
+        "You cannot remove the last owner of a group. Delete the group instead.",
+      );
+    }
+
+    await db
+      .delete(usersToGroups)
+      .where(
+        and(
+          eq(usersToGroups.groupId, input.groupId),
+          eq(usersToGroups.userId, input.userId),
+        ),
+      )
+      .execute();
+
+    revalidatePath(`/groups/${input.groupId}`);
+  });
+
+export const leaveGroupAction = authenticatedProcedure
+  .createServerAction()
+  .input(z.object({ groupId: z.string() }))
+  .handler(async ({ input, ctx }) => {
+    const { user } = ctx;
+
+    // Check if user is the last owner of the group
+    const ownerCount = await db
+      .select()
+      .from(usersToGroups)
+      .where(
+        and(
+          eq(usersToGroups.groupId, input.groupId),
+          eq(usersToGroups.role, RoleEnum.Values.Owner),
+        ),
+      )
+      .execute()
+      .then((rows) => rows.length);
+
+    if (ownerCount === 1) {
+      throw new Error(
+        "You cannot leave as the last owner of a group. Delete the group instead.",
+      );
+    }
+
+    await db
+      .delete(usersToGroups)
+      .where(
+        and(
+          eq(usersToGroups.groupId, input.groupId),
+          eq(usersToGroups.userId, user.userId),
+        ),
+      )
+      .execute();
+
+    redirect("/groups");
+  });
+
+export const joinGroupAction = authenticatedProcedure
+  .createServerAction()
+  .input(z.object({ code: z.string() }))
+  .handler(async ({ input, ctx }) => {
+    const { user } = ctx;
+
+    // This needs to be a find many if there becomes lots of groups
+    const inviteCodeRow = await db.query.groupInviteCodes.findFirst({
+      where: (model, { eq }) => eq(model.code, input.code),
+    });
+
+    if (!inviteCodeRow) {
+      throw new Error("Invite code not found");
+    }
+
+    // Check if the invite code has expired
+    if (inviteCodeRow.expiresAt < new Date()) {
+      // Delete code
+      await db
+        .delete(groupInviteCodes)
+        .where(eq(groupInviteCodes.id, inviteCodeRow.id))
+        .execute();
+
+      throw new Error("Invite code has expired");
+    }
+
+    // Check if the invite code has reached its max uses
+    if (inviteCodeRow.uses >= inviteCodeRow.maxUses) {
+      // Delete code
+      await db
+        .delete(groupInviteCodes)
+        .where(eq(groupInviteCodes.id, inviteCodeRow.id))
+        .execute();
+
+      throw new Error("Invite code has reached its max uses");
+    }
+
+    // Add the user to the group
+    const newGroupMember = await db
+      .insert(usersToGroups)
+      .values({
+        groupId: inviteCodeRow.groupId,
+        userId: user.userId,
+        role: inviteCodeRow.requiresApproval
+          ? GroupRoleEnum.Values.Pending
+          : GroupRoleEnum.Values.Member,
+      })
+      .returning()
+      .execute();
+
+    if (!newGroupMember?.[0]) {
+      throw new Error("Database insert failed");
+    }
+
+    // Check if incrementing the invite code will cause it to reach its max uses
+    if (inviteCodeRow.uses + 1 >= inviteCodeRow.maxUses) {
+      // Delete code
+      await db
+        .delete(groupInviteCodes)
+        .where(eq(groupInviteCodes.id, inviteCodeRow.id))
+        .execute();
+    } else {
+      // Increment the invite code uses
+      await db
+        .update(groupInviteCodes)
+        .set({ uses: inviteCodeRow.uses + 1 })
+        .where(eq(groupInviteCodes.id, inviteCodeRow.id))
+        .execute();
+    }
+
+    redirect(`/groups/${inviteCodeRow.groupId}`);
+  });
+
+export const createGroupInviteCodeAction = ownsGroupProcedure
+  .createServerAction()
+  .input(requestGroupInviteCodeFormInputSchema)
+  .handler(async ({ input, ctx }) => {
+    const { user } = ctx;
+
+    // Check user is the owner of the group
+    const ownerRow = await db.query.usersToGroups.findFirst({
+      where: (model, { and, eq }) =>
+        and(
+          eq(model.groupId, input.groupId),
+          eq(model.userId, user.userId),
+          eq(model.role, RoleEnum.Values.Owner),
+        ),
+    });
+
+    if (!ownerRow) {
+      throw new Error(
+        "You are either not the owner of the group, not a member, or the group doesn't exist",
+      );
+    }
+
+    // Create a new invite code based on the group id and random number
+    function getRandomUint32() {
+      const data = new Uint32Array(1);
+      crypto.getRandomValues(data);
+      return data[0];
+    }
+
+    const inviteCode = getRandomUint32()?.toString(16);
+
+    if (!inviteCode) {
+      throw new Error("Failed to generate invite code");
+    }
+
+    const newInviteCodeRow = await db
+      .insert(groupInviteCodes)
+      .values({
+        groupId: input.groupId,
+        code: inviteCode,
+        maxUses: input.maxUses,
+        expiresAt: input.expiresAt,
+        requiresApproval: input.requiresApproval,
+      })
+      .returning()
+      .execute();
+
+    if (!newInviteCodeRow?.[0]) {
+      throw new Error("Failed to create invite code");
+    }
   });

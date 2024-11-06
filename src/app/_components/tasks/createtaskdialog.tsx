@@ -96,7 +96,10 @@ export default function CreateTaskDialog({
 
   // Update state upon props change, Update form value upon props change
   React.useEffect(() => {
-    localStorage.setItem("userFormModified", form.formState.isDirty.toString());
+    localStorage.setItem(
+      "createTaskFormModified",
+      form.formState.isDirty.toString(),
+    );
 
     async function fetchPets() {
       await fetch("../api/group-pets?all=true", {
@@ -485,7 +488,8 @@ export default function CreateTaskDialog({
             </DialogFooter>
           </form>
         </Form>
-        {isPending && <div>Submitting</div>}
+        
+        {isPending && <div>Creating task...</div>}
       </DialogContent>
     </Dialog>
   );

@@ -32,8 +32,10 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { petSchema, createPetInputSchema } from "~/lib/schemas/pets";
-import { useRouter } from "next/navigation";
+import { createPetInputSchema } from "~/lib/schemas/pets";
+import { toast } from "sonner";
+import { useServerAction } from "zsa-react";
+import { createPetAction } from "~/server/actions/pet-actions";
 
 export default function CreatePetDialog({
   children,
@@ -44,34 +46,27 @@ export default function CreatePetDialog({
 
   const [dob, setDOB] = React.useState<Date | undefined>();
 
-  const router = useRouter();
-
   const form = useForm<z.infer<typeof createPetInputSchema>>({
+    mode: "onBlur",
     resolver: zodResolver(createPetInputSchema),
   });
 
-  async function onSubmit(data: z.infer<typeof createPetInputSchema>) {
-    await fetch("/api/pets", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((json) => petSchema.safeParse(json))
-      .then((validatedPetObject) => {
-        if (!validatedPetObject.success) {
-          console.error(validatedPetObject.error.message);
-          throw new Error("Failed to create pet");
-        }
+  const { isPending, execute } = useServerAction(createPetAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
+    },
+    onSuccess: () => {
+      toast.success("Pet created!");
+      setOpen(false);
+    },
+  });
 
-        document.dispatchEvent(new Event("petCreated"));
-        router.refresh();
-        setOpen(false);
-        return;
-      });
-  }
+  React.useEffect(() => {
+    localStorage.setItem(
+      "createPetFormModified",
+      form.formState.isDirty.toString(),
+    );
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -82,7 +77,7 @@ export default function CreatePetDialog({
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit((values) => execute(values))}
             className="w-2/3 space-y-6"
             name="createPet"
           >
@@ -175,10 +170,14 @@ export default function CreatePetDialog({
             />
 
             <DialogFooter>
-              <Button type="submit">Save Pet</Button>
+              <Button type="submit" disabled={isPending}>
+                Save Pet
+              </Button>
             </DialogFooter>
           </form>
         </Form>
+
+        {isPending && <div>Creating pet...</div>}
       </DialogContent>
     </Dialog>
   );
