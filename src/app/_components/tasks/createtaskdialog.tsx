@@ -94,7 +94,6 @@ export default function CreateTaskDialog({
     },
   });
 
-  // Update state upon props change, Update form value upon props change
   React.useEffect(() => {
     localStorage.setItem(
       "createTaskFormModified",
@@ -488,7 +487,7 @@ export default function CreateTaskDialog({
             </DialogFooter>
           </form>
         </Form>
-        
+
         {isPending && <div>Creating task...</div>}
       </DialogContent>
     </Dialog>

@@ -24,6 +24,7 @@ import { z } from "zod";
 import { deleteAPIFormSchema } from "~/lib/schemas";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { addMilliseconds } from "date-fns";
 
 export const createGroupAction = authenticatedProcedure
   .createServerAction()
@@ -82,7 +83,7 @@ export const createGroupAction = authenticatedProcedure
       }
     });
 
-    revalidatePath("/groups");
+    revalidatePath("/my-groups");
   });
 
 export const updateGroupDetailsAction = ownsGroupProcedure
@@ -98,7 +99,7 @@ export const updateGroupDetailsAction = ownsGroupProcedure
       .where(eq(groups.id, input.id))
       .execute();
 
-    revalidatePath(`/groups/${input.id}`);
+    revalidatePath(`/group/${input.id}`);
   });
 
 export const deleteGroupAction = ownsGroupProcedure
@@ -107,7 +108,7 @@ export const deleteGroupAction = ownsGroupProcedure
   .handler(async ({ input }) => {
     await db.delete(groups).where(eq(groups.id, input.id)).execute();
 
-    redirect("/groups");
+    redirect("/my-groups");
   });
 
 export const addPetToGroupAction = ownsGroupProcedure
@@ -122,7 +123,7 @@ export const addPetToGroupAction = ownsGroupProcedure
       })
       .execute();
 
-    revalidatePath(`/groups/${input.groupId}`);
+    revalidatePath(`/group/${input.groupId}`);
   });
 
 export const addPetsToGroupAction = ownsGroupProcedure
@@ -141,7 +142,7 @@ export const addPetsToGroupAction = ownsGroupProcedure
       }
     });
 
-    revalidatePath(`/groups/${input.groupId}`);
+    revalidatePath(`/group/${input.groupId}`);
   });
 
 export const removePetFromGroupAction = ownsGroupProcedure
@@ -158,7 +159,7 @@ export const removePetFromGroupAction = ownsGroupProcedure
       )
       .execute();
 
-    revalidatePath(`/groups/${input.groupId}`);
+    revalidatePath(`/group/${input.groupId}`);
   });
 
 export const addUserToGroupAction = ownsGroupProcedure
@@ -220,7 +221,7 @@ export const removeUserFromGroupAction = ownsGroupProcedure
       )
       .execute();
 
-    revalidatePath(`/groups/${input.groupId}`);
+    revalidatePath(`/group/${input.groupId}`);
   });
 
 export const leaveGroupAction = authenticatedProcedure
@@ -258,7 +259,7 @@ export const leaveGroupAction = authenticatedProcedure
       )
       .execute();
 
-    redirect("/groups");
+    redirect("/my-groups");
   });
 
 export const joinGroupAction = authenticatedProcedure
@@ -331,7 +332,7 @@ export const joinGroupAction = authenticatedProcedure
         .execute();
     }
 
-    redirect(`/groups/${inviteCodeRow.groupId}`);
+    redirect(`/group/${inviteCodeRow.groupId}`);
   });
 
 export const createGroupInviteCodeAction = ownsGroupProcedure
@@ -375,7 +376,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
         groupId: input.groupId,
         code: inviteCode,
         maxUses: input.maxUses,
-        expiresAt: input.expiresAt,
+        expiresAt: addMilliseconds(new Date(), input.expiresIn),
         requiresApproval: input.requiresApproval,
       })
       .returning()
@@ -384,4 +385,8 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
     if (!newInviteCodeRow?.[0]) {
       throw new Error("Failed to create invite code");
     }
+
+    const code = newInviteCodeRow[0].code;
+
+    return { code };
   });

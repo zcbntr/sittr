@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createGroupInputSchema, groupSchema } from "~/lib/schemas/groups";
+import { createGroupInputSchema } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import {
   DropdownMenu,
@@ -31,8 +31,10 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { useRouter } from "next/navigation";
 import { type Pet, petListSchema } from "~/lib/schemas/pets";
+import { toast } from "sonner";
+import { useServerAction } from "zsa-react";
+import { createGroupAction } from "~/server/actions/group-actions";
 
 export default function CreateGroupDialog({
   children,
@@ -45,20 +47,34 @@ export default function CreateGroupDialog({
   const [selectedPetIds, setSelectedPetIds] = React.useState<string[]>([]);
   const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 
-  const router = useRouter();
-
   const form = useForm<z.infer<typeof createGroupInputSchema>>({
+    mode: "onBlur",
     resolver: zodResolver(createGroupInputSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      petIds: [],
+    },
+  });
+
+  const { isPending, execute } = useServerAction(createGroupAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
+    },
+    onSuccess: () => {
+      toast.success("Group created!");
+      setOpen(false);
+    },
   });
 
   React.useEffect(() => {
     async function fetchPets() {
-      await fetch("api/owned-pets?all=true")
+      await fetch("/api/owned-pets?all=true")
         .then((res) => res.json())
         .then((data) => petListSchema.safeParse(data))
         .then((validatedPetListObject) => {
           if (!validatedPetListObject.success) {
-            console.error(validatedPetListObject.error.message);
+            console.log(validatedPetListObject.error.message);
             throw new Error("Failed to fetch pets");
           }
 
@@ -73,29 +89,6 @@ export default function CreateGroupDialog({
     void fetchPets();
   }, []);
 
-  async function onSubmit(data: z.infer<typeof createGroupInputSchema>) {
-    console.log(data);
-    await fetch("/api/groups", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((json) => groupSchema.safeParse(json))
-      .then((validatedGroupObject) => {
-        if (!validatedGroupObject.success) {
-          console.error(validatedGroupObject.error.message);
-          throw new Error("Failed to create group");
-        }
-
-        router.replace("/groups/" + validatedGroupObject.data.id);
-        setOpen(false);
-        return;
-      });
-  }
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -105,7 +98,7 @@ export default function CreateGroupDialog({
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit((values) => execute(values))}
             className="w-full space-y-6"
             name="createPet"
           >
@@ -219,12 +212,14 @@ export default function CreateGroupDialog({
               )}
             />
             <DialogFooter>
-              <Button type="submit" disabled={petsEmpty}>
+              <Button type="submit" disabled={petsEmpty || isPending}>
                 Create Group
               </Button>
             </DialogFooter>
           </form>
         </Form>
+
+        {isPending && <p>Creating group...</p>}
       </DialogContent>
     </Dialog>
   );

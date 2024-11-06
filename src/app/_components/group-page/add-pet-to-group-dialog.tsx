@@ -27,8 +27,13 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { petsToGroupFormInputSchema } from "~/lib/schemas";
-import { petToGroupListSchema } from "~/lib/schemas/groups";
+import {
+  petsToGroupFormInputSchema,
+  petToGroupListSchema,
+} from "~/lib/schemas/groups";
+import { useServerAction } from "zsa-react";
+import { addPetsToGroupAction } from "~/server/actions/group-actions";
+import { toast } from "sonner";
 
 export default function AddPetToGroupDialog({
   groupId,
@@ -51,14 +56,24 @@ export default function AddPetToGroupDialog({
     },
   });
 
+  const { isPending, execute } = useServerAction(addPetsToGroupAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
+    },
+    onSuccess: () => {
+      toast.success("Pet added!");
+      setOpen(false);
+    },
+  });
+
   React.useEffect(() => {
+    localStorage.setItem(
+      "addPetFormModified",
+      form.formState.isDirty.toString(),
+    );
+
     async function fetchPets() {
-      await fetch("../api/pets-not-in-group?id=" + groupId, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
+      await fetch("../api/pets-not-in-group?id=" + groupId)
         .then((res) => res.json())
         .then((data) => petListSchema.safeParse(data))
         .then((validatedPetListObject) => {
@@ -75,35 +90,8 @@ export default function AddPetToGroupDialog({
         });
     }
 
-    document.addEventListener("petRemoved", () => {
-      void fetchPets();
-    });
-
     void fetchPets();
   }, [groupId]);
-
-  async function onSubmit(data: z.infer<typeof petsToGroupFormInputSchema>) {
-    await fetch("../api/group-pets", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((json) => petToGroupListSchema.safeParse(json))
-      .then((validatedPetToGroupListObject) => {
-        if (!validatedPetToGroupListObject.success) {
-          console.error(validatedPetToGroupListObject.error.message);
-          throw new Error("Failed to add pets to group");
-        }
-
-        document.dispatchEvent(new Event("petsUpdated"));
-        setOpen(false);
-        form.setValue("petIds", []);
-        return;
-      });
-  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -114,7 +102,7 @@ export default function AddPetToGroupDialog({
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit((values) => execute(values))}
             className="w-2/3 space-y-6"
             name="createPet"
           >
@@ -204,6 +192,8 @@ export default function AddPetToGroupDialog({
             </DialogFooter>
           </form>
         </Form>
+
+        {isPending && <p>Adding pet(s)...</p>}
       </DialogContent>
     </Dialog>
   );
