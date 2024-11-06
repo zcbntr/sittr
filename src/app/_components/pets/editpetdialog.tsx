@@ -55,6 +55,11 @@ export default function EditPetDialog({
 
   // Update state upon props change, Update form value upon props change
   React.useEffect(() => {
+    localStorage.setItem(
+      "editPetFormModified",
+      form.formState.isDirty.toString(),
+    );
+
     if (props) {
       if (props?.id) {
         form.setValue("id", props.id);
@@ -130,7 +135,6 @@ export default function EditPetDialog({
             throw new Error("Failed to delete pet");
           }
 
-          document.dispatchEvent(new Event("petDeleted"));
           setOpen(false);
           return;
         });

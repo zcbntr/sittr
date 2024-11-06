@@ -23,10 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import {
-  createGroupInputSchema,
-  groupSchema,
-} from "~/lib/schemas/groups";
+import { createGroupInputSchema, groupSchema } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import {
   DropdownMenu,
@@ -56,12 +53,7 @@ export default function CreateGroupDialog({
 
   React.useEffect(() => {
     async function fetchPets() {
-      await fetch("api/pets?all=true", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
+      await fetch("api/owned-pets?all=true")
         .then((res) => res.json())
         .then((data) => petListSchema.safeParse(data))
         .then((validatedPetListObject) => {
@@ -98,7 +90,6 @@ export default function CreateGroupDialog({
           throw new Error("Failed to create group");
         }
 
-        document.dispatchEvent(new Event("groupCreated"));
         router.replace("/groups/" + validatedGroupObject.data.id);
         setOpen(false);
         return;

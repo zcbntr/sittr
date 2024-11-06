@@ -23,11 +23,10 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { useRouter } from "next/navigation";
-import { fetchApi } from "~/lib/utils";
-import { errorSchema, successSchema } from "../../api/join-group/[slug]/route";
-import { InviteApiError } from "~/server/queries/groups";
 import { joinGroupFormSchema } from "~/lib/schemas/groups";
+import { joinGroupAction } from "~/server/actions/group-actions";
+import { toast } from "sonner";
+import { useServerAction } from "zsa-react";
 
 export default function JoinGroupDialog({
   children,
@@ -36,48 +35,20 @@ export default function JoinGroupDialog({
 }) {
   const [open, setOpen] = React.useState(false);
 
-  const router = useRouter();
-
   const form = useForm<z.infer<typeof joinGroupFormSchema>>({
+    mode: "onBlur",
     resolver: zodResolver(joinGroupFormSchema),
   });
 
-  async function onSubmit(data: z.infer<typeof joinGroupFormSchema>) {
-    const response = await fetchApi(
-      "/api/join-group/" + data.inviteCode,
-      "GET",
-      successSchema,
-      errorSchema,
-    );
-
-    if (response.status === "success") {
-      router.refresh();
+  const { isPending, execute } = useServerAction(joinGroupAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
+    },
+    onSuccess: () => {
+      toast.success("Group joined!");
       setOpen(false);
-    } else if (response.status === "error") {
-      switch (response.error.errorType) {
-        case InviteApiError.InviteNotFound:
-          form.setError("inviteCode", {
-            type: "manual",
-            message: "Invite not found.",
-          });
-          break;
-        case InviteApiError.Unauthorized:
-          form.setError("inviteCode", {
-            type: "manual",
-            message: "Unauthorized.",
-          });
-          break;
-        case InviteApiError.GroupNotFound:
-          form.setError("inviteCode", {
-            type: "manual",
-            message: "Group not found.",
-          });
-          break;
-        default:
-          console.log("Unknown error occurred.");
-      }
-    }
-  }
+    },
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -88,7 +59,7 @@ export default function JoinGroupDialog({
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit((values) => execute(values))}
             className="w-full space-y-6"
             name="joinGroup"
           >
@@ -111,10 +82,14 @@ export default function JoinGroupDialog({
             />
 
             <DialogFooter>
-              <Button type="submit">Join</Button>
+              <Button type="submit" disabled={isPending}>
+                Join
+              </Button>
             </DialogFooter>
           </form>
         </Form>
+
+        {isPending && <p>Joining group...</p>}
       </DialogContent>
     </Dialog>
   );

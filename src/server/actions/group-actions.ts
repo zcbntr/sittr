@@ -4,6 +4,7 @@ import {
   createGroupInputSchema,
   GroupRoleEnum,
   groupSchema,
+  joinGroupFormSchema,
   petsToGroupFormInputSchema,
   petToGroupFormInputSchema,
   requestGroupInviteCodeFormInputSchema,
@@ -262,13 +263,13 @@ export const leaveGroupAction = authenticatedProcedure
 
 export const joinGroupAction = authenticatedProcedure
   .createServerAction()
-  .input(z.object({ code: z.string() }))
+  .input(joinGroupFormSchema)
   .handler(async ({ input, ctx }) => {
     const { user } = ctx;
 
     // This needs to be a find many if there becomes lots of groups
     const inviteCodeRow = await db.query.groupInviteCodes.findFirst({
-      where: (model, { eq }) => eq(model.code, input.code),
+      where: (model, { eq }) => eq(model.code, input.inviteCode),
     });
 
     if (!inviteCodeRow) {
