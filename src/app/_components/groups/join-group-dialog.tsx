@@ -25,10 +25,7 @@ import {
 } from "~/components/ui/form";
 import { useRouter } from "next/navigation";
 import { fetchApi } from "~/lib/utils";
-import {
-  errorSchema,
-  successSchema,
-} from "../api/join-group/[slug]/route";
+import { errorSchema, successSchema } from "../../api/join-group/[slug]/route";
 import { InviteApiError } from "~/server/queries/groups";
 import { joinGroupFormSchema } from "~/lib/schemas/groups";
 
@@ -48,6 +45,7 @@ export default function JoinGroupDialog({
   async function onSubmit(data: z.infer<typeof joinGroupFormSchema>) {
     const response = await fetchApi(
       "/api/join-group/" + data.inviteCode,
+      "GET",
       successSchema,
       errorSchema,
     );

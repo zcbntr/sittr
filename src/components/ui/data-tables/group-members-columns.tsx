@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { type GroupMember, userToGroupSchema } from "~/lib/schemas";
+import { type GroupMember, userToGroupSchema } from "~/lib/schemas/groups";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
 // Column for avatar?

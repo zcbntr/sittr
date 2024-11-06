@@ -1,6 +1,6 @@
 "use client";
 
-import { Pet } from "~/lib/schemas";
+import { type Pet } from "~/lib/schemas/pets";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import React from "react";
 

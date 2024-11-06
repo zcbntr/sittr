@@ -11,9 +11,9 @@ import {
   taskListSchema,
   type CreateTaskFormProps,
   type Task,
-} from "~/lib/schemas";
-import EditTaskDialog from "~/app/_components/edittaskdialog";
-import CreateTaskDialog from "~/app/_components/createtaskdialog";
+} from "~/lib/schemas/tasks";
+import EditTaskDialog from "~/app/_components/tasks/edittaskdialog";
+import CreateTaskDialog from "~/app/_components/tasks/createtaskdialog";
 
 const coloursList: string[] = [
   "#f54290",

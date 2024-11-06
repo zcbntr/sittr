@@ -24,11 +24,9 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import {
-  createGroupFormSchema,
+  createGroupInputSchema,
   groupSchema,
-  type Pet,
-  petListSchema,
-} from "~/lib/schemas/index";
+} from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import {
   DropdownMenu,
@@ -37,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
+import { type Pet, petListSchema } from "~/lib/schemas/pets";
 
 export default function CreateGroupDialog({
   children,
@@ -51,8 +50,8 @@ export default function CreateGroupDialog({
 
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof createGroupFormSchema>>({
-    resolver: zodResolver(createGroupFormSchema),
+  const form = useForm<z.infer<typeof createGroupInputSchema>>({
+    resolver: zodResolver(createGroupInputSchema),
   });
 
   React.useEffect(() => {
@@ -82,7 +81,7 @@ export default function CreateGroupDialog({
     void fetchPets();
   }, []);
 
-  async function onSubmit(data: z.infer<typeof createGroupFormSchema>) {
+  async function onSubmit(data: z.infer<typeof createGroupInputSchema>) {
     console.log(data);
     await fetch("/api/groups", {
       method: "PUT",

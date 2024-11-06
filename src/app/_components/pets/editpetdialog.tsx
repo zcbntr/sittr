@@ -16,11 +16,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Calendar } from "~/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
+
 import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import {
@@ -32,27 +28,70 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createPetFormSchema, petSchema } from "~/lib/schemas/index";
-import { useRouter } from "next/navigation";
+import { type Pet, petSchema } from "~/lib/schemas/pets";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 
-export default function CreatePetDialog({
+export default function EditPetDialog({
+  props,
   children,
 }: {
+  props?: Pet;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState<boolean>(false);
+  const [dataChanged, setDataChanged] = React.useState<boolean>(false);
 
   const [dob, setDOB] = React.useState<Date | undefined>();
 
-  const router = useRouter();
+  const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
 
-  const form = useForm<z.infer<typeof createPetFormSchema>>({
-    resolver: zodResolver(createPetFormSchema),
+  const form = useForm<z.infer<typeof petSchema>>({
+    resolver: zodResolver(petSchema),
   });
 
-  async function onSubmit(data: z.infer<typeof createPetFormSchema>) {
-    await fetch("/api/pets", {
-      method: "PUT",
+  // Update state upon props change, Update form value upon props change
+  React.useEffect(() => {
+    if (props) {
+      if (props?.id) {
+        form.setValue("id", props.id);
+      }
+
+      if (props?.ownerId) {
+        form.setValue("ownerId", props.ownerId);
+      }
+
+      if (props?.name) {
+        form.setValue("name", props.name);
+      }
+
+      if (props?.species) {
+        form.setValue("species", props.species);
+      }
+
+      if (props?.breed) {
+        form.setValue("breed", props.breed);
+      }
+
+      if (props?.dob) {
+        form.setValue("dob", props.dob);
+        setDOB(props.dob);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props]);
+
+  async function onSubmit(data: z.infer<typeof petSchema>) {
+    if (deleteClicked) {
+      await deletePet();
+      return;
+    }
+
+    await fetch("../api/pets", {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
@@ -63,14 +102,41 @@ export default function CreatePetDialog({
       .then((validatedPetObject) => {
         if (!validatedPetObject.success) {
           console.error(validatedPetObject.error.message);
-          throw new Error("Failed to create pet");
+          throw new Error("Failed to update pet");
         }
 
-        document.dispatchEvent(new Event("petCreated"));
-        router.refresh();
+        document.dispatchEvent(new Event("petUpdated"));
         setOpen(false);
         return;
       });
+  }
+
+  async function deletePet() {
+    // Fix this at some point with another dialog
+    // eslint-disable-next-line no-alert
+    if (window.confirm("Are you sure you want to delete this pet?")) {
+      await fetch("api/pets", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: form.getValues().id }),
+      })
+        .then((res) => res.json())
+        .then((json) => petSchema.safeParse(json))
+        .then((validatedPetObject) => {
+          if (!validatedPetObject.success) {
+            console.error(validatedPetObject.error.message);
+            throw new Error("Failed to delete pet");
+          }
+
+          document.dispatchEvent(new Event("petDeleted"));
+          setOpen(false);
+          return;
+        });
+    }
+
+    setDeleteClicked(false);
   }
 
   return (
@@ -78,13 +144,18 @@ export default function CreatePetDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[454px]">
         <DialogHeader>
-          <DialogTitle>New Pet</DialogTitle>
+          <DialogTitle>Edit Pet</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="w-2/3 space-y-6"
-            name="createPet"
+            onSubmit={(e) => {
+              e.preventDefault();
+              console.log(form.getValues());
+              void onSubmit(form.getValues());
+            }}
+            onChange={() => setDataChanged(true)}
+            className="w-full space-y-6"
+            name="editPet"
           >
             <FormField
               control={form.control}
@@ -93,12 +164,13 @@ export default function CreatePetDialog({
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Jake" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="species"
@@ -106,12 +178,13 @@ export default function CreatePetDialog({
                 <FormItem>
                   <FormLabel>Species</FormLabel>
                   <FormControl>
-                    <Input placeholder="Dog" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="breed"
@@ -119,21 +192,20 @@ export default function CreatePetDialog({
                 <FormItem>
                   <FormLabel>Breed</FormLabel>
                   <FormControl>
-                    <Input placeholder="Golden Retriever" {...field} />
+                    <Input {...field} />
                   </FormControl>
-                  <FormDescription>
-                    e.g. Husky, Siamese, etc. (Not required)
-                  </FormDescription>
+                  <FormDescription>(Not required)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="dob"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date of Birth</FormLabel>
+                  <FormLabel>Date</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -175,7 +247,28 @@ export default function CreatePetDialog({
             />
 
             <DialogFooter>
-              <Button type="submit">Save Pet</Button>
+              <div className="flex grow flex-row place-content-between">
+                <Button
+                  id="deletePetButton"
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={() => {
+                    setDeleteClicked(true);
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 -960 960 960"
+                    width="24px"
+                    fill="#e8eaed"
+                  >
+                    <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+                  </svg>
+                </Button>
+                <Button type="submit" disabled={!dataChanged}>
+                  Update Pet
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </Form>

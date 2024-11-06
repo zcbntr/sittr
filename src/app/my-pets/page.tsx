@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import PetsTable from "../_components/petstable";
+import PetsTable from "../_components/pets/petstable";
 
 const MyPetsPage = () => (
   <section>

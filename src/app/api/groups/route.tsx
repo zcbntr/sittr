@@ -1,10 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import {
   basicGetAPIFormSchema,
-  createGroupFormSchema,
   deleteAPIFormSchema,
 } from "~/lib/schemas";
-import { groupSchema } from "~/lib/schemas/groups";
+import { createGroupInputSchema, groupSchema } from "~/lib/schemas/groups";
 import {
   createGroup,
   deleteGroup,
@@ -70,7 +69,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
     const json: unknown = await req.json();
 
-    const formData = createGroupFormSchema.safeParse(json);
+    const formData = createGroupInputSchema.safeParse(json);
 
     if (!formData.success) {
       throw new Error(

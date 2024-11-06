@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { petSchema, type Pet } from "~/lib/schemas";
+import { petSchema, type Pet } from "~/lib/schemas/pets";
 
 // Add a column for notes? Column for small image of pet?
 export const columns: ColumnDef<Pet>[] = [

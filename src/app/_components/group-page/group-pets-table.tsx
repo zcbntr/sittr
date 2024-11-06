@@ -2,7 +2,7 @@
 
 import { columns } from "~/components/ui/data-tables/group-pets-columns";
 import { DataTable } from "~/components/ui/data-table";
-import { type GroupPet, groupPetListSchema } from "~/lib/schemas";
+import { type GroupPet, groupPetListSchema } from "~/lib/schemas/groups";
 import React from "react";
 import { Button } from "~/components/ui/button";
 import AddPetToGroupDialog from "./add-pet-to-group-dialog";

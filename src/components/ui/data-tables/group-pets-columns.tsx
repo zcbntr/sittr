@@ -16,9 +16,9 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import {
-  GroupPet,
+  type GroupPet,
   petToGroupSchema,
-} from "~/lib/schemas";
+} from "~/lib/schemas/groups";
 
 // Add a column for notes? Column for small image of pet?
 export const columns: ColumnDef<GroupPet>[] = [

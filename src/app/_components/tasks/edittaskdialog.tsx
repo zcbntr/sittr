@@ -12,6 +12,16 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import * as React from "react";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "~/lib/utils";
+import { Calendar } from "~/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { type DateRange } from "react-day-picker";
 import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import {
@@ -23,28 +33,8 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import {
-  type CreateTaskFormProps,
-  createTaskSchema,
-  type DateRange,
-  type Group,
-  groupListSchema,
-  type Pet,
-  petListSchema,
-  taskSchema,
-} from "~/lib/schemas/index";
-import { Textarea } from "~/components/ui/textarea";
-import { Switch } from "~/components/ui/switch";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import { Calendar } from "~/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
+import { type Group, groupListSchema } from "~/lib/schemas/groups";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
-import { cn } from "~/lib/utils";
-import { add, format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -52,34 +42,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
+import { Switch } from "~/components/ui/switch";
+import { Checkbox } from "~/components/ui/checkbox";
+import { type Task, taskSchema } from "~/lib/schemas/tasks";
+import { petListSchema, type Pet } from "~/lib/schemas/pets";
 
-export default function CreateTaskDialog({
+export default function EditTaskDialog({
   props,
   children,
 }: {
-  props?: CreateTaskFormProps;
+  props?: Task;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState<boolean>(false);
-
-  const defaultFromDate = add(new Date(), { hours: 1 });
-  const defaultToDate = add(new Date(), { days: 1, hours: 1 });
+  const [dataChanged, setDataChanged] = React.useState<boolean>(false);
 
   const [pets, setPets] = React.useState<Pet[]>([]);
   const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
-
   const [groups, setGroups] = React.useState<Group[]>([]);
   const [groupsEmpty, setGroupsEmpty] = React.useState<boolean>(false);
 
   const [dueMode, setDueMode] = React.useState<boolean>(true);
   const [dueDate, setDueDate] = React.useState<Date | undefined>();
+  // This variable is actually used, just not detected by the linter as its properties are used not its value itself
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
-  const form = useForm<z.infer<typeof createTaskSchema>>({
-    resolver: zodResolver(createTaskSchema),
-    defaultValues: {
-      dueMode: true,
-    },
+  const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
+
+  const form = useForm<z.infer<typeof taskSchema>>({
+    resolver: zodResolver(taskSchema),
   });
 
   // Update state upon props change, Update form value upon props change
@@ -109,7 +102,7 @@ export default function CreateTaskDialog({
       }
 
       async function fetchGroups() {
-        await fetch("api/groups?all=true", {
+        await fetch("../api/groups?all=true", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -132,30 +125,26 @@ export default function CreateTaskDialog({
       }
 
       if (props) {
+        if (props?.id) {
+          form.setValue("id", props.id);
+        }
+
+        if (props?.ownerId) {
+          form.setValue("ownerId", props.ownerId);
+        }
+
         if (props?.dueMode !== undefined) {
           setDueMode(props.dueMode);
           form.setValue("dueMode", props.dueMode);
         }
 
-        if (props?.dueDate) {
-          setDueDate(props?.dueDate);
-          form.setValue("dueDate", props.dueDate);
-        }
+        if (props?.dueDate) setDueDate(props?.dueDate);
 
-        if (props?.dateRange) {
+        if (props?.dateRange)
           setDateRange({
-            from: props?.dateRange?.from
-              ? props.dateRange.from
-              : defaultFromDate,
-            to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+            from: props?.dateRange?.from,
+            to: props?.dateRange?.to,
           });
-          form.setValue("dateRange", {
-            from: props?.dateRange?.from
-              ? props.dateRange.from
-              : defaultFromDate,
-            to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
-          });
-        }
 
         if (props?.name) {
           form.setValue("name", props.name);
@@ -163,6 +152,17 @@ export default function CreateTaskDialog({
 
         if (props?.description) {
           form.setValue("description", props.description);
+        }
+
+        if (props?.dueDate) {
+          form.setValue("dueDate", props.dueDate);
+        }
+
+        if (props?.dateRange) {
+          form.setValue("dateRange", {
+            from: props?.dateRange?.from,
+            to: props?.dateRange?.to,
+          });
         }
 
         if (props?.groupId) {
@@ -178,9 +178,14 @@ export default function CreateTaskDialog({
     [props],
   );
 
-  async function onSubmit(data: z.infer<typeof createTaskSchema>) {
-    await fetch("../api/tasks", {
-      method: "PUT",
+  async function onSubmit(data: z.infer<typeof taskSchema>) {
+    if (deleteClicked) {
+      await deleteTask();
+      return;
+    }
+
+    await fetch("/api/tasks", {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
@@ -191,11 +196,41 @@ export default function CreateTaskDialog({
       .then((validatedTaskObject) => {
         if (!validatedTaskObject.success) {
           console.error(validatedTaskObject.error.message);
-          throw new Error("Failed to create task");
+          throw new Error("Failed to updated task");
         }
 
-        document.dispatchEvent(new Event("taskCreated"));
+        document.dispatchEvent(new Event("taskUpdated"));
+        setOpen(false);
+        return;
       });
+  }
+
+  async function deleteTask() {
+    // Fix this at some point with another dialog
+    // eslint-disable-next-line no-alert
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      await fetch("api/tasks", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: form.getValues().id }),
+      })
+        .then((res) => res.json())
+        .then((json) => taskSchema.safeParse(json))
+        .then((validatedTaskObject) => {
+          if (!validatedTaskObject.success) {
+            console.error(validatedTaskObject.error.message);
+            throw new Error("Failed to delete task");
+          }
+
+          document.dispatchEvent(new Event("taskDeleted"));
+          setOpen(false);
+          return;
+        });
+    }
+
+    setDeleteClicked(false);
   }
 
   return (
@@ -203,7 +238,7 @@ export default function CreateTaskDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[454px]">
         <DialogHeader>
-          <DialogTitle>Task Details</DialogTitle>
+          <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -211,8 +246,9 @@ export default function CreateTaskDialog({
               e.preventDefault();
               void onSubmit(form.getValues());
             }}
+            onChange={() => setDataChanged(true)}
             className="w-full space-y-6"
-            name="createPet"
+            name="editTask"
           >
             <FormField
               control={form.control}
@@ -304,14 +340,14 @@ export default function CreateTaskDialog({
                         <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
-                            selected={field.value}
+                            selected={field.value ? field.value : dueDate}
                             onSelect={field.onChange}
                             initialFocus
                           />
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
                               setDate={field.onChange}
-                              date={field.value}
+                              date={field.value ? field.value : dueDate}
                             />
                           </div>
                         </PopoverContent>
@@ -422,14 +458,15 @@ export default function CreateTaskDialog({
             <FormField
               control={form.control}
               name="petId"
-              render={({}) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Pet</FormLabel>
+                  <FormLabel>Pet, House, or Plant</FormLabel>
                   <Select
                     onValueChange={(value) => {
                       form.setValue("petId", value);
                     }}
                     disabled={petsEmpty}
+                    value={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -461,7 +498,7 @@ export default function CreateTaskDialog({
             <FormField
               control={form.control}
               name="groupId"
-              render={({}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Group</FormLabel>
                   <Select
@@ -469,6 +506,7 @@ export default function CreateTaskDialog({
                       form.setValue("groupId", value);
                     }}
                     disabled={groupsEmpty}
+                    value={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -497,8 +535,54 @@ export default function CreateTaskDialog({
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="markedAsDone"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    {form.getValues("markedAsDoneBy") && field.value && (
+                      <FormLabel>
+                        Marked as complete by {form.getValues("markedAsDoneBy")}
+                      </FormLabel>
+                    )}
+                    {(!form.getValues("markedAsDoneBy") || !field.value) && (
+                      <FormLabel>Mark as complete</FormLabel>
+                    )}
+                  </div>
+                </FormItem>
+              )}
+            />
+
             <DialogFooter>
-              <Button type="submit">Create Task</Button>
+              <div className="flex grow flex-row place-content-between">
+                <Button
+                  id="deleteTaskButton"
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={() => {
+                    setDeleteClicked(true);
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 -960 960 960"
+                    width="24px"
+                    fill="#e8eaed"
+                  >
+                    <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+                  </svg>
+                </Button>
+                <Button type="submit" disabled={!dataChanged}>
+                  Update Task
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </Form>

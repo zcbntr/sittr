@@ -4,11 +4,12 @@ ability to satisfy sitting requests (if sitter) */
 
 import CalendarComponent from "~/components/calendar";
 import { Button } from "~/components/ui/button";
-import CreatePetDialog from "./createpetdialog";
-import CreateGroupDialog from "./creategroupdialog";
-import CreateTaskDialog from "./createtaskdialog";
+import CreatePetDialog from "./pets/createpetdialog";
+import CreateGroupDialog from "./groups/creategroupdialog";
+import CreateTaskDialog from "./tasks/createtaskdialog";
 
 export default async function Dashboard() {
+
   return (
     <div className="flex flex-col gap-3 p-5">
       <h1 className="text-xl">Dashboard</h1>

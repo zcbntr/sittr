@@ -1,8 +1,8 @@
 "use client";
 
-import { Button, buttonVariants } from "~/components/ui/button";
+import { Button } from "~/components/ui/button";
 import { PetEditForm } from "~/app/_components/pet-page/pet-edit-form";
-import { Pet } from "~/lib/schemas";
+import { type Pet } from "~/lib/schemas/pets";
 import { Pencil } from "lucide-react";
 import {
   Card,

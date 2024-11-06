@@ -20,18 +20,15 @@ import {
   FormItem,
   FormMessage,
 } from "~/components/ui/form";
-import {
-  type Pet,
-  petListSchema,
-  petsToGroupFormInputSchema,
-  petToGroupListSchema,
-} from "~/lib/schemas/index";
+import { type Pet, petListSchema } from "~/lib/schemas/pets";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { petsToGroupFormInputSchema } from "~/lib/schemas";
+import { petToGroupListSchema } from "~/lib/schemas/groups";
 
 export default function AddPetToGroupDialog({
   groupId,

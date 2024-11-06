@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import {
   basicGetAPIFormSchema,
-  petsToGroupFormInputSchema,
-  petToGroupFormInputSchema,
 } from "~/lib/schemas";
 import {
   addPetsToGroup,

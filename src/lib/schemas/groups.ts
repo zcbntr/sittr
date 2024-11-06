@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { petSchema } from "./pets";
 
+// -----------------------------------------------------------------------------
+// Group Schemas
+// -----------------------------------------------------------------------------
+
 export const RoleEnum = z.enum(["Owner", "Sitter"]);
 export type RoleEnum = z.infer<typeof RoleEnum>;
 
@@ -92,3 +96,67 @@ export const joinGroupFormSchema = z.object({
 });
 
 export type JoinGroupFormData = z.infer<typeof joinGroupFormSchema>;
+
+// -----------------------------------------------------------------------------
+// API Form Schemas
+// -----------------------------------------------------------------------------
+
+export const createGroupInputSchema = z.object({
+  name: z
+    .string()
+    .min(3, { message: "Name must be at least 3 characters" })
+    .max(50, { message: "Name must be less than 50 characters" }),
+  description: z
+    .string()
+    .max(500, {
+      message: "Description must be less than 500 characters",
+    })
+    .optional(),
+  petIds: z.array(z.string()),
+});
+
+export type CreateGroupFormInput = z.infer<typeof createGroupInputSchema>;
+
+export const requestGroupInviteCodeFormInputSchema = z.object({
+  groupId: z.string(),
+  maxUses: z.number(),
+  expiresAt: z.coerce.date(),
+  requiresApproval: z.boolean(),
+});
+
+export type RequestGroupInviteCodeFormInput = z.infer<
+  typeof requestGroupInviteCodeFormInputSchema
+>;
+
+export const petToGroupFormInputSchema = z.object({
+  petId: z.string(),
+  groupId: z.string(),
+});
+
+export type petToGroupFormInput = z.infer<typeof petToGroupFormInputSchema>;
+
+export const petsToGroupFormInputSchema = z.object({
+  petIds: z.array(z.string()),
+  groupId: z.string(),
+});
+
+export type PetsToGroupFormInput = z.infer<typeof petsToGroupFormInputSchema>;
+
+export const userGroupPairSchema = z.object({
+  userId: z.string(),
+  groupId: z.string(),
+});
+
+export type UserGroupPair = z.infer<typeof userGroupPairSchema>;
+
+export const groupInviteLinkOptionsSchema = z.object({
+  linkId: z.string(),
+  groupId: z.string(),
+  maxUses: z.number(),
+  expiresAt: z.coerce.date(),
+  requiresApproval: z.boolean(),
+});
+
+export type GroupInviteLinkOptions = z.infer<
+  typeof groupInviteLinkOptionsSchema
+>;

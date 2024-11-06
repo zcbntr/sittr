@@ -9,9 +9,16 @@ import {
 } from "~/components/ui/table";
 import { getGroupsUserIsIn } from "~/server/queries";
 import GroupRedirectButton from "~/components/group-redirect-button";
+import { type Group } from "~/lib/schemas/groups";
 
 export default async function GroupsTable() {
-  const groups = await getGroupsUserIsIn();
+  const groupsOrError = await getGroupsUserIsIn();
+
+  if (typeof groupsOrError === "string") {
+    return <div>{groupsOrError}</div>;
+  }
+
+  const groups: Group[] = groupsOrError;
 
   return (
     <>

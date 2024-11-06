@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getOwnedPets } from "~/server/queries";
+import { getOwnedPets } from "~/server/queries/pets";
 
 export async function GET(): Promise<NextResponse<unknown>> {
   try {

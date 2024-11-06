@@ -13,14 +13,14 @@ import * as React from "react";
 import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import {
-  groupInviteLinkOptionsSchema,
   groupInviteCodeSchema,
-} from "~/lib/schemas/index";
+} from "~/lib/schemas/groups";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { MdCopyAll } from "react-icons/md";
 import { addDays } from "date-fns";
 import { useToast } from "~/hooks/use-toast";
+import { groupInviteLinkOptionsSchema } from "~/lib/schemas";
 
 export default function CreateGroupInviteDialog({
   groupId,

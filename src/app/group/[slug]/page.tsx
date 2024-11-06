@@ -16,13 +16,20 @@ export default async function Page(props: {
 
   const group = await getGroupById(slug);
 
-  if (group == null) {
-    // No such group exists, return group empty page
+  if (group == null || typeof group === "string") {
+    // No such group exists, or an error, return group empty page
 
     return <GroupDoesNotExistPage />;
   } else {
     // Check if user is the owner of the group
-    const userIsOwner = await getIsUserGroupOwner(group.id);
+    const userIsOwnerOrError = await getIsUserGroupOwner(group.id);
+
+    if (typeof userIsOwnerOrError === "string") {
+      return <GroupDoesNotExistPage />;
+    }
+
+    const userIsOwner = userIsOwnerOrError;
+
     if (userIsOwner) {
       return <GroupOwnerPage group={group} />;
     } else {

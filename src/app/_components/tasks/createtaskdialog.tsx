@@ -12,16 +12,6 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import * as React from "react";
-import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "~/lib/utils";
-import { Calendar } from "~/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import { type DateRange } from "react-day-picker";
 import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import {
@@ -33,15 +23,19 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+import { groupListSchema, type Group } from "~/lib/schemas/groups";
+import { Textarea } from "~/components/ui/textarea";
+import { Switch } from "~/components/ui/switch";
 import {
-  type Group,
-  groupListSchema,
-  type Pet,
-  petListSchema,
-  type Task,
-  taskSchema,
-} from "~/lib/schemas/index";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { Calendar } from "~/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
+import { cn } from "~/lib/utils";
+import { add, format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -49,211 +43,157 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Textarea } from "~/components/ui/textarea";
-import { Switch } from "~/components/ui/switch";
-import { Checkbox } from "~/components/ui/checkbox";
+import { type DateRange } from "~/lib/schemas";
+import { petListSchema, type Pet } from "~/lib/schemas/pets";
+import {
+  type CreateTaskFormProps,
+  createTaskInputSchema,
+} from "~/lib/schemas/tasks";
+import { useState } from "react";
+import { createTaskAction } from "~/server/actions/task-actions";
+import { toast } from "sonner";
+import { useServerAction } from "zsa-react";
 
-export default function EditTaskDialog({
+export default function CreateTaskDialog({
   props,
   children,
 }: {
-  props?: Task;
+  props?: CreateTaskFormProps;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState<boolean>(false);
-  const [dataChanged, setDataChanged] = React.useState<boolean>(false);
 
-  const [pets, setPets] = React.useState<Pet[]>([]);
-  const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
-  const [groups, setGroups] = React.useState<Group[]>([]);
-  const [groupsEmpty, setGroupsEmpty] = React.useState<boolean>(false);
+  const defaultFromDate = add(new Date(), { hours: 1 });
+  const defaultToDate = add(new Date(), { days: 1, hours: 1 });
 
-  const [dueMode, setDueMode] = React.useState<boolean>(true);
-  const [dueDate, setDueDate] = React.useState<Date | undefined>();
-  // This variable is actually used, just not detected by the linter as its properties are used not its value itself
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
+  const [userPets, setUserPets] = useState<Pet[]>([]);
+  const [userGroups, setUserGroups] = useState<Group[]>([]);
+  const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
+  const [groupsEmpty, setGroupsEmpty] = useState<boolean>(false);
 
-  const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
+  const [dueMode, setDueMode] = useState<boolean>(true);
+  const [dueDate, setDueDate] = useState<Date | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  const form = useForm<z.infer<typeof taskSchema>>({
-    resolver: zodResolver(taskSchema),
+  const form = useForm<z.infer<typeof createTaskInputSchema>>({
+    mode: "onBlur",
+    resolver: zodResolver(createTaskInputSchema),
+    defaultValues: {
+      dueMode: true,
+      dueDate: props?.dueMode ? props.dueDate : undefined,
+    },
+  });
+
+  const { isPending, execute } = useServerAction(createTaskAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
+    },
+    onSuccess: () => {
+      toast.success("Task created!");
+      setOpen(false);
+    },
   });
 
   // Update state upon props change, Update form value upon props change
-  React.useEffect(
-    () => {
-      async function fetchPets() {
-        await fetch("../api/pets?all=true", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-          .then((res) => res.json())
-          .then((json) => petListSchema.safeParse(json))
-          .then((validatedPetListObject) => {
-            if (!validatedPetListObject.success) {
-              console.error(validatedPetListObject.error.message);
-              throw new Error("Failed to get user's pets");
-            }
+  React.useEffect(() => {
+    localStorage.setItem("userFormModified", form.formState.isDirty.toString());
 
-            if (validatedPetListObject.data.length > 0) {
-              setPets(validatedPetListObject.data);
-            } else if (validatedPetListObject.data.length === 0) {
-              setPetsEmpty(true);
-            }
-          });
-      }
-
-      async function fetchGroups() {
-        await fetch("../api/groups?all=true", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-          .then((res) => res.json())
-          .then((json) => groupListSchema.safeParse(json))
-          .then((validatedGroupListObject) => {
-            if (!validatedGroupListObject.success) {
-              console.error(validatedGroupListObject.error.message);
-              throw new Error("Failed to get user's groups");
-            }
-
-            if (validatedGroupListObject.data.length > 0) {
-              setGroups(validatedGroupListObject.data);
-            } else if (validatedGroupListObject.data.length === 0) {
-              setGroupsEmpty(true);
-            }
-          });
-      }
-
-      if (props) {
-        if (props?.id) {
-          form.setValue("id", props.id);
-        }
-
-        if (props?.ownerId) {
-          form.setValue("ownerId", props.ownerId);
-        }
-
-        if (props?.dueMode !== undefined) {
-          setDueMode(props.dueMode);
-          form.setValue("dueMode", props.dueMode);
-        }
-
-        if (props?.dueDate) setDueDate(props?.dueDate);
-
-        if (props?.dateRange)
-          setDateRange({
-            from: props?.dateRange?.from,
-            to: props?.dateRange?.to,
-          });
-
-        if (props?.name) {
-          form.setValue("name", props.name);
-        }
-
-        if (props?.description) {
-          form.setValue("description", props.description);
-        }
-
-        if (props?.dueDate) {
-          form.setValue("dueDate", props.dueDate);
-        }
-
-        if (props?.dateRange) {
-          form.setValue("dateRange", {
-            from: props?.dateRange?.from,
-            to: props?.dateRange?.to,
-          });
-        }
-
-        if (props?.groupId) {
-          form.setValue("groupId", props.groupId);
-        }
-      }
-
-      // Fetch all possible sitting pets
-      void fetchPets();
-      void fetchGroups();
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [props],
-  );
-
-  async function onSubmit(data: z.infer<typeof taskSchema>) {
-    if (deleteClicked) {
-      await deleteTask();
-      return;
-    }
-
-    await fetch("/api/tasks", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((json) => taskSchema.safeParse(json))
-      .then((validatedTaskObject) => {
-        if (!validatedTaskObject.success) {
-          console.error(validatedTaskObject.error.message);
-          throw new Error("Failed to updated task");
-        }
-
-        document.dispatchEvent(new Event("taskUpdated"));
-        setOpen(false);
-        return;
-      });
-  }
-
-  async function deleteTask() {
-    // Fix this at some point with another dialog
-    // eslint-disable-next-line no-alert
-    if (window.confirm("Are you sure you want to delete this task?")) {
-      await fetch("api/tasks", {
-        method: "DELETE",
+    async function fetchPets() {
+      await fetch("../api/group-pets?all=true", {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: form.getValues().id }),
       })
         .then((res) => res.json())
-        .then((json) => taskSchema.safeParse(json))
-        .then((validatedTaskObject) => {
-          if (!validatedTaskObject.success) {
-            console.error(validatedTaskObject.error.message);
-            throw new Error("Failed to delete task");
+        .then((json) => petListSchema.safeParse(json))
+        .then((validatedPetListObject) => {
+          if (!validatedPetListObject.success) {
+            console.error(validatedPetListObject.error.message);
+            throw new Error("Failed to get user's pets");
           }
 
-          document.dispatchEvent(new Event("taskDeleted"));
-          setOpen(false);
-          return;
+          if (validatedPetListObject.data.length > 0) {
+            setUserPets(validatedPetListObject.data);
+          } else if (validatedPetListObject.data.length === 0) {
+            setPetsEmpty(true);
+          }
         });
     }
 
-    setDeleteClicked(false);
-  }
+    async function fetchGroups() {
+      await fetch("api/groups?all=true", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((json) => groupListSchema.safeParse(json))
+        .then((validatedGroupListObject) => {
+          if (!validatedGroupListObject.success) {
+            console.error(validatedGroupListObject.error.message);
+            throw new Error("Failed to get user's groups");
+          }
+
+          if (validatedGroupListObject.data.length > 0) {
+            setUserGroups(validatedGroupListObject.data);
+          } else if (validatedGroupListObject.data.length === 0) {
+            setGroupsEmpty(true);
+          }
+        });
+    }
+
+    // if (props) {
+    //   if (props?.dueMode !== undefined) {
+    //     setDueMode(props.dueMode);
+    //     form.setValue("dueMode", props.dueMode);
+    //   }
+
+    //   if (props?.dueDate) {
+    //     setDueDate(props?.dueDate);
+    //     form.setValue("dueDate", props.dueDate);
+    //   }
+
+    //   if (props?.dateRange) {
+    //     setDateRange({
+    //       from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
+    //       to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+    //     });
+    //     form.setValue("dateRange", {
+    //       from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
+    //       to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
+    //     });
+    //   }
+
+    //   if (props?.name) {
+    //     form.setValue("name", props.name);
+    //   }
+
+    //   if (props?.description) {
+    //     form.setValue("description", props.description);
+    //   }
+
+    //   if (props?.groupId) {
+    //     form.setValue("groupId", props.groupId);
+    //   }
+    // }
+
+    void fetchPets();
+    void fetchGroups();
+  }, [props, form.formState.isDirty]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[454px]">
         <DialogHeader>
-          <DialogTitle>Edit Task</DialogTitle>
+          <DialogTitle>Task Details</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void onSubmit(form.getValues());
-            }}
-            onChange={() => setDataChanged(true)}
+            onSubmit={form.handleSubmit((values) => execute(values))}
             className="w-full space-y-6"
-            name="editTask"
           >
             <FormField
               control={form.control}
@@ -345,14 +285,14 @@ export default function EditTaskDialog({
                         <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
-                            selected={field.value ? field.value : dueDate}
+                            selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
                           />
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
                               setDate={field.onChange}
-                              date={field.value ? field.value : dueDate}
+                              date={field.value}
                             />
                           </div>
                         </PopoverContent>
@@ -463,21 +403,20 @@ export default function EditTaskDialog({
             <FormField
               control={form.control}
               name="petId"
-              render={({ field }) => (
+              render={({}) => (
                 <FormItem>
-                  <FormLabel>Pet, House, or Plant</FormLabel>
+                  <FormLabel>Pet</FormLabel>
                   <Select
                     onValueChange={(value) => {
                       form.setValue("petId", value);
                     }}
                     disabled={petsEmpty}
-                    value={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue
                           placeholder={
-                            !petsEmpty
+                            petsEmpty
                               ? "Select a pet, house or plant"
                               : "Nothing to show"
                           }
@@ -485,7 +424,7 @@ export default function EditTaskDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {pets.map((pet) => (
+                      {userPets.map((pet) => (
                         <SelectItem key={pet.id} value={pet.id.toString()}>
                           {pet.name}
                         </SelectItem>
@@ -503,7 +442,7 @@ export default function EditTaskDialog({
             <FormField
               control={form.control}
               name="groupId"
-              render={({ field }) => (
+              render={({}) => (
                 <FormItem>
                   <FormLabel>Group</FormLabel>
                   <Select
@@ -511,13 +450,12 @@ export default function EditTaskDialog({
                       form.setValue("groupId", value);
                     }}
                     disabled={groupsEmpty}
-                    value={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue
                           placeholder={
-                            !groupsEmpty
+                            groupsEmpty
                               ? "Select group to associate with task"
                               : "Make a group first"
                           }
@@ -525,7 +463,7 @@ export default function EditTaskDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {groups.map((group) => (
+                      {userGroups.map((group) => (
                         <SelectItem key={group.id} value={group.id.toString()}>
                           {group.name}
                         </SelectItem>
@@ -540,57 +478,14 @@ export default function EditTaskDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="markedAsDone"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    {form.getValues("markedAsDoneBy") && field.value && (
-                      <FormLabel>
-                        Marked as complete by {form.getValues("markedAsDoneBy")}
-                      </FormLabel>
-                    )}
-                    {(!form.getValues("markedAsDoneBy") || !field.value) && (
-                      <FormLabel>Mark as complete</FormLabel>
-                    )}
-                  </div>
-                </FormItem>
-              )}
-            />
-
             <DialogFooter>
-              <div className="flex grow flex-row place-content-between">
-                <Button
-                  id="deleteTaskButton"
-                  className="bg-red-600 hover:bg-red-700"
-                  onClick={() => {
-                    setDeleteClicked(true);
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    height="24px"
-                    viewBox="0 -960 960 960"
-                    width="24px"
-                    fill="#e8eaed"
-                  >
-                    <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
-                  </svg>
-                </Button>
-                <Button type="submit" disabled={!dataChanged}>
-                  Update Task
-                </Button>
-              </div>
+              <Button type="submit" disabled={isPending}>
+                Create Task
+              </Button>
             </DialogFooter>
           </form>
         </Form>
+        {isPending && <div>Submitting</div>}
       </DialogContent>
     </Dialog>
   );
