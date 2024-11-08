@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
-import { MdDelete, MdCancel, MdEdit } from "react-icons/md";
+import { MdCancel, MdEdit } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -16,12 +16,18 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import { type Group, groupSchema } from "~/lib/schemas/groups";
+import {
+  type Group,
+  groupDetailsSchema,
+} from "~/lib/schemas/groups";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  updateGroupDetailsAction,
+} from "~/server/actions/group-actions";
+import { useServerAction } from "zsa-react";
+import { toast } from "sonner";
 
 export function GroupNameDescriptionForm({ group }: { group: Group }) {
-  const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
-
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -33,69 +39,31 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
     router.replace(`${pathname}?${nextSearchParams}`);
   }
 
-  const form = useForm<z.infer<typeof groupSchema>>({
-    resolver: zodResolver(groupSchema),
+  const form = useForm<z.infer<typeof groupDetailsSchema>>({
+    resolver: zodResolver(groupDetailsSchema),
     defaultValues: {
-      id: group.id,
+      groupId: group.id,
       name: group.name,
       description: group.description,
     },
   });
 
-  async function onSubmit(data: z.infer<typeof groupSchema>) {
-    if (deleteClicked) {
-      await deleteGroup();
-      return;
-    }
-
-    await fetch("../api/groups", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((json) => groupSchema.safeParse(json))
-      .then((validatedGroupObject) => {
-        if (!validatedGroupObject.success) {
-          console.error(validatedGroupObject.error.message);
-          throw new Error("Failed to update group");
-        }
-
-        exitEditMode();
-      });
-  }
-
-  async function deleteGroup() {
-    // Fix this at some point with another dialog
-    // eslint-disable-next-line no-alert
-    if (window.confirm("Are you sure you want to delete this group?")) {
-      await fetch("../api/groups", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id: group.id }),
-      })
-        .then((res) => res.json())
-        .then((json) => groupSchema.safeParse(json))
-        .then((validatedGroupObject) => {
-          if (!validatedGroupObject.success) {
-            console.error(validatedGroupObject.error.message);
-            throw new Error("Failed to delete group");
-          }
-
-          exitEditMode();
-        });
-    }
-
-    setDeleteClicked(false);
-  }
+  const { isPending, execute } = useServerAction(updateGroupDetailsAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
+    },
+    onSuccess: () => {
+      toast.success("Group details updated!");
+      exitEditMode();
+    },
+  });
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit((values) => execute(values))}
+        className="space-y-8"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -139,11 +107,7 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
               </div>
             </Button>
 
-            <Button
-              type="reset"
-              id="cancelGroupEditButton"
-              onClick={exitEditMode}
-            >
+            <Button type="reset" onClick={exitEditMode}>
               <div className="flex flex-row gap-2">
                 <div className="flex flex-col place-content-center">
                   <MdCancel size={"1.2rem"} />
@@ -152,22 +116,6 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
               </div>
             </Button>
           </div>
-
-          <Button
-            id="deleteGroupButton"
-            className="bg-red-600 hover:bg-red-700"
-            onClick={async () => {
-              setDeleteClicked(true);
-              await deleteGroup();
-            }}
-          >
-            <div className="flex flex-row gap-2">
-              <div className="flex flex-col place-content-center">
-                <MdDelete size={"1.2rem"} />
-              </div>
-              Delete Group
-            </div>
-          </Button>
         </div>
       </form>
     </Form>

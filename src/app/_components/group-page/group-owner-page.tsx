@@ -1,8 +1,8 @@
 "use client";
 
-import { GroupNameDescriptionForm } from "~/app/_components/group-page/name-description-form";
+import { GroupNameDescriptionForm } from "~/app/_components/group-page/group-details-form";
 import { GroupMember, GroupPet, type Group } from "~/lib/schemas/groups";
-import { MdEdit } from "react-icons/md";
+import { MdEdit, MdDelete } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -16,6 +16,20 @@ import React from "react";
 import GroupPetsTable from "./group-pets-table";
 import GroupMembersTable from "./group-members-table";
 import { useRouter, useSearchParams } from "next/navigation";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
+import { useServerAction } from "zsa-react";
+import { deleteGroupAction } from "~/server/actions/group-actions";
+import { toast } from "sonner";
 
 export function GroupOwnerPage({
   group,
@@ -29,6 +43,15 @@ export function GroupOwnerPage({
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("editing");
+
+  const { isPending, execute } = useServerAction(deleteGroupAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
+    },
+    onSuccess: () => {
+      toast.success("Group deleted!");
+    },
+  });
 
   return (
     <div className="container mx-auto space-y-6 p-4">
@@ -54,10 +77,40 @@ export function GroupOwnerPage({
             <p className="text-muted-foreground">{group?.description}</p>
           </CardContent>
           <CardFooter>
-            <Button onClick={() => router.replace("?editing=true")}>
-              <MdEdit className="mr-2 h-4 w-4" />
-              Edit Group Info
-            </Button>
+            <div className="flex grow flex-row place-content-between">
+              <Button onClick={() => router.replace("?editing=true")}>
+                <MdEdit className="mr-1 h-4 w-4" />
+                Edit Group Info
+              </Button>
+
+              <AlertDialog>
+                <AlertDialogTrigger>
+                  <Button variant="destructive">
+                    <MdDelete className="mr-1 h-4 w-4" />
+                    Delete Group
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Group</AlertDialogTitle>
+                  </AlertDialogHeader>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this group? This action
+                    cannot be undone.
+                  </AlertDialogDescription>
+                  <AlertDialogFooter>
+                    <AlertDialogAction
+                      onClick={async () => {
+                        execute({ groupId: group.id });
+                      }}
+                    >
+                      Confirm
+                    </AlertDialogAction>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </CardFooter>
         </Card>
       )}

@@ -2,6 +2,7 @@
 
 import {
   createGroupInputSchema,
+  groupDetailsSchema,
   GroupRoleEnum,
   groupSchema,
   joinGroupFormSchema,
@@ -88,7 +89,7 @@ export const createGroupAction = authenticatedProcedure
 
 export const updateGroupDetailsAction = ownsGroupProcedure
   .createServerAction()
-  .input(groupSchema.pick({ id: true, name: true, description: true }))
+  .input(groupDetailsSchema)
   .handler(async ({ input }) => {
     await db
       .update(groups)
@@ -96,17 +97,17 @@ export const updateGroupDetailsAction = ownsGroupProcedure
         name: input.name,
         description: input.description,
       })
-      .where(eq(groups.id, input.id))
+      .where(eq(groups.id, input.groupId))
       .execute();
 
-    revalidatePath(`/group/${input.id}`);
+    revalidatePath(`/group/${input.groupId}`);
   });
 
 export const deleteGroupAction = ownsGroupProcedure
   .createServerAction()
-  .input(deleteAPIFormSchema)
+  .input(z.object({ groupId: z.string() }))
   .handler(async ({ input }) => {
-    await db.delete(groups).where(eq(groups.id, input.id)).execute();
+    await db.delete(groups).where(eq(groups.id, input.groupId)).execute();
 
     redirect("/my-groups");
   });

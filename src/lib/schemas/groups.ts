@@ -37,7 +37,7 @@ export type GroupMemberList = z.infer<typeof groupMemberListSchema>;
 export const groupSchema = z.object({
   id: z.string(),
   name: z.string(),
-  description: z.string().optional().nullable(),
+  description: z.string().optional(),
   members: z.array(groupMemberSchema).optional(),
   pets: z.array(petSchema).optional(),
 });
@@ -170,3 +170,11 @@ export const groupInviteLinkOptionsSchema = z.object({
 export type GroupInviteLinkOptions = z.infer<
   typeof groupInviteLinkOptionsSchema
 >;
+
+export const groupDetailsSchema = z.object({
+  groupId: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+});
+
+export type GroupDetails = z.infer<typeof groupDetailsSchema>;

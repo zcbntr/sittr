@@ -22,12 +22,11 @@ export default async function Page(props: {
 
   const group = await getGroupById(slug);
 
-  if (group == null || typeof group === "string") {
-    // No such group exists, or an error, return group empty page
+  if (group == null) {
+    // No such group exists
 
     return <GroupDoesNotExistPage />;
   } else {
-    // Get group pets
     const groupPets: GroupPet[] = await getGroupPets(group.id);
     const groupMembers: GroupMember[] = await getGroupMembers(group.id);
 

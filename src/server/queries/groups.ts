@@ -18,11 +18,11 @@ const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
 });
 
-export async function getGroupById(id: string): Promise<Group | string> {
+export async function getGroupById(id: string): Promise<Group | null> {
   const user = await auth();
 
   if (!user.userId) {
-    return "Unauthorized";
+    throw new Error("Unauthorized");
   }
 
   const group = await db.query.groups.findFirst({
@@ -30,7 +30,7 @@ export async function getGroupById(id: string): Promise<Group | string> {
   });
 
   if (!group) {
-    return "Group not found";
+    return null;
   }
 
   return groupSchema.parse({
