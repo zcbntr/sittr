@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { basicGetAPIFormSchema } from "~/lib/schemas";
-import { getUsersPetsNotInGroup } from "~/server/queries";
+import { getUsersPetsNotInGroup } from "~/server/queries/groups";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {

@@ -29,7 +29,6 @@ import {
 } from "~/components/ui/dropdown-menu";
 import {
   petsToGroupFormInputSchema,
-  petToGroupListSchema,
 } from "~/lib/schemas/groups";
 import { useServerAction } from "zsa-react";
 import { addPetsToGroupAction } from "~/server/actions/group-actions";

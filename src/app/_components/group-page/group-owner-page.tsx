@@ -1,7 +1,7 @@
 "use client";
 
 import { GroupNameDescriptionForm } from "~/app/_components/group-page/name-description-form";
-import { type Group } from "~/lib/schemas/groups";
+import { GroupPet, type Group } from "~/lib/schemas/groups";
 import { MdEdit } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import {
@@ -17,7 +17,13 @@ import GroupPetsTable from "./group-pets-table";
 import GroupMembersTable from "./group-members-table";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export function GroupOwnerPage({ group }: { group: Group }) {
+export function GroupOwnerPage({
+  group,
+  groupPets,
+}: {
+  group: Group;
+  groupPets: GroupPet[];
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("editing");
@@ -74,7 +80,7 @@ export function GroupOwnerPage({ group }: { group: Group }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GroupPetsTable groupId={group.id} />
+          <GroupPetsTable groupId={group.id} groupPets={groupPets} />
         </CardContent>
       </Card>
     </div>

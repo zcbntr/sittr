@@ -129,13 +129,11 @@ export async function getGroupMembers(
   });
 }
 
-export async function getGroupPets(
-  groupId: string,
-): Promise<GroupPet[] | string> {
+export async function getGroupPets(groupId: string): Promise<GroupPet[]> {
   const user = await auth();
 
   if (!user.userId) {
-    return "Unauthorized";
+    throw new Error("Unauthorized");
   }
 
   const groupPetsList = await db

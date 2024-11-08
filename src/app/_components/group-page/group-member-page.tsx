@@ -1,7 +1,13 @@
 "use client";
 
-import { Group } from "~/lib/schemas/groups";
+import { Group, GroupPet } from "~/lib/schemas/groups";
 
-export function GroupMemberPage({ group }: { group: Group }) {
+export function GroupMemberPage({
+  group,
+  groupPets,
+}: {
+  group: Group;
+  groupPets: GroupPet[];
+}) {
   return <></>;
 }

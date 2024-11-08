@@ -2,9 +2,8 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
-import { petSchema, type Pet } from "~/lib/schemas/pets";
+import { CreatePetFormInput, petSchema, type Pet } from "~/lib/schemas/pets";
 import { eq, inArray } from "drizzle-orm";
-import { type CreatePetFormInput } from "~/app/api/pets/route";
 import { pets } from "../db/schema";
 
 export async function createPet(
