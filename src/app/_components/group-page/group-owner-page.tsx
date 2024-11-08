@@ -59,7 +59,7 @@ export function GroupOwnerPage({
         <Card>
           <CardHeader>
             <CardTitle>
-              <h3 className="text-lg font-semibold">Edit Group Info</h3>
+              <div className="text-lg font-semibold">Edit Group Info</div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -70,7 +70,7 @@ export function GroupOwnerPage({
         <Card>
           <CardHeader>
             <CardTitle>
-              <h3 className="text-lg font-semibold">{group?.name}</h3>
+              <div className="text-lg font-semibold">{group?.name}</div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -84,7 +84,7 @@ export function GroupOwnerPage({
               </Button>
 
               <AlertDialog>
-                <AlertDialogTrigger>
+                <AlertDialogTrigger asChild>
                   <Button variant="destructive">
                     <MdDelete className="mr-1 h-4 w-4" />
                     Delete Group

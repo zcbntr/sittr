@@ -88,7 +88,6 @@ export default function CreateGroupInviteDialog({
             <Input
               id="link"
               value={isPending ? "" : code}
-              defaultValue="loading..."
               readOnly
             />
           </div>
