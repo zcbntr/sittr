@@ -92,7 +92,7 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
         />
 
         <div className="flex flex-row gap-2">
-          <Button type="submit">
+          <Button type="submit" disabled={isPending}>
             <div className="flex flex-row gap-2">
               <div className="flex flex-col place-content-center">
                 <MdEdit size={"1.2rem"} />
@@ -101,7 +101,7 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
             </div>
           </Button>
 
-          <Button type="reset" onClick={exitEditMode}>
+          <Button type="reset" onClick={exitEditMode} disabled={isPending}>
             <div className="flex flex-row gap-2">
               <div className="flex flex-col place-content-center">
                 <MdCancel size={"1.2rem"} />
