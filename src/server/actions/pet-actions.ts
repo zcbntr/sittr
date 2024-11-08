@@ -43,7 +43,7 @@ export const updatePetAction = ownsPetProcedure
         breed: input.breed,
         dob: input.dob,
       })
-      .where(and(eq(pets.id, input.id), eq(pets.ownerId, user.userId)))
+      .where(and(eq(pets.id, input.petId), eq(pets.ownerId, user.userId)))
       .execute();
 
     revalidatePath(`/pets/${pet.id}`);
@@ -51,13 +51,13 @@ export const updatePetAction = ownsPetProcedure
 
 export const deletePetAction = authenticatedProcedure
   .createServerAction()
-  .input(z.string())
+  .input(z.object({ petId: z.string() }))
   .handler(async ({ input, ctx }) => {
     const { user } = ctx;
 
     await db
       .delete(pets)
-      .where(and(eq(pets.id, input), eq(pets.ownerId, user.userId)))
+      .where(and(eq(pets.id, input.petId), eq(pets.ownerId, user.userId)))
       .execute();
 
     redirect(`/pets`);

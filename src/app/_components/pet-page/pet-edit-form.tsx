@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
-import { MdDelete, MdCancel, MdEdit } from "react-icons/md";
+import { MdCancel, MdEdit } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -27,27 +27,16 @@ import { Calendar } from "~/components/ui/calendar";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
+import { updatePetAction } from "~/server/actions/pet-actions";
+import { useServerAction } from "zsa-react";
+import { toast } from "sonner";
 
 export function PetEditForm({ pet }: { pet: Pet }) {
-  const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
-
   const [dob, setDOB] = React.useState<Date | undefined>();
 
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  const form = useForm<z.infer<typeof petSchema>>({
-    resolver: zodResolver(petSchema),
-    defaultValues: {
-      id: pet.id,
-      ownerId: pet.ownerId,
-      name: pet.name,
-      species: pet.species,
-      dob: pet.dob,
-      breed: pet.breed,
-    },
-  });
 
   function exitEditMode() {
     const nextSearchParams = new URLSearchParams(searchParams.toString());
@@ -56,63 +45,34 @@ export function PetEditForm({ pet }: { pet: Pet }) {
     router.replace(`${pathname}?${nextSearchParams}`);
   }
 
-  async function onSubmit(data: z.infer<typeof petSchema>) {
-    if (deleteClicked) {
-      await deletePet();
-      return;
-    }
+  const form = useForm<z.infer<typeof petSchema>>({
+    resolver: zodResolver(petSchema),
+    defaultValues: {
+      petId: pet.petId,
+      ownerId: pet.ownerId,
+      name: pet.name,
+      species: pet.species,
+      dob: pet.dob,
+      breed: pet.breed,
+    },
+  });
 
-    await fetch("../api/pets", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((json) => petSchema.safeParse(json))
-      .then((validatedPetObject) => {
-        if (!validatedPetObject.success) {
-          console.error(validatedPetObject.error.message);
-          throw new Error("Failed to update pet");
-        }
-
-        exitEditMode();
-      });
-  }
-
-  async function deletePet() {
-    // Fix this at some point with another dialog
-    // eslint-disable-next-line no-alert
-    if (window.confirm("Are you sure you want to delete this pet?")) {
-      await fetch("../api/pets", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id: pet.id }),
-      })
-        .then((res) => res.json())
-        .then((json) => petSchema.safeParse(json))
-        .then((validatedGroupObject) => {
-          if (!validatedGroupObject.success) {
-            console.error(validatedGroupObject.error.message);
-            throw new Error("Failed to delete pet");
-          }
-
-          // Redirect to my pets page
-          router.push("/my-pets");
-
-          return;
-        });
-    }
-
-    setDeleteClicked(false);
-  }
+  const { isPending, execute } = useServerAction(updatePetAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
+    },
+    onSuccess: () => {
+      toast.success("Pet details updated!");
+      exitEditMode();
+    },
+  });
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit((values) => execute(values))}
+        className="space-y-8"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -199,44 +159,22 @@ export function PetEditForm({ pet }: { pet: Pet }) {
           )}
         />
 
-        <div className="flex grow flex-row place-content-between">
-          <div className="flex flex-row gap-2">
-            <Button type="submit">
-              <div className="flex flex-row gap-2">
-                <div className="flex flex-col place-content-center">
-                  <MdEdit size={"1.2rem"} />
-                </div>
-                Update Pet
-              </div>
-            </Button>
-
-            <Button
-              type="reset"
-              id="cancelPetEditButton"
-              onClick={exitEditMode}
-            >
-              <div className="flex flex-row gap-2">
-                <div className="flex flex-col place-content-center">
-                  <MdCancel size={"1.2rem"} />
-                </div>
-                Cancel
-              </div>
-            </Button>
-          </div>
-
-          <Button
-            id="deletePetButton"
-            className="bg-red-600 hover:bg-red-700"
-            onClick={async () => {
-              setDeleteClicked(true);
-              await deletePet();
-            }}
-          >
+        <div className="flex flex-row gap-2">
+          <Button type="submit">
             <div className="flex flex-row gap-2">
               <div className="flex flex-col place-content-center">
-                <MdDelete size={"1.2rem"} />
+                <MdEdit size={"1.2rem"} />
               </div>
-              Delete Pet
+              Update Pet
+            </div>
+          </Button>
+
+          <Button type="reset" onClick={exitEditMode}>
+            <div className="flex flex-row gap-2">
+              <div className="flex flex-col place-content-center">
+                <MdCancel size={"1.2rem"} />
+              </div>
+              Cancel
             </div>
           </Button>
         </div>

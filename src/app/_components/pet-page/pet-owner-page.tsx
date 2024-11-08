@@ -13,11 +13,35 @@ import {
 } from "~/components/ui/card";
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { MdDelete, MdEdit } from "react-icons/md";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
+import { useServerAction } from "zsa-react";
+import { deletePetAction } from "~/server/actions/pet-actions";
+import { toast } from "sonner";
 
 export function PetOwnerPage({ pet }: { pet: Pet }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("editing");
+
+  const { isPending, execute } = useServerAction(deletePetAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
+    },
+    onSuccess: () => {
+      toast.success("Pet deleted!");
+    },
+  });
 
   return (
     <div className="container mx-auto space-y-6 p-4">
@@ -25,7 +49,7 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
         <Card>
           <CardHeader>
             <CardTitle>
-              <h3 className="text-lg font-semibold">Edit Pet Info</h3>
+              <div className="text-lg font-semibold">Edit Pet Info</div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -36,7 +60,7 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
         <Card>
           <CardHeader>
             <CardTitle>
-              <h3 className="text-lg font-semibold">{pet?.name}</h3>
+              <div className="text-lg font-semibold">{pet.name}</div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -46,10 +70,40 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
             </div>
           </CardContent>
           <CardFooter>
-            <Button onClick={() => router.replace("?editing=true")}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit Pet Info
-            </Button>
+            <div className="flex grow flex-row place-content-between">
+              <Button onClick={() => router.replace("?editing=true")}>
+                <MdEdit className="mr-1 h-4 w-4" />
+                Edit Pet Info
+              </Button>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    <MdDelete className="mr-1 h-4 w-4" />
+                    Delete Pet
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Pet</AlertDialogTitle>
+                  </AlertDialogHeader>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this pet? This action cannot
+                    be undone.
+                  </AlertDialogDescription>
+                  <AlertDialogFooter>
+                    <AlertDialogAction
+                      onClick={async () => {
+                        execute({ petId: pet.petId });
+                      }}
+                    >
+                      Confirm
+                    </AlertDialogAction>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </CardFooter>
         </Card>
       )}

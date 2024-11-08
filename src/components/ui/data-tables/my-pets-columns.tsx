@@ -68,7 +68,7 @@ export const columns: ColumnDef<Pet>[] = [
                 Copy
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link className="flex grow flex-row" href={"pets/" + pet.id}>
+                <Link className="flex grow flex-row" href={"pets/" + pet.petId}>
                   Edit
                 </Link>
               </DropdownMenuItem>
@@ -80,7 +80,7 @@ export const columns: ColumnDef<Pet>[] = [
                   if (
                     window.confirm("Are you sure you want to delete this pet?")
                   ) {
-                    deletePetAction(pet.id);
+                    deletePetAction({ petId: pet.petId });
                   }
                 }}
               >

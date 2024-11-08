@@ -16,14 +16,9 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import {
-  type Group,
-  groupDetailsSchema,
-} from "~/lib/schemas/groups";
+import { type Group, groupDetailsSchema } from "~/lib/schemas/groups";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  updateGroupDetailsAction,
-} from "~/server/actions/group-actions";
+import { updateGroupDetailsAction } from "~/server/actions/group-actions";
 import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
 
@@ -96,26 +91,24 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
           )}
         />
 
-        <div className="flex grow flex-row place-content-between">
-          <div className="flex flex-row gap-2">
-            <Button type="submit">
-              <div className="flex flex-row gap-2">
-                <div className="flex flex-col place-content-center">
-                  <MdEdit size={"1.2rem"} />
-                </div>
-                Update Group
+        <div className="flex flex-row gap-2">
+          <Button type="submit">
+            <div className="flex flex-row gap-2">
+              <div className="flex flex-col place-content-center">
+                <MdEdit size={"1.2rem"} />
               </div>
-            </Button>
+              Update Group
+            </div>
+          </Button>
 
-            <Button type="reset" onClick={exitEditMode}>
-              <div className="flex flex-row gap-2">
-                <div className="flex flex-col place-content-center">
-                  <MdCancel size={"1.2rem"} />
-                </div>
-                Cancel
+          <Button type="reset" onClick={exitEditMode}>
+            <div className="flex flex-row gap-2">
+              <div className="flex flex-col place-content-center">
+                <MdCancel size={"1.2rem"} />
               </div>
-            </Button>
-          </div>
+              Cancel
+            </div>
+          </Button>
         </div>
       </form>
     </Form>

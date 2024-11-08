@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const petSchema = z.object({
-  id: z.string(),
+  petId: z.string(),
   ownerId: z.string(),
   name: z.string(),
   species: z.string(),

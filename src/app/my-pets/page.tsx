@@ -6,25 +6,32 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import PetsTable from "../_components/pets/petstable";
+import { Pet } from "~/lib/schemas/pets";
+import { getOwnedPets } from "~/server/queries/pets";
 
-const MyPetsPage = () => (
-  <section>
-    <div className="mt-4 flex w-full flex-row place-content-center">
+export default async function Page(props: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const pets = await getOwnedPets();
+
+  return <MyPetsPage pets={pets} />;
+}
+
+function MyPetsPage({ pets }: { pets: Pet[] }) {
+  return (
+    <div className="container mx-auto space-y-6 p-4">
       <Card>
         <CardHeader>
-          <CardTitle>Pets</CardTitle>
-          <CardDescription>
-            View and update the details for your pets here.
-          </CardDescription>
+          <CardTitle>Your Pets</CardTitle>
+          <CardDescription>View and manage your pets.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="space-y-1">
-            <PetsTable />
+        <CardContent>
+          <div className="container mx-auto">
+            <PetsTable pets={pets} />
           </div>
         </CardContent>
       </Card>
     </div>
-  </section>
-);
-
-export default MyPetsPage;
+  );
+}
