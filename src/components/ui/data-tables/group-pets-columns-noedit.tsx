@@ -15,11 +15,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { type Pet } from "~/lib/schemas/pets";
-import { deletePetAction } from "~/server/actions/pet-actions";
+import { type GroupPet } from "~/lib/schemas/groups";
+import { removePetFromGroupAction } from "~/server/actions/group-actions";
 
 // Add a column for notes? Column for small image of pet?
-export const columns: ColumnDef<Pet>[] = [
+export const columns: ColumnDef<GroupPet>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => {
@@ -33,6 +33,11 @@ export const columns: ColumnDef<Pet>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => {
+      const pet = row.original;
+
+      return <Link href={`/pets/${pet.petId}`}>{pet.name}</Link>;
+    },
   },
   {
     accessorKey: "species",
@@ -45,8 +50,6 @@ export const columns: ColumnDef<Pet>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const pet = row.original;
-
       return (
         <>
           <DropdownMenu>
@@ -61,30 +64,11 @@ export const columns: ColumnDef<Pet>[] = [
               <DropdownMenuItem
                 onClick={() =>
                   navigator.clipboard.writeText(
-                    `${pet.name} - ${pet.species} ${pet.breed ? "(" + pet.breed + ")" : ""}`,
+                    `${row.original.name} - ${row.original.species} ${row.original.breed ? "(" + row.original.breed + ")" : ""}`,
                   )
                 }
               >
                 Copy
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link className="flex grow flex-row" href={"pets/" + pet.id}>
-                  Edit
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={async () => {
-                  // Fix this at some point with another dialog
-                  // eslint-disable-next-line no-alert
-                  if (
-                    window.confirm("Are you sure you want to delete this pet?")
-                  ) {
-                    deletePetAction(pet.id);
-                  }
-                }}
-              >
-                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

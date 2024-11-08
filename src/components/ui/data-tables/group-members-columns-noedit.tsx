@@ -86,30 +86,6 @@ export const columns: ColumnDef<GroupMember>[] = [
               >
                 Copy
               </DropdownMenuItem>
-
-              {row.original.role !== "Owner" && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={async () => {
-                      // Fix this at some point with another dialog
-                      // eslint-disable-next-line no-alert
-                      if (
-                        window.confirm(
-                          "Are you sure you want to remove this member?",
-                        )
-                      ) {
-                        removeUserFromGroupAction({
-                          userId: member.userId,
-                          groupId: member.groupId,
-                        });
-                      }
-                    }}
-                  >
-                    Remove
-                  </DropdownMenuItem>
-                </>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </>

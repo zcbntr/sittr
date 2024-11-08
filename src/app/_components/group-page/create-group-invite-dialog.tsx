@@ -73,8 +73,6 @@ export default function CreateGroupInviteDialog({
     },
   );
 
-  React.useEffect(() => {}, [groupId]);
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>

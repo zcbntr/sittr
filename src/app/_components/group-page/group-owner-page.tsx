@@ -82,7 +82,11 @@ export function GroupOwnerPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GroupPetsTable groupId={group.id} groupPets={groupPets} />
+          <GroupPetsTable
+            groupId={group.id}
+            groupPets={groupPets}
+            isOwner={true}
+          />
         </CardContent>
       </Card>
     </div>
