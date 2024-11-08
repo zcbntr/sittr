@@ -2,42 +2,18 @@
 
 import { columns } from "~/components/ui/data-tables/group-members-columns";
 import { DataTable } from "~/components/ui/data-table";
-import { type GroupMember, groupMemberListSchema } from "~/lib/schemas/groups";
 import React from "react";
 import CreateGroupInviteDialog from "./create-group-invite-dialog";
 import { Button } from "~/components/ui/button";
+import { GroupMember } from "~/lib/schemas/groups";
 
-export default function GroupMembersTable({ groupId }: { groupId: string }) {
-  const [groupMembers, setGroupMembers] = React.useState<GroupMember[]>([]);
-
-  React.useEffect(() => {
-    async function fetchGroupMembers(): Promise<void> {
-      await fetch("../api/group-members?id=" + groupId, {
-        method: "GET",
-      })
-        .then((res) => res.json())
-        .then((json) => groupMemberListSchema.safeParse(json))
-        .then((validatedGroupMemberListObject) => {
-          if (!validatedGroupMemberListObject.success) {
-            console.error(validatedGroupMemberListObject.error.message);
-            throw new Error("Failed to fetch group members");
-          }
-
-          setGroupMembers(validatedGroupMemberListObject.data);
-        });
-    }
-
-    void fetchGroupMembers();
-
-    document.addEventListener("memberAdded", () => {
-      void fetchGroupMembers();
-    });
-
-    document.addEventListener("memberRemoved", () => {
-      void fetchGroupMembers();
-    });
-  }, [groupId]);
-
+export default function GroupMembersTable({
+  groupId,
+  groupMembers,
+}: {
+  groupId: string;
+  groupMembers: GroupMember[];
+}) {
   return (
     <div className="container mx-auto">
       <DataTable

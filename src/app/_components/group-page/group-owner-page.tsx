@@ -1,7 +1,7 @@
 "use client";
 
 import { GroupNameDescriptionForm } from "~/app/_components/group-page/name-description-form";
-import { GroupPet, type Group } from "~/lib/schemas/groups";
+import { GroupMember, GroupPet, type Group } from "~/lib/schemas/groups";
 import { MdEdit } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import {
@@ -20,9 +20,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 export function GroupOwnerPage({
   group,
   groupPets,
+  groupMembers,
 }: {
   group: Group;
   groupPets: GroupPet[];
+  groupMembers: GroupMember[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -68,7 +70,7 @@ export function GroupOwnerPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GroupMembersTable groupId={group.id} />
+          <GroupMembersTable groupId={group.id} groupMembers={groupMembers} />
         </CardContent>
       </Card>
 

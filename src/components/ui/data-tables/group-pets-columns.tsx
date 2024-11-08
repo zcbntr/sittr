@@ -5,6 +5,7 @@ import { ArrowUpDown } from "lucide-react";
 
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -15,10 +16,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import {
-  type GroupPet,
-  petToGroupSchema,
-} from "~/lib/schemas/groups";
+import { type GroupPet } from "~/lib/schemas/groups";
+import { removePetFromGroupAction } from "~/server/actions/group-actions";
 
 // Add a column for notes? Column for small image of pet?
 export const columns: ColumnDef<GroupPet>[] = [
@@ -80,28 +79,10 @@ export const columns: ColumnDef<GroupPet>[] = [
                   if (
                     window.confirm("Are you sure you want to remove this pet?")
                   ) {
-                    await fetch("../api/group-pets", {
-                      method: "DELETE",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        groupId: row.original.groupId,
-                        petId: row.original.petId,
-                      }),
-                    })
-                      .then((res) => res.json())
-                      .then((json) => petToGroupSchema.safeParse(json))
-                      .then((validatedPetToGroupObject) => {
-                        if (!validatedPetToGroupObject.success) {
-                          console.error(
-                            validatedPetToGroupObject.error.message,
-                          );
-                          throw new Error("Failed to remove pet");
-                        }
-
-                        document.dispatchEvent(new Event("petRemoved"));
-                      });
+                    removePetFromGroupAction({
+                      petId: row.original.petId,
+                      groupId: row.original.groupId,
+                    });
                   }
                 }}
               >

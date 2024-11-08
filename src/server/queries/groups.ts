@@ -65,13 +65,11 @@ export async function getGroupsByIds(ids: string[]): Promise<Group[] | string> {
   });
 }
 
-export async function getIsUserGroupOwner(
-  groupId: string,
-): Promise<boolean | string> {
+export async function getIsUserGroupOwner(groupId: string): Promise<boolean> {
   const user = await auth();
 
   if (!user.userId) {
-    return "Unauthorized";
+    throw new Error("Unauthorized");
   }
 
   const groupMember = await db.query.usersToGroups.findFirst({
@@ -86,13 +84,11 @@ export async function getIsUserGroupOwner(
   return !!groupMember;
 }
 
-export async function getGroupMembers(
-  groupId: string,
-): Promise<GroupMember[] | string> {
+export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
   const user = await auth();
 
   if (!user.userId) {
-    return "Unauthorized";
+    throw new Error("Unauthorized");
   }
 
   const userToGroupRows = await db.query.usersToGroups.findMany({
