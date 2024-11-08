@@ -370,13 +370,33 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
       throw new Error("Failed to generate invite code");
     }
 
+    let expiresIn = 0;
+    switch (input.expiresIn) {
+      case "24 Hours":
+        expiresIn = 24 * 60 * 60 * 1000;
+        break;
+      case "48 Hours":
+        expiresIn = 48 * 60 * 60 * 1000;
+        break;
+      case "1 Week":
+        expiresIn = 7 * 24 * 60 * 60 * 1000;
+        break;
+      case "1 Month":
+        expiresIn = 30 * 24 * 60 * 60 * 1000;
+        break;
+      default:
+        throw new Error("Invalid expiry date");
+    }
+
+    const expiresAt = addMilliseconds(new Date(), expiresIn);
+
     const newInviteCodeRow = await db
       .insert(groupInviteCodes)
       .values({
         groupId: input.groupId,
         code: inviteCode,
         maxUses: input.maxUses,
-        expiresAt: addMilliseconds(new Date(), input.expiresIn),
+        expiresAt: expiresAt,
         requiresApproval: input.requiresApproval,
       })
       .returning()
@@ -386,7 +406,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
       throw new Error("Failed to create invite code");
     }
 
-    const code = newInviteCodeRow[0].code;
+    const code = `sittr.uk/join-group/${newInviteCodeRow[0].code}`;
 
     return { code };
   });

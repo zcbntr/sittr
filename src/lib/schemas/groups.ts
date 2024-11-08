@@ -11,13 +11,12 @@ export type RoleEnum = z.infer<typeof RoleEnum>;
 export const GroupRoleEnum = z.enum(["Owner", "Member", "Pending"]);
 export type GroupRoleEnum = z.infer<typeof GroupRoleEnum>;
 
-export enum Durations {
-  "24 Hours" = 24 * 60 * 60 * 1000,
-  "48 Hours" = 48 * 60 * 60 * 1000,
-  "1 Week" = 7 * 24 * 60 * 60 * 1000,
-  "1 Month" = 30 * 24 * 60 * 60 * 1000,
-}
-export const DurationEnum = z.nativeEnum(Durations);
+export const DurationEnum = z.enum([
+  "24 Hours",
+  "48 Hours",
+  "1 Week",
+  "1 Month",
+]);
 export type DurationEnum = z.infer<typeof DurationEnum>;
 
 export const groupMemberSchema = z.object({
