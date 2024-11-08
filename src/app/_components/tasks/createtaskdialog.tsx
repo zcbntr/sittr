@@ -35,7 +35,7 @@ import { Calendar } from "~/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import { cn } from "~/lib/utils";
-import { add, format } from "date-fns";
+import { format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -43,7 +43,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { type DateRange } from "~/lib/schemas";
 import { petListSchema, type Pet } from "~/lib/schemas/pets";
 import {
   type CreateTaskFormProps,
@@ -63,17 +62,12 @@ export default function CreateTaskDialog({
 }) {
   const [open, setOpen] = React.useState<boolean>(false);
 
-  const defaultFromDate = add(new Date(), { hours: 1 });
-  const defaultToDate = add(new Date(), { days: 1, hours: 1 });
-
   const [userPets, setUserPets] = useState<Pet[]>([]);
   const [userGroups, setUserGroups] = useState<Group[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
   const [groupsEmpty, setGroupsEmpty] = useState<boolean>(false);
 
   const [dueMode, setDueMode] = useState<boolean>(true);
-  const [dueDate, setDueDate] = useState<Date | undefined>();
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const form = useForm<z.infer<typeof createTaskInputSchema>>({
     mode: "onBlur",
@@ -145,41 +139,6 @@ export default function CreateTaskDialog({
           }
         });
     }
-
-    // if (props) {
-    //   if (props?.dueMode !== undefined) {
-    //     setDueMode(props.dueMode);
-    //     form.setValue("dueMode", props.dueMode);
-    //   }
-
-    //   if (props?.dueDate) {
-    //     setDueDate(props?.dueDate);
-    //     form.setValue("dueDate", props.dueDate);
-    //   }
-
-    //   if (props?.dateRange) {
-    //     setDateRange({
-    //       from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
-    //       to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
-    //     });
-    //     form.setValue("dateRange", {
-    //       from: props?.dateRange?.from ? props.dateRange.from : defaultFromDate,
-    //       to: props?.dateRange?.to ? props.dateRange.to : defaultToDate,
-    //     });
-    //   }
-
-    //   if (props?.name) {
-    //     form.setValue("name", props.name);
-    //   }
-
-    //   if (props?.description) {
-    //     form.setValue("description", props.description);
-    //   }
-
-    //   if (props?.groupId) {
-    //     form.setValue("groupId", props.groupId);
-    //   }
-    // }
 
     void fetchPets();
     void fetchGroups();
@@ -427,7 +386,10 @@ export default function CreateTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {userPets.map((pet) => (
-                        <SelectItem key={pet.id} value={pet.id.toString()}>
+                        <SelectItem
+                          key={pet.petId}
+                          value={pet.petId.toString()}
+                        >
                           {pet.name}
                         </SelectItem>
                       ))}

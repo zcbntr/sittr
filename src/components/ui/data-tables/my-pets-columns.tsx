@@ -59,8 +59,8 @@ export const columns: ColumnDef<Pet>[] = [
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() =>
-                  navigator.clipboard.writeText(
+                onClick={async () =>
+                  await navigator.clipboard.writeText(
                     `${pet.name} - ${pet.species} ${pet.breed ? "(" + pet.breed + ")" : ""}`,
                   )
                 }
@@ -80,7 +80,7 @@ export const columns: ColumnDef<Pet>[] = [
                   if (
                     window.confirm("Are you sure you want to delete this pet?")
                   ) {
-                    deletePetAction({ petId: pet.petId });
+                    await deletePetAction({ petId: pet.petId });
                   }
                 }}
               >

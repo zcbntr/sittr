@@ -99,7 +99,7 @@ export const columns: ColumnDef<GroupMember>[] = [
                           "Are you sure you want to remove this member?",
                         )
                       ) {
-                        removeUserFromGroupAction({
+                        await removeUserFromGroupAction({
                           userId: member.userId,
                           groupId: member.groupId,
                         });

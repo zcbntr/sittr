@@ -27,9 +27,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import {
-  petsToGroupFormInputSchema,
-} from "~/lib/schemas/groups";
+import { petsToGroupFormInputSchema } from "~/lib/schemas/groups";
 import { useServerAction } from "zsa-react";
 import { addPetsToGroupAction } from "~/server/actions/group-actions";
 import { toast } from "sonner";
@@ -72,7 +70,7 @@ export default function AddPetToGroupDialog({
     );
 
     async function fetchPets() {
-      await fetch("../api/pets-not-in-group?id=" + groupId)
+      await fetch("../api/pets-not-in-group?petId=" + groupId)
         .then((res) => res.json())
         .then((data) => petListSchema.safeParse(data))
         .then((validatedPetListObject) => {
@@ -90,7 +88,7 @@ export default function AddPetToGroupDialog({
     }
 
     void fetchPets();
-  }, [groupId]);
+  }, [groupId, form.formState.isDirty]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -119,21 +117,27 @@ export default function AddPetToGroupDialog({
                         )}
                         {!petsEmpty && selectedPetIds.length === 1 && (
                           <div>
-                            {pets.find((x) => x.id == selectedPetIds[0])?.name}
+                            {
+                              pets.find((x) => x.petId == selectedPetIds[0])
+                                ?.name
+                            }
                           </div>
                         )}
                         {!petsEmpty && selectedPetIds.length === 2 && (
                           <div>
-                            {pets.find((x) => x.id == selectedPetIds[0])?.name +
+                            {pets.find((x) => x.petId == selectedPetIds[0])
+                              ?.name +
                               " and " +
-                              pets.find((x) => x.id == selectedPetIds[1])?.name}
+                              pets.find((x) => x.petId == selectedPetIds[1])
+                                ?.name}
                           </div>
                         )}
                         {selectedPetIds.length >= 3 && (
                           <div>
-                            {pets.find((x) => x.id == selectedPetIds[0])?.name +
+                            {pets.find((x) => x.petId == selectedPetIds[0])
+                              ?.name +
                               ", " +
-                              pets.find((x) => x.id == selectedPetIds[1])
+                              pets.find((x) => x.petId == selectedPetIds[1])
                                 ?.name +
                               ", and " +
                               (selectedPetIds.length - 2).toString() +
@@ -148,20 +152,23 @@ export default function AddPetToGroupDialog({
                         return (
                           <DropdownMenuCheckboxItem
                             key={i}
-                            checked={selectedPetIds.includes(pet.id)}
+                            checked={selectedPetIds.includes(pet.petId)}
                             onCheckedChange={() => {
-                              if (!selectedPetIds.includes(pet.id)) {
-                                setSelectedPetIds([...selectedPetIds, pet.id]);
-                                field.onChange([...selectedPetIds, pet.id]);
+                              if (!selectedPetIds.includes(pet.petId)) {
+                                setSelectedPetIds([
+                                  ...selectedPetIds,
+                                  pet.petId,
+                                ]);
+                                field.onChange([...selectedPetIds, pet.petId]);
                               } else {
                                 setSelectedPetIds(
                                   selectedPetIds.filter(
-                                    (sId) => sId !== pet.id,
+                                    (sId) => sId !== pet.petId,
                                   ),
                                 );
                                 field.onChange(
                                   selectedPetIds.filter(
-                                    (sId) => sId !== pet.id,
+                                    (sId) => sId !== pet.petId,
                                   ),
                                 );
                               }

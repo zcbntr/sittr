@@ -78,7 +78,7 @@ export const columns: ColumnDef<GroupPet>[] = [
                   if (
                     window.confirm("Are you sure you want to remove this pet?")
                   ) {
-                    removePetFromGroupAction({
+                    await removePetFromGroupAction({
                       petId: row.original.petId,
                       groupId: row.original.groupId,
                     });

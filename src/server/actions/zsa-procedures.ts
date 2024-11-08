@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createServerActionProcedure } from "zsa";
 import { db } from "../db";
-import { groups, pets, petsToGroups, tasks, usersToGroups } from "../db/schema";
-import { and, eq, or } from "drizzle-orm";
+import { groups, tasks, usersToGroups } from "../db/schema";
+import { and, eq } from "drizzle-orm";
 
 export const authenticatedProcedure = createServerActionProcedure().handler(
   async () => {
@@ -34,38 +34,6 @@ export const ownsPetProcedure = createServerActionProcedure(
 
     return { user, pet };
   });
-
-// export const canViewPetProcedure = createServerActionProcedure(
-//   authenticatedProcedure,
-// )
-//   .input(z.object({ petId: z.string() }))
-//   // User must be the owner of the pet or in a group which sits for the pet
-//   .handler(async ({ ctx, input }) => {
-//     const { user } = ctx;
-//     const pet = (
-//       await db
-//         .select()
-//         .from(pets)
-//         .leftJoin(petsToGroups, eq(pets.id, petsToGroups.petId))
-//         .leftJoin(groups, eq(petsToGroups.groupId, groups.id))
-//         .leftJoin(usersToGroups, eq(groups.id, usersToGroups.groupId))
-//         .where(
-//           or(
-//             and(
-//               eq(usersToGroups.userId, user.userId),
-//               eq(pets.id, input.petId),
-//             ),
-//             eq(pets.ownerId, user.userId),
-//           ),
-//         )
-//     )[0]?.pets;
-
-//     if (!pet) {
-//       throw new Error("Pet not found");
-//     }
-
-//     return { user, pet };
-//   });
 
 export const ownsTaskProcedure = createServerActionProcedure(
   authenticatedProcedure,

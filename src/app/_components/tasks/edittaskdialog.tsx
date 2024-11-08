@@ -79,7 +79,7 @@ export default function EditTaskDialog({
   React.useEffect(
     () => {
       async function fetchPets() {
-        await fetch("../api/pets?all=true", {
+        await fetch("../api/group-pets?all=true", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -89,8 +89,7 @@ export default function EditTaskDialog({
           .then((json) => petListSchema.safeParse(json))
           .then((validatedPetListObject) => {
             if (!validatedPetListObject.success) {
-              console.error(validatedPetListObject.error.message);
-              throw new Error("Failed to get user's pets");
+              throw new Error("Failed to get group's pets");
             }
 
             if (validatedPetListObject.data.length > 0) {
@@ -481,7 +480,10 @@ export default function EditTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {pets.map((pet) => (
-                        <SelectItem key={pet.id} value={pet.id.toString()}>
+                        <SelectItem
+                          key={pet.petId}
+                          value={pet.petId.toString()}
+                        >
                           {pet.name}
                         </SelectItem>
                       ))}

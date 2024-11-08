@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { GroupMemberPage } from "~/app/_components/group-page/group-member-page";
 import { GroupOwnerPage } from "~/app/_components/group-page/group-owner-page";
-import { GroupMember, GroupPet } from "~/lib/schemas/groups";
+import type { GroupMember, GroupPet } from "~/lib/schemas/groups";
 import {
   getGroupById,
   getGroupMembers,
@@ -9,16 +9,13 @@ import {
   getIsUserGroupOwner,
 } from "~/server/queries/groups";
 
-type Params = Promise<{ slug: string }>;
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
-export default async function Page(props: {
-  params: Params;
-  searchParams: SearchParams;
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
 }) {
   // Get the data for the group from the slug
-  const params = await props.params;
-  const slug = params.slug;
+  const slug = (await params).slug;
 
   const group = await getGroupById(slug);
 

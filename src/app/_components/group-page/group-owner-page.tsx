@@ -1,7 +1,7 @@
 "use client";
 
 import { GroupNameDescriptionForm } from "~/app/_components/group-page/group-details-form";
-import { GroupMember, GroupPet, type Group } from "~/lib/schemas/groups";
+import type { GroupMember, GroupPet, Group } from "~/lib/schemas/groups";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import {
@@ -100,13 +100,16 @@ export function GroupOwnerPage({
                   </AlertDialogDescription>
                   <AlertDialogFooter>
                     <AlertDialogAction
+                      disabled={isPending}
                       onClick={async () => {
-                        execute({ groupId: group.id });
+                        await execute({ groupId: group.id });
                       }}
                     >
                       Confirm
                     </AlertDialogAction>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isPending}>
+                      Cancel
+                    </AlertDialogCancel>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

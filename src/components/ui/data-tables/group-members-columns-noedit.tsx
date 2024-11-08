@@ -12,12 +12,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { type GroupMember } from "~/lib/schemas/groups";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { removeUserFromGroupAction } from "~/server/actions/group-actions";
 
 // Column for avatar?
 export const columns: ColumnDef<GroupMember>[] = [

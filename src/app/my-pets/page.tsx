@@ -6,13 +6,10 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import PetsTable from "../_components/pets/petstable";
-import { Pet } from "~/lib/schemas/pets";
+import type { Pet } from "~/lib/schemas/pets";
 import { getOwnedPets } from "~/server/queries/pets";
 
-export default async function Page(props: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+export default async function Page() {
   const pets = await getOwnedPets();
 
   return <MyPetsPage pets={pets} />;

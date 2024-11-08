@@ -5,7 +5,7 @@ import { DataTable } from "~/components/ui/data-table";
 import React from "react";
 import CreateGroupInviteDialog from "./create-group-invite-dialog";
 import { Button } from "~/components/ui/button";
-import { GroupMember } from "~/lib/schemas/groups";
+import { type GroupMember } from "~/lib/schemas/groups";
 
 export default function GroupMembersTable({
   groupId,

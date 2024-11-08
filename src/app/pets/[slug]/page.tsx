@@ -4,16 +4,17 @@ import { PetOwnerPage } from "~/app/_components/pet-page/pet-owner-page";
 import { PetNonOwnerPage } from "~/app/_components/pet-page/pet-non-owner-page";
 import { getPetById } from "~/server/queries/pets";
 
-export default async function Page(props: {
-  params: { slug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
 }) {
-  // Get the data for the group from the slug
-  const { slug } = await props.params;
+  // Get the data for the pet from the slug
+  const slug = (await params).slug;
   const pet = await getPetById(slug);
 
   if (pet == null) {
-    // No such group exists, return group empty page
+    // No such pet exists, return pet does not exist page
 
     return <PetDoesNotExistPage />;
   } else {

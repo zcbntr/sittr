@@ -3,7 +3,6 @@
 import { Button } from "~/components/ui/button";
 import { PetEditForm } from "~/app/_components/pet-page/pet-edit-form";
 import { type Pet } from "~/lib/schemas/pets";
-import { Pencil } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -94,12 +93,15 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
                   <AlertDialogFooter>
                     <AlertDialogAction
                       onClick={async () => {
-                        execute({ petId: pet.petId });
+                        await execute({ petId: pet.petId });
                       }}
+                      disabled={isPending}
                     >
                       Confirm
                     </AlertDialogAction>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isPending}>
+                      Cancel
+                    </AlertDialogCancel>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

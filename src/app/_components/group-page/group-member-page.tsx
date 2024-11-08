@@ -1,6 +1,10 @@
 "use client";
 
-import { GroupMember, GroupPet, type Group } from "~/lib/schemas/groups";
+import {
+  type GroupMember,
+  type GroupPet,
+  type Group,
+} from "~/lib/schemas/groups";
 import {
   Card,
   CardContent,
