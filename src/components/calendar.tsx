@@ -119,7 +119,7 @@ export default function CalendarComponent() {
 
           const events: CalendarEvent[] = validatedTaskList.data.map((task) => {
             return new CalendarEvent(
-              task.id,
+              task.taskId,
               task.ownerId,
               task.name,
               task.dueMode,
@@ -173,7 +173,7 @@ export default function CalendarComponent() {
     const button = document.getElementById("openEditTaskDialogHiddenButton");
     if (button) {
       setEditTaskDialogProps({
-        id: event.id,
+        taskId: event.id,
         ownerId: event.ownerId,
         name: event.title,
         description: event.desc,

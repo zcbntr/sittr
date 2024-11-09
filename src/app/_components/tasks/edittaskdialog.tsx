@@ -47,6 +47,24 @@ import { Switch } from "~/components/ui/switch";
 import { Checkbox } from "~/components/ui/checkbox";
 import { type Task, taskSchema } from "~/lib/schemas/tasks";
 import { petListSchema, type Pet } from "~/lib/schemas/pets";
+import {
+  deleteTaskAction,
+  updateTaskAction,
+} from "~/server/actions/task-actions";
+import { useServerAction } from "zsa-react";
+import { toast } from "sonner";
+import { MdDelete } from "react-icons/md";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
 
 export default function EditTaskDialog({
   props,
@@ -56,7 +74,6 @@ export default function EditTaskDialog({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState<boolean>(false);
-  const [dataChanged, setDataChanged] = React.useState<boolean>(false);
 
   const [pets, setPets] = React.useState<Pet[]>([]);
   const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
@@ -74,6 +91,48 @@ export default function EditTaskDialog({
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
   });
+
+  const {
+    isPending: updatePending,
+    execute: executeUpdate,
+    data: updateData,
+    error: updateError,
+  } = useServerAction(updateTaskAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
+    },
+    onSuccess: () => {
+      toast.success("Task updated!");
+      setOpen(false);
+    },
+  });
+
+  const {
+    isPending: deletePending,
+    executeFormAction: executeDelete,
+    data: deleteData,
+    error: deleteError,
+  } = useServerAction(deleteTaskAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
+    },
+    onSuccess: () => {
+      toast.success("Task deleted!");
+      setOpen(false);
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof taskSchema>) {
+    const [data, err] = await executeUpdate(values);
+
+    if (err) {
+      toast.error(err.message);
+
+      return;
+    }
+
+    form.reset();
+  }
 
   // Update state upon props change, Update form value upon props change
   React.useEffect(
@@ -124,8 +183,8 @@ export default function EditTaskDialog({
       }
 
       if (props) {
-        if (props?.id) {
-          form.setValue("id", props.id);
+        if (props?.taskId) {
+          form.setValue("taskId", props.taskId);
         }
 
         if (props?.ownerId) {
@@ -177,61 +236,6 @@ export default function EditTaskDialog({
     [props],
   );
 
-  async function onSubmit(data: z.infer<typeof taskSchema>) {
-    if (deleteClicked) {
-      await deleteTask();
-      return;
-    }
-
-    await fetch("/api/tasks", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((json) => taskSchema.safeParse(json))
-      .then((validatedTaskObject) => {
-        if (!validatedTaskObject.success) {
-          console.error(validatedTaskObject.error.message);
-          throw new Error("Failed to updated task");
-        }
-
-        document.dispatchEvent(new Event("taskUpdated"));
-        setOpen(false);
-        return;
-      });
-  }
-
-  async function deleteTask() {
-    // Fix this at some point with another dialog
-    // eslint-disable-next-line no-alert
-    if (window.confirm("Are you sure you want to delete this task?")) {
-      await fetch("api/tasks", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id: form.getValues().id }),
-      })
-        .then((res) => res.json())
-        .then((json) => taskSchema.safeParse(json))
-        .then((validatedTaskObject) => {
-          if (!validatedTaskObject.success) {
-            console.error(validatedTaskObject.error.message);
-            throw new Error("Failed to delete task");
-          }
-
-          document.dispatchEvent(new Event("taskDeleted"));
-          setOpen(false);
-          return;
-        });
-    }
-
-    setDeleteClicked(false);
-  }
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -241,13 +245,8 @@ export default function EditTaskDialog({
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void onSubmit(form.getValues());
-            }}
-            onChange={() => setDataChanged(true)}
+            onSubmit={form.handleSubmit(onSubmit)}
             className="w-full space-y-6"
-            name="editTask"
           >
             <FormField
               control={form.control}
@@ -564,24 +563,38 @@ export default function EditTaskDialog({
 
             <DialogFooter>
               <div className="flex grow flex-row place-content-between">
-                <Button
-                  id="deleteTaskButton"
-                  className="bg-red-600 hover:bg-red-700"
-                  onClick={() => {
-                    setDeleteClicked(true);
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    height="24px"
-                    viewBox="0 -960 960 960"
-                    width="24px"
-                    fill="#e8eaed"
-                  >
-                    <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
-                  </svg>
-                </Button>
-                <Button type="submit" disabled={!dataChanged}>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <MdDelete size={"1.2rem"} />
+                      Delete Task
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Group</AlertDialogTitle>
+                    </AlertDialogHeader>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this group? This action
+                      cannot be undone.
+                    </AlertDialogDescription>
+                    <AlertDialogFooter>
+                      <AlertDialogAction
+                        disabled={deletePending}
+                        onClick={async () => {
+                          await executeDelete({ taskId: props?.taskId });
+                        }}
+                      >
+                        Confirm
+                      </AlertDialogAction>
+                      <AlertDialogCancel disabled={deletePending}>
+                        Cancel
+                      </AlertDialogCancel>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                <Button type="submit" disabled={updatePending || deletePending}>
                   Update Task
                 </Button>
               </div>

@@ -62,7 +62,7 @@ export const updateTaskAction = ownsTaskProcedure
 
 export const toggleTaskMarkedAsDone = canMarkTaskAsDoneProcedure
   .createServerAction()
-  .input(taskSchema.pick({ id: true }))
+  .input(taskSchema.pick({ taskId: true }))
   .handler(async ({ input, ctx }) => {
     const { user, task } = ctx;
 
@@ -71,7 +71,7 @@ export const toggleTaskMarkedAsDone = canMarkTaskAsDoneProcedure
       .set({
         markedAsDoneBy: user.userId,
       })
-      .where(eq(tasks.id, input.id))
+      .where(eq(tasks.id, input.taskId))
       .execute();
 
     revalidatePath(`/tasks/${task.id}`);
@@ -79,13 +79,13 @@ export const toggleTaskMarkedAsDone = canMarkTaskAsDoneProcedure
 
 export const deleteTaskAction = ownsTaskProcedure
   .createServerAction()
-  .input(taskSchema.pick({ id: true }))
+  .input(taskSchema.pick({ taskId: true }))
   .handler(async ({ input, ctx }) => {
     const { user } = ctx;
 
     await db
       .delete(tasks)
-      .where(and(eq(tasks.id, input.id), eq(tasks.ownerId, user.userId)))
+      .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, user.userId)))
       .execute();
 
     redirect("/tasks");
