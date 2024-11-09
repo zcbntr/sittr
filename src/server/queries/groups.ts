@@ -191,7 +191,7 @@ export async function getUsersPetsNotInGroup(
 
   return petsNotInGroup.map((pet) => {
     return petSchema.parse({
-      id: pet.id,
+      petId: pet.id,
       ownerId: pet.ownerId,
       name: pet.name,
       species: pet.species,

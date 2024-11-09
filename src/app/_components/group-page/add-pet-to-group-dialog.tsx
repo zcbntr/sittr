@@ -70,12 +70,11 @@ export default function AddPetToGroupDialog({
     );
 
     async function fetchPets() {
-      await fetch("../api/pets-not-in-group?petId=" + groupId)
+      await fetch("../api/pets-not-in-group?id=" + groupId)
         .then((res) => res.json())
         .then((data) => petListSchema.safeParse(data))
         .then((validatedPetListObject) => {
           if (!validatedPetListObject.success) {
-            console.error(validatedPetListObject.error.message);
             throw new Error("Failed to fetch pets");
           }
 
