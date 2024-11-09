@@ -32,7 +32,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { type Group, groupListSchema } from "~/lib/schemas/groups";
+import type { Group } from "~/lib/schemas/groups";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import {
   Select,
@@ -77,16 +77,11 @@ export default function EditTaskDialog({
 }) {
   const [open, setOpen] = useState<boolean>(false);
 
-  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
-
   const [groupPets, setGroupPets] = useState<Pet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
 
+  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
   const [dueMode, setDueMode] = useState<boolean>(true);
-  const [dueDate, setDueDate] = useState<Date | undefined>();
-  // This variable is actually used, just not detected by the linter as its properties are used not its value itself
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
@@ -119,6 +114,11 @@ export default function EditTaskDialog({
     onSuccess: () => {
       toast.success("Task updated!");
       setOpen(false);
+      form.reset();
+      setSelectedGroupId(undefined);
+      setDueMode(true);
+      setGroupPets([]);
+      setPetsEmpty(false);
     },
   });
 
@@ -134,6 +134,11 @@ export default function EditTaskDialog({
     onSuccess: () => {
       toast.success("Task deleted!");
       setOpen(false);
+      form.reset();
+      setSelectedGroupId(undefined);
+      setDueMode(true);
+      setGroupPets([]);
+      setPetsEmpty(false);
     },
   });
 
@@ -290,14 +295,14 @@ export default function EditTaskDialog({
                         <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
-                            selected={field.value ? field.value : dueDate}
+                            selected={field.value ? field.value : new Date()}
                             onSelect={field.onChange}
                             initialFocus
                           />
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
                               setDate={field.onChange}
-                              date={field.value ? field.value : dueDate}
+                              date={field.value ? field.value : new Date()}
                             />
                           </div>
                         </PopoverContent>
@@ -556,6 +561,8 @@ export default function EditTaskDialog({
             </DialogFooter>
           </form>
         </Form>
+        {updateError && <div>{updateError.message}</div>}
+        {deleteError && <div>{deleteError.message}</div>}
       </DialogContent>
     </Dialog>
   );

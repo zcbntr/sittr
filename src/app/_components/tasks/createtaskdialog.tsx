@@ -35,7 +35,7 @@ import { Calendar } from "~/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import { cn } from "~/lib/utils";
-import { format, set } from "date-fns";
+import { format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -76,20 +76,29 @@ export default function CreateTaskDialog({
     resolver: zodResolver(createTaskInputSchema),
     defaultValues: {
       name: "",
+      description: "",
       dueMode: true,
       dueDate: props?.dueMode ? props.dueDate : undefined,
     },
   });
 
-  const { isPending, execute } = useServerAction(createTaskAction, {
-    onError: ({ err }) => {
-      toast.error(err.message);
+  const { isPending, execute, data, error } = useServerAction(
+    createTaskAction,
+    {
+      onError: ({ err }) => {
+        toast.error(err.message);
+      },
+      onSuccess: () => {
+        toast.success("Task created!");
+        setOpen(false);
+        form.reset();
+        setSelectedGroupId(undefined);
+        setDueMode(true);
+        setGroupPets([]);
+        setPetsEmpty(false);
+      },
     },
-    onSuccess: () => {
-      toast.success("Task created!");
-      setOpen(false);
-    },
-  });
+  );
 
   useEffect(() => {
     localStorage.setItem(
@@ -110,7 +119,7 @@ export default function CreateTaskDialog({
           if (!validatedPetListObject.success) {
             throw new Error("Failed to get user's pets");
           }
-  
+
           if (validatedPetListObject.data.length > 0) {
             setGroupPets(validatedPetListObject.data);
             setPetsEmpty(false);
@@ -426,13 +435,16 @@ export default function CreateTaskDialog({
 
             <DialogFooter>
               <Button type="submit" disabled={isPending}>
-                Create Task
+                {isPending ? "Creating Task..." : "Create Task"}
               </Button>
             </DialogFooter>
           </form>
         </Form>
 
         {isPending && <div>Creating task...</div>}
+        {error && (
+          <div>Failed to create task: {JSON.stringify(error.fieldErrors)}</div>
+        )}
       </DialogContent>
     </Dialog>
   );
