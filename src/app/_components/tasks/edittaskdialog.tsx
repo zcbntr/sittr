@@ -11,7 +11,6 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
-import * as React from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
@@ -65,31 +64,47 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
+import { useEffect, useState } from "react";
 
 export default function EditTaskDialog({
-  props,
+  groups,
+  task,
   children,
 }: {
-  props?: Task;
+  groups: Group[];
+  task: Task | undefined;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = React.useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
 
-  const [pets, setPets] = React.useState<Pet[]>([]);
-  const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
-  const [groups, setGroups] = React.useState<Group[]>([]);
-  const [groupsEmpty, setGroupsEmpty] = React.useState<boolean>(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
 
-  const [dueMode, setDueMode] = React.useState<boolean>(true);
-  const [dueDate, setDueDate] = React.useState<Date | undefined>();
+  const [groupPets, setGroupPets] = useState<Pet[]>([]);
+  const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
+
+  const [dueMode, setDueMode] = useState<boolean>(true);
+  const [dueDate, setDueDate] = useState<Date | undefined>();
   // This variable is actually used, just not detected by the linter as its properties are used not its value itself
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
-
-  const [deleteClicked, setDeleteClicked] = React.useState<boolean>(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
+    defaultValues: {
+      taskId: task?.taskId ? task.taskId : "",
+      ownerId: task?.ownerId ? task.ownerId : "",
+      name: task?.name ? task.name : "",
+      description: task?.description ? task.description : "",
+      dueMode: task?.dueMode ? task.dueMode : true,
+      dueDate: task?.dueDate ? task.dueDate : new Date(),
+      dateRange: task?.dateRange
+        ? task.dateRange
+        : { from: new Date(), to: new Date() },
+      petId: task?.petId ? task.petId : "",
+      groupId: task?.groupId ? task.groupId : "",
+      markedAsDone: task?.markedAsDone ? task.markedAsDone : false,
+      markedAsDoneBy: task?.markedAsDoneBy ? task.markedAsDoneBy : "",
+    },
   });
 
   const {
@@ -134,11 +149,16 @@ export default function EditTaskDialog({
     form.reset();
   }
 
-  // Update state upon props change, Update form value upon props change
-  React.useEffect(
+  // Update state upon task change, Update form value upon task change
+  useEffect(
     () => {
-      async function fetchPets() {
-        await fetch("../api/group-pets?all=true", {
+      localStorage.setItem(
+        "editTaskFormModified",
+        form.formState.isDirty.toString(),
+      );
+
+      async function fetchGroupPets() {
+        await fetch("../api/group-pets?id=" + form.getValues("groupId"), {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -152,88 +172,20 @@ export default function EditTaskDialog({
             }
 
             if (validatedPetListObject.data.length > 0) {
-              setPets(validatedPetListObject.data);
+              setGroupPets(validatedPetListObject.data);
             } else if (validatedPetListObject.data.length === 0) {
               setPetsEmpty(true);
             }
           });
       }
 
-      async function fetchGroups() {
-        await fetch("../api/groups?all=true", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-          .then((res) => res.json())
-          .then((json) => groupListSchema.safeParse(json))
-          .then((validatedGroupListObject) => {
-            if (!validatedGroupListObject.success) {
-              console.error(validatedGroupListObject.error.message);
-              throw new Error("Failed to get user's groups");
-            }
-
-            if (validatedGroupListObject.data.length > 0) {
-              setGroups(validatedGroupListObject.data);
-            } else if (validatedGroupListObject.data.length === 0) {
-              setGroupsEmpty(true);
-            }
-          });
-      }
-
-      if (props) {
-        if (props?.taskId) {
-          form.setValue("taskId", props.taskId);
-        }
-
-        if (props?.ownerId) {
-          form.setValue("ownerId", props.ownerId);
-        }
-
-        if (props?.dueMode !== undefined) {
-          setDueMode(props.dueMode);
-          form.setValue("dueMode", props.dueMode);
-        }
-
-        if (props?.dueDate) setDueDate(props?.dueDate);
-
-        if (props?.dateRange)
-          setDateRange({
-            from: props?.dateRange?.from,
-            to: props?.dateRange?.to,
-          });
-
-        if (props?.name) {
-          form.setValue("name", props.name);
-        }
-
-        if (props?.description) {
-          form.setValue("description", props.description);
-        }
-
-        if (props?.dueDate) {
-          form.setValue("dueDate", props.dueDate);
-        }
-
-        if (props?.dateRange) {
-          form.setValue("dateRange", {
-            from: props?.dateRange?.from,
-            to: props?.dateRange?.to,
-          });
-        }
-
-        if (props?.groupId) {
-          form.setValue("groupId", props.groupId);
-        }
-      }
-
       // Fetch all possible sitting pets
-      void fetchPets();
-      void fetchGroups();
+      if (task) {
+        void fetchGroupPets();
+      }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [props],
+    // eslint-disable-next-line hooks/exhaustive-deps
+    [task, form.formState.isDirty, selectedGroupId],
   );
 
   return (
@@ -455,49 +407,6 @@ export default function EditTaskDialog({
 
             <FormField
               control={form.control}
-              name="petId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pet, House, or Plant</FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      form.setValue("petId", value);
-                    }}
-                    disabled={petsEmpty}
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            !petsEmpty
-                              ? "Select a pet, house or plant"
-                              : "Nothing to show"
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {pets.map((pet) => (
-                        <SelectItem
-                          key={pet.petId}
-                          value={pet.petId.toString()}
-                        >
-                          {pet.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Select a pet, house or plant to associate with this task.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="groupId"
               render={({ field }) => (
                 <FormItem>
@@ -505,15 +414,16 @@ export default function EditTaskDialog({
                   <Select
                     onValueChange={(value) => {
                       form.setValue("groupId", value);
+                      setSelectedGroupId(value);
                     }}
-                    disabled={groupsEmpty}
+                    disabled={groups.length === 0}
                     value={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue
                           placeholder={
-                            !groupsEmpty
+                            groups.length !== 0
                               ? "Select group to associate with task"
                               : "Make a group first"
                           }
@@ -530,6 +440,49 @@ export default function EditTaskDialog({
                   </Select>
                   <FormDescription>
                     Select a group to associate with this task.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="petId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pet, House, or Plant</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      form.setValue("petId", value);
+                    }}
+                    disabled={petsEmpty || groupPets.length === 0}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            !petsEmpty || groupPets.length !== 0
+                              ? "Select a pet assigned to the group"
+                              : "Choose a group with pets assigned"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {groupPets.map((pet) => (
+                        <SelectItem
+                          key={pet.petId}
+                          value={pet.petId.toString()}
+                        >
+                          {pet.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Select a pet to associate with this task. The pet must be
+                    assigned to the selected group.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -582,7 +535,9 @@ export default function EditTaskDialog({
                       <AlertDialogAction
                         disabled={deletePending}
                         onClick={async () => {
-                          await executeDelete({ taskId: props?.taskId });
+                          await executeDelete({
+                            taskId: task?.taskId ? task.taskId : "",
+                          });
                         }}
                       >
                         Confirm

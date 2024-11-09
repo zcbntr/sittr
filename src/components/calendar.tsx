@@ -14,6 +14,7 @@ import {
 } from "~/lib/schemas/tasks";
 import EditTaskDialog from "~/app/_components/tasks/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/tasks/createtaskdialog";
+import { Group } from "~/lib/schemas/groups";
 
 const coloursList: string[] = [
   "#f54290",
@@ -85,13 +86,13 @@ class CalendarEvent {
   }
 }
 
-export default function CalendarComponent() {
+export default function CalendarComponent({ groups }: { groups: Group[] }) {
   const [view, setView] = useState<View>("month");
   const [date, setDate] = useState<Date>(new Date());
   const [events, setEvents] = useState([] as unknown as CalendarEvent[]);
   const [createTaskDialogProps, setCreateTaskDialogProps] =
     useState<CreateTaskFormProps>();
-  const [editTaskDialogProps, setEditTaskDialogProps] = useState<Task>();
+  const [selectedTask, setSelectedTask] = useState<Task>();
 
   useEffect(() => {
     async function fetchData() {
@@ -172,7 +173,7 @@ export default function CalendarComponent() {
   const handleEventSelect = (event: CalendarEvent) => {
     const button = document.getElementById("openEditTaskDialogHiddenButton");
     if (button) {
-      setEditTaskDialogProps({
+      setSelectedTask({
         taskId: event.id,
         ownerId: event.ownerId,
         name: event.title,
@@ -231,14 +232,14 @@ export default function CalendarComponent() {
         }}
       />
 
-      <CreateTaskDialog props={createTaskDialogProps}>
+      <CreateTaskDialog groups={groups} props={createTaskDialogProps}>
         <Button
           id="openCreateTaskDialogHiddenButton"
           className="hidden"
         ></Button>
       </CreateTaskDialog>
 
-      <EditTaskDialog props={editTaskDialogProps}>
+      <EditTaskDialog groups={groups} task={selectedTask}>
         <Button id="openEditTaskDialogHiddenButton" className="hidden" />
       </EditTaskDialog>
     </div>

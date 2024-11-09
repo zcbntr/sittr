@@ -7,15 +7,17 @@ import { Button } from "~/components/ui/button";
 import CreatePetDialog from "./pets/createpetdialog";
 import CreateGroupDialog from "./groups/creategroupdialog";
 import CreateTaskDialog from "./tasks/createtaskdialog";
+import { getGroupsUserIsIn } from "~/server/queries/groups";
 
 export default async function Dashboard() {
+  const groups = await getGroupsUserIsIn();
 
   return (
     <div className="flex flex-col gap-3 p-5">
       <h1 className="text-xl">Dashboard</h1>
       <section>
         <div className="flex flex-row gap-3">
-          <CreateTaskDialog>
+          <CreateTaskDialog groups={groups}>
             <Button variant="outline">New Task</Button>
           </CreateTaskDialog>
 
@@ -30,7 +32,7 @@ export default async function Dashboard() {
       </section>
       <section>
         <div className="pb-5">
-          <CalendarComponent />
+          <CalendarComponent groups={groups} />
         </div>
       </section>
     </div>

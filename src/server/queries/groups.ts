@@ -201,11 +201,11 @@ export async function getUsersPetsNotInGroup(
   });
 }
 
-export async function getGroupsUserIsIn(): Promise<Group[] | string> {
+export async function getGroupsUserIsIn(): Promise<Group[]> {
   const user = await auth();
 
   if (!user.userId) {
-    return "Unauthorized";
+    throw new Error("Unauthorized");
   }
 
   const groupMemberList = await db.query.usersToGroups.findMany({

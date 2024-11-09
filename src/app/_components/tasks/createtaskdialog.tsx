@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { groupListSchema, type Group } from "~/lib/schemas/groups";
+import type { Group } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import {
@@ -35,7 +35,7 @@ import { Calendar } from "~/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import { cn } from "~/lib/utils";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -48,24 +48,26 @@ import {
   type CreateTaskFormProps,
   createTaskInputSchema,
 } from "~/lib/schemas/tasks";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createTaskAction } from "~/server/actions/task-actions";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
 
 export default function CreateTaskDialog({
+  groups,
   props,
   children,
 }: {
+  groups: Group[];
   props?: CreateTaskFormProps;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState<boolean>(false);
 
-  const [userPets, setUserPets] = useState<Pet[]>([]);
-  const [userGroups, setUserGroups] = useState<Group[]>([]);
+  const [groupPets, setGroupPets] = useState<Pet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
-  const [groupsEmpty, setGroupsEmpty] = useState<boolean>(false);
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
 
   const [dueMode, setDueMode] = useState<boolean>(true);
 
@@ -73,6 +75,7 @@ export default function CreateTaskDialog({
     mode: "onBlur",
     resolver: zodResolver(createTaskInputSchema),
     defaultValues: {
+      name: "",
       dueMode: true,
       dueDate: props?.dueMode ? props.dueDate : undefined,
     },
@@ -88,14 +91,14 @@ export default function CreateTaskDialog({
     },
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     localStorage.setItem(
       "createTaskFormModified",
       form.formState.isDirty.toString(),
     );
 
     async function fetchPets() {
-      await fetch("../api/group-pets?all=true", {
+      await fetch("../api/group-pets?id=" + form.getValues("groupId"), {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -105,44 +108,21 @@ export default function CreateTaskDialog({
         .then((json) => petListSchema.safeParse(json))
         .then((validatedPetListObject) => {
           if (!validatedPetListObject.success) {
-            console.error(validatedPetListObject.error.message);
             throw new Error("Failed to get user's pets");
           }
-
+  
           if (validatedPetListObject.data.length > 0) {
-            setUserPets(validatedPetListObject.data);
+            setGroupPets(validatedPetListObject.data);
+            setPetsEmpty(false);
           } else if (validatedPetListObject.data.length === 0) {
+            setGroupPets([]);
             setPetsEmpty(true);
           }
         });
     }
 
-    async function fetchGroups() {
-      await fetch("api/groups?all=true", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-        .then((res) => res.json())
-        .then((json) => groupListSchema.safeParse(json))
-        .then((validatedGroupListObject) => {
-          if (!validatedGroupListObject.success) {
-            console.error(validatedGroupListObject.error.message);
-            throw new Error("Failed to get user's groups");
-          }
-
-          if (validatedGroupListObject.data.length > 0) {
-            setUserGroups(validatedGroupListObject.data);
-          } else if (validatedGroupListObject.data.length === 0) {
-            setGroupsEmpty(true);
-          }
-        });
-    }
-
     void fetchPets();
-    void fetchGroups();
-  }, [props, form.formState.isDirty]);
+  }, [props, form.formState.isDirty, selectedGroupId]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -363,6 +343,46 @@ export default function CreateTaskDialog({
 
             <FormField
               control={form.control}
+              name="groupId"
+              render={({}) => (
+                <FormItem>
+                  <FormLabel>Group</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      form.setValue("groupId", value);
+                      setSelectedGroupId(value);
+                    }}
+                    disabled={groups.length === 0}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            groups.length !== 0
+                              ? "Select group to associate with task"
+                              : "Make a group first"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {groups.map((group) => (
+                        <SelectItem key={group.id} value={group.id.toString()}>
+                          {group.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Select a group to associate with this task.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="petId"
               render={({}) => (
                 <FormItem>
@@ -371,21 +391,21 @@ export default function CreateTaskDialog({
                     onValueChange={(value) => {
                       form.setValue("petId", value);
                     }}
-                    disabled={petsEmpty}
+                    disabled={petsEmpty || groupPets.length === 0}
                   >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue
                           placeholder={
-                            petsEmpty
-                              ? "Select a pet, house or plant"
-                              : "Nothing to show"
+                            !petsEmpty || groupPets.length !== 0
+                              ? "Select a pet assigned to the group"
+                              : "Choose a group with pets assigned"
                           }
                         />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {userPets.map((pet) => (
+                      {groupPets.map((pet) => (
                         <SelectItem
                           key={pet.petId}
                           value={pet.petId.toString()}
@@ -396,46 +416,8 @@ export default function CreateTaskDialog({
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Select a pet, house or plant to associate with this task.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="groupId"
-              render={({}) => (
-                <FormItem>
-                  <FormLabel>Group</FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      form.setValue("groupId", value);
-                    }}
-                    disabled={groupsEmpty}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            groupsEmpty
-                              ? "Select group to associate with task"
-                              : "Make a group first"
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {userGroups.map((group) => (
-                        <SelectItem key={group.id} value={group.id.toString()}>
-                          {group.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Select a group to associate with this task.
+                    Select a pet to associate with this task. The pet must be
+                    assigned to the selected group.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
