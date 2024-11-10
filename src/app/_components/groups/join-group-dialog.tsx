@@ -38,6 +38,9 @@ export default function JoinGroupDialog({
   const form = useForm<z.infer<typeof joinGroupFormSchema>>({
     mode: "onBlur",
     resolver: zodResolver(joinGroupFormSchema),
+    defaultValues: {
+      inviteCode: "",
+    },
   });
 
   const { isPending, execute } = useServerAction(joinGroupAction, {
