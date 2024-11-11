@@ -1,16 +1,17 @@
 import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createServerActionProcedure } from "zsa";
 import { db } from "../db";
 import { groups, tasks, usersToGroups } from "../db/schema";
 import { and, eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 
 export const authenticatedProcedure = createServerActionProcedure().handler(
   async () => {
     const user = await auth();
     if (!user.userId) {
-      redirect("/login");
+      // Return to homepage
+      redirect("/");
     }
 
     return { user };
@@ -23,6 +24,7 @@ export const ownsPetProcedure = createServerActionProcedure(
   .input(z.object({ petId: z.string() }))
   .handler(async ({ ctx, input }) => {
     const { user } = ctx;
+
     const pet = await db.query.pets.findFirst({
       where: (model, { and, eq }) =>
         and(eq(model.id, input.petId), eq(model.ownerId, user.userId)),

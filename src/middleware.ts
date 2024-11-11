@@ -2,7 +2,15 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isSometimesProectedRoute = createRouteMatcher(["/"]);
 
-const isTenantRoute = createRouteMatcher(["/onboarding", "/sitters/(.*)"]);
+const isTenantRoute = createRouteMatcher([
+  "/join-group/(.*)",
+  "/my-groups",
+  "/my-pets",
+  "/sitters/(.*)",
+  "/groups/(.*)",
+  "/pets/(.*)",
+  "/user-profile",
+]);
 
 export default clerkMiddleware(async (auth, request) => {
   if ((await auth()).userId && isSometimesProectedRoute(request)) {
