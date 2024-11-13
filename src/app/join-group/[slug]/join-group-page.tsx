@@ -5,6 +5,7 @@ import { useServerAction } from "zsa-react";
 import { Card, CardContent } from "~/components/ui/card";
 import { joinGroupAction } from "~/server/actions/group-actions";
 
+// this could be a server component which attempts to join the group - probably a better implementation than client component
 export default function JoinGroupPage({ slug }: { slug: string }) {
   const { isPending, error, execute } = useServerAction(joinGroupAction, {});
 
