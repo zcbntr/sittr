@@ -9,7 +9,7 @@ export default function JoinGroupPage({ slug }: { slug: string }) {
   const { isPending, error, execute } = useServerAction(joinGroupAction, {});
 
   useEffect(() => {
-    execute({ inviteCode: slug });
+    void execute({ inviteCode: slug });
   }, [slug]);
 
   return (
