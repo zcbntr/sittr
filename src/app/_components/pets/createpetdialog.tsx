@@ -71,7 +71,7 @@ export default function CreatePetDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[454px]">
+      <DialogContent className="w-5/6 rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>New Pet</DialogTitle>
         </DialogHeader>

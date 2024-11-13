@@ -32,7 +32,7 @@ export default function RootLayout({
           <SignedIn>
             <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
               <main className="overflow-y-scroll">
-                <div className="h-dvh">
+                <div className="h-min">
                   <TopNav />
                   {children}
                 </div>

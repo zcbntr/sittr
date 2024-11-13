@@ -14,7 +14,7 @@ import {
 } from "~/lib/schemas/tasks";
 import EditTaskDialog from "~/app/_components/tasks/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/tasks/createtaskdialog";
-import { Group } from "~/lib/schemas/groups";
+import type { Group } from "~/lib/schemas/groups";
 
 const coloursList: string[] = [
   "#f54290",
