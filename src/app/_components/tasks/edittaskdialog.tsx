@@ -189,7 +189,6 @@ export default function EditTaskDialog({
         void fetchGroupPets();
       }
     },
-    // eslint-disable-next-line hooks/exhaustive-deps
     [task, form.formState.isDirty, selectedGroupId],
   );
 
