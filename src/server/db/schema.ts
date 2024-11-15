@@ -29,6 +29,7 @@ export const tasks = createTable("tasks", {
   ownerId: text("owner_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
+  // Set by task owner when they approve of its completion if requiresVerification is true
   completed: boolean("completed").notNull().default(false),
   dueMode: boolean("due_mode").notNull(),
   dueDate: timestamp("due_date", { withTimezone: true }),
@@ -38,6 +39,8 @@ export const tasks = createTable("tasks", {
   group: text("group").references(() => groups.id, {
     onDelete: "cascade",
   }),
+  // The user who is planning to complete the task
+  claimedBy: text("claimed_by"),
   // If the task is marked as done, the user who marked it as done
   markedAsDoneBy: text("marked_as_done_by"),
   requiresVerification: boolean("requires_verification")
