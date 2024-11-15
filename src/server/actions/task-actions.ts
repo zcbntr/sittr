@@ -11,12 +11,18 @@ import {
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { ratelimit } from "../ratelimit";
 
 export const createTaskAction = authenticatedProcedure
   .createServerAction()
   .input(createTaskInputSchema)
   .handler(async ({ input, ctx }) => {
     const { user } = ctx;
+    const { success } = await ratelimit.limit(user.userId);
+
+    if (!success) {
+      throw new Error("You are creating tasks too fast");
+    }
 
     await db
       .insert(tasks)
@@ -82,6 +88,11 @@ export const deleteTaskAction = ownsTaskProcedure
   .input(taskSchema.pick({ taskId: true }))
   .handler(async ({ input, ctx }) => {
     const { user } = ctx;
+    const { success } = await ratelimit.limit(user.userId);
+
+    if (!success) {
+      throw new Error("You are deleting tasks too fast");
+    }
 
     await db
       .delete(tasks)

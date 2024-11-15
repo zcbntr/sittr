@@ -8,12 +8,18 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { ratelimit } from "../ratelimit";
 
 export const createPetAction = authenticatedProcedure
   .createServerAction()
   .input(createPetInputSchema)
   .handler(async ({ input, ctx }) => {
     const { user } = ctx;
+    const { success } = await ratelimit.limit(user.userId);
+
+    if (!success) {
+      throw new Error("You are creating pets too fast");
+    }
 
     await db
       .insert(pets)
@@ -54,6 +60,11 @@ export const deletePetAction = authenticatedProcedure
   .input(z.object({ petId: z.string() }))
   .handler(async ({ input, ctx }) => {
     const { user } = ctx;
+    const { success } = await ratelimit.limit(user.userId);
+
+    if (!success) {
+      throw new Error("You are deleting pets too fast");
+    }
 
     await db
       .delete(pets)
