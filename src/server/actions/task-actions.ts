@@ -18,6 +18,7 @@ export const createTaskAction = authenticatedProcedure
   .input(createTaskInputSchema)
   .handler(async ({ input, ctx }) => {
     const { user } = ctx;
+
     const { success } = await ratelimit.limit(user.userId);
 
     if (!success) {

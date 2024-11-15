@@ -114,7 +114,6 @@ export default function CalendarComponent({ groups }: { groups: Group[] }) {
         .then((json) => taskListSchema.safeParse(json))
         .then((validatedTaskList) => {
           if (!validatedTaskList.success) {
-            console.error(validatedTaskList.error.message);
             throw new Error("Failed to fetch tasks");
           }
 
@@ -140,18 +139,6 @@ export default function CalendarComponent({ groups }: { groups: Group[] }) {
     }
 
     void fetchData();
-
-    document.addEventListener("taskCreated", () => {
-      void fetchData();
-    });
-
-    document.addEventListener("taskUpdated", () => {
-      void fetchData();
-    });
-
-    document.addEventListener("taskDeleted", () => {
-      void fetchData();
-    });
   }, []);
 
   const handleDateSelect = ({ start, end }: { start: Date; end: Date }) => {
