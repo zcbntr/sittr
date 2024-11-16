@@ -26,13 +26,6 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import type { Group } from "~/lib/schemas/groups";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Checkbox } from "~/components/ui/checkbox";
 import { type Task, taskSchema } from "~/lib/schemas/tasks";
@@ -44,12 +37,12 @@ import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
-export default function EditTaskDialog({
-  groups,
+// This shouldnt be forms, two different hooks for claiming and marking as done instead
+
+export default function ViewTaskDialog({
   task,
   children,
 }: {
-  groups: Group[];
   task: Task | undefined;
   children: React.ReactNode;
 }) {
@@ -148,249 +141,79 @@ export default function EditTaskDialog({
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="w-full space-y-6"
-          >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Give Jake his dinner" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      readOnly
-                      placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <div className="w-full space-y-6">
+          <div>Name</div>
+          <Input value={task?.name} />
 
-            {dueMode && (
-              <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel className="text-left">Due Date/Time</FormLabel>
+          <div>Description</div>
 
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-[280px] justify-start text-left font-normal",
-                          !field.value && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {field.value ? (
-                          format(field.value, "PPP HH:mm:ss")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </FormControl>
+          <Textarea readOnly value={task?.description} />
 
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {task?.dueMode && (
+            <div>
+              <div>Due Date/Time</div>
+              <Input readOnly>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                <div>{format(task?.dueDate, "PPP HH:mm:ss")}</div>
+              </Input>
+            </div>
+          )}
+
+          {!task?.dueMode && (
+            <div>
+              <div>Start Date/Time</div>
+
+              <Input readOnly>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                <div>{format(task?.dateRange?.from, "PPP HH:mm:ss")}</div>
+              </Input>
+            </div>
+          )}
+
+          {!task?.dueMode && (
+            <div>
+              <div>End Date/Time</div>
+
+              <Input readOnly>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                <div>{format(task?.dateRange?.to, "PPP HH:mm:ss")}</div>
+              </Input>
+            </div>
+          )}
+
+          {/* Need to fetch group name with this id */}
+          <Input readOnly value={task?.groupId}></Input>
+
+          {/* Need to fetch pet name with this id */}
+          <Input readOnly value={task?.petId}></Input>
+
+          <FormField
+            control={form.control}
+            name="markedAsDone"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  {form.getValues("markedAsDoneBy") && field.value && (
+                    <FormLabel>
+                      Marked as complete by {form.getValues("markedAsDoneBy")}
+                    </FormLabel>
+                  )}
+                  {(!form.getValues("markedAsDoneBy") || !field.value) && (
+                    <FormLabel>Mark as complete</FormLabel>
+                  )}
+                </div>
+              </FormItem>
             )}
+          />
+        </div>
 
-            {!dueMode && (
-              <FormField
-                control={form.control}
-                name="dateRange.from"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel className="text-left">Start Date/Time</FormLabel>
-
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        disabled
-                        className={cn(
-                          "w-[280px] justify-start text-left font-normal",
-                          !field.value && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {field.value ? (
-                          format(field.value, "PPP HH:mm:ss")
-                        ) : (
-                          <span>Pick a start date/time</span>
-                        )}
-                      </Button>
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {!dueMode && (
-              <FormField
-                control={form.control}
-                name="dateRange.to"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel className="text-left">End Date/Time</FormLabel>
-
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        disabled
-                        className={cn(
-                          "w-[280px] justify-start text-left font-normal",
-                          !field.value && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {field.value ? (
-                          format(field.value, "PPP HH:mm:ss")
-                        ) : (
-                          <span>Pick a end date/time</span>
-                        )}
-                      </Button>
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            <FormField
-              control={form.control}
-              name="groupId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Group</FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      form.setValue("groupId", value);
-                      setSelectedGroupId(value);
-                    }}
-                    disabled
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            groups.length !== 0
-                              ? "Select group to associate with task"
-                              : "Make a group first"
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {groups.map((group) => (
-                        <SelectItem key={group.id} value={group.id.toString()}>
-                          {group.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Select a group to associate with this task.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="petId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pet, House, or Plant</FormLabel>
-                  <Select
-                    value={field.value?.toString()}
-                    onValueChange={(value) => {
-                      form.setValue("petId", value);
-                    }}
-                    disabled
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            !petsEmpty || groupPets.length !== 0
-                              ? "Select a pet assigned to the group"
-                              : "Choose a group with pets assigned"
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {groupPets.map((pet) => (
-                        <SelectItem
-                          key={pet.petId}
-                          value={pet.petId.toString()}
-                        >
-                          {pet.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Select a pet to associate with this task. The pet must be
-                    assigned to the selected group.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="markedAsDone"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    {form.getValues("markedAsDoneBy") && field.value && (
-                      <FormLabel>
-                        Marked as complete by {form.getValues("markedAsDoneBy")}
-                      </FormLabel>
-                    )}
-                    {(!form.getValues("markedAsDoneBy") || !field.value) && (
-                      <FormLabel>Mark as complete</FormLabel>
-                    )}
-                  </div>
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
         {claimError && <div>{claimError.message}</div>}
         {markAsDoneError && <div>{markAsDoneError.message}</div>}
       </DialogContent>

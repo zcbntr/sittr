@@ -467,7 +467,7 @@ export default function EditTaskDialog({
               name="petId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Pet, House, or Plant</FormLabel>
+                  <FormLabel>Pet</FormLabel>
                   <Select
                     defaultValue={task?.petId ? task.petId.toString() : ""}
                     value={field.value?.toString()}

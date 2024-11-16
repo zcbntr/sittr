@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { type DateRange } from "~/lib/schemas";
+import ViewTaskDialog from "~/app/_components/tasks/viewtaskdialog";
 
 const coloursList: string[] = [
   "#f54290",
@@ -319,7 +320,9 @@ export default function CalendarComponent({
           <Button id="openEditTaskDialogHiddenButton" className="hidden" />
         </EditTaskDialog>
 
-        
+        <ViewTaskDialog task={selectedTask}>
+          <Button id="openViewTaskDialogHiddenButton" className="hidden" />
+        </ViewTaskDialog>
       </div>
     </div>
   );
