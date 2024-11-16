@@ -5,10 +5,18 @@ import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useEffect, useState } from "react";
 import moment from "moment";
-import { endOfMonth, endOfWeek, startOfMonth, startOfWeek } from "date-fns";
+import {
+  addHours,
+  addMilliseconds,
+  endOfMonth,
+  endOfWeek,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
 import { Button } from "./ui/button";
 import {
   taskListSchema,
+  taskSchema,
   TaskType,
   TaskTypeEnum,
   type CreateTaskFormProps,
@@ -55,12 +63,12 @@ class CalendarEvent {
   title: string;
   allDay: boolean;
   dueMode: boolean;
-  dueDate: Date;
-  dateRange: DateRange;
+  dueDate: Date | null;
+  dateRange: DateRange | null;
   start: Date;
   end: Date;
   petId?: string;
-  groupId?: string;
+  groupId: string;
   markedAsDone: boolean;
   markedAsDoneBy?: string;
   claimed: boolean;
@@ -74,16 +82,16 @@ class CalendarEvent {
     _ownerId: string,
     _title: string,
     _dueMode: boolean,
-    _dueDate: Date,
-    _dateRange: DateRange,
+    _dueDate: Date | null,
+    _dateRange: DateRange | null,
     _start: Date,
-    _endDate: Date,
+    _end: Date,
     _markedAsDone: boolean,
     _claimed: boolean,
+    _groupId: string,
     _markedAsDoneBy?: string,
     _claimedBy?: string,
     _petId?: string,
-    _groupId?: string,
     _allDay?: boolean,
     _desc?: string,
     _resourceId?: string,
@@ -96,7 +104,7 @@ class CalendarEvent {
     this.dueDate = _dueDate;
     this.dateRange = _dateRange;
     this.start = _start;
-    this.end = _endDate;
+    this.end = _end;
     this.markedAsDone = _markedAsDone;
     this.markedAsDoneBy = _markedAsDoneBy;
     this.claimed = _claimed;
@@ -147,37 +155,35 @@ export default function CalendarComponent({
           }
 
           const events: CalendarEvent[] = validatedTaskList.data.map((task) => {
+            console.log("groupId", task.groupId);
+
             return new CalendarEvent(
               task.taskId,
               task.ownerId,
               task.name,
               task.dueMode,
-              task.dueDate ? new Date(task.dueDate) : new Date(),
-              task.dateRange ?? {
-                from: new Date(),
-                to: new Date(),
-              },
-              new Date(
-                task.dateRange?.from
-                  ? task.dateRange.from
-                  : task.dueDate
-                    ? task.dueDate
-                    : "",
-              ),
-              new Date(
-                task.dateRange?.to
-                  ? task.dateRange.to
-                  : task.dueDate
-                    ? task.dueDate
-                    : "",
-              ),
+              task.dueDate ? new Date(task.dueDate) : null,
+              task.dateRange ? task.dateRange : null,
+
+              task.dateRange?.from
+                ? task.dateRange.from
+                : task.dueDate
+                  ? task.dueDate
+                  : new Date(),
+
+              task.dateRange?.to
+                ? task.dateRange.to
+                : task.dueDate
+                  ? addMilliseconds(task.dueDate, 1)
+                  : addMilliseconds(new Date(), 1),
+
               task.markedAsDone,
               task.claimed,
+              task.groupId,
               task.markedAsDoneBy ? task.markedAsDoneBy : undefined,
               task.claimedBy ? task.claimedBy : undefined,
               task.petId ? task.petId : "",
-              task.groupId,
-              false,
+              task.dueMode,
               task.description ? task.description : "",
             );
           });
@@ -198,7 +204,7 @@ export default function CalendarComponent({
         dueDate: start,
         dateRange: {
           from: start,
-          to: end,
+          to: addHours(end, 1),
         },
       });
       button.click();
@@ -208,26 +214,28 @@ export default function CalendarComponent({
   const handleEventSelect = (event: CalendarEvent) => {
     const button = document.getElementById("openEditTaskDialogHiddenButton");
     if (button) {
-      setSelectedTask({
-        taskId: event.id,
-        ownerId: event.ownerId,
-        name: event.title,
-        description: event.desc,
-        petId: event.petId,
-        groupId: event.groupId,
-        dueMode: event.dueMode,
-        dueDate: event.end,
-        dateRange: event.start &&
-          event.end && {
-            from: event.start,
-            to: event.end,
-          },
-        markedAsDone: event.markedAsDone,
-        markedAsDoneBy: event.markedAsDoneBy,
-        claimed: event.claimed,
-        claimedBy: event.claimedBy,
-        requiresVerification: false,
-      });
+      setSelectedTask(
+        taskSchema.parse({
+          taskId: event.id,
+          ownerId: event.ownerId,
+          name: event.title,
+          description: event.desc,
+          petId: event.petId,
+          groupId: event.groupId,
+          dueMode: event.dueMode,
+          dueDate: event.end,
+          dateRange: event.start &&
+            event.end && {
+              from: event.start,
+              to: event.end,
+            },
+          markedAsDone: event.markedAsDone,
+          markedAsDoneBy: event.markedAsDoneBy,
+          claimed: event.claimed,
+          claimedBy: event.claimedBy,
+          requiresVerification: false,
+        }),
+      );
       button.click();
     }
   };

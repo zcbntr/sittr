@@ -19,8 +19,8 @@ export const taskSchema = z.object({
   dueMode: z.boolean(),
   dueDate: z.coerce.date().optional().nullable(),
   dateRange: dateRangeSchema.optional().nullable(),
-  petId: z.string().optional(),
-  groupId: z.string().optional(),
+  petId: z.string(),
+  groupId: z.string(),
   requiresVerification: z.boolean().optional().default(false),
   markedAsDone: z.boolean(),
   markedAsDoneBy: z.string().optional().nullable(),
@@ -60,64 +60,65 @@ export const getTaskAPISchema = z
 export type GetTaskAPI = z.infer<typeof getTaskAPISchema>;
 
 // Fix constraints - they have been removed so tasks can be created - for some reason the create task dialog was not working with the constraints
-export const createTaskInputSchema = z.object({
-  name: z.string().min(3).max(50),
-  description: z.string().min(3).max(500).optional(),
-  dueMode: z.boolean(),
-  dueDate: z.coerce.date().optional(),
-  dateRange: dateRangeSchema.optional(),
-  petId: z.string(),
-  groupId: z.string().optional(),
-});
-// // Must have either due date or start and end date
-// .refine(
-//   (data) =>
-//     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-//     (data.dueMode && data.dueDate) ||
-//     (!data.dueMode && data.dateRange !== undefined),
-//   {
-//     path: ["dueDate"],
-//     message: "dueDate is required if dateRange is not provided",
-//   },
-// )
-// // End date must be after start date
-// .refine(
-//   (data) =>
-//     !data.dueMode &&
-//     data.dateRange &&
-//     data.dateRange.to > data.dateRange.from,
-//   {
-//     path: ["dateRange"],
-//     message: "dateRange.to must be after dateRange.from",
-//   },
-// )
-// // Start date must be in the future
-// .refine(
-//   (data) =>
-//     !data.dueMode && data.dateRange && data.dateRange.from > new Date(),
-//   {
-//     path: ["dateRange"],
-//     message: "dateRange.from must be in the future",
-//   },
-// )
-// // To date must be in the future
-// .refine(
-//   (data) => !data.dueMode && data.dateRange && data.dateRange.to > new Date(),
-//   {
-//     path: ["dateRange"],
-//     message: "dateRange.to must be in the future",
-//   },
-// )
-// // Due date must be in the future
-// .refine(
-//   (data) =>
-//     !data.dueMode ||
-//     (data.dueMode && data.dueDate && data.dueDate > new Date()),
-//   {
-//     path: ["dueDate"],
-//     message: "dueDate must be in the future",
-//   },
-// );
+export const createTaskInputSchema = z
+  .object({
+    name: z.string().min(3).max(50),
+    description: z.string().min(3).max(500).optional(),
+    dueMode: z.boolean(),
+    dueDate: z.coerce.date().optional(),
+    dateRange: dateRangeSchema.optional(),
+    petId: z.string(),
+    groupId: z.string(),
+  })
+  // Must have either due date or start and end date
+  .refine(
+    (data) =>
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      (data.dueMode && data.dueDate) ||
+      (!data.dueMode && data.dateRange !== undefined),
+    {
+      path: ["dueDate"],
+      message: "dueDate is required if dateRange is not provided",
+    },
+  )
+  // End date must be after start date
+  .refine(
+    (data) =>
+      !data.dueMode &&
+      data.dateRange &&
+      data.dateRange.to > data.dateRange.from,
+    {
+      path: ["dateRange"],
+      message: "dateRange.to must be after dateRange.from",
+    },
+  )
+  // Start date must be in the future
+  .refine(
+    (data) =>
+      !data.dueMode && data.dateRange && data.dateRange.from > new Date(),
+    {
+      path: ["dateRange"],
+      message: "dateRange.from must be in the future",
+    },
+  )
+  // To date must be in the future
+  .refine(
+    (data) => !data.dueMode && data.dateRange && data.dateRange.to > new Date(),
+    {
+      path: ["dateRange"],
+      message: "dateRange.to must be in the future",
+    },
+  )
+  // Due date must be in the future
+  .refine(
+    (data) =>
+      !data.dueMode ||
+      (data.dueMode && data.dueDate && data.dueDate > new Date()),
+    {
+      path: ["dueDate"],
+      message: "dueDate must be in the future",
+    },
+  );
 
 export type CreateTask = z.infer<typeof createTaskInputSchema>;
 

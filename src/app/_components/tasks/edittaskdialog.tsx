@@ -79,7 +79,9 @@ export default function EditTaskDialog({
   const [groupPets, setGroupPets] = useState<Pet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
 
-  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
+  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
+    undefined,
+  );
   const [dueMode, setDueMode] = useState<boolean>(true);
 
   const form = useForm<z.infer<typeof taskSchema>>({
@@ -90,14 +92,14 @@ export default function EditTaskDialog({
       name: task?.name ? task.name : "",
       description: task?.description ? task.description : "",
       dueMode: task?.dueMode ? task.dueMode : true,
-      dueDate: task?.dueDate ? task.dueDate : new Date(),
-      dateRange: task?.dateRange
-        ? task.dateRange
-        : { from: new Date(), to: new Date() },
+      dueDate: task?.dueDate ? task.dueDate : null,
+      dateRange: task?.dateRange ? task.dateRange : null,
       petId: task?.petId ? task.petId : "",
       groupId: task?.groupId ? task.groupId : "",
       markedAsDone: task?.markedAsDone ? task.markedAsDone : false,
       markedAsDoneBy: task?.markedAsDoneBy ? task.markedAsDoneBy : "",
+      claimed: task?.claimed ? task.claimed : false,
+      claimedBy: task?.claimedBy ? task.claimedBy : "",
     },
   });
 
@@ -155,10 +157,26 @@ export default function EditTaskDialog({
 
   // Update state upon task change, Update form value upon task change
   useEffect(() => {
-    localStorage.setItem(
-      "editTaskFormModified",
-      form.formState.isDirty.toString(),
+    form.setValue("taskId", task?.taskId ? task.taskId : "");
+    form.setValue("ownerId", task?.ownerId ? task.ownerId : "");
+    form.setValue("name", task?.name ? task.name : "");
+    form.setValue("description", task?.description ? task.description : "");
+    form.setValue("dueMode", task?.dueMode ? task.dueMode : true);
+    form.setValue("dueDate", task?.dueDate ? task.dueDate : null);
+    form.setValue("dateRange", task?.dateRange ? task.dateRange : null);
+    form.setValue("petId", task?.petId ? task.petId : "");
+    form.setValue("groupId", task?.groupId ? task.groupId : "");
+    setSelectedGroupId(task?.groupId ? task.groupId : "");
+    form.setValue(
+      "markedAsDone",
+      task?.markedAsDone ? task.markedAsDone : false,
     );
+    form.setValue(
+      "markedAsDoneBy",
+      task?.markedAsDoneBy ? task.markedAsDoneBy : "",
+    );
+    form.setValue("claimed", task?.claimed ? task.claimed : false);
+    form.setValue("claimedBy", task?.claimedBy ? task.claimedBy : "");
 
     async function fetchGroupPets() {
       await fetch("../api/group-pets?id=" + form.getValues("groupId"), {
@@ -186,7 +204,7 @@ export default function EditTaskDialog({
     if (task) {
       void fetchGroupPets();
     }
-  }, [task, form.formState.isDirty, selectedGroupId]);
+  }, [task, selectedGroupId]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -453,6 +471,7 @@ export default function EditTaskDialog({
                 <FormItem>
                   <FormLabel>Pet, House, or Plant</FormLabel>
                   <Select
+                    value={field.value?.toString()}
                     onValueChange={(value) => {
                       form.setValue("petId", value);
                     }}
@@ -523,7 +542,7 @@ export default function EditTaskDialog({
                       Delete Task
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="max-h-screen w-5/6 overflow-y-scroll rounded-md sm:w-[533px]">
+                  <AlertDialogContent className="max-h-screen overflow-y-scroll rounded-md sm:w-[533px]">
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete Task</AlertDialogTitle>
                     </AlertDialogHeader>

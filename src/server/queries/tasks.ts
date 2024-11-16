@@ -212,7 +212,7 @@ export async function getTasksSittingForInRange(
           to: joinedTaskRow.tasks.dateRangeTo,
         },
       petId: joinedTaskRow.tasks.pet,
-      groupId: joinedTaskRow.groups?.id ?? undefined,
+      groupId: joinedTaskRow.tasks.group,
       markedAsDone: joinedTaskRow.tasks.markedAsDoneBy !== null,
       markedAsDoneBy: joinedTaskRow.tasks.markedAsDoneBy,
       claimed: joinedTaskRow.tasks.claimedBy !== null,
@@ -274,7 +274,7 @@ export async function getTasksVisibileInRange(
           to: joinedTaskRow.tasks.dateRangeTo,
         },
       petId: joinedTaskRow.tasks.pet,
-      groupId: joinedTaskRow.groups?.id ?? undefined,
+      groupId: joinedTaskRow.tasks.group,
       markedAsDone: joinedTaskRow.tasks.markedAsDoneBy !== null,
       markedAsDoneBy: joinedTaskRow.tasks.markedAsDoneBy,
       claimed: joinedTaskRow.tasks.claimedBy !== null,
@@ -282,6 +282,7 @@ export async function getTasksVisibileInRange(
     });
 
     if (!parse.success) {
+      console.log(parse.error);
       throw new Error("Failed to parse task");
     }
 
