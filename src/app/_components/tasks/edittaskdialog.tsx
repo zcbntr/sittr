@@ -523,28 +523,30 @@ export default function EditTaskDialog({
                       Delete Task
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="max-h-screen w-5/6 overflow-y-scroll rounded-md sm:w-[533px]">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Group</AlertDialogTitle>
+                      <AlertDialogTitle>Delete Task</AlertDialogTitle>
                     </AlertDialogHeader>
                     <AlertDialogDescription>
-                      Are you sure you want to delete this group? This action
+                      Are you sure you want to delete this task? This action
                       cannot be undone.
                     </AlertDialogDescription>
                     <AlertDialogFooter>
-                      <AlertDialogAction
-                        disabled={deletePending}
-                        onClick={async () => {
-                          await executeDelete({
-                            taskId: task?.taskId ? task.taskId : "",
-                          });
-                        }}
-                      >
-                        Confirm
-                      </AlertDialogAction>
-                      <AlertDialogCancel disabled={deletePending}>
-                        Cancel
-                      </AlertDialogCancel>
+                      <div className="grid-cols-auto grid gap-2">
+                        <AlertDialogAction
+                          disabled={deletePending}
+                          onClick={async () => {
+                            await executeDelete({
+                              taskId: task?.taskId ? task.taskId : "",
+                            });
+                          }}
+                        >
+                          Confirm
+                        </AlertDialogAction>
+                        <AlertDialogCancel disabled={deletePending}>
+                          Cancel
+                        </AlertDialogCancel>
+                      </div>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>

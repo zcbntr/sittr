@@ -151,8 +151,20 @@ export default function CalendarComponent({ groups }: { groups: Group[] }) {
                 from: new Date(),
                 to: new Date(),
               },
-              new Date(task.dateRange?.from ? task.dateRange.from : task.dueDate ? task.dueDate : ""),
-              new Date(task.dateRange?.to ? task.dateRange.to : task.dueDate ? task.dueDate : ""),
+              new Date(
+                task.dateRange?.from
+                  ? task.dateRange.from
+                  : task.dueDate
+                    ? task.dueDate
+                    : "",
+              ),
+              new Date(
+                task.dateRange?.to
+                  ? task.dateRange.to
+                  : task.dueDate
+                    ? task.dueDate
+                    : "",
+              ),
               task.markedAsDone,
               task.claimed,
               task.markedAsDoneBy ? task.markedAsDoneBy : undefined,
@@ -215,60 +227,61 @@ export default function CalendarComponent({ groups }: { groups: Group[] }) {
   };
 
   return (
-    <div className="h-[38rem]">
-      <div>
+    <div>
+      <div className="pb-3">
         <TaskTypeSelect
           showTaskTypes={tasksType}
           setShowTaskTypes={setTasksType}
         />
       </div>
+      <div className="h-[37rem]">
+        <Calendar
+          selectable
+          localizer={localizer}
+          events={events}
+          onSelectEvent={handleEventSelect}
+          onSelectSlot={handleDateSelect}
+          views={allViews}
+          defaultView={view}
+          view={view}
+          onView={(view) => setView(view)}
+          defaultDate={new Date()}
+          date={date}
+          onNavigate={(date) => setDate(new Date(date))}
+          startAccessor="start"
+          endAccessor="end"
+          titleAccessor="title"
+          eventPropGetter={(event, start, end, isSelected) => {
+            const newStyle = {
+              backgroundColor: "lightgrey",
+              color: "black",
+            };
 
-      <Calendar
-        selectable
-        localizer={localizer}
-        events={events}
-        onSelectEvent={handleEventSelect}
-        onSelectSlot={handleDateSelect}
-        views={allViews}
-        defaultView={view}
-        view={view}
-        onView={(view) => setView(view)}
-        defaultDate={new Date()}
-        date={date}
-        onNavigate={(date) => setDate(new Date(date))}
-        startAccessor="start"
-        endAccessor="end"
-        titleAccessor="title"
-        eventPropGetter={(event, start, end, isSelected) => {
-          const newStyle = {
-            backgroundColor: "lightgrey",
-            color: "black",
-          };
+            // Map the event to a colour based on the petId - needs testing!
+            const petId = event.petId;
+            if (petId) {
+              const colour = coloursList[parseInt(petId) % coloursList.length];
+              if (colour) newStyle.backgroundColor = colour;
+            }
 
-          // Map the event to a colour based on the petId - needs testing!
-          const petId = event.petId;
-          if (petId) {
-            const colour = coloursList[parseInt(petId) % coloursList.length];
-            if (colour) newStyle.backgroundColor = colour;
-          }
+            return {
+              className: "",
+              style: newStyle,
+            };
+          }}
+        />
 
-          return {
-            className: "",
-            style: newStyle,
-          };
-        }}
-      />
+        <CreateTaskDialog groups={groups} props={createTaskDialogProps}>
+          <Button
+            id="openCreateTaskDialogHiddenButton"
+            className="hidden"
+          ></Button>
+        </CreateTaskDialog>
 
-      <CreateTaskDialog groups={groups} props={createTaskDialogProps}>
-        <Button
-          id="openCreateTaskDialogHiddenButton"
-          className="hidden"
-        ></Button>
-      </CreateTaskDialog>
-
-      <EditTaskDialog groups={groups} task={selectedTask}>
-        <Button id="openEditTaskDialogHiddenButton" className="hidden" />
-      </EditTaskDialog>
+        <EditTaskDialog groups={groups} task={selectedTask}>
+          <Button id="openEditTaskDialogHiddenButton" className="hidden" />
+        </EditTaskDialog>
+      </div>
     </div>
   );
 }
@@ -283,16 +296,16 @@ function TaskTypeSelect({
   return (
     <Select>
       <SelectTrigger>
-        <SelectValue>{showTaskTypes}</SelectValue>
+        <SelectValue defaultValue={TaskTypeEnum.Values.All.toString()} placeholder={TaskTypeEnum.Values.All}>{showTaskTypes.toString()}</SelectValue>
       </SelectTrigger>
-      <SelectContent defaultValue={TaskTypeEnum.Values.All}>
-        {Object.values(TaskType).map((taskType) => (
+      <SelectContent>
+        {Object.values(TaskTypeEnum.Values).map((taskType) => (
           <SelectItem
             value={taskType}
             key={taskType}
             onClick={() => setShowTaskTypes(taskType)}
           >
-            {taskType}
+            {taskType.toString()}
           </SelectItem>
         ))}
       </SelectContent>
