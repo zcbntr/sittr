@@ -2,7 +2,7 @@ import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
-import { ClerkProvider, SignedIn, SignedOut } from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { TopNav } from "./_components/topnav";
 import { Footer } from "./_components/footer";
@@ -22,27 +22,18 @@ export default function RootLayout({
       <html lang="en" className={`${GeistSans.variable}`}>
         <body className={`${GeistSans.variable}`}>
           <Analytics />
-          <SignedOut>
-            <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
-              <main className="overflow-y-scroll">
-                <div className="h-dvh">{children}</div>
 
-                <Footer />
-              </main>
-            </div>
-          </SignedOut>
-          <SignedIn>
-            <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
-              <main className="overflow-y-scroll">
-                <div className="h-min">
-                  <TopNav />
-                  {children}
-                </div>
+          <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
+            <main className="overflow-y-scroll">
+              <div className="h-min">
+                <TopNav />
+                {children}
+              </div>
 
-                <Footer />
-              </main>
-            </div>
-          </SignedIn>
+              <Footer />
+            </main>
+          </div>
+
           <Toaster />
         </body>
       </html>

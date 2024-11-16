@@ -106,7 +106,6 @@ export default function EditTaskDialog({
   const {
     isPending: updatePending,
     execute: executeUpdate,
-    data: updateData,
     error: updateError,
   } = useServerAction(updateTaskAction, {
     onError: ({ err }) => {
@@ -126,7 +125,6 @@ export default function EditTaskDialog({
   const {
     isPending: deletePending,
     executeFormAction: executeDelete,
-    data: deleteData,
     error: deleteError,
   } = useServerAction(deleteTaskAction, {
     onError: ({ err }) => {
@@ -471,6 +469,7 @@ export default function EditTaskDialog({
                 <FormItem>
                   <FormLabel>Pet, House, or Plant</FormLabel>
                   <Select
+                    defaultValue={task?.petId ? task.petId.toString() : ""}
                     value={field.value?.toString()}
                     onValueChange={(value) => {
                       form.setValue("petId", value);

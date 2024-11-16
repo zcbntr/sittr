@@ -67,7 +67,7 @@ export const updateTaskAction = ownsTaskProcedure
     revalidatePath(`/tasks/${task.id}`);
   });
 
-export const toggleTaskMarkedAsDone = canMarkTaskAsDoneProcedure
+export const toggleTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
   .createServerAction()
   .input(taskSchema.pick({ taskId: true }))
   .handler(async ({ input, ctx }) => {

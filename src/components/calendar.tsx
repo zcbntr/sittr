@@ -17,7 +17,7 @@ import { Button } from "./ui/button";
 import {
   taskListSchema,
   taskSchema,
-  TaskType,
+  type TaskType,
   TaskTypeEnum,
   type CreateTaskFormProps,
   type Task,
@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { DateRange } from "~/lib/schemas";
+import { type DateRange } from "~/lib/schemas";
 
 const coloursList: string[] = [
   "#f54290",
@@ -212,31 +212,35 @@ export default function CalendarComponent({
   };
 
   const handleEventSelect = (event: CalendarEvent) => {
-    const button = document.getElementById("openEditTaskDialogHiddenButton");
-    if (button) {
-      setSelectedTask(
-        taskSchema.parse({
-          taskId: event.id,
-          ownerId: event.ownerId,
-          name: event.title,
-          description: event.desc,
-          petId: event.petId,
-          groupId: event.groupId,
-          dueMode: event.dueMode,
-          dueDate: event.end,
-          dateRange: event.start &&
-            event.end && {
-              from: event.start,
-              to: event.end,
-            },
-          markedAsDone: event.markedAsDone,
-          markedAsDoneBy: event.markedAsDoneBy,
-          claimed: event.claimed,
-          claimedBy: event.claimedBy,
-          requiresVerification: false,
-        }),
-      );
-      button.click();
+    // Check if the user owns the task
+    if (event.ownerId !== userId) {
+    } else {
+      const button = document.getElementById("openEditTaskDialogHiddenButton");
+      if (button) {
+        setSelectedTask(
+          taskSchema.parse({
+            taskId: event.id,
+            ownerId: event.ownerId,
+            name: event.title,
+            description: event.desc,
+            petId: event.petId,
+            groupId: event.groupId,
+            dueMode: event.dueMode,
+            dueDate: event.end,
+            dateRange: event.start &&
+              event.end && {
+                from: event.start,
+                to: event.end,
+              },
+            markedAsDone: event.markedAsDone,
+            markedAsDoneBy: event.markedAsDoneBy,
+            claimed: event.claimed,
+            claimedBy: event.claimedBy,
+            requiresVerification: false,
+          }),
+        );
+        button.click();
+      }
     }
   };
 
@@ -314,11 +318,14 @@ export default function CalendarComponent({
         <EditTaskDialog groups={groups} task={selectedTask}>
           <Button id="openEditTaskDialogHiddenButton" className="hidden" />
         </EditTaskDialog>
+
+        
       </div>
     </div>
   );
 }
 
+// This should be layed out in a nice place
 function TaskTypeSelect({
   showTaskTypes,
   setShowTaskTypes,
@@ -328,7 +335,7 @@ function TaskTypeSelect({
 }) {
   return (
     <Select>
-      <SelectTrigger>
+      <SelectTrigger className="max-w-48">
         <SelectValue
           defaultValue={TaskTypeEnum.Values.All.toString()}
           placeholder={TaskTypeEnum.Values.All}
@@ -336,7 +343,7 @@ function TaskTypeSelect({
           {showTaskTypes.toString()}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="max-w-48">
         {Object.values(TaskTypeEnum.Values).map((taskType) => (
           <SelectItem
             value={taskType}

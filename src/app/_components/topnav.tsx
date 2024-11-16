@@ -1,8 +1,7 @@
 "use client";
 
-import { SignedIn, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
-import { Button } from "~/components/ui/button";
 import { MdGroups, MdPets } from "react-icons/md";
 
 export function TopNav() {
@@ -12,7 +11,7 @@ export function TopNav() {
         <Link href="/" className="text-4xl font-bold" prefetch={false}>
           sittr
         </Link>
-        <nav className=" items-center space-x-6 md:flex">
+        <nav className="items-center space-x-6 md:flex">
           <div className="flex place-content-center">
             <SignedIn>
               <UserButton
@@ -41,6 +40,9 @@ export function TopNav() {
                 </UserButton.MenuItems>
               </UserButton>
             </SignedIn>
+            <SignedOut>
+              <SignInButton />
+            </SignedOut>
           </div>
         </nav>
       </div>
