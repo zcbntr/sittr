@@ -108,7 +108,13 @@ class CalendarEvent {
   }
 }
 
-export default function CalendarComponent({ groups }: { groups: Group[] }) {
+export default function CalendarComponent({
+  userId,
+  groups,
+}: {
+  userId: string | null;
+  groups: Group[];
+}) {
   const [tasksType, setTasksType] = useState<TaskTypeEnum>(
     TaskTypeEnum.Enum.All,
   );
@@ -255,13 +261,32 @@ export default function CalendarComponent({ groups }: { groups: Group[] }) {
             const newStyle = {
               backgroundColor: "lightgrey",
               color: "black",
+              opacity: 1,
+              background: "",
             };
 
-            // Map the event to a colour based on the petId - needs testing!
+            // Map the event to a colour based on the petId
             const petId = event.petId;
             if (petId) {
-              const colour = coloursList[parseInt(petId) % coloursList.length];
+              const colour =
+                coloursList[
+                  (petId
+                    .split("")
+                    .map((i) => i.charCodeAt(0))
+                    .reduce((a, b) => a + b, 0) %
+                    10) %
+                    coloursList.length
+                ];
+
               if (colour) newStyle.backgroundColor = colour;
+            }
+
+            // If the task is marked as done, or claimed by another user, change the background opacity
+            if (
+              (event.claimed && event.claimedBy != userId) ||
+              event.markedAsDone
+            ) {
+              newStyle.opacity = 0.5;
             }
 
             return {
@@ -296,7 +321,12 @@ function TaskTypeSelect({
   return (
     <Select>
       <SelectTrigger>
-        <SelectValue defaultValue={TaskTypeEnum.Values.All.toString()} placeholder={TaskTypeEnum.Values.All}>{showTaskTypes.toString()}</SelectValue>
+        <SelectValue
+          defaultValue={TaskTypeEnum.Values.All.toString()}
+          placeholder={TaskTypeEnum.Values.All}
+        >
+          {showTaskTypes.toString()}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {Object.values(TaskTypeEnum.Values).map((taskType) => (

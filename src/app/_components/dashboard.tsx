@@ -8,8 +8,10 @@ import CreatePetDialog from "./pets/createpetdialog";
 import CreateGroupDialog from "./groups/creategroupdialog";
 import CreateTaskDialog from "./tasks/createtaskdialog";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
+import { auth } from "@clerk/nextjs/server";
 
 export default async function Dashboard() {
+  const { userId } = await auth();
   const groups = await getGroupsUserIsIn();
 
   return (
@@ -32,7 +34,7 @@ export default async function Dashboard() {
       </section>
       <section>
         <div className="pb-5">
-          <CalendarComponent groups={groups} />
+          <CalendarComponent userId={userId} groups={groups} />
         </div>
       </section>
     </div>
