@@ -76,7 +76,7 @@ export default function CreateGroupInviteDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="w-5/6 rounded-md sm:w-[533px]">
+      <DialogContent className="max-h-screen w-5/6 overflow-y-scroll rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>New Group Invite Link</DialogTitle>
         </DialogHeader>
@@ -85,11 +85,7 @@ export default function CreateGroupInviteDialog({
             <Label htmlFor="link" className="sr-only">
               Link
             </Label>
-            <Input
-              id="link"
-              value={isPending ? "" : code}
-              readOnly
-            />
+            <Input id="link" value={isPending ? "" : code} readOnly />
           </div>
 
           <Button

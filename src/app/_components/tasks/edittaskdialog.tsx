@@ -20,7 +20,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { type DateRange } from "react-day-picker";
 import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import {
@@ -155,47 +154,44 @@ export default function EditTaskDialog({
   }
 
   // Update state upon task change, Update form value upon task change
-  useEffect(
-    () => {
-      localStorage.setItem(
-        "editTaskFormModified",
-        form.formState.isDirty.toString(),
-      );
+  useEffect(() => {
+    localStorage.setItem(
+      "editTaskFormModified",
+      form.formState.isDirty.toString(),
+    );
 
-      async function fetchGroupPets() {
-        await fetch("../api/group-pets?id=" + form.getValues("groupId"), {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-          .then((res) => res.json())
-          .then((json) => petListSchema.safeParse(json))
-          .then((validatedPetListObject) => {
-            if (!validatedPetListObject.success) {
-              throw new Error("Failed to get group's pets");
-            }
+    async function fetchGroupPets() {
+      await fetch("../api/group-pets?id=" + form.getValues("groupId"), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((json) => petListSchema.safeParse(json))
+        .then((validatedPetListObject) => {
+          if (!validatedPetListObject.success) {
+            throw new Error("Failed to get group's pets");
+          }
 
-            if (validatedPetListObject.data.length > 0) {
-              setGroupPets(validatedPetListObject.data);
-            } else if (validatedPetListObject.data.length === 0) {
-              setPetsEmpty(true);
-            }
-          });
-      }
+          if (validatedPetListObject.data.length > 0) {
+            setGroupPets(validatedPetListObject.data);
+          } else if (validatedPetListObject.data.length === 0) {
+            setPetsEmpty(true);
+          }
+        });
+    }
 
-      // Fetch all possible sitting pets
-      if (task) {
-        void fetchGroupPets();
-      }
-    },
-    [task, form.formState.isDirty, selectedGroupId],
-  );
+    // Fetch all possible sitting pets
+    if (task) {
+      void fetchGroupPets();
+    }
+  }, [task, form.formState.isDirty, selectedGroupId]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="w-5/6 rounded-md sm:w-[533px]">
+      <DialogContent className="max-h-screen w-5/6 overflow-y-scroll rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
