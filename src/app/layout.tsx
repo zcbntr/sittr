@@ -9,7 +9,7 @@ import { Footer } from "./_components/footer";
 
 export const metadata: Metadata = {
   title: "sittr",
-  description: "Everything sitting",
+  description: "Get help with your pets",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

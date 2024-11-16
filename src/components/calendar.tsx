@@ -37,6 +37,12 @@ moment.locale("en-GB", {
 
 const allViews: View[] = ["agenda", "day", "week", "month"];
 
+enum TaskType {
+  ALL = "All",
+  SITTINGFOR = "Sitting for",
+  OWNED = "Owned",
+}
+
 const localizer = momentLocalizer(moment);
 
 class CalendarEvent {
@@ -87,6 +93,7 @@ class CalendarEvent {
 }
 
 export default function CalendarComponent({ groups }: { groups: Group[] }) {
+  const [showTaskTypes, setShowTaskTypes] = useState<TaskType>(TaskType.ALL);
   const [view, setView] = useState<View>("month");
   const [date, setDate] = useState<Date>(new Date());
   const [events, setEvents] = useState([] as unknown as CalendarEvent[]);

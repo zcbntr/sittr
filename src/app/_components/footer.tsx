@@ -5,7 +5,8 @@ export function Footer() {
     <footer className="bg-[#333] px-4 py-8 text-[#f5f5f5] md:px-8">
       <div className="container mx-auto flex flex-col items-center justify-between md:flex-row">
         <p className="text-sm">
-          &copy; 2024 sittr. All rights reserved.
+          &copy; 2024 sittr. All rights reserved. Favicon &copy; 2023{" "}
+          <a href="https://x.com/home">Twemoji</a>.
         </p>
         <nav className="mt-4 flex items-center space-x-6 md:mt-0">
           <Link
