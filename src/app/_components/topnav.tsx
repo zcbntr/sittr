@@ -12,8 +12,7 @@ export function TopNav() {
         <Link href="/" className="text-4xl font-bold" prefetch={false}>
           sittr
         </Link>
-        <nav className="hidden items-center space-x-6 md:flex">
-          {/* <RoleSwapper /> */}
+        <nav className=" items-center space-x-6 md:flex">
           <div className="flex place-content-center">
             <SignedIn>
               <UserButton
@@ -44,9 +43,6 @@ export function TopNav() {
             </SignedIn>
           </div>
         </nav>
-        <Button variant="outline" size="sm" className="md:hidden">
-          Menu
-        </Button>
       </div>
     </header>
   );
