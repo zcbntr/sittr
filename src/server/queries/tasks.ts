@@ -6,59 +6,11 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "../db";
 import { groups, tasks, usersToGroups } from "../db/schema";
 
-export async function getOwnedTasksStartingInRange(
-  from: Date,
-  to: Date,
-): Promise<Task[] | string> {
+export async function getAllOwnedTasks(): Promise<Task[]> {
   const user = await auth();
 
   if (!user.userId) {
-    return "Unauthorized";
-  }
-
-  const tasksInRange = await db.query.tasks.findMany({
-    where: (model, { eq, gte, lte, and }) =>
-      and(
-        eq(model.ownerId, user.userId),
-        or(
-          and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
-          gte(model.dueDate, to),
-        ),
-      ),
-    orderBy: (model, { desc }) => desc(model.createdAt),
-  });
-
-  // Turn into task schema
-  const tasksList: Task[] = tasksInRange.map((task) => {
-    return taskSchema.parse({
-      taskId: task.id,
-      ownerId: task.ownerId,
-      name: task.name,
-      description: task.description,
-      dueMode: task.dueMode,
-      dueDate: task.dueDate,
-      dateRange: task.dateRangeFrom &&
-        task.dateRangeTo && {
-          from: task.dateRangeFrom,
-          to: task.dateRangeTo,
-        },
-      petId: task.pet,
-      groupId: task.group,
-      markedAsDone: task.markedAsDoneBy !== null,
-      markedAsDoneBy: task.markedAsDoneBy,
-      claimed: task.claimedBy !== null,
-      claimedBy: task.claimedBy,
-    });
-  });
-
-  return tasksList;
-}
-
-export async function getAllOwnedTasks(): Promise<Task[] | string> {
-  const user = await auth();
-
-  if (!user.userId) {
-    return "Unauthorized";
+    throw new Error("Unauthorized");
   }
 
   const userTasks = await db.query.tasks.findMany({
@@ -185,7 +137,7 @@ export async function getTasksOwnedInRange(
         eq(model.ownerId, user.userId),
         or(
           and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
-          gte(model.dueDate, to),
+          and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
         ),
       ),
     orderBy: (model, { desc }) => desc(model.createdAt),
@@ -238,7 +190,7 @@ export async function getTasksSittingForInRange(
         eq(usersToGroups.userId, user.userId),
         or(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
-          gte(tasks.dueDate, to),
+          and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
         ),
         not(eq(tasks.ownerId, user.userId)),
       ),
