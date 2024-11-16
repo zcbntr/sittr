@@ -41,15 +41,3 @@ export const basicGetAPIFormSchema = z
   });
 
 export type BasicGetAPIFormSchema = z.infer<typeof basicGetAPIFormSchema>;
-
-export const deleteAPIFormSchema = z.object({
-  id: z.string(),
-});
-
-export type DeleteAPIFormInput = z.infer<typeof deleteAPIFormSchema>;
-
-export const idList = z.object({
-  ids: z.array(z.string()),
-});
-
-export type IdList = z.infer<typeof idList>;

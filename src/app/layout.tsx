@@ -6,6 +6,7 @@ import { ClerkProvider, SignedIn, SignedOut } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { TopNav } from "./_components/topnav";
 import { Footer } from "./_components/footer";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "sittr",
@@ -20,6 +21,7 @@ export default function RootLayout({
     <ClerkProvider dynamic>
       <html lang="en" className={`${GeistSans.variable}`}>
         <body className={`${GeistSans.variable}`}>
+          <Analytics />
           <SignedOut>
             <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
               <main className="overflow-y-scroll">
