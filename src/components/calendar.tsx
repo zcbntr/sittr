@@ -5,16 +5,26 @@ import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useEffect, useState } from "react";
 import moment from "moment";
-import { endOfMonth, startOfMonth } from "date-fns";
+import { endOfMonth, endOfWeek, startOfMonth, startOfWeek } from "date-fns";
 import { Button } from "./ui/button";
 import {
   taskListSchema,
+  TaskType,
+  TaskTypeEnum,
   type CreateTaskFormProps,
   type Task,
 } from "~/lib/schemas/tasks";
 import EditTaskDialog from "~/app/_components/tasks/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/tasks/createtaskdialog";
 import type { Group } from "~/lib/schemas/groups";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { DateRange } from "~/lib/schemas";
 
 const coloursList: string[] = [
   "#f54290",
@@ -37,12 +47,6 @@ moment.locale("en-GB", {
 
 const allViews: View[] = ["agenda", "day", "week", "month"];
 
-enum TaskType {
-  ALL = "All",
-  SITTINGFOR = "Sitting for",
-  OWNED = "Owned",
-}
-
 const localizer = momentLocalizer(moment);
 
 class CalendarEvent {
@@ -51,12 +55,16 @@ class CalendarEvent {
   title: string;
   allDay: boolean;
   dueMode: boolean;
+  dueDate: Date;
+  dateRange: DateRange;
   start: Date;
   end: Date;
   petId?: string;
   groupId?: string;
   markedAsDone: boolean;
   markedAsDoneBy?: string;
+  claimed: boolean;
+  claimedBy?: string;
   desc: string;
   resourceId?: string;
   tooltip?: string;
@@ -66,10 +74,14 @@ class CalendarEvent {
     _ownerId: string,
     _title: string,
     _dueMode: boolean,
+    _dueDate: Date,
+    _dateRange: DateRange,
     _start: Date,
     _endDate: Date,
     _markedAsDone: boolean,
+    _claimed: boolean,
     _markedAsDoneBy?: string,
+    _claimedBy?: string,
     _petId?: string,
     _groupId?: string,
     _allDay?: boolean,
@@ -81,10 +93,14 @@ class CalendarEvent {
     this.title = _title;
     this.allDay = _allDay ?? false;
     this.dueMode = _dueMode;
+    this.dueDate = _dueDate;
+    this.dateRange = _dateRange;
     this.start = _start;
     this.end = _endDate;
     this.markedAsDone = _markedAsDone;
     this.markedAsDoneBy = _markedAsDoneBy;
+    this.claimed = _claimed;
+    this.claimedBy = _claimedBy;
     this.petId = _petId;
     this.groupId = _groupId;
     this.desc = _desc ?? "";
@@ -93,7 +109,9 @@ class CalendarEvent {
 }
 
 export default function CalendarComponent({ groups }: { groups: Group[] }) {
-  const [showTaskTypes, setShowTaskTypes] = useState<TaskType>(TaskType.ALL);
+  const [tasksType, setTasksType] = useState<TaskTypeEnum>(
+    TaskTypeEnum.Enum.All,
+  );
   const [view, setView] = useState<View>("month");
   const [date, setDate] = useState<Date>(new Date());
   const [events, setEvents] = useState([] as unknown as CalendarEvent[]);
@@ -106,16 +124,14 @@ export default function CalendarComponent({ groups }: { groups: Group[] }) {
       await fetch(
         "api/tasks?" +
           new URLSearchParams({
-            from: startOfMonth(new Date()).toString(),
-            to: endOfMonth(new Date()).toString(),
-            all: "true",
+            from: startOfWeek(startOfMonth(new Date()), {
+              weekStartsOn: 1,
+            }).toString(),
+            to: endOfWeek(endOfMonth(new Date()), {
+              weekStartsOn: 1,
+            }).toString(),
+            type: tasksType,
           }).toString(),
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
       )
         .then((res) => res.json())
         .then((json) => taskListSchema.safeParse(json))
@@ -130,10 +146,17 @@ export default function CalendarComponent({ groups }: { groups: Group[] }) {
               task.ownerId,
               task.name,
               task.dueMode,
-              new Date(task.dateRange?.from ? task.dateRange.from : ""),
-              new Date(task.dateRange?.to ? task.dateRange.to : ""),
+              task.dueDate ? new Date(task.dueDate) : new Date(),
+              task.dateRange ?? {
+                from: new Date(),
+                to: new Date(),
+              },
+              new Date(task.dateRange?.from ? task.dateRange.from : task.dueDate ? task.dueDate : ""),
+              new Date(task.dateRange?.to ? task.dateRange.to : task.dueDate ? task.dueDate : ""),
               task.markedAsDone,
+              task.claimed,
               task.markedAsDoneBy ? task.markedAsDoneBy : undefined,
+              task.claimedBy ? task.claimedBy : undefined,
               task.petId ? task.petId : "",
               task.groupId,
               false,
@@ -146,7 +169,7 @@ export default function CalendarComponent({ groups }: { groups: Group[] }) {
     }
 
     void fetchData();
-  }, []);
+  }, [tasksType]);
 
   const handleDateSelect = ({ start, end }: { start: Date; end: Date }) => {
     // Find the openCreateTaskDialogHiddenButton and click it - workaround for avoiding putting the dialog in each calendar day
@@ -176,12 +199,15 @@ export default function CalendarComponent({ groups }: { groups: Group[] }) {
         groupId: event.groupId,
         dueMode: event.dueMode,
         dueDate: event.end,
-        dateRange: {
-          from: event.start,
-          to: event.end,
-        },
+        dateRange: event.start &&
+          event.end && {
+            from: event.start,
+            to: event.end,
+          },
         markedAsDone: event.markedAsDone,
         markedAsDoneBy: event.markedAsDoneBy,
+        claimed: event.claimed,
+        claimedBy: event.claimedBy,
         requiresVerification: false,
       });
       button.click();
@@ -190,6 +216,13 @@ export default function CalendarComponent({ groups }: { groups: Group[] }) {
 
   return (
     <div className="h-[38rem]">
+      <div>
+        <TaskTypeSelect
+          showTaskTypes={tasksType}
+          setShowTaskTypes={setTasksType}
+        />
+      </div>
+
       <Calendar
         selectable
         localizer={localizer}
@@ -237,5 +270,32 @@ export default function CalendarComponent({ groups }: { groups: Group[] }) {
         <Button id="openEditTaskDialogHiddenButton" className="hidden" />
       </EditTaskDialog>
     </div>
+  );
+}
+
+function TaskTypeSelect({
+  showTaskTypes,
+  setShowTaskTypes,
+}: {
+  showTaskTypes: TaskType;
+  setShowTaskTypes: (taskType: TaskType) => void;
+}) {
+  return (
+    <Select>
+      <SelectTrigger>
+        <SelectValue>{showTaskTypes}</SelectValue>
+      </SelectTrigger>
+      <SelectContent defaultValue={TaskTypeEnum.Values.All}>
+        {Object.values(TaskType).map((taskType) => (
+          <SelectItem
+            value={taskType}
+            key={taskType}
+            onClick={() => setShowTaskTypes(taskType)}
+          >
+            {taskType}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

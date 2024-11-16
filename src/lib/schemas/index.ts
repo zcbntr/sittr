@@ -42,26 +42,6 @@ export const basicGetAPIFormSchema = z
 
 export type BasicGetAPIFormSchema = z.infer<typeof basicGetAPIFormSchema>;
 
-export const basicGetAPIFormSchemaWithDateRange = z
-  .object({
-    id: z.string().optional().nullable(),
-    ids: z.array(z.string()).optional().nullable(),
-    all: z.boolean().optional().nullable(),
-    dateRange: dateRangeSchema.optional().nullable(),
-  })
-  // Ensure that either ids or all is provided
-  .refine((data) => data.id ?? data.ids ?? data.all, {
-    message: "Must provide either id (single), ids (array), or all (boolean)",
-  })
-  // Ensure that ids is not empty if provided
-  .refine((data) => !data.ids || data.ids.length > 0, {
-    message: "Ids must not be empty",
-  });
-
-export type BasicGetAPIFormSchemaWithDateRange = z.infer<
-  typeof basicGetAPIFormSchemaWithDateRange
->;
-
 export const deleteAPIFormSchema = z.object({
   id: z.string(),
 });

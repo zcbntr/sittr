@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { dateRangeSchema } from ".";
 
+export enum TaskType {
+  ALL = "All",
+  SITTINGFOR = "Sitting For",
+  OWNED = "Owned",
+}
+
 // -----------------------------------------------------------------------------
 // Task Schemas
 // -----------------------------------------------------------------------------
@@ -18,6 +24,8 @@ export const taskSchema = z.object({
   requiresVerification: z.boolean().optional().default(false),
   markedAsDone: z.boolean(),
   markedAsDoneBy: z.string().optional().nullable(),
+  claimed: z.boolean(),
+  claimedBy: z.string().optional().nullable(),
 });
 
 export type Task = z.infer<typeof taskSchema>;
@@ -29,6 +37,27 @@ export type TaskList = z.infer<typeof taskListSchema>;
 // -----------------------------------------------------------------------------
 // API form schemas
 // -----------------------------------------------------------------------------
+
+export const TaskTypeEnum = z.enum([
+  TaskType.ALL,
+  TaskType.SITTINGFOR,
+  TaskType.OWNED,
+]);
+export type TaskTypeEnum = z.infer<typeof TaskTypeEnum>;
+
+export const getTaskAPISchema = z
+  .object({
+    id: z.string().optional().nullable(),
+    ids: z.array(z.string()).optional().nullable(),
+    dateRange: dateRangeSchema.optional().nullable(),
+    type: TaskTypeEnum,
+  })
+  .refine((data) => data.id ?? data.ids ?? data.dateRange, {
+    message:
+      "Must provide either id (single), ids (array), or datarange ({from: Date, to: Date})",
+  });
+
+export type GetTaskAPI = z.infer<typeof getTaskAPISchema>;
 
 // Fix constraints - they have been removed so tasks can be created - for some reason the create task dialog was not working with the constraints
 export const createTaskInputSchema = z.object({

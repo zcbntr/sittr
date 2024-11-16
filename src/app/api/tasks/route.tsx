@@ -1,22 +1,22 @@
 import { type NextRequest, NextResponse } from "next/server";
-import {
-  basicGetAPIFormSchemaWithDateRange,
-} from "~/lib/schemas";
+import { getTaskAPISchema, type Task, TaskType } from "~/lib/schemas/tasks";
 import {
   getOwnedTaskById,
-  getVisibleTasksInRange,
+  getTasksOwnedInRange,
+  getTasksVisibileInRange,
+  getTasksSittingForInRange,
 } from "~/server/queries/tasks";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
-    const requestParams = basicGetAPIFormSchemaWithDateRange.safeParse({
+    const requestParams = getTaskAPISchema.safeParse({
       id: req.nextUrl.searchParams.get("id"),
       ids: req.nextUrl.searchParams.get("ids"),
-      all: req.nextUrl.searchParams.get("all") === "true",
       dateRange: {
         from: req.nextUrl.searchParams.get("from"),
         to: req.nextUrl.searchParams.get("to"),
       },
+      type: req.nextUrl.searchParams.get("type"),
     });
 
     if (!requestParams.success) {
@@ -34,21 +34,35 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
 
       return NextResponse.json(taskOrErrorMessage);
     } else if (requestParams.data.dateRange) {
-      const tasksInRangeOrErrorMessage = await getVisibleTasksInRange(
-        requestParams.data.dateRange.from,
-        requestParams.data.dateRange.to,
-      );
+      let tasksInRange: Task[] = [];
 
-      if (typeof tasksInRangeOrErrorMessage === "string") {
-        return NextResponse.json({ error: tasksInRangeOrErrorMessage });
+      if (requestParams.data.type === TaskType.OWNED) {
+        tasksInRange = await getTasksOwnedInRange(
+          requestParams.data.dateRange.from,
+          requestParams.data.dateRange.to,
+        );
+      } else if (requestParams.data.type === TaskType.ALL) {
+        tasksInRange = await getTasksVisibileInRange(
+          requestParams.data.dateRange.from,
+          requestParams.data.dateRange.to,
+        );
+      } else if (requestParams.data.type === TaskType.SITTINGFOR) {
+        tasksInRange = await getTasksSittingForInRange(
+          requestParams.data.dateRange.from,
+          requestParams.data.dateRange.to,
+        );
       }
 
-      return NextResponse.json(tasksInRangeOrErrorMessage);
+      return NextResponse.json(tasksInRange);
+    } else if (requestParams.data.ids) {
+      return NextResponse.json({
+        error: "Request type not currently supported",
+      });
     }
 
     return NextResponse.json({ error: "Request type not currently supported" });
   } catch (error) {
-    console.error(error);
+    console.log(error);
 
     return NextResponse.json(
       { error: "Internal Server Error" },
