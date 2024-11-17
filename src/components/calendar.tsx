@@ -155,8 +155,6 @@ export default function CalendarComponent({
           }
 
           const events: CalendarEvent[] = validatedTaskList.data.map((task) => {
-            console.log("groupId", task.groupId);
-
             return new CalendarEvent(
               task.taskId,
               task.ownerId,
@@ -214,6 +212,28 @@ export default function CalendarComponent({
   const handleEventSelect = (event: CalendarEvent) => {
     // Check if the user owns the task
     if (event.ownerId !== userId) {
+      const button = document.getElementById("openViewTaskDialogHiddenButton");
+      if (button) {
+        setSelectedTask(
+          taskSchema.parse({
+            taskId: event.id,
+            ownerId: event.ownerId,
+            name: event.title,
+            description: event.desc,
+            petId: event.petId,
+            groupId: event.groupId,
+            dueMode: event.dueMode,
+            dueDate: event.dueDate,
+            dateRange: event.dateRange,
+            markedAsDone: event.markedAsDone,
+            markedAsDoneBy: event.markedAsDoneBy,
+            claimed: event.claimed,
+            claimedBy: event.claimedBy,
+            requiresVerification: false,
+          }),
+        );
+        button.click();
+      }
     } else {
       const button = document.getElementById("openEditTaskDialogHiddenButton");
       if (button) {
@@ -339,7 +359,6 @@ function TaskTypeSelect({
       defaultValue={TaskTypeEnum.Enum.All}
       onValueChange={(taskType: TaskTypeEnum) => {
         setShowTaskTypes(TaskTypeEnum.enum[taskType]);
-        console.log(taskType + " clicked");
       }}
     >
       <SelectTrigger className="max-w-48">

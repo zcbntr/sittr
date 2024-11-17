@@ -59,6 +59,7 @@ export default function ViewTaskDialog({
     defaultValues: {
       claimed: task?.claimed,
     },
+    mode: "onChange",
   });
 
   const markAsCompleteForm = useForm<
@@ -68,6 +69,7 @@ export default function ViewTaskDialog({
     defaultValues: {
       markedAsDone: task?.markedAsDone,
     },
+    mode: "onChange",
   });
 
   const {
@@ -124,7 +126,7 @@ export default function ViewTaskDialog({
 
         <div className="w-full space-y-6">
           <div>Name</div>
-          <Input value={task?.name} />
+          <Input readOnly value={task?.name} />
 
           <div>Description</div>
 
@@ -133,12 +135,12 @@ export default function ViewTaskDialog({
           {task?.dueMode && (
             <div>
               <div>Due Date/Time</div>
-              <Input readOnly>
+              <div className="flex flex-row rounded-md">
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 <div>
                   {task?.dueDate ? format(task.dueDate, "PPP HH:mm:ss") : ""}
                 </div>
-              </Input>
+              </div>
             </div>
           )}
 
@@ -173,10 +175,16 @@ export default function ViewTaskDialog({
           )}
 
           {/* Need to fetch group name with this id */}
-          <Input readOnly value={task?.groupId}></Input>
+          <div>
+            <div>Group</div>
+            <Input readOnly value={task?.groupId}></Input>
+          </div>
 
           {/* Need to fetch pet name with this id */}
-          <Input readOnly value={task?.petId}></Input>
+          <div>
+            <div>Pet</div>
+            <Input readOnly value={task?.petId}></Input>
+          </div>
 
           <Form {...claimTaskForm}>
             <form onSubmit={claimTaskForm.handleSubmit(executeClaim)}>
