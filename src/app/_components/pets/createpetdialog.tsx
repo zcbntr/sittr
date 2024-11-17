@@ -82,7 +82,7 @@ export default function CreatePetDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => execute(values))}
-            className="w-2/3 space-y-6"
+            className="w-full space-y-6"
             name="createPet"
           >
             <FormField

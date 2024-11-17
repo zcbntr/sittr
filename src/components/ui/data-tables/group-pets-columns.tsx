@@ -49,6 +49,7 @@ export const columns: ColumnDef<GroupPet>[] = [
   },
   {
     id: "actions",
+    enableHiding: false,
     cell: ({ row }) => {
       return (
         <>

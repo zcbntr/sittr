@@ -1,10 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { Suspense } from "react";
 import PetsTable from "../_components/pets/petstable";
 import type { Pet } from "~/lib/schemas/pets";
 import { getOwnedPets } from "~/server/queries/pets";
@@ -17,18 +11,17 @@ export default async function Page() {
 
 function MyPetsPage({ pets }: { pets: Pet[] }) {
   return (
-    <div className="container mx-auto space-y-6 p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Pets</CardTitle>
-          <CardDescription>View and manage your pets.</CardDescription>
-        </CardHeader>
-        <CardContent>
+    <>
+      <section className="container mx-auto py-4">
+        <h1 className="text-3xl">My Pets</h1>
+      </section>
+      <section>
+        <Suspense fallback={<div>Loading...</div>}>
           <div className="container mx-auto">
             <PetsTable pets={pets} />
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </Suspense>
+      </section>
+    </>
   );
 }

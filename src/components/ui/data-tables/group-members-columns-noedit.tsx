@@ -61,6 +61,7 @@ export const columns: ColumnDef<GroupMember>[] = [
   },
   {
     id: "actions",
+    enableHiding: false,
     cell: ({ row }) => {
       const member = row.original;
 

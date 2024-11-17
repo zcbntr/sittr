@@ -44,6 +44,7 @@ export const columns: ColumnDef<Pet>[] = [
   },
   {
     id: "actions",
+    enableHiding: false,
     cell: ({ row }) => {
       const pet = row.original;
 

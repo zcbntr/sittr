@@ -6,7 +6,7 @@ import { Button } from "~/components/ui/button";
 
 export default function PetsTable({ pets }: { pets: Pet[] }) {
   return (
-    <div className="container mx-auto">
+    <div className="">
       <DataTable
         columns={columns}
         data={pets}
@@ -14,7 +14,7 @@ export default function PetsTable({ pets }: { pets: Pet[] }) {
         filterable={true}
       >
         <CreatePetDialog>
-          <Button>Create Pet</Button>
+          <Button>New Pet</Button>
         </CreatePetDialog>
       </DataTable>
     </div>
