@@ -117,10 +117,10 @@ export default function ViewTaskDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-h-screen w-full overflow-y-scroll rounded-md sm:w-[533px]">
         <DialogHeader>
-          <DialogTitle>Edit Task</DialogTitle>
+          <DialogTitle>View Task</DialogTitle>
           <DialogDescription>
-            View the details of the task. You can claim and mark it as done
-            here.
+            View the details of the task. You can claim and mark it as done here
+            if no other user has done so.
           </DialogDescription>
         </DialogHeader>
 

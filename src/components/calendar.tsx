@@ -315,7 +315,8 @@ export default function CalendarComponent({
 
             // If the task is marked as done, or claimed by another user, change the background opacity
             if (
-              (event.claimed && event.claimedBy != userId) ||
+              (event.claimed && event.claimedBy != userId && userId) ||
+              (!event.claimed && event.ownerId != userId && userId) ||
               event.markedAsDone
             ) {
               newStyle.opacity = 0.5;
