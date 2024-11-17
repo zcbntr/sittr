@@ -37,8 +37,6 @@ import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
-// This shouldnt be forms, two different hooks for claiming and marking as done instead
-
 export default function ViewTaskDialog({
   userId,
   task,
@@ -208,10 +206,10 @@ export default function ViewTaskDialog({
                           claimPending
                         }
                         checked={field.value}
-                        onCheckedChange={(checked: boolean) => {
+                        onCheckedChange={async (checked: boolean) => {
                           field.onChange();
                           claimTaskForm.setValue("claimed", checked);
-                          claimTaskForm.handleSubmit(executeClaim)();
+                          await claimTaskForm.handleSubmit(executeClaim)();
                         }}
                       />
                     </FormControl>
@@ -247,7 +245,7 @@ export default function ViewTaskDialog({
                           claimPending
                         }
                         checked={field.value}
-                        onCheckedChange={(checked: boolean) => {
+                        onCheckedChange={async (checked: boolean) => {
                           field.onChange();
 
                           // If the user marks the task as complete, we should also claim it if it is not already claimed
@@ -257,7 +255,9 @@ export default function ViewTaskDialog({
                           }
 
                           markAsCompleteForm.setValue("markedAsDone", checked);
-                          markAsCompleteForm.handleSubmit(executeMarkAsDone)();
+                          await markAsCompleteForm.handleSubmit(
+                            executeMarkAsDone,
+                          )();
                         }}
                       />
                     </FormControl>
