@@ -56,7 +56,7 @@ export default function JoinGroupDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-screen w-5/6 overflow-y-scroll rounded-md sm:w-[533px]">
+      <DialogContent className="max-h-svh w-5/6 overflow-y-scroll rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>Join Group</DialogTitle>
         </DialogHeader>

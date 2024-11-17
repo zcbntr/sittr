@@ -25,7 +25,7 @@ export default function RootLayout({
 
           <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
             <main className="overflow-y-scroll">
-              <div className="h-min">
+              <div className="h-min min-h-dvh">
                 <TopNav />
                 {children}
               </div>
