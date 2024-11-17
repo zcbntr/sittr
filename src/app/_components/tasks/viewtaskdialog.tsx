@@ -1,12 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -14,17 +12,14 @@ import {
 import { Input } from "~/components/ui/input";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "~/lib/utils";
 import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "~/components/ui/form";
 import type { Group } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
@@ -33,7 +28,6 @@ import {
   setClaimTaskFormProps,
   setMarkedAsCompleteFormProps,
   type Task,
-  taskSchema,
 } from "~/lib/schemas/tasks";
 import {
   setClaimTaskAction,
@@ -46,9 +40,11 @@ import { useEffect, useState } from "react";
 // This shouldnt be forms, two different hooks for claiming and marking as done instead
 
 export default function ViewTaskDialog({
+  userId,
   task,
   children,
 }: {
+  userId: string | null;
   task: Task | undefined;
   children: React.ReactNode;
 }) {
@@ -57,6 +53,7 @@ export default function ViewTaskDialog({
   const claimTaskForm = useForm<z.infer<typeof setClaimTaskFormProps>>({
     resolver: zodResolver(setClaimTaskFormProps),
     defaultValues: {
+      taskId: task?.taskId,
       claimed: task?.claimed,
     },
     mode: "onChange",
@@ -67,6 +64,7 @@ export default function ViewTaskDialog({
   >({
     resolver: zodResolver(setMarkedAsCompleteFormProps),
     defaultValues: {
+      taskId: task?.taskId,
       markedAsDone: task?.markedAsDone,
     },
     mode: "onChange",
@@ -103,13 +101,12 @@ export default function ViewTaskDialog({
   });
 
   useEffect(() => {
-    claimTaskForm.reset({
-      claimed: task?.claimed,
-    });
-
-    markAsCompleteForm.reset({
-      markedAsDone: task?.markedAsDone,
-    });
+    if (task) {
+      claimTaskForm.setValue("taskId", task?.taskId);
+      claimTaskForm.setValue("claimed", task?.claimed);
+      markAsCompleteForm.setValue("taskId", task?.taskId);
+      markAsCompleteForm.setValue("markedAsDone", task?.markedAsDone);
+    }
   }, [task]);
 
   return (
@@ -136,7 +133,10 @@ export default function ViewTaskDialog({
             <div>
               <div>Due Date/Time</div>
               <div className="flex flex-row rounded-md">
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <div className="flex flex-col place-content-center">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                </div>
+
                 <div>
                   {task?.dueDate ? format(task.dueDate, "PPP HH:mm:ss") : ""}
                 </div>
@@ -149,7 +149,9 @@ export default function ViewTaskDialog({
               <div>Start Date/Time</div>
 
               <Input readOnly>
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <div className="flex flex-col place-content-center">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                </div>
                 <div>
                   {task?.dateRange?.from
                     ? format(task.dateRange.from, "PPP HH:mm:ss")
@@ -164,7 +166,9 @@ export default function ViewTaskDialog({
               <div>End Date/Time</div>
 
               <Input readOnly>
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <div className="flex flex-col place-content-center">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                </div>
                 <div>
                   {task?.dateRange?.to
                     ? format(task?.dateRange?.to, "PPP HH:mm:ss")
@@ -195,8 +199,20 @@ export default function ViewTaskDialog({
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
                       <Checkbox
+                        disabled={
+                          (task?.claimedBy !== null &&
+                            task?.claimedBy !== undefined &&
+                            task?.claimedBy !== userId &&
+                            userId !== null) ||
+                          markAsDonePending ||
+                          claimPending
+                        }
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked: boolean) => {
+                          field.onChange();
+                          claimTaskForm.setValue("claimed", checked);
+                          claimTaskForm.handleSubmit(executeClaim)();
+                        }}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -222,8 +238,27 @@ export default function ViewTaskDialog({
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
                       <Checkbox
+                        disabled={
+                          (task?.claimedBy !== null &&
+                            task?.claimedBy !== undefined &&
+                            task?.claimedBy !== userId &&
+                            userId !== null) ||
+                          markAsDonePending ||
+                          claimPending
+                        }
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked: boolean) => {
+                          field.onChange();
+
+                          // If the user marks the task as complete, we should also claim it if it is not already claimed
+                          if (!task?.claimedBy) {
+                            claimTaskForm.setValue("claimed", true);
+                            claimTaskForm.handleSubmit(executeClaim);
+                          }
+
+                          markAsCompleteForm.setValue("markedAsDone", checked);
+                          markAsCompleteForm.handleSubmit(executeMarkAsDone)();
+                        }}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">

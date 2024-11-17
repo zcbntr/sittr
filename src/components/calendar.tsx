@@ -340,7 +340,7 @@ export default function CalendarComponent({
           <Button id="openEditTaskDialogHiddenButton" className="hidden" />
         </EditTaskDialog>
 
-        <ViewTaskDialog task={selectedTask}>
+        <ViewTaskDialog userId={userId} task={selectedTask}>
           <Button id="openViewTaskDialogHiddenButton" className="hidden" />
         </ViewTaskDialog>
       </div>

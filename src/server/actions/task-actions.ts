@@ -98,6 +98,7 @@ export const toggleTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
         .execute();
 
       revalidatePath(`/tasks/${task.id}`);
+      revalidatePath("/");
     } else if (task.claimedBy !== user.userId) {
       throw new Error("You can't mark a task as done if you didn't claim it");
     } else {
@@ -115,6 +116,7 @@ export const toggleTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
         .execute();
 
       revalidatePath(`/tasks/${task.id}`);
+      revalidatePath("/");
     }
   });
 
@@ -134,7 +136,8 @@ export const deleteTaskAction = ownsTaskProcedure
       .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, user.userId)))
       .execute();
 
-    redirect("/tasks");
+    revalidatePath("/tasks");
+    revalidatePath("/");
   });
 
 export const setClaimTaskAction = canMarkTaskAsDoneProcedure
@@ -186,5 +189,6 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         .execute();
 
       revalidatePath("/tasks");
+      revalidatePath("/");
     }
   });
