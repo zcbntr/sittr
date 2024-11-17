@@ -243,7 +243,7 @@ export async function getTasksVisibileInRange(
   const visibleTasksInRange = await db
     .select()
     .from(tasks)
-    .leftJoin(groups, eq(tasks.pet, groups.id))
+    .leftJoin(groups, eq(tasks.group, groups.id))
     .leftJoin(usersToGroups, eq(groups.id, usersToGroups.groupId))
     .where(
       and(
