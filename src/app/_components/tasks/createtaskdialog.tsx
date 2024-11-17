@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -82,7 +83,7 @@ export default function CreateTaskDialog({
     },
   });
 
-  const { isPending, execute, data, error } = useServerAction(
+  const { isPending, execute, error } = useServerAction(
     createTaskAction,
     {
       onError: ({ err }) => {
@@ -139,6 +140,9 @@ export default function CreateTaskDialog({
       <DialogContent className="max-h-screen w-full overflow-y-scroll rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>Task Details</DialogTitle>
+          <DialogDescription>
+            Create a new task for a specific group and pet sat for by the group.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form

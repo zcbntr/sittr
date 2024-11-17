@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -95,6 +96,10 @@ export default function CreateGroupDialog({
       <DialogContent className="max-h-screen w-full overflow-y-scroll rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>Group Details</DialogTitle>
+          <DialogDescription>
+            Create a new group to manage your pets. You must assign pets to the
+            group for the group to be able to sit for them.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form

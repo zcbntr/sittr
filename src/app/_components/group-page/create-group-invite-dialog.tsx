@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -79,6 +80,9 @@ export default function CreateGroupInviteDialog({
       <DialogContent className="max-h-screen w-full overflow-y-scroll rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>New Group Invite Link</DialogTitle>
+          <DialogDescription>
+            Anyone with this link can join the group.
+          </DialogDescription>
         </DialogHeader>
         <div className="flex items-center space-x-2">
           <div className="grid flex-1 gap-2">

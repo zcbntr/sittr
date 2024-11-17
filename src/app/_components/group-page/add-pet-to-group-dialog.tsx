@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -95,6 +96,9 @@ export default function AddPetToGroupDialog({
       <DialogContent className="max-h-screen w-full overflow-y-scroll rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>Add Pet(s)</DialogTitle>
+          <DialogDescription>
+            Pets can be removed from the group at any time.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form

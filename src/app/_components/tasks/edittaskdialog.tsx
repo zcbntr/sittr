@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -207,9 +208,10 @@ export default function EditTaskDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-screen w-full overflow-y-scroll rounded-md sm:w-[533px]">
+      <DialogContent className="max-h-svh w-full overflow-y-scroll rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
+          <DialogDescription>Update the details of the task.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form

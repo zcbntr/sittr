@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -28,9 +29,14 @@ import {
 import type { Group } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import { Checkbox } from "~/components/ui/checkbox";
-import { type Task, taskSchema } from "~/lib/schemas/tasks";
 import {
-  toggleClaimTaskAction,
+  setClaimTaskFormProps,
+  setMarkedAsCompleteFormProps,
+  type Task,
+  taskSchema,
+} from "~/lib/schemas/tasks";
+import {
+  setClaimTaskAction,
   toggleTaskMarkedAsDoneAction,
 } from "~/server/actions/task-actions";
 import { useServerAction } from "zsa-react";
@@ -48,24 +54,19 @@ export default function ViewTaskDialog({
 }) {
   const [open, setOpen] = useState<boolean>(false);
 
-  const [dueMode, setDueMode] = useState<boolean>(true);
-
-  const form = useForm<z.infer<typeof taskSchema>>({
-    resolver: zodResolver(taskSchema),
+  const claimTaskForm = useForm<z.infer<typeof setClaimTaskFormProps>>({
+    resolver: zodResolver(setClaimTaskFormProps),
     defaultValues: {
-      taskId: task?.taskId ? task.taskId : "",
-      ownerId: task?.ownerId ? task.ownerId : "",
-      name: task?.name ? task.name : "",
-      description: task?.description ? task.description : "",
-      dueMode: task?.dueMode ? task.dueMode : true,
-      dueDate: task?.dueDate ? task.dueDate : null,
-      dateRange: task?.dateRange ? task.dateRange : null,
-      petId: task?.petId ? task.petId : "",
-      groupId: task?.groupId ? task.groupId : "",
-      markedAsDone: task?.markedAsDone ? task.markedAsDone : false,
-      markedAsDoneBy: task?.markedAsDoneBy ? task.markedAsDoneBy : "",
-      claimed: task?.claimed ? task.claimed : false,
-      claimedBy: task?.claimedBy ? task.claimedBy : "",
+      claimed: task?.claimed,
+    },
+  });
+
+  const markAsCompleteForm = useForm<
+    z.infer<typeof setMarkedAsCompleteFormProps>
+  >({
+    resolver: zodResolver(setMarkedAsCompleteFormProps),
+    defaultValues: {
+      markedAsDone: task?.markedAsDone,
     },
   });
 
@@ -73,14 +74,14 @@ export default function ViewTaskDialog({
     isPending: claimPending,
     execute: executeClaim,
     error: claimError,
-  } = useServerAction(toggleClaimTaskAction, {
+  } = useServerAction(setClaimTaskAction, {
     onError: ({ err }) => {
       toast.error(err.message);
     },
     onSuccess: () => {
       toast.success("Task claimed!");
       setOpen(false);
-      form.reset();
+      claimTaskForm.reset();
     },
   });
 
@@ -95,43 +96,18 @@ export default function ViewTaskDialog({
     onSuccess: () => {
       toast.success("Marked as done!");
       setOpen(false);
-      form.reset();
+      markAsCompleteForm.reset();
     },
   });
 
-  //   async function onSubmit(values: z.infer<typeof taskSchema>) {
-  //     const [data, err] = await executeClaim(values);
-
-  //     if (err) {
-  //       toast.error(err.message);
-
-  //       return;
-  //     }
-
-  //     form.reset();
-  //   }
-
-  // Update state upon task change, Update form value upon task change
   useEffect(() => {
-    form.setValue("taskId", task?.taskId ? task.taskId : "");
-    form.setValue("ownerId", task?.ownerId ? task.ownerId : "");
-    form.setValue("name", task?.name ? task.name : "");
-    form.setValue("description", task?.description ? task.description : "");
-    form.setValue("dueMode", task?.dueMode ? task.dueMode : true);
-    form.setValue("dueDate", task?.dueDate ? task.dueDate : null);
-    form.setValue("dateRange", task?.dateRange ? task.dateRange : null);
-    form.setValue("petId", task?.petId ? task.petId : "");
-    form.setValue("groupId", task?.groupId ? task.groupId : "");
-    form.setValue(
-      "markedAsDone",
-      task?.markedAsDone ? task.markedAsDone : false,
-    );
-    form.setValue(
-      "markedAsDoneBy",
-      task?.markedAsDoneBy ? task.markedAsDoneBy : "",
-    );
-    form.setValue("claimed", task?.claimed ? task.claimed : false);
-    form.setValue("claimedBy", task?.claimedBy ? task.claimedBy : "");
+    claimTaskForm.reset({
+      claimed: task?.claimed,
+    });
+
+    markAsCompleteForm.reset({
+      markedAsDone: task?.markedAsDone,
+    });
   }, [task]);
 
   return (
@@ -140,6 +116,10 @@ export default function ViewTaskDialog({
       <DialogContent className="max-h-screen w-full overflow-y-scroll rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
+          <DialogDescription>
+            View the details of the task. You can claim and mark it as done
+            here.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="w-full space-y-6">
@@ -155,7 +135,9 @@ export default function ViewTaskDialog({
               <div>Due Date/Time</div>
               <Input readOnly>
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                <div>{format(task?.dueDate, "PPP HH:mm:ss")}</div>
+                <div>
+                  {task?.dueDate ? format(task.dueDate, "PPP HH:mm:ss") : ""}
+                </div>
               </Input>
             </div>
           )}
@@ -166,7 +148,11 @@ export default function ViewTaskDialog({
 
               <Input readOnly>
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                <div>{format(task?.dateRange?.from, "PPP HH:mm:ss")}</div>
+                <div>
+                  {task?.dateRange?.from
+                    ? format(task.dateRange.from, "PPP HH:mm:ss")
+                    : ""}
+                </div>
               </Input>
             </div>
           )}
@@ -177,7 +163,11 @@ export default function ViewTaskDialog({
 
               <Input readOnly>
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                <div>{format(task?.dateRange?.to, "PPP HH:mm:ss")}</div>
+                <div>
+                  {task?.dateRange?.to
+                    ? format(task?.dateRange?.to, "PPP HH:mm:ss")
+                    : ""}
+                </div>
               </Input>
             </div>
           )}
@@ -188,30 +178,61 @@ export default function ViewTaskDialog({
           {/* Need to fetch pet name with this id */}
           <Input readOnly value={task?.petId}></Input>
 
-          <FormField
-            control={form.control}
-            name="markedAsDone"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  {form.getValues("markedAsDoneBy") && field.value && (
-                    <FormLabel>
-                      Marked as complete by {form.getValues("markedAsDoneBy")}
-                    </FormLabel>
-                  )}
-                  {(!form.getValues("markedAsDoneBy") || !field.value) && (
-                    <FormLabel>Mark as complete</FormLabel>
-                  )}
-                </div>
-              </FormItem>
-            )}
-          />
+          <Form {...claimTaskForm}>
+            <form onSubmit={claimTaskForm.handleSubmit(executeClaim)}>
+              <FormField
+                control={claimTaskForm.control}
+                name="claimed"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      {task?.claimedBy && field.value && (
+                        <FormLabel>Claimed by {task?.claimedBy}</FormLabel>
+                      )}
+                      {(!task?.claimedBy || !field.value) && (
+                        <FormLabel>Claim</FormLabel>
+                      )}
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+
+          <Form {...markAsCompleteForm}>
+            <form onSubmit={markAsCompleteForm.handleSubmit(executeMarkAsDone)}>
+              <FormField
+                control={markAsCompleteForm.control}
+                name="markedAsDone"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      {task?.markedAsDoneBy && field.value && (
+                        <FormLabel>
+                          Marked as complete by {task?.markedAsDoneBy}
+                        </FormLabel>
+                      )}
+                      {(!task?.markedAsDoneBy || !field.value) && (
+                        <FormLabel>Mark as complete</FormLabel>
+                      )}
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
         </div>
 
         {claimError && <div>{claimError.message}</div>}

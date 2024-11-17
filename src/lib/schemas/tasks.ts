@@ -144,3 +144,19 @@ export const createTaskFormProps = z.object({
 });
 
 export type CreateTaskFormProps = z.infer<typeof createTaskFormProps>;
+
+export const setMarkedAsCompleteFormProps = z.object({
+  taskId: z.string(),
+  markedAsDone: z.boolean(),
+});
+
+export type SetMarkedAsCompleteFormProps = z.infer<
+  typeof setMarkedAsCompleteFormProps
+>;
+
+export const setClaimTaskFormProps = z.object({
+  taskId: z.string(),
+  claimed: z.boolean(),
+});
+
+export type SetClaimTaskFormProps = z.infer<typeof setClaimTaskFormProps>;

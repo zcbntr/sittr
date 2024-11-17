@@ -1,6 +1,11 @@
 "use server";
 
-import { createTaskInputSchema, taskSchema } from "~/lib/schemas/tasks";
+import {
+  createTaskInputSchema,
+  setClaimTaskFormProps,
+  setMarkedAsCompleteFormProps,
+  taskSchema,
+} from "~/lib/schemas/tasks";
 import { db } from "~/server/db";
 import { tasks } from "~/server/db/schema";
 import {
@@ -69,7 +74,7 @@ export const updateTaskAction = ownsTaskProcedure
 
 export const toggleTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
   .createServerAction()
-  .input(taskSchema.pick({ taskId: true }))
+  .input(setMarkedAsCompleteFormProps)
   .handler(async ({ input, ctx }) => {
     const { user, task } = ctx;
 
@@ -80,6 +85,10 @@ export const toggleTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
 
     // Check if the task is marked as done by the user
     if (task.markedAsDoneBy === user.userId) {
+      if (input.markedAsDone == true) {
+        throw new Error("Task is already marked as done by you");
+      }
+
       await db
         .update(tasks)
         .set({
@@ -92,10 +101,15 @@ export const toggleTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
     } else if (task.claimedBy !== user.userId) {
       throw new Error("You can't mark a task as done if you didn't claim it");
     } else {
+      if (input.markedAsDone == false) {
+        throw new Error("You cannot unmark a task not marked as done by you");
+      }
+
       await db
         .update(tasks)
         .set({
           markedAsDoneBy: user.userId,
+          claimedBy: user.userId,
         })
         .where(eq(tasks.id, input.taskId))
         .execute();
@@ -123,16 +137,11 @@ export const deleteTaskAction = ownsTaskProcedure
     redirect("/tasks");
   });
 
-export const toggleClaimTaskAction = canMarkTaskAsDoneProcedure
+export const setClaimTaskAction = canMarkTaskAsDoneProcedure
   .createServerAction()
-  .input(taskSchema.pick({ taskId: true }))
+  .input(setClaimTaskFormProps)
   .handler(async ({ input, ctx }) => {
     const { user, task } = ctx;
-    const { success } = await ratelimit.limit(user.userId);
-
-    if (!success) {
-      throw new Error("You are claiming or unclaiming tasks too fast");
-    }
 
     if (task.completed && task.requiresVerification) {
       throw new Error(
@@ -142,8 +151,11 @@ export const toggleClaimTaskAction = canMarkTaskAsDoneProcedure
 
     // Check if the task has been claimed by the user
     if (task?.claimedBy === user.userId) {
-      // Check if the task is completed - if so the user cannot unclaim it
+      if (input.claimed == true) {
+        throw new Error("Task is already claimed by you");
+      }
 
+      // Unclaim the task
       await db
         .update(tasks)
         .set({
@@ -159,6 +171,10 @@ export const toggleClaimTaskAction = canMarkTaskAsDoneProcedure
       throw new Error("Task is already claimed by another user");
       // If the task is not completed and not claimed, the user can claim it
     } else {
+      if (input.claimed == false) {
+        throw new Error("You cannot unclaim a task not claimed by you");
+      }
+
       await db
         .update(tasks)
         .set({
