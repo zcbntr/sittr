@@ -1,12 +1,6 @@
 import { z } from "zod";
 import { dateRangeSchema } from ".";
 
-export enum TaskType {
-  ALL = "All",
-  SITTINGFOR = "Sitting For",
-  OWNED = "Owned",
-}
-
 // -----------------------------------------------------------------------------
 // Task Schemas
 // -----------------------------------------------------------------------------
@@ -39,9 +33,9 @@ export type TaskList = z.infer<typeof taskListSchema>;
 // -----------------------------------------------------------------------------
 
 export const TaskTypeEnum = z.enum([
-  TaskType.ALL,
-  TaskType.SITTINGFOR,
-  TaskType.OWNED,
+  "All",
+  "Sitting For",
+  "Owned",
 ]);
 export type TaskTypeEnum = z.infer<typeof TaskTypeEnum>;
 

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getTaskAPISchema, type Task, TaskType } from "~/lib/schemas/tasks";
+import { getTaskAPISchema, type Task, TaskTypeEnum } from "~/lib/schemas/tasks";
 import {
   getOwnedTaskById,
   getTasksOwnedInRange,
@@ -36,17 +36,19 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     } else if (requestParams.data.dateRange) {
       let tasksInRange: Task[] = [];
 
-      if (requestParams.data.type === TaskType.OWNED) {
+      if (requestParams.data.type === TaskTypeEnum.Values.Owned) {
         tasksInRange = await getTasksOwnedInRange(
           requestParams.data.dateRange.from,
           requestParams.data.dateRange.to,
         );
-      } else if (requestParams.data.type === TaskType.ALL) {
+      } else if (requestParams.data.type === TaskTypeEnum.Values.All) {
         tasksInRange = await getTasksVisibileInRange(
           requestParams.data.dateRange.from,
           requestParams.data.dateRange.to,
         );
-      } else if (requestParams.data.type === TaskType.SITTINGFOR) {
+      } else if (
+        requestParams.data.type === TaskTypeEnum.Values["Sitting For"]
+      ) {
         tasksInRange = await getTasksSittingForInRange(
           requestParams.data.dateRange.from,
           requestParams.data.dateRange.to,

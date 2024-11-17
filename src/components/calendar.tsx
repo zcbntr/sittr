@@ -17,7 +17,6 @@ import { Button } from "./ui/button";
 import {
   taskListSchema,
   taskSchema,
-  type TaskType,
   TaskTypeEnum,
   type CreateTaskFormProps,
   type Task,
@@ -328,31 +327,27 @@ export default function CalendarComponent({
   );
 }
 
-// This should be layed out in a nice place
 function TaskTypeSelect({
   showTaskTypes,
   setShowTaskTypes,
 }: {
-  showTaskTypes: TaskType;
-  setShowTaskTypes: (taskType: TaskType) => void;
+  showTaskTypes: TaskTypeEnum;
+  setShowTaskTypes: (taskType: TaskTypeEnum) => void;
 }) {
   return (
-    <Select>
+    <Select
+      defaultValue={TaskTypeEnum.Enum.All}
+      onValueChange={(taskType: TaskTypeEnum) => {
+        setShowTaskTypes(TaskTypeEnum.enum[taskType]);
+        console.log(taskType + " clicked");
+      }}
+    >
       <SelectTrigger className="max-w-48">
-        <SelectValue
-          defaultValue={TaskTypeEnum.Values.All.toString()}
-          placeholder={TaskTypeEnum.Values.All}
-        >
-          {showTaskTypes.toString()}
-        </SelectValue>
+        <SelectValue>{showTaskTypes.toString()}</SelectValue>
       </SelectTrigger>
       <SelectContent className="max-w-48">
         {Object.values(TaskTypeEnum.Values).map((taskType) => (
-          <SelectItem
-            value={taskType}
-            key={taskType}
-            onClick={() => setShowTaskTypes(taskType)}
-          >
+          <SelectItem value={taskType} key={taskType}>
             {taskType.toString()}
           </SelectItem>
         ))}
