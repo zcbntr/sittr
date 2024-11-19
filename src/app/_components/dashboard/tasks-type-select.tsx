@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { TaskTypeEnum } from "~/lib/schemas/tasks";
-import { revalidateData } from "~/server/actions/dashboard-actions";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function TaskTypeSelect({
@@ -22,16 +21,6 @@ export default function TaskTypeSelect({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [showTaskTypes, setShowTaskTypes] = useState<TaskTypeEnum>(initialType);
-
-  const { isPending, execute } = useServerAction(revalidateData, {
-    // onError: ({ err }) => {
-    //   toast.error(err.message);
-    // },
-    // onSuccess: () => {
-    //   toast.success("Pet added!");
-    //   setOpen(false);
-    // },
-  });
 
   return (
     <Select

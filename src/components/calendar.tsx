@@ -18,7 +18,6 @@ import CreateTaskDialog from "~/app/_components/tasks/createtaskdialog";
 import type { Group } from "~/lib/schemas/groups";
 import { type DateRange } from "~/lib/schemas";
 import ViewTaskDialog from "~/app/_components/tasks/viewtaskdialog";
-import { revalidateData } from "~/server/actions/dashboard-actions";
 import { useServerAction } from "zsa-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -162,16 +161,6 @@ export default function CalendarComponent({
     useState<CreateTaskFormProps>();
   const [selectedTask, setSelectedTask] = useState<Task>();
 
-  const { isPending, execute } = useServerAction(revalidateData, {
-    // onError: ({ err }) => {
-    //   toast.error(err.message);
-    // },
-    // onSuccess: () => {
-    //   toast.success("Pet added!");
-    //   setOpen(false);
-    // },
-  });
-
   const handleDateSelect = ({ start, end }: { start: Date; end: Date }) => {
     // Find the openCreateTaskDialogHiddenButton and click it - workaround for avoiding putting the dialog in each calendar day
     const button = document.getElementById("openCreateTaskDialogHiddenButton");
@@ -305,9 +294,9 @@ export default function CalendarComponent({
             const params = new URLSearchParams(searchParams);
 
             if (Array.isArray(range)) {
-              if (!range[0] || !range[1]) return;
+              if (!range[0] || !range[range.length - 1]) return;
               params.set("from", range[0].toISOString());
-              params.set("to", range[1].toISOString());
+              params.set("to", range[range.length - 1].toISOString());
             } else {
               params.set("from", range.start.toISOString());
               params.set("to", range.end.toISOString());
