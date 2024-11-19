@@ -3,19 +3,11 @@
 import { Calendar, momentLocalizer, type View } from "react-big-calendar";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import moment from "moment";
-import {
-  addHours,
-  addMilliseconds,
-  endOfMonth,
-  endOfWeek,
-  startOfMonth,
-  startOfWeek,
-} from "date-fns";
+import { addHours, addMilliseconds } from "date-fns";
 import { Button } from "./ui/button";
 import {
-  taskListSchema,
   taskSchema,
   TaskTypeEnum,
   type CreateTaskFormProps,
@@ -24,15 +16,11 @@ import {
 import EditTaskDialog from "~/app/_components/tasks/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/tasks/createtaskdialog";
 import type { Group } from "~/lib/schemas/groups";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { type DateRange } from "~/lib/schemas";
 import ViewTaskDialog from "~/app/_components/tasks/viewtaskdialog";
+import { revalidateData } from "~/server/actions/dashboard-actions";
+import { useServerAction } from "zsa-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const coloursList: string[] = [
   "#f54290",
@@ -117,81 +105,72 @@ class CalendarEvent {
 }
 
 export default function CalendarComponent({
+  tasks,
+  tasksType,
   userId,
   groups,
+  dateFrom,
+  dateTo,
 }: {
-  userId: string | null;
+  tasks: Task[];
+  tasksType: TaskTypeEnum;
+  userId: string;
   groups: Group[];
+  dateFrom: Date;
+  dateTo: Date;
 }) {
-  const [tasksType, setTasksType] = useState<TaskTypeEnum>(
-    TaskTypeEnum.Enum.All,
-  );
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [view, setView] = useState<View>("month");
   const [date, setDate] = useState<Date>(new Date());
-  const [events, setEvents] = useState([] as unknown as CalendarEvent[]);
+  const [events, setEvents] = useState(
+    tasks.map((task) => {
+      return new CalendarEvent(
+        task.taskId,
+        task.ownerId,
+        task.name,
+        task.dueMode,
+        task.dueDate ? new Date(task.dueDate) : null,
+        task.dateRange ? task.dateRange : null,
+
+        task.dateRange?.from
+          ? task.dateRange.from
+          : task.dueDate
+            ? task.dueDate
+            : new Date(),
+
+        task.dateRange?.to
+          ? task.dateRange.to
+          : task.dueDate
+            ? addMilliseconds(task.dueDate, 1)
+            : addMilliseconds(new Date(), 1),
+
+        task.markedAsDone,
+        task.claimed,
+        task.groupId,
+        task.markedAsDoneBy ? task.markedAsDoneBy : undefined,
+        task.claimedBy ? task.claimedBy : undefined,
+        task.petId ? task.petId : "",
+        task.dueMode,
+        task.description ? task.description : "",
+      );
+    }),
+  );
   const [createTaskDialogProps, setCreateTaskDialogProps] =
     useState<CreateTaskFormProps>();
   const [selectedTask, setSelectedTask] = useState<Task>();
 
-  useEffect(() => {
-    async function fetchData() {
-      await fetch(
-        "api/tasks?" +
-          new URLSearchParams({
-            from: startOfWeek(startOfMonth(new Date()), {
-              weekStartsOn: 1,
-            }).toString(),
-            to: endOfWeek(endOfMonth(new Date()), {
-              weekStartsOn: 1,
-            }).toString(),
-            type: tasksType,
-          }).toString(),
-      )
-        .then((res) => res.json())
-        .then((json) => taskListSchema.safeParse(json))
-        .then((validatedTaskList) => {
-          if (!validatedTaskList.success) {
-            throw new Error("Failed to fetch tasks");
-          }
-
-          const events: CalendarEvent[] = validatedTaskList.data.map((task) => {
-            return new CalendarEvent(
-              task.taskId,
-              task.ownerId,
-              task.name,
-              task.dueMode,
-              task.dueDate ? new Date(task.dueDate) : null,
-              task.dateRange ? task.dateRange : null,
-
-              task.dateRange?.from
-                ? task.dateRange.from
-                : task.dueDate
-                  ? task.dueDate
-                  : new Date(),
-
-              task.dateRange?.to
-                ? task.dateRange.to
-                : task.dueDate
-                  ? addMilliseconds(task.dueDate, 1)
-                  : addMilliseconds(new Date(), 1),
-
-              task.markedAsDone,
-              task.claimed,
-              task.groupId,
-              task.markedAsDoneBy ? task.markedAsDoneBy : undefined,
-              task.claimedBy ? task.claimedBy : undefined,
-              task.petId ? task.petId : "",
-              task.dueMode,
-              task.description ? task.description : "",
-            );
-          });
-
-          setEvents(events);
-        });
-    }
-
-    void fetchData();
-  }, [tasksType]);
+  const { isPending, execute } = useServerAction(revalidateData, {
+    // onError: ({ err }) => {
+    //   toast.error(err.message);
+    // },
+    // onSuccess: () => {
+    //   toast.success("Pet added!");
+    //   setOpen(false);
+    // },
+  });
 
   const handleDateSelect = ({ start, end }: { start: Date; end: Date }) => {
     // Find the openCreateTaskDialogHiddenButton and click it - workaround for avoiding putting the dialog in each calendar day
@@ -266,12 +245,7 @@ export default function CalendarComponent({
 
   return (
     <div>
-      <div className="pb-3">
-        <TaskTypeSelect
-          showTaskTypes={tasksType}
-          setShowTaskTypes={setTasksType}
-        />
-      </div>
+      <div className="pb-3"></div>
       <div className="h-[37rem]">
         <Calendar
           selectable
@@ -315,8 +289,8 @@ export default function CalendarComponent({
 
             // If the task is marked as done, or claimed by another user, change the background opacity
             if (
-              (event.claimed && event.claimedBy != userId && userId) ||
-              (!event.claimed && event.ownerId != userId && userId)
+              (event.claimed && event.claimedBy != userId) ||
+              (!event.claimed && event.ownerId != userId)
             ) {
               newStyle.opacity = 0.5;
             }
@@ -325,6 +299,21 @@ export default function CalendarComponent({
               className: "",
               style: newStyle,
             };
+          }}
+          onRangeChange={(range: Date[] | { start: Date; end: Date }) => {
+            // Update search params with the new range
+            const params = new URLSearchParams(searchParams);
+
+            if (Array.isArray(range)) {
+              if (!range[0] || !range[1]) return;
+              params.set("from", range[0].toISOString());
+              params.set("to", range[1].toISOString());
+            } else {
+              params.set("from", range.start.toISOString());
+              params.set("to", range.end.toISOString());
+            }
+
+            router.replace(`${pathname}?${params.toString()}`);
           }}
         />
 
@@ -344,33 +333,5 @@ export default function CalendarComponent({
         </ViewTaskDialog>
       </div>
     </div>
-  );
-}
-
-function TaskTypeSelect({
-  showTaskTypes,
-  setShowTaskTypes,
-}: {
-  showTaskTypes: TaskTypeEnum;
-  setShowTaskTypes: (taskType: TaskTypeEnum) => void;
-}) {
-  return (
-    <Select
-      defaultValue={TaskTypeEnum.Enum.All}
-      onValueChange={(taskType: TaskTypeEnum) => {
-        setShowTaskTypes(TaskTypeEnum.enum[taskType]);
-      }}
-    >
-      <SelectTrigger className="max-w-48">
-        <SelectValue>{showTaskTypes.toString()}</SelectValue>
-      </SelectTrigger>
-      <SelectContent className="max-w-48">
-        {Object.values(TaskTypeEnum.Values).map((taskType) => (
-          <SelectItem value={taskType} key={taskType}>
-            {taskType.toString()}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
   );
 }
