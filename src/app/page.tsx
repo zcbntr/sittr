@@ -7,7 +7,7 @@ import { TaskTypeEnum } from "~/lib/schemas/tasks";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ Record<string, string | string[] | undefined> };
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { from, to, type } = await searchParams;
 
