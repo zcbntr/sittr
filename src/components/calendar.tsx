@@ -1,8 +1,8 @@
 "use client";
 
 import { Calendar, momentLocalizer, type View } from "react-big-calendar";
-// import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-// import "react-big-calendar/lib/css/react-big-calendar.css";
+import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useState } from "react";
 import moment from "moment";
 import { addHours, addMilliseconds } from "date-fns";
@@ -233,7 +233,6 @@ export default function CalendarComponent({
 
   return (
     <div>
-      <div className="pb-3"></div>
       <div className="h-[37rem]">
         <Calendar
           selectable
@@ -247,6 +246,7 @@ export default function CalendarComponent({
           onView={(view) => setView(view)}
           defaultDate={new Date()}
           date={date}
+          toolbar={false}
           onNavigate={(date) => setDate(new Date(date))}
           startAccessor="start"
           endAccessor="end"

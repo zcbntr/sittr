@@ -83,23 +83,20 @@ export default function CreateTaskDialog({
     },
   });
 
-  const { isPending, execute, error } = useServerAction(
-    createTaskAction,
-    {
-      onError: ({ err }) => {
-        toast.error(err.message);
-      },
-      onSuccess: () => {
-        toast.success("Task created!");
-        setOpen(false);
-        form.reset();
-        setSelectedGroupId(undefined);
-        setDueMode(true);
-        setGroupPets([]);
-        setPetsEmpty(false);
-      },
+  const { isPending, execute, error } = useServerAction(createTaskAction, {
+    onError: ({ err }) => {
+      toast.error(err.message);
     },
-  );
+    onSuccess: () => {
+      toast.success("Task created!");
+      setOpen(false);
+      form.reset();
+      setSelectedGroupId(undefined);
+      setDueMode(true);
+      setGroupPets([]);
+      setPetsEmpty(false);
+    },
+  });
 
   useEffect(() => {
     localStorage.setItem(
@@ -131,7 +128,9 @@ export default function CreateTaskDialog({
         });
     }
 
-    void fetchPets();
+    if (form.getValues("groupId")) {
+      void fetchPets();
+    }
   }, [props, form.formState.isDirty, selectedGroupId]);
 
   return (

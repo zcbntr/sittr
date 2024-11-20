@@ -13,6 +13,7 @@ import { getTasksInRange } from "~/server/queries/tasks";
 import { Task, TaskTypeEnum } from "~/lib/schemas/tasks";
 import TaskTypeSelect from "./dashboard/tasks-type-select";
 import { Suspense } from "react";
+import MonthArrows from "./dashboard/month-arrows";
 
 export default async function Dashboard({
   dateFrom,
@@ -49,6 +50,8 @@ export default async function Dashboard({
           </CreateGroupDialog>
 
           <TaskTypeSelect initialType={tasksType} />
+
+          <MonthArrows initialFrom={dateFrom} initialTo={dateTo} />
         </div>
       </section>
       <section>
