@@ -1,8 +1,8 @@
 "use client";
 
 import { Calendar, momentLocalizer, type View } from "react-big-calendar";
-import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-import "react-big-calendar/lib/css/react-big-calendar.css";
+// import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
+// import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useState } from "react";
 import moment from "moment";
 import { addHours, addMilliseconds } from "date-fns";
@@ -18,7 +18,6 @@ import CreateTaskDialog from "~/app/_components/tasks/createtaskdialog";
 import type { Group } from "~/lib/schemas/groups";
 import { type DateRange } from "~/lib/schemas";
 import ViewTaskDialog from "~/app/_components/tasks/viewtaskdialog";
-import { useServerAction } from "zsa-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const coloursList: string[] = [
@@ -294,9 +293,10 @@ export default function CalendarComponent({
             const params = new URLSearchParams(searchParams);
 
             if (Array.isArray(range)) {
-              if (!range[0] || !range[range.length - 1]) return;
+              const lastIndex = range.length - 1;
+              if (!range[0] || !range[lastIndex]) return;
               params.set("from", range[0].toISOString());
-              params.set("to", range[range.length - 1].toISOString());
+              params.set("to", range[lastIndex].toISOString());
             } else {
               params.set("from", range.start.toISOString());
               params.set("to", range.end.toISOString());

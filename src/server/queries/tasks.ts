@@ -1,6 +1,6 @@
 "use server";
 
-import { type Task, taskSchema } from "~/lib/schemas/tasks";
+import { type Task, taskSchema, TaskTypeEnum } from "~/lib/schemas/tasks";
 import { eq, and, or, lte, gte, inArray, not } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "../db";
@@ -121,10 +121,23 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
   });
 }
 
-export async function getTasksOwnedInRange(
+export async function getTasksInRange(
   from: Date,
   to: Date,
+  type: TaskTypeEnum,
 ): Promise<Task[]> {
+  if (type === TaskTypeEnum.Values.Owned) {
+    return getTasksOwnedInRange(from, to);
+  } else if (type === TaskTypeEnum.Values["Sitting For"]) {
+    return getTasksSittingForInRange(from, to);
+  } else if (type === TaskTypeEnum.Values.All) {
+    return getTasksVisibileInRange(from, to);
+  } else {
+    throw new Error("Invalid task type");
+  }
+}
+
+async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
   const user = await auth();
 
   if (!user.userId) {
@@ -169,7 +182,7 @@ export async function getTasksOwnedInRange(
   return tasksList;
 }
 
-export async function getTasksSittingForInRange(
+async function getTasksSittingForInRange(
   from: Date,
   to: Date,
 ): Promise<Task[]> {
@@ -229,10 +242,7 @@ export async function getTasksSittingForInRange(
   return tasksList;
 }
 
-export async function getTasksVisibileInRange(
-  from: Date,
-  to: Date,
-): Promise<Task[]> {
+async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
   const user = await auth();
 
   if (!user.userId) {

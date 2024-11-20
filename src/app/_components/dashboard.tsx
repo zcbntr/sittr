@@ -9,11 +9,7 @@ import CreateGroupDialog from "./groups/creategroupdialog";
 import CreateTaskDialog from "./tasks/createtaskdialog";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
 import { auth } from "@clerk/nextjs/server";
-import {
-  getTasksOwnedInRange,
-  getTasksSittingForInRange,
-  getTasksVisibileInRange,
-} from "~/server/queries/tasks";
+import { getTasksInRange } from "~/server/queries/tasks";
 import { Task, TaskTypeEnum } from "~/lib/schemas/tasks";
 import TaskTypeSelect from "./dashboard/tasks-type-select";
 import { Suspense } from "react";
@@ -30,14 +26,10 @@ export default async function Dashboard({
   const { userId } = await auth();
   if (!userId) return null;
 
-  const groups = await getGroupsUserIsIn();
-  let tasks: Task[] = [];
-  if (tasksType === TaskTypeEnum.Values.All)
-    tasks = await getTasksVisibileInRange(dateFrom, dateTo);
-  else if (tasksType === TaskTypeEnum.Values.Owned)
-    tasks = await getTasksOwnedInRange(dateFrom, dateTo);
-  else if (tasksType === TaskTypeEnum.Values["Sitting For"])
-    tasks = await getTasksSittingForInRange(dateFrom, dateTo);
+  const [groups, tasks] = await Promise.all([
+    getGroupsUserIsIn(),
+    getTasksInRange(dateFrom, dateTo, tasksType),
+  ]);
 
   return (
     <div className="flex flex-col gap-3 p-5">

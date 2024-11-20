@@ -1,11 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getTaskAPISchema, type Task, TaskTypeEnum } from "~/lib/schemas/tasks";
-import {
-  getOwnedTaskById,
-  getTasksOwnedInRange,
-  getTasksVisibileInRange,
-  getTasksSittingForInRange,
-} from "~/server/queries/tasks";
+import { getOwnedTaskById, getTasksInRange } from "~/server/queries/tasks";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -34,26 +29,11 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
 
       return NextResponse.json(taskOrErrorMessage);
     } else if (requestParams.data.dateRange) {
-      let tasksInRange: Task[] = [];
-
-      if (requestParams.data.type === TaskTypeEnum.Values.Owned) {
-        tasksInRange = await getTasksOwnedInRange(
-          requestParams.data.dateRange.from,
-          requestParams.data.dateRange.to,
-        );
-      } else if (requestParams.data.type === TaskTypeEnum.Values.All) {
-        tasksInRange = await getTasksVisibileInRange(
-          requestParams.data.dateRange.from,
-          requestParams.data.dateRange.to,
-        );
-      } else if (
-        requestParams.data.type === TaskTypeEnum.Values["Sitting For"]
-      ) {
-        tasksInRange = await getTasksSittingForInRange(
-          requestParams.data.dateRange.from,
-          requestParams.data.dateRange.to,
-        );
-      }
+      const tasksInRange: Task[] = await getTasksInRange(
+        requestParams.data.dateRange.from,
+        requestParams.data.dateRange.to,
+        requestParams.data.type,
+      );
 
       return NextResponse.json(tasksInRange);
     } else if (requestParams.data.ids) {
