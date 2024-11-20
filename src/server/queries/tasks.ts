@@ -1,7 +1,7 @@
 "use server";
 
 import { type Task, taskSchema, TaskTypeEnum } from "~/lib/schemas/tasks";
-import { eq, and, or, lte, gte, inArray, not } from "drizzle-orm";
+import { eq, and, or, lte, gte, inArray, not, isNull } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "../db";
 import { groups, tasks, usersToGroups } from "../db/schema";
@@ -133,6 +133,8 @@ export async function getTasksInRange(
     return getTasksSittingForInRange(from, to);
   } else if (type === TaskTypeEnum.Values.All) {
     return getTasksVisibileInRange(from, to);
+  } else if (type === TaskTypeEnum.Values.Unclaimed) {
+    return getTasksUnclaimedInRange(from, to);
   } else {
     throw new Error("Invalid task type");
   }
@@ -293,6 +295,96 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
         ),
+      ),
+    );
+
+  const allTasksVisible = await union(groupInTasksInRange, tasksOwnedInRange);
+
+  // Turn into task schema
+  const tasksList: Task[] = allTasksVisible.map((task) => {
+    const parse = taskSchema.safeParse({
+      taskId: task.id,
+      ownerId: task.ownerId,
+      name: task.name,
+      description: task.description,
+      dueMode: task.dueMode,
+      dueDate: task.dueDate,
+      dateRange: task.dateRangeFrom &&
+        task.dateRangeTo && {
+          from: task.dateRangeFrom,
+          to: task.dateRangeTo,
+        },
+      petId: task.pet,
+      groupId: task.group,
+      markedAsDone: task.markedAsDoneBy !== null,
+      markedAsDoneBy: task.markedAsDoneBy,
+      claimed: task.claimedBy !== null,
+      claimedBy: task.claimedBy,
+    });
+
+    if (!parse.success) {
+      console.log(parse.error);
+      throw new Error("Failed to parse task");
+    }
+
+    return parse.data;
+  });
+
+  return tasksList;
+}
+
+async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
+  const user = await auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Get tasks in range where the user is in the group the task is assigned to
+  const groupInTasksInRange = db
+    .select({
+      id: tasks.id,
+      ownerId: tasks.ownerId,
+      name: tasks.name,
+      description: tasks.description,
+      completed: tasks.completed,
+      dueMode: tasks.dueMode,
+      dueDate: tasks.dueDate,
+      dateRangeFrom: tasks.dateRangeFrom,
+      dateRangeTo: tasks.dateRangeTo,
+      pet: tasks.pet,
+      group: tasks.group,
+      claimedBy: tasks.claimedBy,
+      markedAsDoneBy: tasks.markedAsDoneBy,
+      requiresVerification: tasks.requiresVerification,
+      createdAt: tasks.createdAt,
+      updatedAt: tasks.updatedAt,
+    })
+    .from(tasks)
+    .leftJoin(groups, eq(tasks.group, groups.id))
+    .leftJoin(usersToGroups, eq(groups.id, usersToGroups.groupId))
+    .where(
+      and(
+        eq(usersToGroups.userId, user.userId),
+        or(
+          and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeTo, to)),
+          and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
+        ),
+        isNull(tasks.claimedBy),
+      ),
+    );
+
+  const tasksOwnedInRange = db
+    .select()
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.ownerId, user.userId),
+        or(
+          and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
+          and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
+        ),
+        isNull(tasks.claimedBy),
       ),
     );
 

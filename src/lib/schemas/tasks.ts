@@ -36,6 +36,7 @@ export const TaskTypeEnum = z.enum([
   "All",
   "Sitting For",
   "Owned",
+  "Unclaimed",
 ]);
 export type TaskTypeEnum = z.infer<typeof TaskTypeEnum>;
 
