@@ -34,6 +34,7 @@ export const createTaskAction = authenticatedProcedure
       .values({
         name: input.name,
         dueMode: input.dueMode,
+        createdBy: user.userId,
         ownerId: user.userId,
         dateRangeFrom: input.dateRange?.from,
         dateRangeTo: input.dateRange?.to,
@@ -65,7 +66,7 @@ export const updateTaskAction = ownsTaskProcedure
         pet: input.petId,
         group: input.groupId,
       })
-      .where(and(eq(tasks.id, task.id), eq(tasks.ownerId, user.userId)))
+      .where(and(eq(tasks.id, task.id), eq(tasks.createdBy, user.userId)))
       .execute();
 
     revalidatePath(`/tasks/${task.id}`);
@@ -132,7 +133,7 @@ export const deleteTaskAction = ownsTaskProcedure
 
     await db
       .delete(tasks)
-      .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, user.userId)))
+      .where(and(eq(tasks.id, input.taskId), eq(tasks.createdBy, user.userId)))
       .execute();
 
     revalidatePath("/tasks");
@@ -163,7 +164,9 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         .set({
           claimedBy: null,
         })
-        .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, user.userId)))
+        .where(
+          and(eq(tasks.id, input.taskId), eq(tasks.createdBy, user.userId)),
+        )
         .execute();
 
       revalidatePath("/tasks");
@@ -183,7 +186,10 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
           claimedBy: user.userId,
         })
         .where(
-          and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, user.userId))),
+          and(
+            eq(tasks.id, input.taskId),
+            not(eq(tasks.createdBy, user.userId)),
+          ),
         )
         .execute();
 

@@ -27,6 +27,7 @@ export const tasks = createTable("tasks", {
     .$defaultFn(() => uuid())
     .primaryKey(),
   ownerId: text("owner_id").notNull(),
+  createdBy: text("created_by").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   // Set by task owner when they approve of its completion if requiresVerification is true
@@ -104,6 +105,7 @@ export const pets = createTable("pets", {
   id: text("id")
     .$defaultFn(() => uuid())
     .primaryKey(),
+  createdBy: text("created_by").notNull(),
   ownerId: text("owner_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   species: varchar("species", { length: 255 }).notNull(),
@@ -148,6 +150,7 @@ export const groups = createTable("groups", {
   id: text("id")
     .$defaultFn(() => uuid())
     .primaryKey(),
+  createdBy: text("created_by").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -202,6 +205,7 @@ export const groupInviteCodes = createTable("group_invite_codes", {
   groupId: text("group_id")
     .references(() => groups.id, { onDelete: "cascade" })
     .notNull(),
+  createdBy: text("created_by").notNull(),
   code: varchar("code", { length: 255 }).notNull().unique(),
   uses: integer("uses").notNull().default(0),
   maxUses: integer("max_uses").notNull().default(1),
@@ -224,3 +228,17 @@ export const groupInviteCodesRelations = relations(
     }),
   }),
 );
+
+export const images = createTable("images", {
+  id: text("id")
+    .$defaultFn(() => uuid())
+    .primaryKey(),
+  uploadedBy: text("uploaded_by").notNull(),
+  url: text("url").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});

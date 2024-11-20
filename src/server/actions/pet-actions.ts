@@ -24,6 +24,7 @@ export const createPetAction = authenticatedProcedure
     await db
       .insert(pets)
       .values({
+        createdBy: user.userId,
         ownerId: user.userId,
         name: input.name,
         species: input.species,

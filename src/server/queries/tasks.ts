@@ -15,7 +15,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
   }
 
   const userTasks = await db.query.tasks.findMany({
-    where: (model, { eq }) => eq(model.ownerId, user.userId),
+    where: (model, { eq }) => eq(model.createdBy, user.userId),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
@@ -94,7 +94,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
 
   const task = await db.query.tasks.findFirst({
     where: (model, { and, eq }) =>
-      and(eq(model.id, taskId), eq(model.ownerId, user.userId)),
+      and(eq(model.id, taskId), eq(model.createdBy, user.userId)),
   });
 
   if (!task) {
@@ -150,7 +150,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
   const tasksInRange = await db.query.tasks.findMany({
     where: (model, { and, eq, gte, lte }) =>
       and(
-        eq(model.ownerId, user.userId),
+        eq(model.createdBy, user.userId),
         or(
           and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
@@ -208,7 +208,7 @@ async function getTasksSittingForInRange(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
         ),
-        not(eq(tasks.ownerId, user.userId)),
+        not(eq(tasks.createdBy, user.userId)),
       ),
     )
     .execute();
@@ -256,7 +256,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
   const groupInTasksInRange = db
     .select({
       id: tasks.id,
-      ownerId: tasks.ownerId,
+      ownerId: tasks.createdBy,
       name: tasks.name,
       description: tasks.description,
       completed: tasks.completed,
@@ -290,7 +290,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     .from(tasks)
     .where(
       and(
-        eq(tasks.ownerId, user.userId),
+        eq(tasks.createdBy, user.userId),
         or(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
@@ -344,7 +344,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
   const groupInTasksInRange = db
     .select({
       id: tasks.id,
-      ownerId: tasks.ownerId,
+      ownerId: tasks.createdBy,
       name: tasks.name,
       description: tasks.description,
       completed: tasks.completed,
@@ -379,7 +379,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
     .from(tasks)
     .where(
       and(
-        eq(tasks.ownerId, user.userId),
+        eq(tasks.createdBy, user.userId),
         or(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),

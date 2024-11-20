@@ -8,6 +8,7 @@ import { dateRangeSchema } from ".";
 export const taskSchema = z.object({
   taskId: z.string(),
   ownerId: z.string(),
+  createdBy: z.string(),
   name: z.string(),
   description: z.string().optional(),
   dueMode: z.boolean(),

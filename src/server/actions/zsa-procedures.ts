@@ -45,7 +45,7 @@ export const ownsTaskProcedure = createServerActionProcedure(
     const { user } = ctx;
     const task = await db.query.tasks.findFirst({
       where: (model, { and, eq }) =>
-        and(eq(model.id, input.taskId), eq(model.ownerId, user.userId)),
+        and(eq(model.id, input.taskId), eq(model.createdBy, user.userId)),
     });
 
     if (!task) {
