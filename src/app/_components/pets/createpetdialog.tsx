@@ -37,6 +37,7 @@ import { createPetInputSchema } from "~/lib/schemas/pets";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
 import { createPetAction } from "~/server/actions/pet-actions";
+import { UploadButton } from "~/lib/uploadthing";
 
 export default function CreatePetDialog({
   children,
@@ -50,6 +51,13 @@ export default function CreatePetDialog({
   const form = useForm<z.infer<typeof createPetInputSchema>>({
     mode: "onBlur",
     resolver: zodResolver(createPetInputSchema),
+    defaultValues: {
+      name: "",
+      species: "",
+      breed: "",
+      dob: undefined,
+      image: "",
+    },
   });
 
   const { isPending, execute } = useServerAction(createPetAction, {
@@ -79,6 +87,22 @@ export default function CreatePetDialog({
             Create a new pet. You can add more details later.
           </DialogDescription>
         </DialogHeader>
+        <div>
+          <div className="font-medium">Avatar</div>
+          <UploadButton
+            endpoint="imageUploader"
+            onClientUploadComplete={(res) => {
+              // Do something with the response
+              if (res[0]?.serverData.imageId)
+                form.setValue("image", res[0].serverData.imageId);
+              else alert("Image Upload Error!");
+            }}
+            onUploadError={(error: Error) => {
+              // Do something with the error.
+              alert(`Image Upload Error! ${error.message}`);
+            }}
+          />
+        </div>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => execute(values))}

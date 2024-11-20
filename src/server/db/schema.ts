@@ -111,6 +111,7 @@ export const pets = createTable("pets", {
   species: varchar("species", { length: 255 }).notNull(),
   breed: varchar("breed", { length: 255 }),
   dob: timestamp("dob", { withTimezone: true }).notNull(),
+  image: text("image"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -121,6 +122,7 @@ export const pets = createTable("pets", {
 
 export const petRelations = relations(pets, ({ one }) => ({
   petNotes: one(petNotes),
+  petImages: one(petImages),
 }));
 
 export const petNotes = createTable("pet_notes", {
@@ -229,10 +231,12 @@ export const groupInviteCodesRelations = relations(
   }),
 );
 
-export const images = createTable("images", {
+export const petImages = createTable("pet_images", {
   id: text("id")
     .$defaultFn(() => uuid())
     .primaryKey(),
+  // Do not use .notNull() here, as the pet may not have been created yet
+  petId: text("pet_id").references(() => pets.id, { onDelete: "cascade" }),
   uploadedBy: text("uploaded_by").notNull(),
   url: text("url").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -242,3 +246,10 @@ export const images = createTable("images", {
     () => new Date(),
   ),
 });
+
+export const petImagesRelations = relations(petImages, ({ one }) => ({
+  pet: one(pets, {
+    fields: [petImages.petId],
+    references: [pets.id],
+  }),
+}));

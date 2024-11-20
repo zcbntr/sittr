@@ -7,6 +7,9 @@ import { Toaster } from "sonner";
 import { TopNav } from "./_components/topnav";
 import { Footer } from "./_components/footer";
 import { Analytics } from "@vercel/analytics/next";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "./api/uploadthing/core";
 
 export const metadata: Metadata = {
   title: "sittr",
@@ -22,6 +25,15 @@ export default function RootLayout({
       <html lang="en" className={`${GeistSans.variable}`}>
         <body className={`${GeistSans.variable}`}>
           <Analytics />
+          <NextSSRPlugin
+            /**
+             * The `extractRouterConfig` will extract **only** the route configs
+             * from the router to prevent additional information from being
+             * leaked to the client. The data passed to the client is the same
+             * as if you were to fetch `/api/uploadthing` directly.
+             */
+            routerConfig={extractRouterConfig(ourFileRouter)}
+          />
 
           <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
             <main className="overflow-y-scroll">

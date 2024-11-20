@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { db } from "~/server/db";
-import { images } from "~/server/db/schema";
+import { petImages } from "~/server/db/schema";
 
 const f = createUploadthing();
 
@@ -16,7 +16,8 @@ export const ourFileRouter = {
       const user = await auth();
 
       // If you throw, the user will not be able to upload
-      if (!user) throw new Error("No user");
+      if (!user) throw new Error("No user was returned from auth()");
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
       if (!user.userId) throw new UploadThingError("Unauthorized");
 
       // Whatever is returned here is accessible in onUploadComplete as `metadata`
@@ -25,13 +26,23 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       // This code RUNS ON YOUR SERVER after upload
 
-      await db.insert(images).values({
-        uploadedBy: metadata.userId,
-        url: file.url,
-      });
+      const petImageRow = await db
+        .insert(petImages)
+        .values({
+          uploadedBy: metadata.userId,
+          url: file.url,
+        })
+        .returning({ insertedId: petImages.id });
+
+      if (!petImageRow || petImageRow.length == 0 || !petImageRow[0]) {
+        throw new Error("Failed to insert pet image");
+      }
 
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
-      return { uploadedBy: metadata.userId };
+      return {
+        uploadedBy: metadata.userId,
+        imageId: petImageRow[0].insertedId,
+      };
     }),
 } satisfies FileRouter;
 

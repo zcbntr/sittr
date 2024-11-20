@@ -16,6 +16,9 @@ export async function getPetById(petId: string): Promise<Pet> {
   const pet = await db.query.pets.findFirst({
     where: (model, { and, eq }) =>
       and(eq(model.id, petId), eq(model.ownerId, user.userId)),
+    with: {
+      petImages: true,
+    },
   });
 
   if (!pet) {
@@ -25,10 +28,12 @@ export async function getPetById(petId: string): Promise<Pet> {
   return petSchema.parse({
     petId: pet.id,
     ownerId: pet.ownerId,
+    createdBy: pet.createdBy,
     name: pet.name,
     species: pet.species,
     breed: pet.breed ? pet.breed : undefined,
     dob: pet.dob,
+    image: pet.petImages?.url ? pet.petImages.url : undefined,
   });
 }
 
@@ -39,6 +44,7 @@ export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
     return "Unauthorized";
   }
 
+  // Convert to a query so we can easily get pet images
   const petsList = await db.select().from(pets).where(inArray(pets.id, petIds));
 
   if (!petsList) {
@@ -50,10 +56,12 @@ export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
     return petSchema.parse({
       petId: pet.id,
       ownerId: pet.ownerId,
+      createdBy: pet.createdBy,
       name: pet.name,
       species: pet.species,
       breed: pet.breed ? pet.breed : undefined,
       dob: pet.dob,
+      image: pet.image ? pet.image : undefined,
     });
   });
 }
@@ -67,6 +75,9 @@ export async function getOwnedPets(): Promise<Pet[]> {
 
   const ownedPets = await db.query.pets.findMany({
     where: (model, { eq }) => eq(model.ownerId, user.userId),
+    with: {
+      petImages: true,
+    },
   });
 
   // Turn into zod pet type
@@ -74,10 +85,12 @@ export async function getOwnedPets(): Promise<Pet[]> {
     return petSchema.parse({
       petId: pet.id,
       ownerId: pet.ownerId,
+      createdBy: pet.createdBy,
       name: pet.name,
       species: pet.species,
       breed: pet.breed ? pet.breed : undefined,
       dob: pet.dob,
+      image: pet.petImages?.url ? pet.petImages.url : undefined,
     });
   });
 

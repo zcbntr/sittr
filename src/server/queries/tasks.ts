@@ -257,6 +257,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     .select({
       id: tasks.id,
       ownerId: tasks.createdBy,
+      createdBy: tasks.createdBy,
       name: tasks.name,
       description: tasks.description,
       completed: tasks.completed,
@@ -344,6 +345,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
   const groupInTasksInRange = db
     .select({
       id: tasks.id,
+      createdBy: tasks.createdBy,
       ownerId: tasks.createdBy,
       name: tasks.name,
       description: tasks.description,

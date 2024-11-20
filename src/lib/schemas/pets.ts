@@ -8,6 +8,7 @@ export const petSchema = z.object({
   species: z.string(),
   breed: z.string().optional(),
   dob: z.coerce.date(),
+  image: z.string().optional(),
 });
 
 export type Pet = z.infer<typeof petSchema>;
@@ -22,6 +23,7 @@ export const createPetInputSchema = z
     species: z.string().min(3).max(50),
     breed: z.string().min(3).max(50).optional(),
     dob: z.coerce.date(),
+    image: z.string().optional(),
   })
   .refine((data) => data.dob < new Date(), {
     message: "Birthdate must be in the past",

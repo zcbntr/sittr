@@ -2,7 +2,7 @@
 
 import { createPetInputSchema, petSchema } from "~/lib/schemas/pets";
 import { db } from "../db";
-import { pets } from "../db/schema";
+import { petImages, pets } from "../db/schema";
 import { authenticatedProcedure, ownsPetProcedure } from "./zsa-procedures";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -15,13 +15,14 @@ export const createPetAction = authenticatedProcedure
   .input(createPetInputSchema)
   .handler(async ({ input, ctx }) => {
     const { user } = ctx;
+    // Once image upload is locked down to only paying customers we can remove the ratelimiting here
     const { success } = await ratelimit.limit(user.userId);
 
     if (!success) {
       throw new Error("You are creating pets too fast");
     }
 
-    await db
+    const petRow = await db
       .insert(pets)
       .values({
         createdBy: user.userId,
@@ -30,9 +31,19 @@ export const createPetAction = authenticatedProcedure
         species: input.species,
         breed: input.breed,
         dob: input.dob,
+        image: input.image,
       })
+      .returning({ insertedId: pets.id })
       .execute();
 
+    if (input.image) {
+      await db
+        .update(petImages)
+        .set({ petId: petRow[0]?.insertedId })
+        .where(eq(petImages.id, input.image))
+        .execute();
+    }
+    
     revalidatePath(`/pets/`);
   });
 
@@ -49,6 +60,7 @@ export const updatePetAction = ownsPetProcedure
         species: input.species,
         breed: input.breed,
         dob: input.dob,
+        image: input.image,
       })
       .where(and(eq(pets.id, input.petId), eq(pets.ownerId, user.userId)))
       .execute();
