@@ -32,7 +32,7 @@ export default function TaskTypeSelect({
         router.replace(`${pathname}?${params.toString()}`);
       }}
     >
-      <SelectTrigger className="max-w-48">
+      <SelectTrigger className="max-w-48 max-h-9">
         <SelectValue>{showTaskTypes.toString()}</SelectValue>
       </SelectTrigger>
       <SelectContent className="max-w-48">

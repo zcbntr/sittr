@@ -36,22 +36,32 @@ export default async function Dashboard({
     <div className="flex flex-col gap-3 p-5">
       <h1 className="text-xl">Dashboard</h1>
       <section>
-        <div className="flex flex-row flex-wrap-reverse gap-3">
-          <CreateTaskDialog groups={groups}>
-            <Button variant="outline">New Task</Button>
-          </CreateTaskDialog>
+        <div className="flex flex-row flex-wrap gap-3">
+          <div className="flex flex-col place-content-center">
+            <CreateTaskDialog groups={groups}>
+              <Button variant="outline">New Task</Button>
+            </CreateTaskDialog>
+          </div>
 
-          <CreatePetDialog>
-            <Button variant="outline">New Pet</Button>
-          </CreatePetDialog>
+          <div className="flex flex-col place-content-center">
+            <CreatePetDialog>
+              <Button variant="outline">New Pet</Button>
+            </CreatePetDialog>
+          </div>
 
-          <CreateGroupDialog>
-            <Button variant="outline">New Group</Button>
-          </CreateGroupDialog>
+          <div className="flex flex-col place-content-center">
+            <CreateGroupDialog>
+              <Button variant="outline">New Group</Button>
+            </CreateGroupDialog>
+          </div>
 
-          <TaskTypeSelect initialType={tasksType} />
+          <div className="flex flex-col place-content-center">
+            <TaskTypeSelect initialType={tasksType} />
+          </div>
 
-          <MonthArrows initialFrom={dateFrom} initialTo={dateTo} />
+          <div className="flex flex-col place-content-center">
+            <MonthArrows initialFrom={dateFrom} initialTo={dateTo} />
+          </div>
         </div>
       </section>
       <section>

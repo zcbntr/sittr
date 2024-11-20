@@ -40,7 +40,9 @@ export default function MonthArrows({
           {"<"}
         </span>
       </Button>
-      <span>{displayMonth}</span>
+      <div className="flex flex-col place-content-center">
+        <span className="text-center">{displayMonth}</span>
+      </div>
       <Button variant="outline" size="icon">
         <span
           onClick={() => {

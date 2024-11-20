@@ -9,7 +9,6 @@ import { addHours, addMilliseconds } from "date-fns";
 import { Button } from "./ui/button";
 import {
   taskSchema,
-  type TaskTypeEnum,
   type CreateTaskFormProps,
   type Task,
 } from "~/lib/schemas/tasks";
@@ -117,39 +116,37 @@ export default function CalendarComponent({
 
   const [view, setView] = useState<View>("month");
   const [date, setDate] = useState<Date>(new Date());
-  const [events, setEvents] = useState(
-    tasks.map((task) => {
-      return new CalendarEvent(
-        task.taskId,
-        task.ownerId,
-        task.name,
-        task.dueMode,
-        task.dueDate ? new Date(task.dueDate) : null,
-        task.dateRange ? task.dateRange : null,
+  const events = tasks.map((task) => {
+    return new CalendarEvent(
+      task.taskId,
+      task.ownerId,
+      task.name,
+      task.dueMode,
+      task.dueDate ? new Date(task.dueDate) : null,
+      task.dateRange ? task.dateRange : null,
 
-        task.dateRange?.from
-          ? task.dateRange.from
-          : task.dueDate
-            ? task.dueDate
-            : new Date(),
+      task.dateRange?.from
+        ? task.dateRange.from
+        : task.dueDate
+          ? task.dueDate
+          : new Date(),
 
-        task.dateRange?.to
-          ? task.dateRange.to
-          : task.dueDate
-            ? addMilliseconds(task.dueDate, 1)
-            : addMilliseconds(new Date(), 1),
+      task.dateRange?.to
+        ? task.dateRange.to
+        : task.dueDate
+          ? addMilliseconds(task.dueDate, 1)
+          : addMilliseconds(new Date(), 1),
 
-        task.markedAsDone,
-        task.claimed,
-        task.groupId,
-        task.markedAsDoneBy ? task.markedAsDoneBy : undefined,
-        task.claimedBy ? task.claimedBy : undefined,
-        task.petId ? task.petId : "",
-        task.dueMode,
-        task.description ? task.description : "",
-      );
-    }),
-  );
+      task.markedAsDone,
+      task.claimed,
+      task.groupId,
+      task.markedAsDoneBy ? task.markedAsDoneBy : undefined,
+      task.claimedBy ? task.claimedBy : undefined,
+      task.petId ? task.petId : "",
+      task.dueMode,
+      task.description ? task.description : "",
+    );
+  });
   const [createTaskDialogProps, setCreateTaskDialogProps] =
     useState<CreateTaskFormProps>();
   const [selectedTask, setSelectedTask] = useState<Task>();
@@ -238,14 +235,13 @@ export default function CalendarComponent({
           defaultView={view}
           view={view}
           onView={(view) => setView(view)}
-          defaultDate={new Date()}
           date={date}
           toolbar={false}
           onNavigate={(date) => setDate(new Date(date))}
           startAccessor="start"
           endAccessor="end"
           titleAccessor="title"
-          eventPropGetter={(event, start, end, isSelected) => {
+          eventPropGetter={(event, _start, _end, _isSelected) => {
             const newStyle = {
               backgroundColor: "lightgrey",
               color: "black",
