@@ -30,6 +30,7 @@ export default async function Dashboard({
   const { userId } = await auth();
   if (!userId) return null;
 
+  // Turn this shit into promise.allSettled([])
   const groups = await getGroupsUserIsIn();
   let tasks: Task[] = [];
   if (tasksType === TaskTypeEnum.Values.All)
