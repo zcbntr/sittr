@@ -9,7 +9,7 @@ import { addHours, addMilliseconds } from "date-fns";
 import { Button } from "./ui/button";
 import {
   taskSchema,
-  TaskTypeEnum,
+  type TaskTypeEnum,
   type CreateTaskFormProps,
   type Task,
 } from "~/lib/schemas/tasks";
@@ -104,18 +104,12 @@ class CalendarEvent {
 
 export default function CalendarComponent({
   tasks,
-  tasksType,
   userId,
   groups,
-  dateFrom,
-  dateTo,
 }: {
   tasks: Task[];
-  tasksType: TaskTypeEnum;
   userId: string;
   groups: Group[];
-  dateFrom: Date;
-  dateTo: Date;
 }) {
   const router = useRouter();
   const pathname = usePathname();

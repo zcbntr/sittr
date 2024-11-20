@@ -15,7 +15,6 @@ import {
 } from "./zsa-procedures";
 import { and, eq, not } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { ratelimit } from "../ratelimit";
 
 export const createTaskAction = authenticatedProcedure

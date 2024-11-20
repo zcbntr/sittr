@@ -19,12 +19,12 @@ export function getDominantMonth(startDate: Date, endDate: Date): string {
 
   allDates.forEach((date) => {
     const month: string = format(date, "MMMM yyyy"); // Get the month name with year (e.g., "November 2024")
-    monthCounts[month] = (monthCounts[month] || 0) + 1;
+    monthCounts[month] = (monthCounts[month] ?? 0) + 1;
   });
 
   // Find the month with the most days
-  let dominantMonth: string = "";
-  let maxDays: number = 0;
+  let dominantMonth = "";
+  let maxDays = 0;
 
   for (const [month, count] of Object.entries(monthCounts)) {
     if (count > maxDays) {

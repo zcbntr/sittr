@@ -10,7 +10,7 @@ import CreateTaskDialog from "./tasks/createtaskdialog";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
 import { auth } from "@clerk/nextjs/server";
 import { getTasksInRange } from "~/server/queries/tasks";
-import { Task, TaskTypeEnum } from "~/lib/schemas/tasks";
+import type { TaskTypeEnum } from "~/lib/schemas/tasks";
 import TaskTypeSelect from "./dashboard/tasks-type-select";
 import { Suspense } from "react";
 import MonthArrows from "./dashboard/month-arrows";
@@ -60,14 +60,7 @@ export default async function Dashboard({
           fallback={<div>Loading table...</div>}
         >
           <div className="pb-5">
-            <CalendarComponent
-              userId={userId}
-              groups={groups}
-              tasks={tasks}
-              tasksType={tasksType}
-              dateFrom={dateFrom}
-              dateTo={dateTo}
-            />
+            <CalendarComponent userId={userId} groups={groups} tasks={tasks} />
           </div>
         </Suspense>
       </section>
