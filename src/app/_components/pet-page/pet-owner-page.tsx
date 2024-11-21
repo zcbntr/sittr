@@ -29,6 +29,7 @@ import { deletePetAction } from "~/server/actions/pet-actions";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Textarea } from "~/components/ui/textarea";
+import { getPetAgeString } from "~/lib/utils";
 
 export function PetOwnerPage({ pet }: { pet: Pet }) {
   const router = useRouter();
@@ -43,6 +44,8 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
       toast.success("Pet deleted!");
     },
   });
+
+  const petAgeString = getPetAgeString(pet.dob);
 
   return (
     <div className="container mx-auto space-y-6 p-4">
@@ -77,10 +80,13 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
 
                   <div className="flex flex-col">
                     <p className="text-2xl font-semibold">{pet.name}</p>
-                    <p className="text-lg text-muted-foreground">
+                    <p className="pt-2 text-lg text-muted-foreground">
                       {pet.species}
                     </p>
                     <p className="text-lg text-muted-foreground">{pet.breed}</p>
+                    <p className="text-lg text-muted-foreground">
+                      {petAgeString} old
+                    </p>
                   </div>
                 </div>
 
@@ -127,7 +133,7 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
                 <div className="text-xl">Notes</div>
                 <div className="h-full w-full">
                   <Textarea
-                    placeholder="Write some notes about your pet for sitters to see. "
+                    placeholder="Write some public notes about your pet for sitters to see. "
                     className="h-full w-full"
                   />
                 </div>

@@ -1,6 +1,12 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { eachDayOfInterval, format } from "date-fns";
+import {
+  eachDayOfInterval,
+  format,
+  differenceInDays,
+  differenceInMonths,
+  differenceInYears,
+} from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -34,4 +40,21 @@ export function getDominantMonth(startDate: Date, endDate: Date): string {
   }
 
   return dominantMonth;
+}
+
+export function getPetAgeString(dob: Date): string {
+  const today = new Date();
+
+  const days = differenceInDays(today, dob);
+  if (days < 30) {
+    return `${days} day${days !== 1 ? "s" : ""}`;
+  }
+
+  const months = differenceInMonths(today, dob);
+  if (months < 18) {
+    return `${months} month${months !== 1 ? "s" : ""}`;
+  }
+
+  const years = differenceInYears(today, dob);
+  return `${years} year${years !== 1 ? "s" : ""}`;
 }
