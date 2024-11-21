@@ -84,6 +84,7 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
                       {pet.species}
                     </p>
                     <p className="text-lg text-muted-foreground">{pet.breed}</p>
+                    <p className="text-lg text-muted-foreground">{pet.sex}</p>
                     <p className="text-lg text-muted-foreground">
                       {petAgeString} old
                     </p>
@@ -130,10 +131,10 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
               </div>
 
               <div className="flex max-w-[800px] grow flex-col gap-2">
-                <div className="text-xl">Notes</div>
+                <div className="text-xl">Notes for Sitters</div>
                 <div className="h-full w-full">
                   <Textarea
-                    placeholder="Write some public notes about your pet for sitters to see. "
+                    placeholder={`Include information that will help sitters take care of ${pet.name}, such as allergies, behaviours, or their favourite toy.`}
                     className="h-full w-full"
                   />
                 </div>

@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const SexEnum = z.enum(["Male", "Female", "Unspecified"]);
+export type SexEnum = z.infer<typeof SexEnum>;
+
 export const petSchema = z.object({
   petId: z.string(),
   ownerId: z.string(),
@@ -8,6 +11,7 @@ export const petSchema = z.object({
   species: z.string(),
   breed: z.string().optional(),
   dob: z.coerce.date(),
+  sex: SexEnum.optional(),
   image: z.string().optional(),
 });
 
@@ -23,6 +27,7 @@ export const createPetInputSchema = z
     species: z.string().min(3).max(50),
     breed: z.string().min(3).max(50).optional(),
     dob: z.coerce.date(),
+    sex: SexEnum.optional(),
     image: z.string().optional(),
   })
   .refine((data) => data.dob < new Date(), {

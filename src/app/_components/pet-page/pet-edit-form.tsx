@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { type Pet, petSchema } from "~/lib/schemas/pets";
+import { type Pet, petSchema, SexEnum } from "~/lib/schemas/pets";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Popover,
@@ -30,6 +30,13 @@ import { cn } from "~/lib/utils";
 import { updatePetAction } from "~/server/actions/pet-actions";
 import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 export function PetEditForm({ pet }: { pet: Pet }) {
   const [dob, setDOB] = React.useState<Date | undefined>();
@@ -110,6 +117,35 @@ export function PetEditForm({ pet }: { pet: Pet }) {
               <FormControl>
                 <Input placeholder="Golden Retriever" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="sex"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Sex</FormLabel>
+              <Select onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a sex" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value={SexEnum.enum.Male.toString()}>
+                    Male
+                  </SelectItem>
+                  <SelectItem value={SexEnum.enum.Female.toString()}>
+                    Female
+                  </SelectItem>
+                  <SelectItem value={SexEnum.enum.Unspecified.toString()}>
+                    Unspecified
+                  </SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

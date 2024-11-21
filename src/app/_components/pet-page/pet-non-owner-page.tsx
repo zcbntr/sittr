@@ -46,7 +46,7 @@ export function PetNonOwnerPage({ pet }: { pet: Pet }) {
               <div className="text-xl">Notes</div>
               <div className="h-full w-full">
                 <Textarea
-                  placeholder="Write some public notes about your pet for sitters to see. "
+                  placeholder={`The owner of this ${pet.name} has not written any notes about ${pet.name} yet.`}
                   className="h-full w-full"
                 />
               </div>

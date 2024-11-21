@@ -31,6 +31,7 @@ export const createPetAction = authenticatedProcedure
         species: input.species,
         breed: input.breed,
         dob: input.dob,
+        sex: input.sex,
         image: input.image,
       })
       .returning({ insertedId: pets.id })
@@ -43,7 +44,7 @@ export const createPetAction = authenticatedProcedure
         .where(eq(petImages.id, input.image))
         .execute();
     }
-    
+
     revalidatePath(`/pets/`);
   });
 
@@ -60,6 +61,7 @@ export const updatePetAction = ownsPetProcedure
         species: input.species,
         breed: input.breed,
         dob: input.dob,
+        sex: input.sex,
         image: input.image,
       })
       .where(and(eq(pets.id, input.petId), eq(pets.ownerId, user.userId)))

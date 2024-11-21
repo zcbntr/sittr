@@ -33,11 +33,12 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createPetInputSchema } from "~/lib/schemas/pets";
+import { createPetInputSchema, SexEnum } from "~/lib/schemas/pets";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
 import { createPetAction } from "~/server/actions/pet-actions";
 import { UploadButton } from "~/lib/uploadthing";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 
 export default function CreatePetDialog({
   children,
@@ -151,6 +152,36 @@ export default function CreatePetDialog({
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="sex"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sex</FormLabel>
+                  <Select onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a sex" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={SexEnum.enum.Male.toString()}>
+                        Male
+                      </SelectItem>
+                      <SelectItem value={SexEnum.enum.Female.toString()}>
+                        Female
+                      </SelectItem>
+                      <SelectItem value={SexEnum.enum.Unspecified.toString()}>
+                        Unspecified
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="dob"

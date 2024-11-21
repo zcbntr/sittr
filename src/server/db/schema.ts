@@ -11,8 +11,10 @@ import {
 } from "drizzle-orm/pg-core";
 import { v4 as uuid } from "uuid";
 import { GroupRoleEnum } from "~/lib/schemas/groups";
+import { SexEnum } from "~/lib/schemas/pets";
 
 export const groupRoleEnum = pgEnum("role", GroupRoleEnum.options);
+export const sexEnum = pgEnum("sex", SexEnum.options);
 
 /**
  * Multi-project schema feature of Drizzle ORM.
@@ -111,6 +113,7 @@ export const pets = createTable("pets", {
   species: varchar("species", { length: 255 }).notNull(),
   breed: varchar("breed", { length: 255 }),
   dob: timestamp("dob", { withTimezone: true }).notNull(),
+  sex: sexEnum("sex"),
   image: text("image"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
