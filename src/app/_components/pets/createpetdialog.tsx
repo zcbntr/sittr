@@ -90,7 +90,7 @@ export default function CreatePetDialog({
         <div>
           <div className="font-medium">Avatar</div>
           <UploadButton
-            endpoint="imageUploader"
+            endpoint="createPetImageUploader"
             onClientUploadComplete={(res) => {
               // Do something with the response
               if (res[0]?.serverData.imageId)

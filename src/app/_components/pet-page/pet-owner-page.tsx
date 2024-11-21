@@ -27,6 +27,8 @@ import {
 import { useServerAction } from "zsa-react";
 import { deletePetAction } from "~/server/actions/pet-actions";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Textarea } from "~/components/ui/textarea";
 
 export function PetOwnerPage({ pet }: { pet: Pet }) {
   const router = useRouter();
@@ -57,56 +59,81 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
         </Card>
       ) : (
         <Card>
-          <CardHeader>
-            <CardTitle>
-              <div className="text-lg font-semibold">{pet.name}</div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-2">
-              <p className="text-muted-foreground">{pet.species}</p>
-              <p className="text-muted-foreground">{pet.breed}</p>
+          <CardContent className="p-8">
+            <div className="flex flex-row flex-wrap place-content-center gap-8">
+              <div className="flex max-w-[500px] flex-col place-content-between gap-2">
+                <div className="flex flex-col gap-2">
+                  <Avatar className="h-56 w-56">
+                    <AvatarImage
+                      src={pet.image}
+                      alt={`${pet.name}'s avatar`}
+                      className="h-18"
+                    />
+                    {/* Make this actually be the initials rather than first letter */}
+                    <AvatarFallback delayMs={600}>
+                      {pet.name.substring(0, 1)}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="flex flex-col">
+                    <p className="text-2xl font-semibold">{pet.name}</p>
+                    <p className="text-lg text-muted-foreground">
+                      {pet.species}
+                    </p>
+                    <p className="text-lg text-muted-foreground">{pet.breed}</p>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex flex-row flex-wrap place-content-center gap-3">
+                  <Button onClick={() => router.replace("?editing=true")}>
+                    <MdEdit className="mr-1 h-4 w-4" />
+                    Edit Pet
+                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive">
+                        <MdDelete className="mr-1 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Pet</AlertDialogTitle>
+                      </AlertDialogHeader>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this pet? This action
+                        cannot be undone.
+                      </AlertDialogDescription>
+                      <AlertDialogFooter>
+                        <AlertDialogAction
+                          onClick={async () => {
+                            await execute({ petId: pet.petId });
+                          }}
+                          disabled={isPending}
+                        >
+                          Confirm
+                        </AlertDialogAction>
+                        <AlertDialogCancel disabled={isPending}>
+                          Cancel
+                        </AlertDialogCancel>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+
+              <div className="flex max-w-[800px] grow flex-col gap-2">
+                <div className="text-xl">Notes</div>
+                <div className="h-full w-full">
+                  <Textarea
+                    placeholder="Write some notes about your pet for sitters to see. "
+                    className="h-full w-full"
+                  />
+                </div>
+              </div>
             </div>
           </CardContent>
-          <CardFooter>
-            <div className="flex grow flex-row place-content-between">
-              <Button onClick={() => router.replace("?editing=true")}>
-                <MdEdit className="mr-1 h-4 w-4" />
-                Edit Pet Info
-              </Button>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">
-                    <MdDelete className="mr-1 h-4 w-4" />
-                    Delete Pet
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Pet</AlertDialogTitle>
-                  </AlertDialogHeader>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this pet? This action cannot
-                    be undone.
-                  </AlertDialogDescription>
-                  <AlertDialogFooter>
-                    <AlertDialogAction
-                      onClick={async () => {
-                        await execute({ petId: pet.petId });
-                      }}
-                      disabled={isPending}
-                    >
-                      Confirm
-                    </AlertDialogAction>
-                    <AlertDialogCancel disabled={isPending}>
-                      Cancel
-                    </AlertDialogCancel>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </CardFooter>
         </Card>
       )}
     </div>
