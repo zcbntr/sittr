@@ -38,7 +38,13 @@ import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
 import { createPetAction } from "~/server/actions/pet-actions";
 import { UploadButton } from "~/lib/uploadthing";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 export default function CreatePetDialog({
   children,
@@ -211,12 +217,17 @@ export default function CreatePetDialog({
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         initialFocus
+                        captionLayout="dropdown"
                         mode="single"
+                        fromDate={new Date("1900-01-01")}
+                        toDate={new Date()}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1900-01-01")
+                        }
                         onSelect={(e) => {
                           setDOB(e);
                           field.onChange(e);
                         }}
-                        numberOfMonths={2}
                       />
                     </PopoverContent>
                   </Popover>

@@ -36,7 +36,7 @@ import { Calendar } from "~/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import { cn } from "~/lib/utils";
-import { format } from "date-fns";
+import { addYears, format, subDays } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -241,6 +241,11 @@ export default function CreateTaskDialog({
                             selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
+                            fromDate={subDays(new Date(), 1)}
+                            toDate={addYears(new Date(), 1)}
+                            disabled={(date) =>
+                              date < new Date() && date > new Date("1900-01-01")
+                            }
                           />
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
@@ -290,6 +295,11 @@ export default function CreateTaskDialog({
                             selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
+                            fromDate={subDays(new Date(), 1)}
+                            toDate={addYears(new Date(), 1)}
+                            disabled={(date) =>
+                              date < new Date() && date > new Date("1900-01-01")
+                            }
                           />
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
@@ -337,6 +347,11 @@ export default function CreateTaskDialog({
                             selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
+                            fromDate={subDays(new Date(), 1)}
+                            toDate={addYears(new Date(), 1)}
+                            disabled={(date) =>
+                              date < new Date() && date > new Date("1900-01-01")
+                            }
                           />
                           <div className="border-t border-border p-3">
                             <TimePickerDemo

@@ -267,12 +267,17 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       initialFocus
+                      captionLayout="dropdown"
                       mode="single"
+                      fromDate={new Date("1900-01-01")}
+                      toDate={new Date()}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
                       onSelect={(e) => {
                         setDOB(e);
                         field.onChange(e);
                       }}
-                      numberOfMonths={2}
                     />
                   </PopoverContent>
                 </Popover>
