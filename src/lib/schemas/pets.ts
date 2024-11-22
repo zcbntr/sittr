@@ -38,3 +38,14 @@ export const createPetInputSchema = z
   });
 
 export type CreatePetFormInput = z.infer<typeof createPetInputSchema>;
+
+export const updatePetSchema = z.object({
+  petId: z.string(),
+  name: z.string(),
+  species: z.string(),
+  breed: z.string().optional(),
+  dob: z.coerce.date(),
+  sex: SexEnum.optional(),
+});
+
+export type UpdatePetFormInput = z.infer<typeof updatePetSchema>;

@@ -1,6 +1,10 @@
 "use server";
 
-import { createPetInputSchema, petSchema } from "~/lib/schemas/pets";
+import {
+  createPetInputSchema,
+  petSchema,
+  updatePetSchema,
+} from "~/lib/schemas/pets";
 import { db } from "../db";
 import { petImages, pets } from "../db/schema";
 import { authenticatedProcedure, ownsPetProcedure } from "./zsa-procedures";
@@ -51,7 +55,7 @@ export const createPetAction = authenticatedProcedure
 
 export const updatePetAction = ownsPetProcedure
   .createServerAction()
-  .input(petSchema)
+  .input(updatePetSchema)
   .handler(async ({ input, ctx }) => {
     const { user, pet } = ctx;
 

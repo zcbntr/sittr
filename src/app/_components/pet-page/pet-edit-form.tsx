@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { type Pet, petSchema, SexEnum } from "~/lib/schemas/pets";
+import { type Pet, SexEnum, updatePetSchema } from "~/lib/schemas/pets";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Popover,
@@ -70,11 +70,10 @@ export function PetEditForm({ pet }: { pet: Pet }) {
     router.refresh();
   }
 
-  const form = useForm<z.infer<typeof petSchema>>({
-    resolver: zodResolver(petSchema),
+  const form = useForm<z.infer<typeof updatePetSchema>>({
+    resolver: zodResolver(updatePetSchema),
     defaultValues: {
       petId: pet.petId,
-      ownerId: pet.ownerId,
       name: pet.name,
       species: pet.species,
       dob: pet.dob,
