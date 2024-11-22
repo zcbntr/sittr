@@ -63,7 +63,6 @@ export const updatePetAction = ownsPetProcedure
         breed: input.breed,
         dob: input.dob,
         sex: input.sex,
-        image: input.image,
       })
       .where(and(eq(pets.id, input.petId), eq(pets.ownerId, user.userId)))
       .execute();

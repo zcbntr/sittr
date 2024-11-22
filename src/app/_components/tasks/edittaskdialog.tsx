@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
-import { format } from "date-fns";
+import { addYears, format, subDays } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Calendar } from "~/components/ui/calendar";
@@ -311,6 +311,11 @@ export default function EditTaskDialog({
                             selected={field.value ? field.value : new Date()}
                             onSelect={field.onChange}
                             initialFocus
+                            fromDate={subDays(new Date(), 1)}
+                            toDate={addYears(new Date(), 1)}
+                            disabled={(date) =>
+                              date < new Date() && date > new Date("1900-01-01")
+                            }
                           />
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
@@ -360,6 +365,11 @@ export default function EditTaskDialog({
                             selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
+                            fromDate={subDays(new Date(), 1)}
+                            toDate={addYears(new Date(), 1)}
+                            disabled={(date) =>
+                              date < new Date() && date > new Date("1900-01-01")
+                            }
                           />
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
@@ -407,6 +417,11 @@ export default function EditTaskDialog({
                             selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
+                            fromDate={subDays(new Date(), 1)}
+                            toDate={addYears(new Date(), 1)}
+                            disabled={(date) =>
+                              date < new Date() && date > new Date("1900-01-01")
+                            }
                           />
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
