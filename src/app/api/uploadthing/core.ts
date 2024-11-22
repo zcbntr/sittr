@@ -5,6 +5,7 @@ import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
 import { db } from "~/server/db";
 import { petImages } from "~/server/db/schema";
+import { utapi } from "~/server/uploadthing";
 
 const f = createUploadthing();
 
@@ -33,6 +34,7 @@ export const ourFileRouter = {
         .values({
           uploadedBy: metadata.userId,
           url: file.url,
+          fileKey: file.key,
         })
         .returning({ insertedId: petImages.id });
 
@@ -44,6 +46,7 @@ export const ourFileRouter = {
       return {
         uploadedBy: metadata.userId,
         imageId: petImageRow[0].insertedId,
+        url: file.url,
       };
     }),
   editPetImageUploader: f({ image: { maxFileSize: "2MB" } })
@@ -68,27 +71,40 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       // This code RUNS ON YOUR SERVER after upload
 
-      // Remove old pet image
-      await db.delete(petImages).where(eq(petImages.petId, metadata.petId));
+      // Check for exisiting pet image
+      const existingImageRow = await db.query.petImages.findFirst({
+        where: eq(petImages.petId, metadata.petId),
+      });
 
-      // Create new pet image row
-      const newPetImageRow = await db
-        .insert(petImages)
-        .values({
-          uploadedBy: metadata.userId,
-          url: file.url,
-          petId: metadata.petId,
-        })
-        .returning({ insertedId: petImages.id });
-
-      if (!newPetImageRow || newPetImageRow.length == 0 || !newPetImageRow[0]) {
-        throw new Error("Failed to insert new pet image");
+      if (!existingImageRow) {
+        // Create the pet image in the db
+        await db
+          .insert(petImages)
+          .values({
+            uploadedBy: metadata.userId,
+            url: file.url,
+            fileKey: file.key,
+            petId: metadata.petId,
+          })
+          .returning({ insertedId: petImages.id })
+          .execute();
+      } else {
+        // Update the pet image in the db
+        await db
+          .update(petImages)
+          .set({ url: file.url, fileKey: file.key })
+          .where(eq(petImages.petId, metadata.petId))
+          .returning({ insertedId: petImages.id })
+          .execute();
       }
+
+      // Remove old image from uploadthing
+      await utapi.deleteFiles(file.fileHash);
 
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
       return {
         uploadedBy: metadata.userId,
-        imageId: newPetImageRow[0].insertedId,
+        url: file.url,
       };
     }),
 } satisfies FileRouter;

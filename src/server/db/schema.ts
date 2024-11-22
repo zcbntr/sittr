@@ -242,6 +242,7 @@ export const petImages = createTable("pet_images", {
   petId: text("pet_id").references(() => pets.id, { onDelete: "cascade" }),
   uploadedBy: text("uploaded_by").notNull(),
   url: text("url").notNull(),
+  fileKey: text("file_key").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

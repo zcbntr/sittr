@@ -9,6 +9,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ratelimit } from "../ratelimit";
+import { utapi } from "../uploadthing";
 
 export const createPetAction = authenticatedProcedure
   .createServerAction()
@@ -87,4 +88,32 @@ export const deletePetAction = authenticatedProcedure
       .execute();
 
     redirect(`/pets`);
+  });
+
+export const deletePetImageAction = ownsPetProcedure
+  .createServerAction()
+  .input(z.object({ petId: z.string() }))
+  .handler(async ({ input, ctx }) => {
+    const { pet } = ctx;
+    const { petId } = input;
+
+    const deletedImageRow = await db
+      .delete(petImages)
+      .where(and(eq(petImages.petId, petId)))
+      .returning({ fileKey: petImages.fileKey })
+      .execute();
+
+    if (
+      !deletedImageRow ||
+      deletedImageRow.length == 0 ||
+      !deletedImageRow[0]
+    ) {
+      throw new Error("Failed to delete pet image");
+    }
+
+    // Remove old image from uploadthing
+    await utapi.deleteFiles(deletedImageRow[0].fileKey);
+
+    revalidatePath(`/pets/${pet.id}`);
+    revalidatePath(`/pets/${pet.id}?editing=true`);
   });
