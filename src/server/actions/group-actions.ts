@@ -463,7 +463,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
       throw new Error("Failed to create invite code");
     }
 
-    const code = `https://www.sittr.uk/join-group/${newInviteCodeRow[0].code}`;
+    const code = `https://sittr.uk/join-group/${newInviteCodeRow[0].code}`;
 
     return { code };
   });

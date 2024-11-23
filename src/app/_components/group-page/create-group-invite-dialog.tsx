@@ -74,10 +74,16 @@ export default function CreateGroupInviteDialog({
     },
   );
 
+  React.useEffect(() => {
+    if (!open) {
+      void execute(form.getValues());
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-svh w-full overflow-y-scroll rounded-md sm:w-[533px]">
+      <DialogContent className="max-h-svh w-5/6 overflow-y-scroll rounded-md max-w-[350px]">
         <DialogHeader>
           <DialogTitle>New Group Invite Link</DialogTitle>
           <DialogDescription>
@@ -89,7 +95,11 @@ export default function CreateGroupInviteDialog({
             <Label htmlFor="link" className="sr-only">
               Link
             </Label>
-            <Input id="link" value={isPending ? "" : code} readOnly />
+            <Input
+              id="link"
+              value={(isPending ?? !code) ? "" : code}
+              readOnly
+            />
           </div>
 
           <Button
@@ -136,7 +146,7 @@ export default function CreateGroupInviteDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Expires In</FormLabel>
-                  <Select onValueChange={field.onChange}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a duration" />
@@ -179,13 +189,14 @@ export default function CreateGroupInviteDialog({
                     <Checkbox
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                      disabled
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Requires Approval</FormLabel>
                     <FormDescription>
                       You will need to manually approve each user who requests
-                      to join via the link.
+                      to join via the link. (Coming soon)
                     </FormDescription>
                   </div>
                 </FormItem>
