@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { petSchema } from "./pets";
+import { petSchema, SexEnum } from "./pets";
 
 // -----------------------------------------------------------------------------
 // Group Schemas
@@ -91,6 +91,8 @@ export const groupPetSchema = z.object({
   species: z.string(),
   breed: z.string().optional(),
   dob: z.coerce.date(),
+  sex: SexEnum.optional(),
+  image: z.string().optional(),
   groupId: z.string(),
 });
 

@@ -158,6 +158,8 @@ export async function getGroupPets(groupId: string): Promise<GroupPet[]> {
       species: pet.pets.species,
       breed: pet.pets.breed,
       dob: pet.pets.dob,
+      sex: pet.pets.sex,
+      image: pet.pets.image,
     });
   });
 }
@@ -199,6 +201,8 @@ export async function getUsersPetsNotInGroup(
       species: pet.species,
       breed: pet.breed,
       dob: pet.dob,
+      sex: pet.sex,
+      image: pet.image,
     });
   });
 }

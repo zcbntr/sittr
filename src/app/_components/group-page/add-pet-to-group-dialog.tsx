@@ -93,7 +93,7 @@ export default function AddPetToGroupDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-svh w-full overflow-y-scroll rounded-md sm:w-[533px]">
+      <DialogContent className="max-w-dvw mt-5 h-5/6 max-h-dvh w-11/12 overflow-y-scroll rounded-md sm:mt-0 sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>Add Pet(s)</DialogTitle>
           <DialogDescription>
@@ -103,7 +103,7 @@ export default function AddPetToGroupDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => execute(values))}
-            className="w-full space-y-6"
+            className="my-5 w-full space-y-6"
             name="createPet"
           >
             <FormField
