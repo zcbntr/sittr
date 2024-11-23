@@ -3,7 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, inArray } from "drizzle-orm";
-import { groups, pets, petsToGroups } from "../db/schema";
+import { groups, petImages, pets, petsToGroups } from "../db/schema";
 import {
   type Group,
   type GroupMember,
@@ -138,6 +138,7 @@ export async function getGroupPets(groupId: string): Promise<GroupPet[]> {
     .select()
     .from(pets)
     .leftJoin(petsToGroups, eq(petsToGroups.petId, pets.id))
+    .leftJoin(petImages, eq(petImages.petId, pets.id))
     .where(eq(petsToGroups.groupId, groupId));
 
   if (!groupPetsList) {
@@ -159,7 +160,7 @@ export async function getGroupPets(groupId: string): Promise<GroupPet[]> {
       breed: pet.pets.breed,
       dob: pet.pets.dob,
       sex: pet.pets.sex,
-      image: pet.pets.image,
+      image: pet.pet_images?.url,
     });
   });
 }
@@ -187,6 +188,9 @@ export async function getUsersPetsNotInGroup(
         ),
         eq(model.ownerId, user.userId),
       ),
+    with: {
+      petImages: true,
+    },
   });
 
   if (!petsNotInGroup) {
@@ -202,7 +206,7 @@ export async function getUsersPetsNotInGroup(
       breed: pet.breed,
       dob: pet.dob,
       sex: pet.sex,
-      image: pet.image,
+      image: pet.petImages?.url,
     });
   });
 }
