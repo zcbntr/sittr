@@ -32,7 +32,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import type { Group } from "~/lib/schemas/groups";
+import { GroupPet, groupPetListSchema, type Group } from "~/lib/schemas/groups";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import {
   Select,
@@ -45,7 +45,6 @@ import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import { Checkbox } from "~/components/ui/checkbox";
 import { type Task, taskSchema } from "~/lib/schemas/tasks";
-import { petListSchema, type Pet } from "~/lib/schemas/pets";
 import {
   deleteTaskAction,
   updateTaskAction,
@@ -77,7 +76,7 @@ export default function EditTaskDialog({
 }) {
   const [open, setOpen] = useState<boolean>(false);
 
-  const [groupPets, setGroupPets] = useState<Pet[]>([]);
+  const [groupPets, setGroupPets] = useState<GroupPet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
@@ -90,6 +89,7 @@ export default function EditTaskDialog({
     defaultValues: {
       taskId: task?.taskId ? task.taskId : "",
       ownerId: task?.ownerId ? task.ownerId : "",
+      createdBy: task?.createdBy ? task.createdBy : "",
       name: task?.name ? task.name : "",
       description: task?.description ? task.description : "",
       dueMode: task?.dueMode ? task.dueMode : true,
@@ -158,6 +158,7 @@ export default function EditTaskDialog({
   useEffect(() => {
     form.setValue("taskId", task?.taskId ? task.taskId : "");
     form.setValue("ownerId", task?.ownerId ? task.ownerId : "");
+    form.setValue("createdBy", task?.createdBy ? task.createdBy : "");
     form.setValue("name", task?.name ? task.name : "");
     form.setValue("description", task?.description ? task.description : "");
     form.setValue("dueMode", task?.dueMode ? task.dueMode : true);
@@ -185,7 +186,7 @@ export default function EditTaskDialog({
         },
       })
         .then((res) => res.json())
-        .then((json) => petListSchema.safeParse(json))
+        .then((json) => groupPetListSchema.safeParse(json))
         .then((validatedPetListObject) => {
           if (!validatedPetListObject.success) {
             throw new Error("Failed to get group's pets");
@@ -208,7 +209,7 @@ export default function EditTaskDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-svh w-full overflow-y-scroll rounded-md sm:w-[533px]">
+      <DialogContent className="max-w-dvw mt-5 h-5/6 max-h-fit w-11/12 rounded-md sm:mt-0 sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
           <DialogDescription>Update the details of the task.</DialogDescription>
@@ -216,7 +217,7 @@ export default function EditTaskDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="w-full space-y-6"
+            className="h-max-fit h-full w-full space-y-4 overflow-y-scroll px-1"
           >
             <FormField
               control={form.control}

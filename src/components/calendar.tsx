@@ -45,6 +45,7 @@ const localizer = momentLocalizer(moment);
 class CalendarEvent {
   id: string;
   ownerId: string;
+  createdBy: string;
   title: string;
   allDay: boolean;
   dueMode: boolean;
@@ -65,6 +66,7 @@ class CalendarEvent {
   constructor(
     _id: string,
     _ownerId: string,
+    _createdBy: string,
     _title: string,
     _dueMode: boolean,
     _dueDate: Date | null,
@@ -83,6 +85,7 @@ class CalendarEvent {
   ) {
     this.id = _id;
     this.ownerId = _ownerId;
+    this.createdBy = _createdBy;
     this.title = _title;
     this.allDay = _allDay ?? false;
     this.dueMode = _dueMode;
@@ -120,6 +123,7 @@ export default function CalendarComponent({
     return new CalendarEvent(
       task.taskId,
       task.ownerId,
+      task.createdBy,
       task.name,
       task.dueMode,
       task.dueDate ? new Date(task.dueDate) : null,
@@ -176,6 +180,7 @@ export default function CalendarComponent({
           taskSchema.parse({
             taskId: event.id,
             ownerId: event.ownerId,
+            createdBy: event.createdBy,
             name: event.title,
             description: event.desc,
             petId: event.petId,
@@ -199,6 +204,7 @@ export default function CalendarComponent({
           taskSchema.parse({
             taskId: event.id,
             ownerId: event.ownerId,
+            createdBy: event.createdBy,
             name: event.title,
             description: event.desc,
             petId: event.petId,

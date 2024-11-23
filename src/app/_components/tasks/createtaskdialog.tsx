@@ -24,7 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import type { Group } from "~/lib/schemas/groups";
+import { type GroupPet, groupPetListSchema, type Group } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import {
@@ -44,7 +44,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { petListSchema, type Pet } from "~/lib/schemas/pets";
 import {
   type CreateTaskFormProps,
   createTaskInputSchema,
@@ -65,7 +64,7 @@ export default function CreateTaskDialog({
 }) {
   const [open, setOpen] = React.useState<boolean>(false);
 
-  const [groupPets, setGroupPets] = useState<Pet[]>([]);
+  const [groupPets, setGroupPets] = useState<GroupPet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
@@ -112,7 +111,7 @@ export default function CreateTaskDialog({
         },
       })
         .then((res) => res.json())
-        .then((json) => petListSchema.safeParse(json))
+        .then((json) => groupPetListSchema.safeParse(json))
         .then((validatedPetListObject) => {
           if (!validatedPetListObject.success) {
             throw new Error("Failed to get group's pets");
@@ -137,14 +136,14 @@ export default function CreateTaskDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       {/* Don't mess with the height - ideally we want m-5 and h-[svh-5] (and w-[svw-5]) but this doesn't work so sticking with h-5/6 for now which is based on whole page height */}
-      <DialogContent className="max-w-dvw mt-5 h-5/6 max-h-dvh w-11/12 overflow-y-scroll rounded-md sm:mt-0 sm:w-[533px]">
+      <DialogContent className="max-w-dvw mt-5 h-5/6 max-h-fit w-11/12 rounded-md sm:mt-0 sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>New Task</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => execute(values))}
-            className="w-full space-y-4"
+            className="h-max-fit h-full w-full space-y-4 overflow-y-scroll px-1"
           >
             <FormField
               control={form.control}
@@ -228,7 +227,7 @@ export default function CreateTaskDialog({
                                   !field.value && "text-muted-foreground",
                                 )}
                               >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                <CalendarIcon className="h-4 w-4" />
                                 {field.value ? (
                                   format(field.value, "PPP HH:mm:ss")
                                 ) : (
@@ -285,7 +284,7 @@ export default function CreateTaskDialog({
                                   !field.value && "text-muted-foreground",
                                 )}
                               >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                <CalendarIcon className="h-4 w-4" />
                                 {field.value ? (
                                   format(field.value, "PPP HH:mm:ss")
                                 ) : (
@@ -338,7 +337,7 @@ export default function CreateTaskDialog({
                                   !field.value && "text-muted-foreground",
                                 )}
                               >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                <CalendarIcon className="h-4 w-4" />
                                 {field.value ? (
                                   format(field.value, "PPP HH:mm:ss")
                                 ) : (
@@ -452,7 +451,7 @@ export default function CreateTaskDialog({
               )}
             />
 
-            <DialogFooter>
+            <DialogFooter className="h-fit">
               <Button type="submit" disabled={isPending}>
                 {isPending ? "Creating Task..." : "Create Task"}
               </Button>

@@ -24,6 +24,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
     return taskSchema.parse({
       taskId: task.id,
       ownerId: task.ownerId,
+      createdBy: task.createdBy,
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -66,6 +67,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
     return taskSchema.parse({
       taskId: task.id,
       ownerId: task.ownerId,
+      createdBy: task.createdBy,
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -104,6 +106,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
   return taskSchema.parse({
     taskId: task.id,
     ownerId: task.ownerId,
+    createdBy: task.createdBy,
     name: task.name,
     description: task.description,
     dueMode: task.dueMode,
@@ -164,6 +167,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
     return taskSchema.parse({
       taskId: task.id,
       ownerId: task.ownerId,
+      createdBy: task.createdBy,
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -218,6 +222,7 @@ async function getTasksSittingForInRange(
     const parse = taskSchema.safeParse({
       taskId: joinedTaskRow.tasks.id,
       ownerId: joinedTaskRow.tasks.ownerId,
+      createdBy: joinedTaskRow.tasks.createdBy,
       name: joinedTaskRow.tasks.name,
       description: joinedTaskRow.tasks.description,
       dueMode: joinedTaskRow.tasks.dueMode,
@@ -306,6 +311,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     const parse = taskSchema.safeParse({
       taskId: task.id,
       ownerId: task.ownerId,
+      createdBy: task.createdBy,
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -397,6 +403,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
     const parse = taskSchema.safeParse({
       taskId: task.id,
       ownerId: task.ownerId,
+      createdBy: task.createdBy,
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
