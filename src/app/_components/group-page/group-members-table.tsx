@@ -20,7 +20,7 @@ export default function GroupMembersTable({
         columns={columns}
         data={groupMembers}
         searchable={true}
-        filterable={true}
+        filterable={false}
       >
         <CreateGroupInviteDialog groupId={groupId}>
           <Button>Create Invite</Button>

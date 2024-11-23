@@ -4,9 +4,9 @@ import * as React from "react";
 
 import {
   type ColumnDef,
-  ColumnFiltersState,
+  type ColumnFiltersState,
   type SortingState,
-  VisibilityState,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -75,7 +75,7 @@ export function DataTable<TData, TValue>({
   return (
     <div>
       {(searchable || filterable || children) && (
-        <div className="flex flex-row content-start gap-2 py-4">
+        <div className="flex grow flex-row flex-wrap place-content-end gap-2 py-4">
           {/* Make this a variable via a prop - there are extensive docs https://tanstack.com/table/v8/docs/guide/filters */}
           {searchable && (
             <Search
@@ -86,14 +86,19 @@ export function DataTable<TData, TValue>({
               onChange={(event) =>
                 table.getColumn("name")?.setFilterValue(event.target.value)
               }
-              className="max-w-sm"
+              className="mr-auto max-w-sm"
             />
           )}
 
           {filterable && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">Columns</Button>
+                <Button
+                  variant="outline"
+                  className="w-full max-w-[202px] place-self-end sm:max-w-24"
+                >
+                  Columns
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {table
@@ -118,15 +123,15 @@ export function DataTable<TData, TValue>({
           )}
 
           {children && (
-            <div className="flex grow flex-row place-content-end">
+            <div className="flex h-full flex-row flex-wrap place-content-end gap-2 place-self-end">
               {children}
             </div>
           )}
         </div>
       )}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <div className="rounded-md border p-0">
+        <Table className="p-0">
+          <TableHeader className="p-0">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -144,7 +149,7 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody className="p-0">
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow

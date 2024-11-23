@@ -17,9 +17,27 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { type GroupPet } from "~/lib/schemas/groups";
 import { removePetFromGroupAction } from "~/server/actions/group-actions";
+import { Avatar, AvatarFallback, AvatarImage } from "../avatar";
 
 // Add a column for notes? Column for small image of pet?
 export const columns: ColumnDef<GroupPet>[] = [
+  {
+    accessorKey: "avatar",
+    header: "",
+    cell: ({ row }) => {
+      const pet = row.original;
+
+      return (
+        <Link href={`/pets/${pet.petId}`}>
+          <Avatar>
+            <AvatarImage src={pet.image} alt={`${pet.name}'s avatar`} />
+            {/* Make this actually be the initials rather than first letter */}
+            <AvatarFallback>{pet.name.substring(0, 1)}</AvatarFallback>
+          </Avatar>
+        </Link>
+      );
+    },
+  },
   {
     accessorKey: "name",
     header: ({ column }) => {

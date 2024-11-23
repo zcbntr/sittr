@@ -23,7 +23,7 @@ import { removeUserFromGroupAction } from "~/server/actions/group-actions";
 export const columns: ColumnDef<GroupMember>[] = [
   {
     accessorKey: "avatar",
-    header: "Avatar",
+    header: "",
     cell: ({ row }) => {
       const member = row.original;
 

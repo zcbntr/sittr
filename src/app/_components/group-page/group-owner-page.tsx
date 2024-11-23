@@ -77,17 +77,17 @@ export function GroupOwnerPage({
             <p className="text-muted-foreground">{group?.description}</p>
           </CardContent>
           <CardFooter>
-            <div className="flex grow flex-row place-content-between">
+            <div className="grid grow grid-cols-2 gap-2 md:flex md:flex-row md:flex-wrap md:place-content-between">
               <Button onClick={() => router.replace("?editing=true")}>
                 <MdEdit className="mr-1 h-4 w-4" />
-                Edit Group Info
+                Edit Info
               </Button>
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive">
                     <MdDelete className="mr-1 h-4 w-4" />
-                    Delete Group
+                    Delete
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -125,7 +125,7 @@ export function GroupOwnerPage({
             Manage the members of your pet sitting group
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-0 pt-0">
           <GroupMembersTable groupId={group.id} groupMembers={groupMembers} />
         </CardContent>
       </Card>
@@ -137,7 +137,7 @@ export function GroupOwnerPage({
             Manage the pets your group takes care of
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-0 pt-0">
           <GroupPetsTable
             groupId={group.id}
             groupPets={groupPets}
