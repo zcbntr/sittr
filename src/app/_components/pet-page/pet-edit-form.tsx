@@ -273,6 +273,8 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                       disabled={(date) =>
                         date > new Date() || date < new Date("1900-01-01")
                       }
+                      
+                      selected={field.value}
                       onSelect={(e) => {
                         setDOB(e);
                         field.onChange(e);
