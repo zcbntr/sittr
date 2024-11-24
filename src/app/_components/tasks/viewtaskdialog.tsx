@@ -170,7 +170,10 @@ export default function ViewTaskDialog({
           {/* Need to fetch pet name with this id */}
           <div>
             <div>Pet</div>
-            <Input readOnly value={task?.petId}></Input>
+            <Input
+              readOnly
+              value={task?.petName ? task.petName : task?.petId}
+            ></Input>
           </div>
 
           <Form {...claimTaskForm}>

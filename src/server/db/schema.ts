@@ -124,8 +124,18 @@ export const pets = createTable("pets", {
 });
 
 export const petRelations = relations(pets, ({ one }) => ({
-  petNotes: one(petNotes),
-  petImages: one(petImages),
+  tasks: one(tasks, {
+    fields: [pets.id],
+    references: [tasks.pet],
+  }),
+  petNotes: one(petNotes, {
+    fields: [pets.id],
+    references: [petNotes.petId],
+  }),
+  petImages: one(petImages, {
+    fields: [pets.id],
+    references: [petImages.petId],
+  }),
 }));
 
 export const petNotes = createTable("pet_notes", {
