@@ -5,7 +5,7 @@ import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useState } from "react";
 import moment from "moment";
-import { addHours, addMilliseconds } from "date-fns";
+import { addDays, addHours, addMilliseconds } from "date-fns";
 import { Button } from "./ui/button";
 import {
   taskSchema,
@@ -126,14 +126,31 @@ export default function CalendarComponent({
     // Find the openCreateTaskDialogHiddenButton and click it - workaround for avoiding putting the dialog in each calendar day
     const button = document.getElementById("openCreateTaskDialogHiddenButton");
     if (button) {
-      setCreateTaskDialogProps({
-        dueMode: false,
-        dueDate: start,
-        dateRange: {
-          from: start,
-          to: addHours(end, 1),
-        },
-      });
+      const startAdjusted = addHours(start, 9);
+      const endAdjusted = addHours(end, 9);
+
+      // This is true if a single day is clicked on the calendar month view
+      if (addDays(start, 1) == end || start == end) {
+        // Set date range to 9-5
+        setCreateTaskDialogProps({
+          dueMode: true,
+          dueDate: startAdjusted,
+          dateRange: {
+            from: startAdjusted,
+            to: addHours(startAdjusted, 8),
+          },
+        });
+      } else {
+        setCreateTaskDialogProps({
+          dueMode: false,
+          dueDate: startAdjusted,
+          dateRange: {
+            from: startAdjusted,
+            to: endAdjusted,
+          },
+        });
+      }
+
       button.click();
     }
   };

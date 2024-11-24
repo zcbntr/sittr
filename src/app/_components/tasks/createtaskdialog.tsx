@@ -76,13 +76,13 @@ export default function CreateTaskDialog({
   const [dueMode, setDueMode] = useState<boolean>(true);
 
   const form = useForm<z.infer<typeof createTaskInputSchema>>({
-    mode: "onBlur",
     resolver: zodResolver(createTaskInputSchema),
     defaultValues: {
       name: "",
       description: "",
-      dueMode: true,
+      dueMode: props?.dueMode ?? true,
       dueDate: props?.dueMode ? props.dueDate : undefined,
+      dateRange: props?.dueMode ? undefined : props?.dateRange,
     },
   });
 
@@ -102,11 +102,6 @@ export default function CreateTaskDialog({
   });
 
   useEffect(() => {
-    localStorage.setItem(
-      "createTaskFormModified",
-      form.formState.isDirty.toString(),
-    );
-
     async function fetchPets() {
       await fetch("../api/group-pets?id=" + form.getValues("groupId"), {
         method: "GET",
@@ -134,7 +129,19 @@ export default function CreateTaskDialog({
     if (form.getValues("groupId")) {
       void fetchPets();
     }
-  }, [props, form.formState.isDirty, selectedGroupId]);
+  }, [selectedGroupId]);
+
+  useEffect(() => {
+    if (props) {
+      form.reset({
+        name: props.name,
+        description: props.description,
+        dueMode: props.dueMode,
+        dueDate: props.dueDate,
+        dateRange: props.dateRange,
+      });
+    }
+  }, [props]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

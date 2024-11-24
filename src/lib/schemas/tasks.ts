@@ -142,7 +142,6 @@ export type ToggleTaskMarkedAsDoneInput = z.infer<
   typeof toggleTaskMarkedAsDoneInputSchema
 >;
 
-// Probably can all be dropped now
 // Ideally could just use .partial() but doesn't work for some reason
 export const createTaskFormProps = z.object({
   name: z.string().min(3).max(50).optional(),
