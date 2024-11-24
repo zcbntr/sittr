@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { dateRangeSchema } from ".";
+import { userSchema } from "./users";
 
 // -----------------------------------------------------------------------------
 // Task Schemas
@@ -7,10 +8,8 @@ import { dateRangeSchema } from ".";
 
 export const taskSchema = z.object({
   taskId: z.string(),
-  ownerId: z.string(),
-  ownerName: z.string().optional().nullable(),
-  createdBy: z.string(),
-  createdByName: z.string().optional().nullable(),
+  owner: userSchema,
+  createdBy: userSchema,
   name: z.string(),
   description: z.string().optional(),
   dueMode: z.boolean(),
@@ -22,11 +21,9 @@ export const taskSchema = z.object({
   groupName: z.string().optional().nullable(),
   requiresVerification: z.boolean().optional().default(false),
   markedAsDone: z.boolean(),
-  markedAsDoneBy: z.string().optional().nullable(),
-  markedAsDoneByName: z.string().optional().nullable(),
+  markedAsDoneBy: userSchema.optional().nullable(),
   claimed: z.boolean(),
-  claimedBy: z.string().optional().nullable(),
-  claimedByName: z.string().optional().nullable(),  
+  claimedBy: userSchema.optional().nullable(),
 });
 
 export type Task = z.infer<typeof taskSchema>;
@@ -122,6 +119,19 @@ export const createTaskInputSchema = z.object({
 // );
 
 export type CreateTask = z.infer<typeof createTaskInputSchema>;
+
+export const updateTaskInputSchema = z.object({
+  taskId: z.string(),
+  name: z.string().min(3).max(50),
+  description: z.string().min(3).max(500).optional(),
+  dueMode: z.boolean(),
+  dueDate: z.coerce.date().optional(),
+  dateRange: dateRangeSchema.optional(),
+  petId: z.string(),
+  groupId: z.string(),
+});
+
+export type UpdateTask = z.infer<typeof updateTaskInputSchema>;
 
 export const toggleTaskMarkedAsDoneInputSchema = z.object({
   id: z.string(),

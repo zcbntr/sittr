@@ -46,8 +46,6 @@ export default function ViewTaskDialog({
 }) {
   const [open, setOpen] = useState<boolean>(false);
 
-  console.log(task);
-
   const claimTaskForm = useForm<z.infer<typeof setClaimTaskFormProps>>({
     resolver: zodResolver(setClaimTaskFormProps),
     defaultValues: {
@@ -188,7 +186,7 @@ export default function ViewTaskDialog({
                         disabled={
                           (task?.claimedBy !== null &&
                             task?.claimedBy !== undefined &&
-                            task?.claimedBy !== userId &&
+                            task?.claimedBy.id !== userId &&
                             userId !== null) ||
                           markAsDonePending ||
                           claimPending
@@ -203,7 +201,7 @@ export default function ViewTaskDialog({
                     </FormControl>
                     <div className="space-y-1 leading-none">
                       {task?.claimedBy && field.value && (
-                        <FormLabel>Claimed by {task?.claimedByName}</FormLabel>
+                        <FormLabel>Claimed by {task?.claimedBy.name}</FormLabel>
                       )}
                       {(!task?.claimedBy || !field.value) && (
                         <FormLabel>Claim</FormLabel>
@@ -227,7 +225,7 @@ export default function ViewTaskDialog({
                         disabled={
                           (task?.claimedBy !== null &&
                             task?.claimedBy !== undefined &&
-                            task?.claimedBy !== userId &&
+                            task?.claimedBy.id !== userId &&
                             userId !== null) ||
                           markAsDonePending ||
                           claimPending
@@ -252,7 +250,7 @@ export default function ViewTaskDialog({
                     <div className="space-y-1 leading-none">
                       {task?.markedAsDoneBy && field.value && (
                         <FormLabel>
-                          Marked as complete by {task?.markedAsDoneByName}
+                          Marked as complete by {task?.markedAsDoneBy.name}
                         </FormLabel>
                       )}
                       {(!task?.markedAsDoneBy || !field.value) && (

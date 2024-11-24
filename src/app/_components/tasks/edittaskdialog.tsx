@@ -32,7 +32,11 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { GroupPet, groupPetListSchema, type Group } from "~/lib/schemas/groups";
+import {
+  type GroupPet,
+  groupPetListSchema,
+  type Group,
+} from "~/lib/schemas/groups";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import {
   Select,
@@ -43,8 +47,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
-import { Checkbox } from "~/components/ui/checkbox";
-import { type Task, taskSchema } from "~/lib/schemas/tasks";
+import { type Task, updateTaskInputSchema } from "~/lib/schemas/tasks";
 import {
   deleteTaskAction,
   updateTaskAction,
@@ -84,23 +87,17 @@ export default function EditTaskDialog({
   );
   const [dueMode, setDueMode] = useState<boolean>(true);
 
-  const form = useForm<z.infer<typeof taskSchema>>({
-    resolver: zodResolver(taskSchema),
+  const form = useForm<z.infer<typeof updateTaskInputSchema>>({
+    resolver: zodResolver(updateTaskInputSchema),
     defaultValues: {
       taskId: task?.taskId ? task.taskId : "",
-      ownerId: task?.ownerId ? task.ownerId : "",
-      createdBy: task?.createdBy ? task.createdBy : "",
       name: task?.name ? task.name : "",
       description: task?.description ? task.description : "",
       dueMode: task?.dueMode ? task.dueMode : true,
-      dueDate: task?.dueDate ? task.dueDate : null,
-      dateRange: task?.dateRange ? task.dateRange : null,
+      dueDate: task?.dueDate ? task.dueDate : undefined,
+      dateRange: task?.dateRange ? task.dateRange : undefined,
       petId: task?.petId ? task.petId : "",
       groupId: task?.groupId ? task.groupId : "",
-      markedAsDone: task?.markedAsDone ? task.markedAsDone : false,
-      markedAsDoneBy: task?.markedAsDoneBy ? task.markedAsDoneBy : "",
-      claimed: task?.claimed ? task.claimed : false,
-      claimedBy: task?.claimedBy ? task.claimedBy : "",
     },
   });
 
@@ -142,7 +139,7 @@ export default function EditTaskDialog({
     },
   });
 
-  async function onSubmit(values: z.infer<typeof taskSchema>) {
+  async function onSubmit(values: z.infer<typeof updateTaskInputSchema>) {
     const [data, err] = await executeUpdate(values);
 
     if (err) {
@@ -157,26 +154,14 @@ export default function EditTaskDialog({
   // Update state upon task change, Update form value upon task change
   useEffect(() => {
     form.setValue("taskId", task?.taskId ? task.taskId : "");
-    form.setValue("ownerId", task?.ownerId ? task.ownerId : "");
-    form.setValue("createdBy", task?.createdBy ? task.createdBy : "");
     form.setValue("name", task?.name ? task.name : "");
     form.setValue("description", task?.description ? task.description : "");
     form.setValue("dueMode", task?.dueMode ? task.dueMode : true);
-    form.setValue("dueDate", task?.dueDate ? task.dueDate : null);
-    form.setValue("dateRange", task?.dateRange ? task.dateRange : null);
+    form.setValue("dueDate", task?.dueDate ? task.dueDate : undefined);
+    form.setValue("dateRange", task?.dateRange ? task.dateRange : undefined);
     form.setValue("petId", task?.petId ? task.petId : "");
     form.setValue("groupId", task?.groupId ? task.groupId : "");
     setSelectedGroupId(task?.groupId ? task.groupId : "");
-    form.setValue(
-      "markedAsDone",
-      task?.markedAsDone ? task.markedAsDone : false,
-    );
-    form.setValue(
-      "markedAsDoneBy",
-      task?.markedAsDoneBy ? task.markedAsDoneBy : "",
-    );
-    form.setValue("claimed", task?.claimed ? task.claimed : false);
-    form.setValue("claimedBy", task?.claimedBy ? task.claimedBy : "");
 
     async function fetchGroupPets() {
       await fetch("../api/group-pets?id=" + form.getValues("groupId"), {
@@ -525,30 +510,11 @@ export default function EditTaskDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="markedAsDone"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    {form.getValues("markedAsDoneBy") && field.value && (
-                      <FormLabel>
-                        Marked as complete by {form.getValues("markedAsDoneBy")}
-                      </FormLabel>
-                    )}
-                    {(!form.getValues("markedAsDoneBy") || !field.value) && (
-                      <FormLabel>Mark as complete</FormLabel>
-                    )}
-                  </div>
-                </FormItem>
+            <div className="space-y-1 leading-none">
+              {task?.markedAsDoneBy && (
+                <div>Marked as complete by {task?.markedAsDoneBy?.name}</div>
               )}
-            />
+            </div>
 
             <DialogFooter>
               <div className="flex grow flex-row place-content-between">

@@ -5,6 +5,7 @@ import {
   setClaimTaskFormProps,
   setMarkedAsCompleteFormProps,
   taskSchema,
+  updateTaskInputSchema,
 } from "~/lib/schemas/tasks";
 import { db } from "~/server/db";
 import { tasks } from "~/server/db/schema";
@@ -50,7 +51,8 @@ export const createTaskAction = authenticatedProcedure
 
 export const updateTaskAction = ownsTaskProcedure
   .createServerAction()
-  .input(taskSchema)
+  // This needs to become a taskeditschema
+  .input(updateTaskInputSchema)
   .handler(async ({ input, ctx }) => {
     const { user, task } = ctx;
 

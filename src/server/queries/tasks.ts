@@ -4,15 +4,9 @@ import { type Task, taskSchema, TaskTypeEnum } from "~/lib/schemas/tasks";
 import { eq, and, or, lte, gte, inArray, not, isNull } from "drizzle-orm";
 import { auth, createClerkClient } from "@clerk/nextjs/server";
 import { db } from "../db";
-import {
-  groups,
-  pets,
-  petsToGroups,
-  tasks,
-  usersToGroups,
-  usersToGroupsRelations,
-} from "../db/schema";
+import { groups, pets, petsToGroups, tasks, usersToGroups } from "../db/schema";
 import { union } from "drizzle-orm/pg-core";
+import { userSchema } from "~/lib/schemas/users";
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
@@ -31,11 +25,63 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
   });
 
   // Turn into task schema
+  const clerkUsers = await clerkClient.users.getUserList();
   const tasksList: Task[] = userTasks.map((task) => {
+    let claimingUser = null;
+    let markedAsDoneUser = null;
+
+    const createdByUser = clerkUsers.data.find(
+      (user) => user.id === task.createdBy,
+    );
+
+    if (!createdByUser) {
+      throw new Error(
+        "User creating task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+
+    const ownerUser = clerkUsers.data.find((user) => user.id === task.ownerId);
+
+    if (!ownerUser) {
+      throw new Error(
+        "User owning task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+
+    if (task.claimedBy !== null) {
+      claimingUser = clerkUsers.data.find((user) => user.id === task.claimedBy);
+
+      if (!claimingUser) {
+        throw new Error(
+          "User claiming task not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
+    if (task.markedAsDoneBy !== null) {
+      markedAsDoneUser = clerkUsers.data.find(
+        (user) => user.id === task.markedAsDoneBy,
+      );
+
+      if (!markedAsDoneUser) {
+        throw new Error(
+          "User marking task as done not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
     return taskSchema.parse({
       taskId: task.id,
-      ownerId: task.ownerId,
-      createdBy: task.createdBy,
+      owner: userSchema.parse({
+        id: ownerUser?.id,
+        name: ownerUser?.fullName,
+        avatar: ownerUser?.imageUrl,
+      }),
+      createdBy: userSchema.parse({
+        id: createdByUser?.id,
+        name: createdByUser?.fullName,
+        avatar: createdByUser?.imageUrl,
+      }),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -48,9 +94,21 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
       petId: task.pet,
       groupId: task.group,
       markedAsDone: task.markedAsDoneBy !== null,
-      markedAsDoneBy: task.markedAsDoneBy,
+      markedAsDoneBy: markedAsDoneUser
+        ? userSchema.parse({
+            id: markedAsDoneUser?.id,
+            name: markedAsDoneUser?.fullName,
+            avatar: markedAsDoneUser?.imageUrl,
+          })
+        : null,
       claimed: task.claimedBy !== null,
-      claimedBy: task.claimedBy,
+      claimedBy: claimingUser
+        ? userSchema.parse({
+            id: claimingUser?.id,
+            name: claimingUser?.fullName,
+            avatar: claimingUser?.imageUrl,
+          })
+        : null,
     });
   });
 
@@ -76,12 +134,69 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
     throw new Error("Tasks not found");
   }
 
+  // Get user details for createdBy, owner, claimedBy, markedAsDoneBy
   // Turn into task schema
+  const clerkUsers = await clerkClient.users.getUserList();
   return joinedTasksList.map((task) => {
+    let claimingUser = null;
+    let markedAsDoneUser = null;
+
+    const createdByUser = clerkUsers.data.find(
+      (user) => user.id === task.tasks.createdBy,
+    );
+
+    if (!createdByUser) {
+      throw new Error(
+        "User creating task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+
+    const ownerUser = clerkUsers.data.find(
+      (user) => user.id === task.tasks.ownerId,
+    );
+
+    if (!ownerUser) {
+      throw new Error(
+        "User owning task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+
+    if (task.tasks.claimedBy !== null) {
+      claimingUser = clerkUsers.data.find(
+        (user) => user.id === task.tasks.claimedBy,
+      );
+
+      if (!claimingUser) {
+        throw new Error(
+          "User claiming task not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
+    if (task.tasks.markedAsDoneBy !== null) {
+      markedAsDoneUser = clerkUsers.data.find(
+        (user) => user.id === task.tasks.markedAsDoneBy,
+      );
+
+      if (!markedAsDoneUser) {
+        throw new Error(
+          "User marking task as done not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
     return taskSchema.parse({
       taskId: task.tasks.id,
-      ownerId: task.tasks.ownerId,
-      createdBy: task.tasks.createdBy,
+      owner: userSchema.parse({
+        id: ownerUser?.id,
+        name: ownerUser?.fullName,
+        avatar: ownerUser?.imageUrl,
+      }),
+      createdBy: userSchema.parse({
+        id: createdByUser?.id,
+        name: createdByUser?.fullName,
+        avatar: createdByUser?.imageUrl,
+      }),
       name: task.tasks.name,
       description: task.tasks.description,
       dueMode: task.tasks.dueMode,
@@ -96,9 +211,21 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
       groupId: task.tasks.group,
       groupName: task.groups?.name,
       markedAsDone: task.tasks.markedAsDoneBy !== null,
-      markedAsDoneBy: task.tasks.markedAsDoneBy,
+      markedAsDoneBy: markedAsDoneUser
+        ? userSchema.parse({
+            id: markedAsDoneUser?.id,
+            name: markedAsDoneUser?.fullName,
+            avatar: markedAsDoneUser?.imageUrl,
+          })
+        : null,
       claimed: task.tasks.claimedBy !== null,
-      claimedBy: task.tasks.claimedBy,
+      claimedBy: claimingUser
+        ? userSchema.parse({
+            id: claimingUser?.id,
+            name: claimingUser?.fullName,
+            avatar: claimingUser?.imageUrl,
+          })
+        : null,
     });
   });
 }
@@ -120,10 +247,65 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
     throw new Error("Task not found");
   }
 
+  // Get user details for createdBy, owner, claimedBy, markedAsDoneBy
+  const clerkUsers = await clerkClient.users.getUserList();
+
+  let claimingUser = null;
+  let markedAsDoneUser = null;
+
+  const createdByUser = clerkUsers.data.find(
+    (user) => user.id === task.createdBy,
+  );
+
+  if (!createdByUser) {
+    throw new Error(
+      "User creating task not found in Clerk. The user may have deleted their account.",
+    );
+  }
+
+  const ownerUser = clerkUsers.data.find((user) => user.id === task.ownerId);
+
+  if (!ownerUser) {
+    throw new Error(
+      "User owning task not found in Clerk. The user may have deleted their account.",
+    );
+  }
+
+  if (task.claimedBy !== null) {
+    claimingUser = clerkUsers.data.find((user) => user.id === task.claimedBy);
+
+    if (!claimingUser) {
+      throw new Error(
+        "User claiming task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+  }
+
+  if (task.markedAsDoneBy !== null) {
+    markedAsDoneUser = clerkUsers.data.find(
+      (user) => user.id === task.markedAsDoneBy,
+    );
+
+    if (!markedAsDoneUser) {
+      throw new Error(
+        "User marking task as done not found in Clerk. The user may have deleted their account.",
+      );
+    }
+  }
+
+  // Turn into task schema
   return taskSchema.parse({
     taskId: task.id,
-    ownerId: task.ownerId,
-    createdBy: task.createdBy,
+    owner: userSchema.parse({
+      id: ownerUser?.id,
+      name: ownerUser?.fullName,
+      avatar: ownerUser?.imageUrl,
+    }),
+    createdBy: userSchema.parse({
+      id: createdByUser?.id,
+      name: createdByUser?.fullName,
+      avatar: createdByUser?.imageUrl,
+    }),
     name: task.name,
     description: task.description,
     dueMode: task.dueMode,
@@ -138,9 +320,21 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
     groupId: task.group,
     groupName: task.group?.name,
     markedAsDone: task.markedAsDoneBy !== null,
-    markedAsDoneBy: task.markedAsDoneBy,
+    markedAsDoneBy: markedAsDoneUser
+      ? userSchema.parse({
+          id: markedAsDoneUser?.id,
+          name: markedAsDoneUser?.fullName,
+          avatar: markedAsDoneUser?.imageUrl,
+        })
+      : null,
     claimed: task.claimedBy !== null,
-    claimedBy: task.claimedBy,
+    claimedBy: claimingUser
+      ? userSchema.parse({
+          id: claimingUser?.id,
+          name: claimingUser?.fullName,
+          avatar: claimingUser?.imageUrl,
+        })
+      : null,
   });
 }
 
@@ -182,12 +376,65 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
+  // Get user details for createdBy, owner, claimedBy, markedAsDoneBy
   // Turn into task schema
+  const clerkUsers = await clerkClient.users.getUserList();
   const tasksList: Task[] = tasksInRange.map((task) => {
+    let claimingUser = null;
+    let markedAsDoneUser = null;
+
+    const createdByUser = clerkUsers.data.find(
+      (user) => user.id === task.createdBy,
+    );
+
+    if (!createdByUser) {
+      throw new Error(
+        "User creating task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+
+    const ownerUser = clerkUsers.data.find((user) => user.id === task.ownerId);
+
+    if (!ownerUser) {
+      throw new Error(
+        "User owning task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+
+    if (task.claimedBy !== null) {
+      claimingUser = clerkUsers.data.find((user) => user.id === task.claimedBy);
+
+      if (!claimingUser) {
+        throw new Error(
+          "User claiming task not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
+    if (task.markedAsDoneBy !== null) {
+      markedAsDoneUser = clerkUsers.data.find(
+        (user) => user.id === task.markedAsDoneBy,
+      );
+
+      if (!markedAsDoneUser) {
+        throw new Error(
+          "User marking task as done not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
     return taskSchema.parse({
       taskId: task.id,
-      ownerId: task.ownerId,
-      createdBy: task.createdBy,
+      owner: userSchema.parse({
+        id: ownerUser?.id,
+        name: ownerUser?.fullName,
+        avatar: ownerUser?.imageUrl,
+      }),
+      createdBy: userSchema.parse({
+        id: createdByUser?.id,
+        name: createdByUser?.fullName,
+        avatar: createdByUser?.imageUrl,
+      }),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -202,9 +449,21 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
       groupId: task.group,
       groupName: task.group?.name,
       markedAsDone: task.markedAsDoneBy !== null,
-      markedAsDoneBy: task.markedAsDoneBy,
+      markedAsDoneBy: markedAsDoneUser
+        ? userSchema.parse({
+            id: markedAsDoneUser?.id,
+            name: markedAsDoneUser?.fullName,
+            avatar: markedAsDoneUser?.imageUrl,
+          })
+        : null,
       claimed: task.claimedBy !== null,
-      claimedBy: task.claimedBy,
+      claimedBy: claimingUser
+        ? userSchema.parse({
+            id: claimingUser?.id,
+            name: claimingUser?.fullName,
+            avatar: claimingUser?.imageUrl,
+          })
+        : null,
     });
   });
 
@@ -240,12 +499,69 @@ async function getTasksSittingForInRange(
     )
     .execute();
 
+  // Get user details for createdBy, owner, claimedBy, markedAsDoneBy
   // Turn into task schema
+  const clerkUsers = await clerkClient.users.getUserList();
   const tasksList: Task[] = tasksInRange.map((joinedTaskRow) => {
+    let claimingUser = null;
+    let markedAsDoneUser = null;
+
+    const createdByUser = clerkUsers.data.find(
+      (user) => user.id === joinedTaskRow.tasks.createdBy,
+    );
+
+    if (!createdByUser) {
+      throw new Error(
+        "User creating task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+
+    const ownerUser = clerkUsers.data.find(
+      (user) => user.id === joinedTaskRow.tasks.ownerId,
+    );
+
+    if (!ownerUser) {
+      throw new Error(
+        "User owning task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+
+    if (joinedTaskRow.tasks.claimedBy !== null) {
+      claimingUser = clerkUsers.data.find(
+        (user) => user.id === joinedTaskRow.tasks.claimedBy,
+      );
+
+      if (!claimingUser) {
+        throw new Error(
+          "User claiming task not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
+    if (joinedTaskRow.tasks.markedAsDoneBy !== null) {
+      markedAsDoneUser = clerkUsers.data.find(
+        (user) => user.id === joinedTaskRow.tasks.markedAsDoneBy,
+      );
+
+      if (!markedAsDoneUser) {
+        throw new Error(
+          "User marking task as done not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
     const parse = taskSchema.safeParse({
       taskId: joinedTaskRow.tasks.id,
-      ownerId: joinedTaskRow.tasks.ownerId,
-      createdBy: joinedTaskRow.tasks.createdBy,
+      owner: userSchema.parse({
+        id: ownerUser?.id,
+        name: ownerUser?.fullName,
+        avatar: ownerUser?.imageUrl,
+      }),
+      createdBy: userSchema.parse({
+        id: createdByUser?.id,
+        name: createdByUser?.fullName,
+        avatar: createdByUser?.imageUrl,
+      }),
       name: joinedTaskRow.tasks.name,
       description: joinedTaskRow.tasks.description,
       dueMode: joinedTaskRow.tasks.dueMode,
@@ -260,9 +576,21 @@ async function getTasksSittingForInRange(
       groupId: joinedTaskRow.tasks.group,
       groupName: joinedTaskRow.groups?.name ? joinedTaskRow.groups.name : null,
       markedAsDone: joinedTaskRow.tasks.markedAsDoneBy !== null,
-      markedAsDoneBy: joinedTaskRow.tasks.markedAsDoneBy,
+      markedAsDoneBy: markedAsDoneUser
+        ? userSchema.parse({
+            id: markedAsDoneUser?.id,
+            name: markedAsDoneUser?.fullName,
+            avatar: markedAsDoneUser?.imageUrl,
+          })
+        : null,
       claimed: joinedTaskRow.tasks.claimedBy !== null,
-      claimedBy: joinedTaskRow.tasks.claimedBy,
+      claimedBy: claimingUser
+        ? userSchema.parse({
+            id: claimingUser?.id,
+            name: claimingUser?.fullName,
+            avatar: claimingUser?.imageUrl,
+          })
+        : null,
     });
 
     if (!parse.success) {
@@ -363,18 +691,25 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
   // Then Turn into task schema
   const clerkUsers = await clerkClient.users.getUserList();
   const tasksList: Task[] = allTasksVisible.map((task) => {
-    let ownerUser = null;
     let claimingUser = null;
     let markedAsDoneUser = null;
 
-    if (task.ownerId !== null) {
-      ownerUser = clerkUsers.data.find((user) => user.id === task.ownerId);
+    const createdByUser = clerkUsers.data.find(
+      (user) => user.id === task.createdBy,
+    );
 
-      if (!ownerUser) {
-        throw new Error(
-          "User owning task not found in Clerk. The user may have deleted their account.",
-        );
-      }
+    if (!createdByUser) {
+      throw new Error(
+        "User creating task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+
+    const ownerUser = clerkUsers.data.find((user) => user.id === task.ownerId);
+
+    if (!ownerUser) {
+      throw new Error(
+        "User owning task not found in Clerk. The user may have deleted their account.",
+      );
     }
 
     if (task.claimedBy !== null) {
@@ -401,9 +736,16 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
     const parse = taskSchema.safeParse({
       taskId: task.id,
-      ownerId: task.ownerId,
-      ownerName: ownerUser ? ownerUser.firstName : null,
-      createdBy: task.createdBy,
+      owner: userSchema.parse({
+        id: ownerUser?.id,
+        name: ownerUser?.fullName,
+        avatar: ownerUser?.imageUrl,
+      }),
+      createdBy: userSchema.parse({
+        id: createdByUser?.id,
+        name: createdByUser?.fullName,
+        avatar: createdByUser?.imageUrl,
+      }),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -418,11 +760,21 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       groupId: task.group,
       groupName: task.groupName,
       markedAsDone: task.markedAsDoneBy !== null,
-      markedAsDoneBy: task.markedAsDoneBy,
-      markedAsDoneByName: markedAsDoneUser ? markedAsDoneUser.firstName : null,
+      markedAsDoneBy: markedAsDoneUser
+        ? userSchema.parse({
+            id: markedAsDoneUser?.id,
+            name: markedAsDoneUser?.fullName,
+            avatar: markedAsDoneUser?.imageUrl,
+          })
+        : null,
       claimed: task.claimedBy !== null,
-      claimedBy: task.claimedBy,
-      claimedByName: claimingUser ? claimingUser.firstName : null,
+      claimedBy: claimingUser
+        ? userSchema.parse({
+            id: claimingUser?.id,
+            name: claimingUser?.fullName,
+            avatar: claimingUser?.imageUrl,
+          })
+        : null,
     });
 
     if (!parse.success) {
@@ -522,12 +874,65 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
 
   const allTasksVisible = await union(groupInTasksInRange, tasksOwnedInRange);
 
+  // For all tasks, if any of ownedBy, markedAsDoneBy, claimedBy are not null, fetch the user name for each
   // Turn into task schema
+  const clerkUsers = await clerkClient.users.getUserList();
   const tasksList: Task[] = allTasksVisible.map((task) => {
+    let claimingUser = null;
+    let markedAsDoneUser = null;
+
+    const createdByUser = clerkUsers.data.find(
+      (user) => user.id === task.createdBy,
+    );
+
+    if (!createdByUser) {
+      throw new Error(
+        "User creating task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+
+    const ownerUser = clerkUsers.data.find((user) => user.id === task.ownerId);
+
+    if (!ownerUser) {
+      throw new Error(
+        "User owning task not found in Clerk. The user may have deleted their account.",
+      );
+    }
+
+    if (task.claimedBy !== null) {
+      claimingUser = clerkUsers.data.find((user) => user.id === task.claimedBy);
+
+      if (!claimingUser) {
+        throw new Error(
+          "User claiming task not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
+    if (task.markedAsDoneBy !== null) {
+      markedAsDoneUser = clerkUsers.data.find(
+        (user) => user.id === task.markedAsDoneBy,
+      );
+
+      if (!markedAsDoneUser) {
+        throw new Error(
+          "User marking task as done not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
     const parse = taskSchema.safeParse({
       taskId: task.id,
-      ownerId: task.ownerId,
-      createdBy: task.createdBy,
+      owner: userSchema.parse({
+        id: ownerUser?.id,
+        name: ownerUser?.fullName,
+        avatar: ownerUser?.imageUrl,
+      }),
+      createdBy: userSchema.parse({
+        id: createdByUser?.id,
+        name: createdByUser?.fullName,
+        avatar: createdByUser?.imageUrl,
+      }),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -542,9 +947,21 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
       groupId: task.group,
       groupName: task.groupName,
       markedAsDone: task.markedAsDoneBy !== null,
-      markedAsDoneBy: task.markedAsDoneBy,
+      markedAsDoneBy: markedAsDoneUser
+        ? userSchema.parse({
+            id: markedAsDoneUser?.id,
+            name: markedAsDoneUser?.fullName,
+            avatar: markedAsDoneUser?.imageUrl,
+          })
+        : null,
       claimed: task.claimedBy !== null,
-      claimedBy: task.claimedBy,
+      claimedBy: claimingUser
+        ? userSchema.parse({
+            id: claimingUser?.id,
+            name: claimingUser?.fullName,
+            avatar: claimingUser?.imageUrl,
+          })
+        : null,
     });
 
     if (!parse.success) {

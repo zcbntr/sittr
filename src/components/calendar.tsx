@@ -18,6 +18,7 @@ import type { Group } from "~/lib/schemas/groups";
 import { type DateRange } from "~/lib/schemas";
 import ViewTaskDialog from "~/app/_components/tasks/viewtaskdialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { type User } from "~/lib/schemas/users";
 
 const coloursList: string[] = [
   "#f54290",
@@ -44,8 +45,8 @@ const localizer = momentLocalizer(moment);
 
 class CalendarEvent {
   id: string;
-  ownerId: string;
-  createdBy: string;
+  owner: User;
+  createdBy: User;
   title: string;
   allDay: boolean;
   dueMode: boolean;
@@ -58,18 +59,16 @@ class CalendarEvent {
   groupId: string;
   groupName?: string;
   markedAsDone: boolean;
-  markedAsDoneBy?: string;
-  markedAsDoneByName?: string;
+  markedAsDoneBy?: User;
   claimed: boolean;
-  claimedBy?: string;
-  claimedByName?: string;
+  claimedBy?: User;
   desc: string;
   resourceId?: string;
   tooltip?: string;
 
   constructor(_task: Task) {
     this.id = _task.taskId;
-    this.ownerId = _task.ownerId;
+    this.owner = _task.owner;
     this.createdBy = _task.createdBy;
     this.title = _task.name;
     this.allDay = _task.dueMode;
@@ -90,12 +89,8 @@ class CalendarEvent {
     this.markedAsDoneBy = _task.markedAsDoneBy
       ? _task.markedAsDoneBy
       : undefined;
-    this.markedAsDoneByName = _task.markedAsDoneByName
-      ? _task.markedAsDoneByName
-      : undefined;
     this.claimed = _task.claimed;
     this.claimedBy = _task.claimedBy ? _task.claimedBy : undefined;
-    this.claimedByName = _task.claimedByName ? _task.claimedByName : undefined;
     this.petId = _task.petId;
     this.petName = _task.petName ? _task.petName : undefined;
     this.groupId = _task.groupId;
@@ -145,13 +140,13 @@ export default function CalendarComponent({
 
   const handleEventSelect = (event: CalendarEvent) => {
     // Check if the user owns the task
-    if (event.ownerId !== userId) {
+    if (event.owner.id !== userId) {
       const button = document.getElementById("openViewTaskDialogHiddenButton");
       if (button) {
         setSelectedTask(
           taskSchema.parse({
             taskId: event.id,
-            ownerId: event.ownerId,
+            owner: event.owner,
             createdBy: event.createdBy,
             name: event.title,
             description: event.desc,
@@ -164,10 +159,8 @@ export default function CalendarComponent({
             dateRange: event.dateRange,
             markedAsDone: event.markedAsDone,
             markedAsDoneBy: event.markedAsDoneBy,
-            markedAsDoneByName: event.markedAsDoneByName,
             claimed: event.claimed,
             claimedBy: event.claimedBy,
-            claimedByName: event.claimedByName,
             requiresVerification: false,
           }),
         );
@@ -179,7 +172,7 @@ export default function CalendarComponent({
         setSelectedTask(
           taskSchema.parse({
             taskId: event.id,
-            ownerId: event.ownerId,
+            owner: event.owner,
             createdBy: event.createdBy,
             name: event.title,
             description: event.desc,
@@ -196,10 +189,8 @@ export default function CalendarComponent({
               },
             markedAsDone: event.markedAsDone,
             markedAsDoneBy: event.markedAsDoneBy,
-            markedAsDoneByName: event.markedAsDoneByName,
             claimed: event.claimed,
             claimedBy: event.claimedBy,
-            claimedByName: event.claimedByName,
             requiresVerification: false,
           }),
         );
@@ -253,8 +244,8 @@ export default function CalendarComponent({
 
             // If the task is marked as done, or claimed by another user, change the background opacity
             if (
-              (event.claimed && event.claimedBy != userId) ||
-              (!event.claimed && event.ownerId != userId)
+              (event.claimed && event.claimedBy?.id != userId) ||
+              (!event.claimed && event.owner.id != userId)
             ) {
               newStyle.opacity = 0.5;
             }
