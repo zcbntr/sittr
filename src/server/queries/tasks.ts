@@ -2,7 +2,7 @@
 
 import { type Task, taskSchema, TaskTypeEnum } from "~/lib/schemas/tasks";
 import { eq, and, or, lte, gte, inArray, not, isNull } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
+import { auth, createClerkClient } from "@clerk/nextjs/server";
 import { db } from "../db";
 import {
   groups,
@@ -13,7 +13,10 @@ import {
   usersToGroupsRelations,
 } from "../db/schema";
 import { union } from "drizzle-orm/pg-core";
-import { group } from "console";
+
+const clerkClient = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY,
+});
 
 export async function getAllOwnedTasks(): Promise<Task[]> {
   const user = await auth();
@@ -356,11 +359,50 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
   const allTasksVisible = await union(groupInTasksInRange, tasksOwnedInRange);
 
-  // Turn into task schema
+  // For all tasks, if any of ownedBy, markedAsDoneBy, claimedBy are not null, fetch the user name for each
+  // Then Turn into task schema
+  const clerkUsers = await clerkClient.users.getUserList();
   const tasksList: Task[] = allTasksVisible.map((task) => {
+    let ownerUser = null;
+    let claimingUser = null;
+    let markedAsDoneUser = null;
+
+    if (task.ownerId !== null) {
+      ownerUser = clerkUsers.data.find((user) => user.id === task.ownerId);
+
+      if (!ownerUser) {
+        throw new Error(
+          "User owning task not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
+    if (task.claimedBy !== null) {
+      claimingUser = clerkUsers.data.find((user) => user.id === task.claimedBy);
+
+      if (!claimingUser) {
+        throw new Error(
+          "User claiming task not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
+    if (task.markedAsDoneBy !== null) {
+      markedAsDoneUser = clerkUsers.data.find(
+        (user) => user.id === task.markedAsDoneBy,
+      );
+
+      if (!markedAsDoneUser) {
+        throw new Error(
+          "User marking task as done not found in Clerk. The user may have deleted their account.",
+        );
+      }
+    }
+
     const parse = taskSchema.safeParse({
       taskId: task.id,
       ownerId: task.ownerId,
+      ownerName: ownerUser ? ownerUser.firstName : null,
       createdBy: task.createdBy,
       name: task.name,
       description: task.description,
@@ -377,8 +419,10 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       groupName: task.groupName,
       markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: task.markedAsDoneBy,
+      markedAsDoneByName: markedAsDoneUser ? markedAsDoneUser.firstName : null,
       claimed: task.claimedBy !== null,
       claimedBy: task.claimedBy,
+      claimedByName: claimingUser ? claimingUser.firstName : null,
     });
 
     if (!parse.success) {

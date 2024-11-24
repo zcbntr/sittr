@@ -159,7 +159,7 @@ export default function ViewTaskDialog({
             </div>
           )}
 
-          <div>
+          <div className="flex flex-col gap-2">
             <div>Group</div>
             <Input
               readOnly
@@ -168,7 +168,7 @@ export default function ViewTaskDialog({
           </div>
 
           {/* Need to fetch pet name with this id */}
-          <div>
+          <div className="flex flex-col gap-2">
             <div>Pet</div>
             <Input
               readOnly
@@ -203,7 +203,7 @@ export default function ViewTaskDialog({
                     </FormControl>
                     <div className="space-y-1 leading-none">
                       {task?.claimedBy && field.value && (
-                        <FormLabel>Claimed by {task?.claimedBy}</FormLabel>
+                        <FormLabel>Claimed by {task?.claimedByName}</FormLabel>
                       )}
                       {(!task?.claimedBy || !field.value) && (
                         <FormLabel>Claim</FormLabel>
@@ -252,7 +252,7 @@ export default function ViewTaskDialog({
                     <div className="space-y-1 leading-none">
                       {task?.markedAsDoneBy && field.value && (
                         <FormLabel>
-                          Marked as complete by {task?.markedAsDoneBy}
+                          Marked as complete by {task?.markedAsDoneByName}
                         </FormLabel>
                       )}
                       {(!task?.markedAsDoneBy || !field.value) && (
