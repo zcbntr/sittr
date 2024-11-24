@@ -15,7 +15,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
   }
 
   const userTasks = await db.query.tasks.findMany({
-    where: (model, { eq }) => eq(model.createdBy, user.userId),
+    where: (model, { eq }) => eq(model.ownerId, user.userId),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
@@ -56,7 +56,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
   const tasksList = await db
     .select()
     .from(tasks)
-    .where(inArray(tasks.id, taskIds));
+    .where(and(inArray(tasks.id, taskIds), eq(tasks.ownerId, user.userId)));
 
   if (!tasksList) {
     throw new Error("Tasks not found");
@@ -96,7 +96,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
 
   const task = await db.query.tasks.findFirst({
     where: (model, { and, eq }) =>
-      and(eq(model.id, taskId), eq(model.createdBy, user.userId)),
+      and(eq(model.id, taskId), eq(model.ownerId, user.userId)),
   });
 
   if (!task) {
@@ -153,7 +153,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
   const tasksInRange = await db.query.tasks.findMany({
     where: (model, { and, eq, gte, lte }) =>
       and(
-        eq(model.createdBy, user.userId),
+        eq(model.ownerId, user.userId),
         or(
           and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
@@ -212,7 +212,7 @@ async function getTasksSittingForInRange(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
         ),
-        not(eq(tasks.createdBy, user.userId)),
+        not(eq(tasks.ownerId, user.userId)),
       ),
     )
     .execute();
@@ -261,7 +261,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
   const groupInTasksInRange = db
     .select({
       id: tasks.id,
-      ownerId: tasks.createdBy,
+      ownerId: tasks.ownerId,
       createdBy: tasks.createdBy,
       name: tasks.name,
       description: tasks.description,
@@ -288,6 +288,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeTo, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
         ),
+        not(eq(tasks.ownerId, user.userId)),
       ),
     );
 
@@ -296,7 +297,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     .from(tasks)
     .where(
       and(
-        eq(tasks.createdBy, user.userId),
+        eq(tasks.ownerId, user.userId),
         or(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
@@ -305,6 +306,11 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     );
 
   const allTasksVisible = await union(groupInTasksInRange, tasksOwnedInRange);
+
+  console.log("Tasks owned in range: ");
+  console.log(await tasksOwnedInRange.execute());
+  console.log("Tasks in group in range: ");
+  console.log(await groupInTasksInRange.execute());
 
   // Turn into task schema
   const tasksList: Task[] = allTasksVisible.map((task) => {
@@ -352,7 +358,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
     .select({
       id: tasks.id,
       createdBy: tasks.createdBy,
-      ownerId: tasks.createdBy,
+      ownerId: tasks.ownerId,
       name: tasks.name,
       description: tasks.description,
       completed: tasks.completed,
@@ -378,6 +384,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeTo, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
         ),
+        not(eq(tasks.ownerId, user.userId)),
         isNull(tasks.claimedBy),
       ),
     );
@@ -387,7 +394,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
     .from(tasks)
     .where(
       and(
-        eq(tasks.createdBy, user.userId),
+        eq(tasks.ownerId, user.userId),
         or(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
