@@ -66,13 +66,13 @@ export const updateTaskAction = ownsTaskProcedure
         pet: input.petId,
         group: input.groupId,
       })
-      .where(and(eq(tasks.id, task.id), eq(tasks.createdBy, user.userId)))
+      .where(and(eq(tasks.id, task.id), eq(tasks.ownerId, user.userId)))
       .execute();
 
     revalidatePath(`/tasks/${task.id}`);
   });
 
-export const toggleTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
+export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
   .createServerAction()
   .input(setMarkedAsCompleteFormProps)
   .handler(async ({ input, ctx }) => {
@@ -133,7 +133,7 @@ export const deleteTaskAction = ownsTaskProcedure
 
     await db
       .delete(tasks)
-      .where(and(eq(tasks.id, input.taskId), eq(tasks.createdBy, user.userId)))
+      .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, user.userId)))
       .execute();
 
     revalidatePath("/tasks");
@@ -164,9 +164,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         .set({
           claimedBy: null,
         })
-        .where(
-          and(eq(tasks.id, input.taskId), eq(tasks.createdBy, user.userId)),
-        )
+        .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, user.userId)))
         .execute();
 
       revalidatePath("/tasks");
@@ -180,18 +178,22 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         throw new Error("You cannot unclaim a task not claimed by you");
       }
 
-      await db
+      const updatedRow = await db
         .update(tasks)
         .set({
           claimedBy: user.userId,
         })
         .where(
-          and(
-            eq(tasks.id, input.taskId),
-            not(eq(tasks.createdBy, user.userId)),
-          ),
+          and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, user.userId))),
         )
+        .returning()
         .execute();
+
+      if (updatedRow.length === 0) {
+        throw new Error(
+          "Failed to claim task. This may be due to poor network conditions, or you may be trying to claim a task you own.",
+        );
+      }
 
       revalidatePath("/tasks");
       revalidatePath("/");

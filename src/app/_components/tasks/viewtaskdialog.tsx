@@ -21,8 +21,6 @@ import {
   FormItem,
   FormLabel,
 } from "~/components/ui/form";
-import type { Group } from "~/lib/schemas/groups";
-import { Textarea } from "~/components/ui/textarea";
 import { Checkbox } from "~/components/ui/checkbox";
 import {
   setClaimTaskFormProps,
@@ -31,7 +29,7 @@ import {
 } from "~/lib/schemas/tasks";
 import {
   setClaimTaskAction,
-  toggleTaskMarkedAsDoneAction,
+  setTaskMarkedAsDoneAction,
 } from "~/server/actions/task-actions";
 import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
@@ -75,11 +73,12 @@ export default function ViewTaskDialog({
   } = useServerAction(setClaimTaskAction, {
     onError: ({ err }) => {
       toast.error(err.message);
+      claimTaskForm.reset();
     },
     onSuccess: () => {
       toast.success("Task claimed!");
-      setOpen(false);
       claimTaskForm.reset();
+      claimTaskForm.setValue("claimed", true);
     },
   });
 
@@ -87,14 +86,15 @@ export default function ViewTaskDialog({
     isPending: markAsDonePending,
     execute: executeMarkAsDone,
     error: markAsDoneError,
-  } = useServerAction(toggleTaskMarkedAsDoneAction, {
+  } = useServerAction(setTaskMarkedAsDoneAction, {
     onError: ({ err }) => {
       toast.error(err.message);
+      markAsCompleteForm.reset();
     },
     onSuccess: () => {
       toast.success("Marked as done!");
-      setOpen(false);
       markAsCompleteForm.reset();
+      markAsCompleteForm.setValue("markedAsDone", true);
     },
   });
 
@@ -112,24 +112,13 @@ export default function ViewTaskDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-h-svh w-full overflow-y-scroll rounded-md sm:w-[533px]">
         <DialogHeader>
-          <DialogTitle>View Task</DialogTitle>
-          <DialogDescription>
-            View the details of the task. You can claim and mark it as done here
-            if no other user has done so.
-          </DialogDescription>
+          <DialogTitle>{task?.name}</DialogTitle>
+          <DialogDescription>{task?.description}</DialogDescription>
         </DialogHeader>
 
         <div className="w-full space-y-6">
-          <div>Name</div>
-          <Input readOnly value={task?.name} />
-
-          <div>Description</div>
-
-          <Textarea readOnly value={task?.description} />
-
           {task?.dueMode && (
             <div>
-              <div>Due Date/Time</div>
               <div className="flex flex-row rounded-md">
                 <div className="flex flex-col place-content-center">
                   <CalendarIcon className="mr-2 h-4 w-4" />

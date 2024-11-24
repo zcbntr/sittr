@@ -307,11 +307,6 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
   const allTasksVisible = await union(groupInTasksInRange, tasksOwnedInRange);
 
-  console.log("Tasks owned in range: ");
-  console.log(await tasksOwnedInRange.execute());
-  console.log("Tasks in group in range: ");
-  console.log(await groupInTasksInRange.execute());
-
   // Turn into task schema
   const tasksList: Task[] = allTasksVisible.map((task) => {
     const parse = taskSchema.safeParse({
