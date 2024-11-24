@@ -140,14 +140,14 @@ export default function CreateTaskDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       {/* Don't mess with the height - ideally we want m-5 and h-[svh-5] (and w-[svw-5]) but this doesn't work so sticking with h-5/6 for now which is based on whole page height */}
-      <DialogContent className="max-w-dvw max-h-5/6 mt-5 w-11/12 gap-4 rounded-md sm:mt-0 sm:w-[533px]">
+      <DialogContent className="max-w-dvw h-5/6 max-h-svh w-11/12 gap-4 rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>New Task</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => execute(values))}
-            className="h-max-fit h-full w-full space-y-4 overflow-y-scroll px-1"
+            className="h-full w-full space-y-4 overflow-y-scroll px-1"
           >
             <FormField
               control={form.control}

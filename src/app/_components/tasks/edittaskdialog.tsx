@@ -194,7 +194,7 @@ export default function EditTaskDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-dvw mt-5 h-5/6 max-h-fit w-11/12 rounded-md sm:mt-0 sm:w-[533px]">
+      <DialogContent className="max-w-dvw h-5/6 max-h-svh w-11/12 rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
           <DialogDescription>Update the details of the task.</DialogDescription>

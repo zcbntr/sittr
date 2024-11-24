@@ -93,18 +93,14 @@ export default function CreateGroupDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-svh w-full overflow-y-scroll rounded-md sm:w-[533px]">
+      <DialogContent className="max-w-dvw h-5/6 max-h-svh w-11/12 gap-4 rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>Group Details</DialogTitle>
-          <DialogDescription>
-            Create a new group to manage your pets. You must assign pets to the
-            group for the group to be able to sit for them.
-          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => execute(values))}
-            className="w-full space-y-6"
+            className="h-full w-full space-y-4 overflow-y-scroll px-1"
             name="createPet"
           >
             <FormField
@@ -219,7 +215,8 @@ export default function CreateGroupDialog({
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <FormDescription>
-                    The pets the group will sit for.
+                    You must assign pets to the group for the group to be able
+                    to sit for them.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

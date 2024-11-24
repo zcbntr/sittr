@@ -87,167 +87,163 @@ export default function CreatePetDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-svh w-full overflow-y-scroll rounded-md sm:w-[533px]">
+      <DialogContent className="max-w-dvw h-5/6 max-h-svh w-11/12 gap-4 rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>New Pet</DialogTitle>
-          <DialogDescription>
-            Create a new pet. You can add more details later.
-          </DialogDescription>
         </DialogHeader>
-        <div>
-          <div className="font-medium">Avatar</div>
-          <UploadButton
-            endpoint="createPetImageUploader"
-            onClientUploadComplete={(res) => {
-              // Do something with the response
-              if (res[0]?.serverData.imageId)
-                form.setValue("image", res[0].serverData.imageId);
-              else alert("Image Upload Error!");
-            }}
-            onUploadError={(error: Error) => {
-              // Do something with the error.
-              alert(`Image Upload Error! ${error.message}`);
-            }}
-          />
-        </div>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit((values) => execute(values))}
-            className="w-full space-y-6"
-            name="createPet"
-          >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Jake" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <div className="h-full w-full space-y-2 overflow-y-scroll px-1">
+          <div>
+            <div className="font-medium">Avatar</div>
+            <UploadButton
+              endpoint="createPetImageUploader"
+              onClientUploadComplete={(res) => {
+                // Do something with the response
+                if (res[0]?.serverData.imageId)
+                  form.setValue("image", res[0].serverData.imageId);
+                else alert("Image Upload Error!");
+              }}
+              onUploadError={(error: Error) => {
+                // Do something with the error.
+                alert(`Image Upload Error! ${error.message}`);
+              }}
             />
-            <FormField
-              control={form.control}
-              name="species"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Species</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Dog" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="breed"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Breed</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Golden Retriever" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    e.g. Husky, Siamese, etc. (Not required)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="sex"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sex</FormLabel>
-                  <Select onValueChange={field.onChange}>
+          </div>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit((values) => execute(values))}
+              className="w-full space-y-4"
+              name="createPet"
+            >
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a sex" />
-                      </SelectTrigger>
+                      <Input placeholder="Jake" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value={SexEnum.enum.Male.toString()}>
-                        Male
-                      </SelectItem>
-                      <SelectItem value={SexEnum.enum.Female.toString()}>
-                        Female
-                      </SelectItem>
-                      <SelectItem value={SexEnum.enum.Unspecified.toString()}>
-                        Unspecified
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="species"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Species</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Dog" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="breed"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Breed</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Golden Retriever" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      e.g. Husky, Siamese, etc. (Not required)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="dob"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date of Birth</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+              <FormField
+                control={form.control}
+                name="sex"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sex</FormLabel>
+                    <Select onValueChange={field.onChange}>
                       <FormControl>
-                        <Button
-                          id="date"
-                          variant={"outline"}
-                          className={cn(
-                            "justify-start text-left font-normal",
-                            !dob && "text-muted-foreground",
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a sex" />
+                        </SelectTrigger>
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        initialFocus
-                        captionLayout="dropdown"
-                        mode="single"
-                        fromDate={new Date("1900-01-01")}
-                        toDate={new Date()}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
-                        }
-                        onSelect={(e) => {
-                          setDOB(e);
-                          field.onChange(e);
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>
-                    Your pet&apos;s date of birth
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <SelectContent>
+                        <SelectItem value={SexEnum.enum.Male.toString()}>
+                          Male
+                        </SelectItem>
+                        <SelectItem value={SexEnum.enum.Female.toString()}>
+                          Female
+                        </SelectItem>
+                        <SelectItem value={SexEnum.enum.Unspecified.toString()}>
+                          Unspecified
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <DialogFooter>
-              <Button type="submit" disabled={isPending}>
-                Save Pet
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+              <FormField
+                control={form.control}
+                name="dob"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date of Birth</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            id="date"
+                            variant={"outline"}
+                            className={cn(
+                              "justify-start text-left font-normal",
+                              !dob && "text-muted-foreground",
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          initialFocus
+                          captionLayout="dropdown"
+                          mode="single"
+                          fromDate={new Date("1900-01-01")}
+                          toDate={new Date()}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          onSelect={(e) => {
+                            setDOB(e);
+                            field.onChange(e);
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        {isPending && <div>Creating pet...</div>}
+              <DialogFooter>
+                <Button type="submit" disabled={isPending}>
+                  Save Pet
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+
+          {isPending && <div>Creating pet...</div>}
+        </div>
       </DialogContent>
     </Dialog>
   );

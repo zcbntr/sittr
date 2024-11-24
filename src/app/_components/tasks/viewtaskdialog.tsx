@@ -110,7 +110,7 @@ export default function ViewTaskDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-svh w-full overflow-y-scroll rounded-md sm:w-[533px]">
+      <DialogContent className="max-w-dvw h-5/6 max-h-svh w-11/12 gap-4 rounded-md sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>{task?.name}</DialogTitle>
           <DialogDescription>{task?.description}</DialogDescription>
