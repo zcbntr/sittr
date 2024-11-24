@@ -87,11 +87,11 @@ export default function CreatePetDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-dvw h-5/6 max-h-svh w-11/12 gap-4 rounded-md sm:w-[533px]">
-        <DialogHeader>
+      <DialogContent className="h-5/6 max-h-svh w-11/12 max-w-[450px] rounded-md sm:h-fit">
+        <DialogHeader className="pb-2">
           <DialogTitle>New Pet</DialogTitle>
         </DialogHeader>
-        <div className="h-full w-full space-y-2 overflow-y-scroll px-1">
+        <div className="h-full w-full space-y-2 px-1">
           <div>
             <div className="font-medium">Avatar</div>
             <UploadButton

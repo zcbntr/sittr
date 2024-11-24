@@ -94,7 +94,7 @@ export default function AddPetToGroupDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-dvw h-5/6 max-h-svh w-11/12 gap-4 rounded-md sm:w-[533px]">
-        <DialogHeader>
+        <DialogHeader className="pb-2">
           <DialogTitle>Add Pet(s)</DialogTitle>
           <DialogDescription>
             Pets can be removed from the group at any time.

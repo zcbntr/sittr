@@ -110,13 +110,13 @@ export default function ViewTaskDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-dvw h-5/6 max-h-svh w-11/12 gap-4 rounded-md sm:w-[533px]">
-        <DialogHeader>
+      <DialogContent className="h-5/6 max-h-svh w-11/12 max-w-[450px] rounded-md sm:h-fit">
+        <DialogHeader className="pb-2">
           <DialogTitle>{task?.name}</DialogTitle>
           <DialogDescription>{task?.description}</DialogDescription>
         </DialogHeader>
 
-        <div className="w-full space-y-4">
+        <div className="h-full w-full space-y-4">
           {task?.dueMode && (
             <div>
               <div className="flex flex-row rounded-md">

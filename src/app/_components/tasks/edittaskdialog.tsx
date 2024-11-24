@@ -194,15 +194,15 @@ export default function EditTaskDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-dvw h-5/6 max-h-svh w-11/12 rounded-md sm:w-[533px]">
-        <DialogHeader>
+      <DialogContent className="h-5/6 max-h-svh w-11/12 max-w-[450px] rounded-md sm:h-fit">
+        <DialogHeader className="pb-2">
           <DialogTitle>Edit Task</DialogTitle>
           <DialogDescription>Update the details of the task.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="h-max-fit h-full w-full space-y-4 overflow-y-scroll px-1"
+            className="h-full w-full space-y-4 px-1"
           >
             <FormField
               control={form.control}
