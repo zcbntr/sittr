@@ -279,8 +279,6 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     throw new Error("Unauthorized");
   }
 
-  console.log("problem area")
-
   // Get tasks in range where the user is in the group the task is assigned to
   const groupInTasksInRange = db
     .select({
@@ -319,8 +317,6 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
         not(eq(tasks.ownerId, user.userId)),
       ),
     );
-
-  console.log(await groupInTasksInRange.execute());
 
   const tasksOwnedInRange = db
     .select({
@@ -384,8 +380,6 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       claimed: task.claimedBy !== null,
       claimedBy: task.claimedBy,
     });
-
-    console.log(parse);
 
     if (!parse.success) {
       console.log(parse.error);

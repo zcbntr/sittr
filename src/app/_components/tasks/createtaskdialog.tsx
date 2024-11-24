@@ -24,7 +24,11 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { type GroupPet, groupPetListSchema, type Group } from "~/lib/schemas/groups";
+import {
+  type GroupPet,
+  groupPetListSchema,
+  type Group,
+} from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import {
@@ -136,7 +140,7 @@ export default function CreateTaskDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       {/* Don't mess with the height - ideally we want m-5 and h-[svh-5] (and w-[svw-5]) but this doesn't work so sticking with h-5/6 for now which is based on whole page height */}
-      <DialogContent className="max-w-dvw mt-5 h-5/6 max-h-fit w-11/12 rounded-md sm:mt-0 sm:w-[533px]">
+      <DialogContent className="max-w-dvw max-h-5/6 mt-5 w-11/12 gap-4 rounded-md sm:mt-0 sm:w-[533px]">
         <DialogHeader>
           <DialogTitle>New Task</DialogTitle>
         </DialogHeader>
@@ -175,205 +179,197 @@ export default function CreateTaskDialog({
               )}
             />
 
-            <div className="flex flex-col gap-3 rounded-lg border px-4 pb-4">
-              <FormField
-                control={form.control}
-                name="dueMode"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col justify-between pr-1">
-                    <div className="mt-4 flex flex-row gap-3">
-                      <div className="flex flex-col place-content-center">
-                        <FormLabel className="">Span Time Period</FormLabel>
-                      </div>
-
-                      <div className="flex flex-col place-content-center">
-                        <FormControl>
-                          <Switch
-                            checked={!field.value}
-                            onCheckedChange={() => {
-                              form.setValue("dueMode", !dueMode);
-                              setDueMode(!dueMode);
-                            }}
-                          />
-                        </FormControl>
-                      </div>
+            <FormField
+              control={form.control}
+              name="dueMode"
+              render={({ field }) => (
+                <FormItem className="flex flex-col justify-between pr-1">
+                  <div className="flex flex-row gap-3">
+                    <div className="flex flex-col place-content-center">
+                      <FormLabel className="">Span Time Period</FormLabel>
                     </div>
 
-                    <FormDescription>
-                      Toggle whether the task has a due date/time or is a span
-                      of time.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {dueMode && (
-                <div className="grid grid-cols-1 gap-2">
-                  <FormField
-                    control={form.control}
-                    name="dueDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="text-left">
-                          Due Date/Time
-                        </FormLabel>
-                        <Popover>
-                          <FormControl>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full justify-start text-left font-normal",
-                                  !field.value && "text-muted-foreground",
-                                )}
-                              >
-                                <CalendarIcon className="h-4 w-4" />
-                                {field.value ? (
-                                  format(field.value, "PPP HH:mm:ss")
-                                ) : (
-                                  <span>Pick a due date & time</span>
-                                )}
-                              </Button>
-                            </PopoverTrigger>
-                          </FormControl>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                              fromDate={subDays(new Date(), 1)}
-                              toDate={addYears(new Date(), 1)}
-                              disabled={(date) =>
-                                date < new Date() &&
-                                date > new Date("1900-01-01")
-                              }
-                            />
-                            <div className="border-t border-border p-3">
-                              <TimePickerDemo
-                                setDate={field.onChange}
-                                date={field.value}
-                              />
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
+                    <div className="flex flex-col place-content-center">
+                      <FormControl>
+                        <Switch
+                          checked={!field.value}
+                          onCheckedChange={() => {
+                            form.setValue("dueMode", !dueMode);
+                            setDueMode(!dueMode);
+                          }}
+                        />
+                      </FormControl>
+                    </div>
+                  </div>
 
-              {!dueMode && (
-                <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="dateRange.from"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="text-left">
-                          Start Date/Time
-                        </FormLabel>
-                        <Popover>
-                          <FormControl>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full justify-start text-left font-normal",
-                                  !field.value && "text-muted-foreground",
-                                )}
-                              >
-                                <CalendarIcon className="h-4 w-4" />
-                                {field.value ? (
-                                  format(field.value, "PPP HH:mm:ss")
-                                ) : (
-                                  <span>Pick a start date & time</span>
-                                )}
-                              </Button>
-                            </PopoverTrigger>
-                          </FormControl>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                              fromDate={subDays(new Date(), 1)}
-                              toDate={addYears(new Date(), 1)}
-                              disabled={(date) =>
-                                date < new Date() &&
-                                date > new Date("1900-01-01")
-                              }
-                            />
-                            <div className="border-t border-border p-3">
-                              <TimePickerDemo
-                                setDate={field.onChange}
-                                date={field.value}
-                              />
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="dateRange.to"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="text-left">
-                          End Date/Time
-                        </FormLabel>
-                        <Popover>
-                          <FormControl>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full justify-start text-left font-normal",
-                                  !field.value && "text-muted-foreground",
-                                )}
-                              >
-                                <CalendarIcon className="h-4 w-4" />
-                                {field.value ? (
-                                  format(field.value, "PPP HH:mm:ss")
-                                ) : (
-                                  <span>Pick a end date & time</span>
-                                )}
-                              </Button>
-                            </PopoverTrigger>
-                          </FormControl>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                              fromDate={subDays(new Date(), 1)}
-                              toDate={addYears(new Date(), 1)}
-                              disabled={(date) =>
-                                date < new Date() &&
-                                date > new Date("1900-01-01")
-                              }
-                            />
-                            <div className="border-t border-border p-3">
-                              <TimePickerDemo
-                                setDate={field.onChange}
-                                date={field.value}
-                              />
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                  <FormDescription>
+                    Toggle whether the task has a due date/time or is a span of
+                    time.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
+            />
+
+            {dueMode && (
+              <div className="grid grid-cols-1 gap-2">
+                <FormField
+                  control={form.control}
+                  name="dueDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-left">Due Date/Time</FormLabel>
+                      <Popover>
+                        <FormControl>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !field.value && "text-muted-foreground",
+                              )}
+                            >
+                              <CalendarIcon className="h-4 w-4" />
+                              {field.value ? (
+                                format(field.value, "PPP HH:mm:ss")
+                              ) : (
+                                <span>Pick a due date & time</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                        </FormControl>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            fromDate={subDays(new Date(), 1)}
+                            toDate={addYears(new Date(), 1)}
+                            disabled={(date) =>
+                              date < new Date() && date > new Date("1900-01-01")
+                            }
+                          />
+                          <div className="border-t border-border p-3">
+                            <TimePickerDemo
+                              setDate={field.onChange}
+                              date={field.value}
+                            />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {!dueMode && (
+              <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="dateRange.from"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-left">
+                        Start Date/Time
+                      </FormLabel>
+                      <Popover>
+                        <FormControl>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !field.value && "text-muted-foreground",
+                              )}
+                            >
+                              <CalendarIcon className="h-4 w-4" />
+                              {field.value ? (
+                                format(field.value, "PPP HH:mm:ss")
+                              ) : (
+                                <span>Pick a start date & time</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                        </FormControl>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            fromDate={subDays(new Date(), 1)}
+                            toDate={addYears(new Date(), 1)}
+                            disabled={(date) =>
+                              date < new Date() && date > new Date("1900-01-01")
+                            }
+                          />
+                          <div className="border-t border-border p-3">
+                            <TimePickerDemo
+                              setDate={field.onChange}
+                              date={field.value}
+                            />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="dateRange.to"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-left">End Date/Time</FormLabel>
+                      <Popover>
+                        <FormControl>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !field.value && "text-muted-foreground",
+                              )}
+                            >
+                              <CalendarIcon className="h-4 w-4" />
+                              {field.value ? (
+                                format(field.value, "PPP HH:mm:ss")
+                              ) : (
+                                <span>Pick a end date & time</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                        </FormControl>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            fromDate={subDays(new Date(), 1)}
+                            toDate={addYears(new Date(), 1)}
+                            disabled={(date) =>
+                              date < new Date() && date > new Date("1900-01-01")
+                            }
+                          />
+                          <div className="border-t border-border p-3">
+                            <TimePickerDemo
+                              setDate={field.onChange}
+                              date={field.value}
+                            />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
             <FormField
               control={form.control}

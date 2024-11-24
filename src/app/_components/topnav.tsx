@@ -6,7 +6,7 @@ import { MdGroups, MdPets } from "react-icons/md";
 
 export function TopNav() {
   return (
-    <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-4 py-4 md:px-8">
+    <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
       <div className="container mx-auto flex items-center justify-between">
         <Link href="/" className="text-4xl font-bold" prefetch={false}>
           sittr
