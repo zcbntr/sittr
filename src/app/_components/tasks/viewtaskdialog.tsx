@@ -46,6 +46,8 @@ export default function ViewTaskDialog({
 }) {
   const [open, setOpen] = useState<boolean>(false);
 
+  console.log(task);
+
   const claimTaskForm = useForm<z.infer<typeof setClaimTaskFormProps>>({
     resolver: zodResolver(setClaimTaskFormProps),
     defaultValues: {
@@ -116,7 +118,7 @@ export default function ViewTaskDialog({
           <DialogDescription>{task?.description}</DialogDescription>
         </DialogHeader>
 
-        <div className="w-full space-y-6">
+        <div className="w-full space-y-4">
           {task?.dueMode && (
             <div>
               <div className="flex flex-row rounded-md">
@@ -132,12 +134,10 @@ export default function ViewTaskDialog({
           )}
 
           {!task?.dueMode && (
-            <div>
-              <div>Start Date/Time</div>
-
+            <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2">
               <Input readOnly>
                 <div className="flex flex-col place-content-center">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="h-4 w-4" />
                 </div>
                 <div>
                   {task?.dateRange?.from
@@ -145,16 +145,10 @@ export default function ViewTaskDialog({
                     : ""}
                 </div>
               </Input>
-            </div>
-          )}
-
-          {!task?.dueMode && (
-            <div>
-              <div>End Date/Time</div>
 
               <Input readOnly>
                 <div className="flex flex-col place-content-center">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="h-4 w-4" />
                 </div>
                 <div>
                   {task?.dateRange?.to
@@ -165,10 +159,12 @@ export default function ViewTaskDialog({
             </div>
           )}
 
-          {/* Need to fetch group name with this id */}
           <div>
             <div>Group</div>
-            <Input readOnly value={task?.groupId}></Input>
+            <Input
+              readOnly
+              value={task?.groupName ? task.groupName : task?.groupId}
+            ></Input>
           </div>
 
           {/* Need to fetch pet name with this id */}

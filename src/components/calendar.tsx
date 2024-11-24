@@ -54,53 +54,54 @@ class CalendarEvent {
   start: Date;
   end: Date;
   petId?: string;
+  petName?: string;
   groupId: string;
+  groupName?: string;
   markedAsDone: boolean;
   markedAsDoneBy?: string;
+  markedAsDoneByName?: string;
   claimed: boolean;
   claimedBy?: string;
+  claimedByName?: string;
   desc: string;
   resourceId?: string;
   tooltip?: string;
 
-  constructor(
-    _id: string,
-    _ownerId: string,
-    _createdBy: string,
-    _title: string,
-    _dueMode: boolean,
-    _dueDate: Date | null,
-    _dateRange: DateRange | null,
-    _start: Date,
-    _end: Date,
-    _markedAsDone: boolean,
-    _claimed: boolean,
-    _groupId: string,
-    _markedAsDoneBy?: string,
-    _claimedBy?: string,
-    _petId?: string,
-    _allDay?: boolean,
-    _desc?: string,
-    _resourceId?: string,
-  ) {
-    this.id = _id;
-    this.ownerId = _ownerId;
-    this.createdBy = _createdBy;
-    this.title = _title;
-    this.allDay = _allDay ?? false;
-    this.dueMode = _dueMode;
-    this.dueDate = _dueDate;
-    this.dateRange = _dateRange;
-    this.start = _start;
-    this.end = _end;
-    this.markedAsDone = _markedAsDone;
-    this.markedAsDoneBy = _markedAsDoneBy;
-    this.claimed = _claimed;
-    this.claimedBy = _claimedBy;
-    this.petId = _petId;
-    this.groupId = _groupId;
-    this.desc = _desc ?? "";
-    this.resourceId = _resourceId;
+  constructor(_task: Task) {
+    this.id = _task.taskId;
+    this.ownerId = _task.ownerId;
+    this.createdBy = _task.createdBy;
+    this.title = _task.name;
+    this.allDay = _task.dueMode;
+    this.dueMode = _task.dueMode;
+    this.dueDate = _task.dueDate ? new Date(_task.dueDate) : null;
+    this.dateRange = _task.dateRange ? _task.dateRange : null;
+    this.start = _task.dateRange?.from
+      ? _task.dateRange.from
+      : _task.dueDate
+        ? _task.dueDate
+        : new Date();
+    this.end = _task.dateRange?.to
+      ? _task.dateRange.to
+      : _task.dueDate
+        ? addMilliseconds(_task.dueDate, 1)
+        : addMilliseconds(new Date(), 1);
+    this.markedAsDone = _task.markedAsDone;
+    this.markedAsDoneBy = _task.markedAsDoneBy
+      ? _task.markedAsDoneBy
+      : undefined;
+    this.markedAsDoneByName = _task.markedAsDoneByName
+      ? _task.markedAsDoneByName
+      : undefined;
+    this.claimed = _task.claimed;
+    this.claimedBy = _task.claimedBy ? _task.claimedBy : undefined;
+    this.claimedByName = _task.claimedByName ? _task.claimedByName : undefined;
+    this.petId = _task.petId;
+    this.petName = _task.petName ? _task.petName : undefined;
+    this.groupId = _task.groupId;
+    this.groupName = _task.groupName ? _task.groupName : undefined;
+    this.desc = _task.description ? _task.description : "";
+    this.resourceId = _task.petId;
   }
 }
 
@@ -120,36 +121,7 @@ export default function CalendarComponent({
   const [view, setView] = useState<View>("month");
   const [date, setDate] = useState<Date>(new Date());
   const events = tasks.map((task) => {
-    return new CalendarEvent(
-      task.taskId,
-      task.ownerId,
-      task.createdBy,
-      task.name,
-      task.dueMode,
-      task.dueDate ? new Date(task.dueDate) : null,
-      task.dateRange ? task.dateRange : null,
-
-      task.dateRange?.from
-        ? task.dateRange.from
-        : task.dueDate
-          ? task.dueDate
-          : new Date(),
-
-      task.dateRange?.to
-        ? task.dateRange.to
-        : task.dueDate
-          ? addMilliseconds(task.dueDate, 1)
-          : addMilliseconds(new Date(), 1),
-
-      task.markedAsDone,
-      task.claimed,
-      task.groupId,
-      task.markedAsDoneBy ? task.markedAsDoneBy : undefined,
-      task.claimedBy ? task.claimedBy : undefined,
-      task.petId ? task.petId : "",
-      task.dueMode,
-      task.description ? task.description : "",
-    );
+    return new CalendarEvent(task);
   });
   const [createTaskDialogProps, setCreateTaskDialogProps] =
     useState<CreateTaskFormProps>();
@@ -184,14 +156,18 @@ export default function CalendarComponent({
             name: event.title,
             description: event.desc,
             petId: event.petId,
+            petName: event.petName,
             groupId: event.groupId,
+            groupName: event.groupName,
             dueMode: event.dueMode,
             dueDate: event.dueDate,
             dateRange: event.dateRange,
             markedAsDone: event.markedAsDone,
             markedAsDoneBy: event.markedAsDoneBy,
+            markedAsDoneByName: event.markedAsDoneByName,
             claimed: event.claimed,
             claimedBy: event.claimedBy,
+            claimedByName: event.claimedByName,
             requiresVerification: false,
           }),
         );
@@ -208,7 +184,9 @@ export default function CalendarComponent({
             name: event.title,
             description: event.desc,
             petId: event.petId,
+            petName: event.petName,
             groupId: event.groupId,
+            groupName: event.groupName,
             dueMode: event.dueMode,
             dueDate: event.end,
             dateRange: event.start &&
@@ -218,8 +196,10 @@ export default function CalendarComponent({
               },
             markedAsDone: event.markedAsDone,
             markedAsDoneBy: event.markedAsDoneBy,
+            markedAsDoneByName: event.markedAsDoneByName,
             claimed: event.claimed,
             claimedBy: event.claimedBy,
+            claimedByName: event.claimedByName,
             requiresVerification: false,
           }),
         );

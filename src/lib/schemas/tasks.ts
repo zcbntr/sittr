@@ -15,12 +15,16 @@ export const taskSchema = z.object({
   dueDate: z.coerce.date().optional().nullable(),
   dateRange: dateRangeSchema.optional().nullable(),
   petId: z.string(),
+  petName: z.string().optional().nullable(),
   groupId: z.string(),
+  groupName: z.string().optional().nullable(),
   requiresVerification: z.boolean().optional().default(false),
   markedAsDone: z.boolean(),
   markedAsDoneBy: z.string().optional().nullable(),
+  markedAsDoneByName: z.string().optional().nullable(),
   claimed: z.boolean(),
   claimedBy: z.string().optional().nullable(),
+  claimedByName: z.string().optional().nullable(),  
 });
 
 export type Task = z.infer<typeof taskSchema>;

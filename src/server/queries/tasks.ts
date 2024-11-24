@@ -6,6 +6,7 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "../db";
 import { groups, tasks, usersToGroups } from "../db/schema";
 import { union } from "drizzle-orm/pg-core";
+import { group } from "console";
 
 export async function getAllOwnedTasks(): Promise<Task[]> {
   const user = await auth();
@@ -151,6 +152,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
   }
 
   const tasksInRange = await db.query.tasks.findMany({
+    with: { group: true },
     where: (model, { and, eq, gte, lte }) =>
       and(
         eq(model.ownerId, user.userId),
@@ -179,6 +181,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
         },
       petId: task.pet,
       groupId: task.group,
+      groupName: task.group?.name,
       markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: task.markedAsDoneBy,
       claimed: task.claimedBy !== null,
@@ -234,6 +237,7 @@ async function getTasksSittingForInRange(
         },
       petId: joinedTaskRow.tasks.pet,
       groupId: joinedTaskRow.tasks.group,
+      groupName: joinedTaskRow.groups?.name ? joinedTaskRow.groups.name : null,
       markedAsDone: joinedTaskRow.tasks.markedAsDoneBy !== null,
       markedAsDoneBy: joinedTaskRow.tasks.markedAsDoneBy,
       claimed: joinedTaskRow.tasks.claimedBy !== null,
@@ -272,6 +276,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       dateRangeTo: tasks.dateRangeTo,
       pet: tasks.pet,
       group: tasks.group,
+      groupName: groups.name,
       claimedBy: tasks.claimedBy,
       markedAsDoneBy: tasks.markedAsDoneBy,
       requiresVerification: tasks.requiresVerification,
@@ -293,8 +298,28 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     );
 
   const tasksOwnedInRange = db
-    .select()
+    .select({
+      id: tasks.id,
+      ownerId: tasks.ownerId,
+      createdBy: tasks.createdBy,
+      name: tasks.name,
+      description: tasks.description,
+      completed: tasks.completed,
+      dueMode: tasks.dueMode,
+      dueDate: tasks.dueDate,
+      dateRangeFrom: tasks.dateRangeFrom,
+      dateRangeTo: tasks.dateRangeTo,
+      pet: tasks.pet,
+      group: tasks.group,
+      groupName: groups.name,
+      claimedBy: tasks.claimedBy,
+      markedAsDoneBy: tasks.markedAsDoneBy,
+      requiresVerification: tasks.requiresVerification,
+      createdAt: tasks.createdAt,
+      updatedAt: tasks.updatedAt,
+    })
     .from(tasks)
+    .leftJoin(groups, eq(tasks.group, groups.id))
     .where(
       and(
         eq(tasks.ownerId, user.userId),
@@ -324,11 +349,14 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
         },
       petId: task.pet,
       groupId: task.group,
+      groupName: task.groupName,
       markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: task.markedAsDoneBy,
       claimed: task.claimedBy !== null,
       claimedBy: task.claimedBy,
     });
+
+    console.log(parse);
 
     if (!parse.success) {
       console.log(parse.error);
@@ -363,6 +391,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
       dateRangeTo: tasks.dateRangeTo,
       pet: tasks.pet,
       group: tasks.group,
+      groupName: groups.name,
       claimedBy: tasks.claimedBy,
       markedAsDoneBy: tasks.markedAsDoneBy,
       requiresVerification: tasks.requiresVerification,
@@ -385,8 +414,28 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
     );
 
   const tasksOwnedInRange = db
-    .select()
+    .select({
+      id: tasks.id,
+      createdBy: tasks.createdBy,
+      ownerId: tasks.ownerId,
+      name: tasks.name,
+      description: tasks.description,
+      completed: tasks.completed,
+      dueMode: tasks.dueMode,
+      dueDate: tasks.dueDate,
+      dateRangeFrom: tasks.dateRangeFrom,
+      dateRangeTo: tasks.dateRangeTo,
+      pet: tasks.pet,
+      group: tasks.group,
+      groupName: groups.name,
+      claimedBy: tasks.claimedBy,
+      markedAsDoneBy: tasks.markedAsDoneBy,
+      requiresVerification: tasks.requiresVerification,
+      createdAt: tasks.createdAt,
+      updatedAt: tasks.updatedAt,
+    })
     .from(tasks)
+    .leftJoin(groups, eq(tasks.group, groups.id))
     .where(
       and(
         eq(tasks.ownerId, user.userId),
@@ -417,6 +466,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
         },
       petId: task.pet,
       groupId: task.group,
+      groupName: task.groupName,
       markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: task.markedAsDoneBy,
       claimed: task.claimedBy !== null,
