@@ -96,8 +96,8 @@ export default function EditTaskDialog({
       dueMode: task?.dueMode ? task.dueMode : true,
       dueDate: task?.dueDate ? task.dueDate : undefined,
       dateRange: task?.dateRange ? task.dateRange : undefined,
-      petId: task?.petId ? task.petId : "",
-      groupId: task?.groupId ? task.groupId : "",
+      petId: task?.pet.petId ? task.pet.petId : "",
+      groupId: task?.group.groupId ? task.group.groupId : "",
     },
   });
 
@@ -159,9 +159,9 @@ export default function EditTaskDialog({
     form.setValue("dueMode", task?.dueMode ? task.dueMode : true);
     form.setValue("dueDate", task?.dueDate ? task.dueDate : undefined);
     form.setValue("dateRange", task?.dateRange ? task.dateRange : undefined);
-    form.setValue("petId", task?.petId ? task.petId : "");
-    form.setValue("groupId", task?.groupId ? task.groupId : "");
-    setSelectedGroupId(task?.groupId ? task.groupId : "");
+    form.setValue("petId", task?.pet.petId ? task.pet.petId : "");
+    form.setValue("groupId", task?.group.groupId ? task.group.groupId : "");
+    setSelectedGroupId(task?.group.groupId ? task.group.groupId : "");
 
     async function fetchGroupPets() {
       await fetch("../api/group-pets?id=" + form.getValues("groupId"), {
@@ -451,7 +451,10 @@ export default function EditTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {groups.map((group) => (
-                        <SelectItem key={group.id} value={group.id.toString()}>
+                        <SelectItem
+                          key={group.groupId}
+                          value={group.groupId.toString()}
+                        >
                           {group.name}
                         </SelectItem>
                       ))}
@@ -472,7 +475,9 @@ export default function EditTaskDialog({
                 <FormItem>
                   <FormLabel>Pet</FormLabel>
                   <Select
-                    defaultValue={task?.petId ? task.petId.toString() : ""}
+                    defaultValue={
+                      task?.pet.petId ? task.pet.petId.toString() : ""
+                    }
                     value={field.value?.toString()}
                     onValueChange={(value) => {
                       form.setValue("petId", value);

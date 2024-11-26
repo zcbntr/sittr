@@ -404,7 +404,7 @@ export default function CreateTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {groups.map((group) => (
-                        <SelectItem key={group.id} value={group.id.toString()}>
+                        <SelectItem key={group.groupId} value={group.groupId.toString()}>
                           {group.name}
                         </SelectItem>
                       ))}

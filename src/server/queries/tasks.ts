@@ -7,6 +7,8 @@ import { db } from "../db";
 import { groups, pets, petsToGroups, tasks, usersToGroups } from "../db/schema";
 import { union } from "drizzle-orm/pg-core";
 import { userSchema } from "~/lib/schemas/users";
+import { petSchema } from "~/lib/schemas/pets";
+import { groupSchema } from "~/lib/schemas/groups";
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
@@ -20,6 +22,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
   }
 
   const userTasks = await db.query.tasks.findMany({
+    with: { group: true, pet: true },
     where: (model, { eq }) => eq(model.ownerId, user.userId),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
@@ -73,12 +76,12 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
     return taskSchema.parse({
       taskId: task.id,
       owner: userSchema.parse({
-        id: ownerUser?.id,
+        userId: ownerUser?.id,
         name: ownerUser?.fullName,
         avatar: ownerUser?.imageUrl,
       }),
       createdBy: userSchema.parse({
-        id: createdByUser?.id,
+        userId: createdByUser?.id,
         name: createdByUser?.fullName,
         avatar: createdByUser?.imageUrl,
       }),
@@ -91,22 +94,41 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
           from: task.dateRangeFrom,
           to: task.dateRangeTo,
         },
-      petId: task.pet,
-      groupId: task.group,
+      pet: task.pet
+        ? petSchema.parse({
+            petId: task.pet,
+            name: task.pet?.name,
+            ownerId: task.pet?.ownerId,
+            createdBy: task.pet?.createdBy,
+            species: task.pet?.species,
+            breed: task.pet?.breed,
+            dob: task.pet?.dob,
+            sex: task.pet?.sex,
+            image: task.pet?.image,
+          })
+        : null,
+      group: task.group
+        ? groupSchema.parse({
+            groupId: task.group.id,
+            name: task.group.name,
+            description: task.group.description,
+            createdBy: task.group.createdBy,
+          })
+        : null,
       markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
-            id: markedAsDoneUser?.id,
-            name: markedAsDoneUser?.fullName,
-            avatar: markedAsDoneUser?.imageUrl,
+            userId: markedAsDoneUser.id,
+            name: markedAsDoneUser.fullName,
+            avatar: markedAsDoneUser.imageUrl,
           })
         : null,
       claimed: task.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
-            id: claimingUser?.id,
-            name: claimingUser?.fullName,
-            avatar: claimingUser?.imageUrl,
+            userId: claimingUser.id,
+            name: claimingUser.fullName,
+            avatar: claimingUser.imageUrl,
           })
         : null,
     });
@@ -188,12 +210,12 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
     return taskSchema.parse({
       taskId: task.tasks.id,
       owner: userSchema.parse({
-        id: ownerUser?.id,
+        userId: ownerUser?.id,
         name: ownerUser?.fullName,
         avatar: ownerUser?.imageUrl,
       }),
       createdBy: userSchema.parse({
-        id: createdByUser?.id,
+        userId: createdByUser?.id,
         name: createdByUser?.fullName,
         avatar: createdByUser?.imageUrl,
       }),
@@ -206,14 +228,31 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
           from: task.tasks.dateRangeFrom,
           to: task.tasks.dateRangeTo,
         },
-      petId: task.tasks.pet,
-      petName: task.pets?.name,
-      groupId: task.tasks.group,
-      groupName: task.groups?.name,
+      pet: task.pets
+        ? petSchema.parse({
+            petId: task.pets.id,
+            name: task.pets.name,
+            ownerId: task.pets.ownerId,
+            createdBy: task.pets.createdBy,
+            species: task.pets.species,
+            breed: task.pets.breed,
+            dob: task.pets.dob,
+            sex: task.pets?.sex,
+            image: task.pets.image,
+          })
+        : null,
+      group: task.groups
+        ? groupSchema.parse({
+            groupId: task.groups.id,
+            name: task.groups.name,
+            description: task.groups.description,
+            createdBy: task.groups.createdBy,
+          })
+        : null,
       markedAsDone: task.tasks.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
-            id: markedAsDoneUser?.id,
+            userId: markedAsDoneUser?.id,
             name: markedAsDoneUser?.fullName,
             avatar: markedAsDoneUser?.imageUrl,
           })
@@ -221,7 +260,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
       claimed: task.tasks.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
-            id: claimingUser?.id,
+            userId: claimingUser?.id,
             name: claimingUser?.fullName,
             avatar: claimingUser?.imageUrl,
           })
@@ -297,12 +336,12 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
   return taskSchema.parse({
     taskId: task.id,
     owner: userSchema.parse({
-      id: ownerUser?.id,
+      userId: ownerUser?.id,
       name: ownerUser?.fullName,
       avatar: ownerUser?.imageUrl,
     }),
     createdBy: userSchema.parse({
-      id: createdByUser?.id,
+      userId: createdByUser?.id,
       name: createdByUser?.fullName,
       avatar: createdByUser?.imageUrl,
     }),
@@ -315,24 +354,39 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
         from: task.dateRangeFrom,
         to: task.dateRangeTo,
       },
-    petId: task.pet,
-    petName: task.pet?.name,
-    groupId: task.group,
-    groupName: task.group?.name,
+    pet: petSchema.parse({
+      petId: task.pet,
+      name: task.pet?.name,
+      ownerId: task.pet?.ownerId,
+      createdBy: task.pet?.createdBy,
+      species: task.pet?.species,
+      breed: task.pet?.breed,
+      dob: task.pet?.dob,
+      sex: task.pet?.sex,
+      image: task.pet?.image,
+    }),
+    group: task.group
+      ? groupSchema.parse({
+          groupId: task.group.id,
+          name: task.group.name,
+          description: task.group.description,
+          createdBy: task.group.createdBy,
+        })
+      : null,
     markedAsDone: task.markedAsDoneBy !== null,
     markedAsDoneBy: markedAsDoneUser
       ? userSchema.parse({
-          id: markedAsDoneUser?.id,
-          name: markedAsDoneUser?.fullName,
-          avatar: markedAsDoneUser?.imageUrl,
+          userId: markedAsDoneUser.id,
+          name: markedAsDoneUser.fullName,
+          avatar: markedAsDoneUser.imageUrl,
         })
       : null,
     claimed: task.claimedBy !== null,
     claimedBy: claimingUser
       ? userSchema.parse({
-          id: claimingUser?.id,
-          name: claimingUser?.fullName,
-          avatar: claimingUser?.imageUrl,
+          userId: claimingUser.id,
+          name: claimingUser.fullName,
+          avatar: claimingUser.imageUrl,
         })
       : null,
   });
@@ -426,12 +480,12 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
     return taskSchema.parse({
       taskId: task.id,
       owner: userSchema.parse({
-        id: ownerUser?.id,
+        userId: ownerUser?.id,
         name: ownerUser?.fullName,
         avatar: ownerUser?.imageUrl,
       }),
       createdBy: userSchema.parse({
-        id: createdByUser?.id,
+        userId: createdByUser?.id,
         name: createdByUser?.fullName,
         avatar: createdByUser?.imageUrl,
       }),
@@ -444,24 +498,41 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
           from: task.dateRangeFrom,
           to: task.dateRangeTo,
         },
-      petId: task.pet,
-      petName: task.pet?.name,
-      groupId: task.group,
-      groupName: task.group?.name,
+      pet: task.pet
+        ? petSchema.parse({
+            petId: task.pet.id,
+            name: task.pet.name,
+            ownerId: task.pet.ownerId,
+            createdBy: task.pet.createdBy,
+            species: task.pet.species,
+            breed: task.pet.breed,
+            dob: task.pet.dob,
+            sex: task.pet.sex,
+            image: task.pet.image,
+          })
+        : null,
+      group: task.group
+        ? groupSchema.parse({
+            groupId: task.group.id,
+            name: task.group.name,
+            description: task.group.description,
+            createdBy: task.group.createdBy,
+          })
+        : null,
       markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
-            id: markedAsDoneUser?.id,
-            name: markedAsDoneUser?.fullName,
-            avatar: markedAsDoneUser?.imageUrl,
+            userId: markedAsDoneUser.id,
+            name: markedAsDoneUser.fullName,
+            avatar: markedAsDoneUser.imageUrl,
           })
         : null,
       claimed: task.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
-            id: claimingUser?.id,
-            name: claimingUser?.fullName,
-            avatar: claimingUser?.imageUrl,
+            userId: claimingUser.id,
+            name: claimingUser.fullName,
+            avatar: claimingUser.imageUrl,
           })
         : null,
     });
@@ -553,12 +624,12 @@ async function getTasksSittingForInRange(
     const parse = taskSchema.safeParse({
       taskId: joinedTaskRow.tasks.id,
       owner: userSchema.parse({
-        id: ownerUser?.id,
+        userId: ownerUser?.id,
         name: ownerUser?.fullName,
         avatar: ownerUser?.imageUrl,
       }),
       createdBy: userSchema.parse({
-        id: createdByUser?.id,
+        userId: createdByUser?.id,
         name: createdByUser?.fullName,
         avatar: createdByUser?.imageUrl,
       }),
@@ -571,14 +642,31 @@ async function getTasksSittingForInRange(
           from: joinedTaskRow.tasks.dateRangeFrom,
           to: joinedTaskRow.tasks.dateRangeTo,
         },
-      petId: joinedTaskRow.tasks.pet,
-      petName: joinedTaskRow.pets?.name ? joinedTaskRow.pets.name : null,
-      groupId: joinedTaskRow.tasks.group,
-      groupName: joinedTaskRow.groups?.name ? joinedTaskRow.groups.name : null,
+      pet: joinedTaskRow.pets
+        ? petSchema.parse({
+            petId: joinedTaskRow.pets.id,
+            ownerId: joinedTaskRow.pets.ownerId,
+            createdBy: joinedTaskRow.pets.createdBy,
+            name: joinedTaskRow.pets.name,
+            species: joinedTaskRow.pets.species,
+            breed: joinedTaskRow.pets.breed,
+            dob: joinedTaskRow.pets.dob,
+            sex: joinedTaskRow.pets.sex,
+            image: joinedTaskRow.pets.image,
+          })
+        : null,
+      group: joinedTaskRow.groups
+        ? groupSchema.parse({
+            groupId: joinedTaskRow.groups.id,
+            name: joinedTaskRow.groups.name,
+            description: joinedTaskRow.groups.description,
+            createdBy: joinedTaskRow.groups.createdBy,
+          })
+        : null,
       markedAsDone: joinedTaskRow.tasks.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
-            id: markedAsDoneUser?.id,
+            userId: markedAsDoneUser?.id,
             name: markedAsDoneUser?.fullName,
             avatar: markedAsDoneUser?.imageUrl,
           })
@@ -586,7 +674,7 @@ async function getTasksSittingForInRange(
       claimed: joinedTaskRow.tasks.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
-            id: claimingUser?.id,
+            userId: claimingUser?.id,
             name: claimingUser?.fullName,
             avatar: claimingUser?.imageUrl,
           })
@@ -613,7 +701,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
   // Get tasks in range where the user is in the group the task is assigned to
   const groupInTasksInRange = db
     .select({
-      id: tasks.id,
+      taskId: tasks.id,
       ownerId: tasks.ownerId,
       createdBy: tasks.createdBy,
       name: tasks.name,
@@ -623,10 +711,19 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       dueDate: tasks.dueDate,
       dateRangeFrom: tasks.dateRangeFrom,
       dateRangeTo: tasks.dateRangeTo,
-      pet: tasks.pet,
+      petId: pets.id,
       petName: pets.name,
-      group: tasks.group,
+      petCreatedBy: pets.createdBy,
+      petOwnerId: pets.ownerId,
+      petSpecies: pets.species,
+      petBreed: pets.breed,
+      petDob: pets.dob,
+      petSex: pets.sex,
+      petImage: pets.image,
+      groupId: groups.id,
       groupName: groups.name,
+      groupDescription: groups.description,
+      groupCreatedBy: groups.createdBy,
       claimedBy: tasks.claimedBy,
       markedAsDoneBy: tasks.markedAsDoneBy,
       requiresVerification: tasks.requiresVerification,
@@ -651,7 +748,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
   const tasksOwnedInRange = db
     .select({
-      id: tasks.id,
+      taskId: tasks.id,
       ownerId: tasks.ownerId,
       createdBy: tasks.createdBy,
       name: tasks.name,
@@ -661,10 +758,19 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       dueDate: tasks.dueDate,
       dateRangeFrom: tasks.dateRangeFrom,
       dateRangeTo: tasks.dateRangeTo,
-      pet: tasks.pet,
+      petId: pets.id,
       petName: pets.name,
-      group: tasks.group,
+      petCreatedBy: pets.createdBy,
+      petOwnerId: pets.ownerId,
+      petSpecies: pets.species,
+      petBreed: pets.breed,
+      petDob: pets.dob,
+      petSex: pets.sex,
+      petImage: pets.image,
+      groupId: groups.id,
       groupName: groups.name,
+      groupDescription: groups.description,
+      groupCreatedBy: groups.createdBy,
       claimedBy: tasks.claimedBy,
       markedAsDoneBy: tasks.markedAsDoneBy,
       requiresVerification: tasks.requiresVerification,
@@ -735,14 +841,14 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     }
 
     const parse = taskSchema.safeParse({
-      taskId: task.id,
+      taskId: task.taskId,
       owner: userSchema.parse({
-        id: ownerUser?.id,
+        userId: ownerUser?.id,
         name: ownerUser?.fullName,
         avatar: ownerUser?.imageUrl,
       }),
       createdBy: userSchema.parse({
-        id: createdByUser?.id,
+        userId: createdByUser?.id,
         name: createdByUser?.fullName,
         avatar: createdByUser?.imageUrl,
       }),
@@ -755,14 +861,31 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
           from: task.dateRangeFrom,
           to: task.dateRangeTo,
         },
-      petId: task.pet,
-      petName: task.petName,
-      groupId: task.group,
-      groupName: task.groupName,
+      pet: task.petId
+        ? petSchema.parse({
+            petId: task.petId,
+            ownerId: task.petOwnerId,
+            createdBy: task.petCreatedBy,
+            name: task.petName,
+            species: task.petSpecies,
+            breed: task.petBreed,
+            dob: task.petDob,
+            sex: task.petSex,
+            image: task.petImage,
+          })
+        : null,
+      group: task.groupId
+        ? groupSchema.parse({
+            groupId: task.groupId,
+            name: task.groupName,
+            description: task.groupDescription,
+            createdBy: task.groupCreatedBy,
+          })
+        : null,
       markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
-            id: markedAsDoneUser?.id,
+            userId: markedAsDoneUser?.id,
             name: markedAsDoneUser?.fullName,
             avatar: markedAsDoneUser?.imageUrl,
           })
@@ -770,7 +893,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       claimed: task.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
-            id: claimingUser?.id,
+            userId: claimingUser?.id,
             name: claimingUser?.fullName,
             avatar: claimingUser?.imageUrl,
           })
@@ -798,7 +921,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
   // Get tasks in range where the user is in the group the task is assigned to
   const groupInTasksInRange = db
     .select({
-      id: tasks.id,
+      taskId: tasks.id,
       createdBy: tasks.createdBy,
       ownerId: tasks.ownerId,
       name: tasks.name,
@@ -808,10 +931,19 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
       dueDate: tasks.dueDate,
       dateRangeFrom: tasks.dateRangeFrom,
       dateRangeTo: tasks.dateRangeTo,
-      pet: tasks.pet,
+      petId: pets.id,
       petName: pets.name,
-      group: tasks.group,
+      petCreatedBy: pets.createdBy,
+      petOwnerId: pets.ownerId,
+      petSpecies: pets.species,
+      petBreed: pets.breed,
+      petDob: pets.dob,
+      petSex: pets.sex,
+      petImage: pets.image,
+      groupId: groups.id,
       groupName: groups.name,
+      groupDescription: groups.description,
+      groupCreatedBy: groups.createdBy,
       claimedBy: tasks.claimedBy,
       markedAsDoneBy: tasks.markedAsDoneBy,
       requiresVerification: tasks.requiresVerification,
@@ -837,7 +969,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
 
   const tasksOwnedInRange = db
     .select({
-      id: tasks.id,
+      taskId: tasks.id,
       createdBy: tasks.createdBy,
       ownerId: tasks.ownerId,
       name: tasks.name,
@@ -847,10 +979,19 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
       dueDate: tasks.dueDate,
       dateRangeFrom: tasks.dateRangeFrom,
       dateRangeTo: tasks.dateRangeTo,
-      pet: tasks.pet,
+      petId: pets.id,
       petName: pets.name,
-      group: tasks.group,
+      petCreatedBy: pets.createdBy,
+      petOwnerId: pets.ownerId,
+      petSpecies: pets.species,
+      petBreed: pets.breed,
+      petDob: pets.dob,
+      petSex: pets.sex,
+      petImage: pets.image,
+      groupId: groups.id,
       groupName: groups.name,
+      groupDescription: groups.description,
+      groupCreatedBy: groups.createdBy,
       claimedBy: tasks.claimedBy,
       markedAsDoneBy: tasks.markedAsDoneBy,
       requiresVerification: tasks.requiresVerification,
@@ -922,14 +1063,14 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
     }
 
     const parse = taskSchema.safeParse({
-      taskId: task.id,
+      taskId: task.taskId,
       owner: userSchema.parse({
-        id: ownerUser?.id,
+        userId: ownerUser?.id,
         name: ownerUser?.fullName,
         avatar: ownerUser?.imageUrl,
       }),
       createdBy: userSchema.parse({
-        id: createdByUser?.id,
+        userId: createdByUser?.id,
         name: createdByUser?.fullName,
         avatar: createdByUser?.imageUrl,
       }),
@@ -942,14 +1083,31 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
           from: task.dateRangeFrom,
           to: task.dateRangeTo,
         },
-      petId: task.pet,
-      petName: task.petName,
-      groupId: task.group,
-      groupName: task.groupName,
+      pet: task.petId
+        ? petSchema.parse({
+            petId: task.petId,
+            ownerId: task.petOwnerId,
+            createdBy: task.petCreatedBy,
+            name: task.petName,
+            species: task.petSpecies,
+            breed: task.petBreed,
+            dob: task.petDob,
+            sex: task.petSex,
+            image: task.petImage,
+          })
+        : null,
+      group: task.groupId
+        ? groupSchema.parse({
+            groupId: task.groupId,
+            name: task.groupName,
+            description: task.groupDescription,
+            createdBy: task.groupCreatedBy,
+          })
+        : null,
       markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
-            id: markedAsDoneUser?.id,
+            userId: markedAsDoneUser?.id,
             name: markedAsDoneUser?.fullName,
             avatar: markedAsDoneUser?.imageUrl,
           })
@@ -957,7 +1115,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
       claimed: task.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
-            id: claimingUser?.id,
+            userId: claimingUser?.id,
             name: claimingUser?.fullName,
             avatar: claimingUser?.imageUrl,
           })

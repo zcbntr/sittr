@@ -2,7 +2,6 @@
 
 import {
   createPetInputSchema,
-  petSchema,
   updatePetSchema,
 } from "~/lib/schemas/pets";
 import { db } from "../db";

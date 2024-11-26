@@ -19,6 +19,7 @@ import { type DateRange } from "~/lib/schemas";
 import ViewTaskDialog from "~/app/_components/tasks/viewtaskdialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { type User } from "~/lib/schemas/users";
+import { type Pet } from "~/lib/schemas/pets";
 
 const coloursList: string[] = [
   "#f54290",
@@ -54,10 +55,8 @@ class CalendarEvent {
   dateRange: DateRange | null;
   start: Date;
   end: Date;
-  petId?: string;
-  petName?: string;
-  groupId: string;
-  groupName?: string;
+  pet: Pet;
+  group: Group;
   markedAsDone: boolean;
   markedAsDoneBy?: User;
   claimed: boolean;
@@ -91,12 +90,10 @@ class CalendarEvent {
       : undefined;
     this.claimed = _task.claimed;
     this.claimedBy = _task.claimedBy ? _task.claimedBy : undefined;
-    this.petId = _task.petId;
-    this.petName = _task.petName ? _task.petName : undefined;
-    this.groupId = _task.groupId;
-    this.groupName = _task.groupName ? _task.groupName : undefined;
+    this.pet = _task.pet;
+    this.group = _task.group;
     this.desc = _task.description ? _task.description : "";
-    this.resourceId = _task.petId;
+    this.resourceId = _task.pet.petId;
   }
 }
 
@@ -157,7 +154,7 @@ export default function CalendarComponent({
 
   const handleEventSelect = (event: CalendarEvent) => {
     // Check if the user owns the task
-    if (event.owner.id !== userId) {
+    if (event.owner.userId !== userId) {
       const button = document.getElementById("openViewTaskDialogHiddenButton");
       if (button) {
         setSelectedTask(
@@ -167,10 +164,8 @@ export default function CalendarComponent({
             createdBy: event.createdBy,
             name: event.title,
             description: event.desc,
-            petId: event.petId,
-            petName: event.petName,
-            groupId: event.groupId,
-            groupName: event.groupName,
+            pet: event.pet,
+            group: event.group,
             dueMode: event.dueMode,
             dueDate: event.dueDate,
             dateRange: event.dateRange,
@@ -193,10 +188,8 @@ export default function CalendarComponent({
             createdBy: event.createdBy,
             name: event.title,
             description: event.desc,
-            petId: event.petId,
-            petName: event.petName,
-            groupId: event.groupId,
-            groupName: event.groupName,
+            pet: event.pet,
+            group: event.group,
             dueMode: event.dueMode,
             dueDate: event.end,
             dateRange: event.start &&
@@ -244,7 +237,7 @@ export default function CalendarComponent({
             };
 
             // Map the event to a colour based on the petId
-            const petId = event.petId;
+            const petId = event.pet.petId;
             if (petId) {
               const colour =
                 coloursList[
@@ -261,8 +254,8 @@ export default function CalendarComponent({
 
             // If the task is marked as done, or claimed by another user, change the background opacity
             if (
-              (event.claimed && event.claimedBy?.id != userId) ||
-              (!event.claimed && event.owner.id != userId)
+              (event.claimed && event.claimedBy?.userId != userId) ||
+              (!event.claimed && event.owner.userId != userId)
             ) {
               newStyle.opacity = 0.5;
             }

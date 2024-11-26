@@ -46,7 +46,7 @@ export function GroupMemberPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GroupMembersTable groupId={group.id} groupMembers={groupMembers} />
+          <GroupMembersTable groupId={group.groupId} groupMembers={groupMembers} />
         </CardContent>
       </Card>
 
@@ -59,7 +59,7 @@ export function GroupMemberPage({
         </CardHeader>
         <CardContent className="space-y-4">
           <GroupPetsTable
-            groupId={group.id}
+            groupId={group.groupId}
             groupPets={groupPets}
             isOwner={false}
           />

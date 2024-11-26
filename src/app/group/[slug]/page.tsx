@@ -24,11 +24,11 @@ export default async function Page({
 
     return <GroupDoesNotExistPage />;
   } else {
-    const groupPets: GroupPet[] = await getGroupPets(group.id);
-    const groupMembers: GroupMember[] = await getGroupMembers(group.id);
+    const groupPets: GroupPet[] = await getGroupPets(group.groupId);
+    const groupMembers: GroupMember[] = await getGroupMembers(group.groupId);
 
     // Check if user is the owner of the group
-    const userIsOwnerOrError = await getIsUserGroupOwner(group.id);
+    const userIsOwnerOrError = await getIsUserGroupOwner(group.groupId);
 
     if (typeof userIsOwnerOrError === "string") {
       return <GroupDoesNotExistPage />;

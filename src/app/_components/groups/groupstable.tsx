@@ -34,9 +34,9 @@ export default async function GroupsTable() {
         </TableHeader>
         <TableBody>
           {groups.map((group) => (
-            <TableRow key={group.id}>
+            <TableRow key={group.groupId}>
               <TableCell>
-                <GroupRedirectButton groupId={group.id}>
+                <GroupRedirectButton groupId={group.groupId}>
                   <div className="font-semibold">{group.name}</div>
                 </GroupRedirectButton>
               </TableCell>

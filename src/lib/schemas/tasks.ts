@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { dateRangeSchema } from ".";
 import { userSchema } from "./users";
+import { groupSchema } from "./groups";
+import { petSchema } from "./pets";
 
 // -----------------------------------------------------------------------------
 // Task Schemas
@@ -15,10 +17,8 @@ export const taskSchema = z.object({
   dueMode: z.boolean(),
   dueDate: z.coerce.date().optional().nullable(),
   dateRange: dateRangeSchema.optional().nullable(),
-  petId: z.string(),
-  petName: z.string().optional().nullable(),
-  groupId: z.string(),
-  groupName: z.string().optional().nullable(),
+  pet: petSchema,
+  group: groupSchema,
   requiresVerification: z.boolean().optional().default(false),
   markedAsDone: z.boolean(),
   markedAsDoneBy: userSchema.optional().nullable(),

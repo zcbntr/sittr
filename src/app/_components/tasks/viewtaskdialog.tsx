@@ -34,6 +34,8 @@ import {
 import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import Link from "next/link";
 
 export default function ViewTaskDialog({
   userId,
@@ -116,7 +118,7 @@ export default function ViewTaskDialog({
           <DialogDescription>{task?.description}</DialogDescription>
         </DialogHeader>
 
-        <div className="h-full w-full space-y-4">
+        <div className="h-full w-full space-y-4 px-1">
           {task?.dueMode && (
             <div>
               <div className="flex flex-row rounded-md">
@@ -125,7 +127,7 @@ export default function ViewTaskDialog({
                 </div>
 
                 <div>
-                  {task?.dueDate ? format(task.dueDate, "PPP HH:mm:ss") : ""}
+                  {task?.dueDate ? format(task.dueDate, "PPP HH:mm") : ""}
                 </div>
               </div>
             </div>
@@ -139,7 +141,7 @@ export default function ViewTaskDialog({
                 </div>
                 <div>
                   {task?.dateRange?.from
-                    ? format(task.dateRange.from, "PPP HH:mm:ss")
+                    ? format(task.dateRange.from, "PPP HH:mm")
                     : ""}
                 </div>
               </Input>
@@ -150,28 +152,29 @@ export default function ViewTaskDialog({
                 </div>
                 <div>
                   {task?.dateRange?.to
-                    ? format(task?.dateRange?.to, "PPP HH:mm:ss")
+                    ? format(task?.dateRange?.to, "PPP HH:mm")
                     : ""}
                 </div>
               </Input>
             </div>
           )}
 
-          <div className="flex flex-col gap-2">
-            <div>Group</div>
-            <Input
-              readOnly
-              value={task?.groupName ? task.groupName : task?.groupId}
-            ></Input>
-          </div>
-
-          {/* Need to fetch pet name with this id */}
-          <div className="flex flex-col gap-2">
-            <div>Pet</div>
-            <Input
-              readOnly
-              value={task?.petName ? task.petName : task?.petId}
-            ></Input>
+          <div className="flex flex-row gap-2">
+            <Link href={`/pets/${task?.pet.petId}`}>
+              <Avatar>
+                <AvatarImage
+                  src={task?.pet.image}
+                  alt={`${task?.pet.name}'s avatar`}
+                />
+                {/* Make this actually be the initials rather than first letter */}
+                <AvatarFallback>
+                  {task?.pet.name.substring(0, 1)}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+            <div className="flex flex-col place-content-center">
+              {task?.pet.name} ({task?.group.name})
+            </div>
           </div>
 
           <Form {...claimTaskForm}>
@@ -186,7 +189,7 @@ export default function ViewTaskDialog({
                         disabled={
                           (task?.claimedBy !== null &&
                             task?.claimedBy !== undefined &&
-                            task?.claimedBy.id !== userId &&
+                            task?.claimedBy.userId !== userId &&
                             userId !== null) ||
                           markAsDonePending ||
                           claimPending
@@ -225,7 +228,7 @@ export default function ViewTaskDialog({
                         disabled={
                           (task?.claimedBy !== null &&
                             task?.claimedBy !== undefined &&
-                            task?.claimedBy.id !== userId &&
+                            task?.claimedBy.userId !== userId &&
                             userId !== null) ||
                           markAsDonePending ||
                           claimPending

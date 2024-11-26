@@ -102,7 +102,7 @@ export function GroupOwnerPage({
                     <AlertDialogAction
                       disabled={isPending}
                       onClick={async () => {
-                        await execute({ groupId: group.id });
+                        await execute({ groupId: group.groupId });
                       }}
                     >
                       Confirm
@@ -126,7 +126,7 @@ export function GroupOwnerPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0 pt-0">
-          <GroupMembersTable groupId={group.id} groupMembers={groupMembers} />
+          <GroupMembersTable groupId={group.groupId} groupMembers={groupMembers} />
         </CardContent>
       </Card>
 
@@ -139,7 +139,7 @@ export function GroupOwnerPage({
         </CardHeader>
         <CardContent className="px-0 pt-0">
           <GroupPetsTable
-            groupId={group.id}
+            groupId={group.groupId}
             groupPets={groupPets}
             isOwner={true}
           />
