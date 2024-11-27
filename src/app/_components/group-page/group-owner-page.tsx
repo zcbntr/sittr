@@ -4,14 +4,7 @@ import { GroupNameDescriptionForm } from "~/app/_components/group-page/group-det
 import type { GroupMember, GroupPet, Group } from "~/lib/schemas/groups";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { Button } from "~/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import React from "react";
 import GroupPetsTable from "./group-pets-table";
 import GroupMembersTable from "./group-members-table";
@@ -74,77 +67,70 @@ export function GroupOwnerPage({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">{group?.description}</p>
-          </CardContent>
-          <CardFooter>
-            <div className="grid grow grid-cols-2 gap-2 md:flex md:flex-row md:flex-wrap md:place-content-between">
-              <Button onClick={() => router.replace("?editing=true")}>
-                <MdEdit className="mr-1 h-4 w-4" />
-                Edit Info
-              </Button>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">
-                    <MdDelete className="mr-1 h-4 w-4" />
-                    Delete
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4">
+                <p className="text-muted-foreground">{group?.description}</p>
+                <div className="grid grow grid-cols-2 gap-2 md:flex md:flex-row md:flex-wrap md:place-content-between">
+                  <Button onClick={() => router.replace("?editing=true")}>
+                    <MdEdit className="mr-1 h-4 w-4" />
+                    Edit Info
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Group</AlertDialogTitle>
-                  </AlertDialogHeader>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this group? This action
-                    cannot be undone.
-                  </AlertDialogDescription>
-                  <AlertDialogFooter>
-                    <AlertDialogAction
-                      disabled={isPending}
-                      onClick={async () => {
-                        await execute({ groupId: group.groupId });
-                      }}
-                    >
-                      Confirm
-                    </AlertDialogAction>
-                    <AlertDialogCancel disabled={isPending}>
-                      Cancel
-                    </AlertDialogCancel>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive">
+                        <MdDelete className="mr-1 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Group</AlertDialogTitle>
+                      </AlertDialogHeader>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this group? This action
+                        cannot be undone.
+                      </AlertDialogDescription>
+                      <AlertDialogFooter>
+                        <AlertDialogAction
+                          disabled={isPending}
+                          onClick={async () => {
+                            await execute({ groupId: group.groupId });
+                          }}
+                        >
+                          Confirm
+                        </AlertDialogAction>
+                        <AlertDialogCancel disabled={isPending}>
+                          Cancel
+                        </AlertDialogCancel>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+
+              <hr className="my-2 h-px border-0 bg-gray-200 dark:bg-gray-700"></hr>
+
+              <div className="flex flex-col">
+                <div className="text-lg">Members</div>
+                <GroupMembersTable
+                  groupId={group.groupId}
+                  groupMembers={groupMembers}
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <div className="text-lg">Pets</div>
+                <GroupPetsTable
+                  groupId={group.groupId}
+                  groupPets={groupPets}
+                  isOwner={true}
+                />
+              </div>
             </div>
-          </CardFooter>
+          </CardContent>
         </Card>
       )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Group Members</CardTitle>
-          <CardDescription>
-            Manage the members of your pet sitting group
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-0 pt-0">
-          <GroupMembersTable groupId={group.groupId} groupMembers={groupMembers} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Pets</CardTitle>
-          <CardDescription>
-            Manage the pets your group takes care of
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-0 pt-0">
-          <GroupPetsTable
-            groupId={group.groupId}
-            groupPets={groupPets}
-            isOwner={true}
-          />
-        </CardContent>
-      </Card>
     </div>
   );
 }

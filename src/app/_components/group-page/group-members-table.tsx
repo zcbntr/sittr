@@ -15,17 +15,15 @@ export default function GroupMembersTable({
   groupMembers: GroupMember[];
 }) {
   return (
-    <div className="container mx-auto">
-      <DataTable
-        columns={columns}
-        data={groupMembers}
-        searchable={true}
-        filterable={false}
-      >
-        <CreateGroupInviteDialog groupId={groupId}>
-          <Button>Create Invite</Button>
-        </CreateGroupInviteDialog>
-      </DataTable>
-    </div>
+    <DataTable
+      columns={columns}
+      data={groupMembers}
+      searchable={true}
+      filterable={false}
+    >
+      <CreateGroupInviteDialog groupId={groupId}>
+        <Button>Create Invite</Button>
+      </CreateGroupInviteDialog>
+    </DataTable>
   );
 }

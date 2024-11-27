@@ -16,26 +16,22 @@ export default function GroupPetsTable({
   isOwner: boolean;
 }) {
   return isOwner ? (
-    <div className="container mx-auto">
-      <DataTable
-        columns={ownerColumns}
-        data={groupPets}
-        searchable={true}
-        filterable={true}
-      >
-        <AddPetToGroupDialog groupId={groupId}>
-          <Button>Add Pet</Button>
-        </AddPetToGroupDialog>
-      </DataTable>
-    </div>
+    <DataTable
+      columns={ownerColumns}
+      data={groupPets}
+      searchable={true}
+      filterable={false}
+    >
+      <AddPetToGroupDialog groupId={groupId}>
+        <Button>Add Pet</Button>
+      </AddPetToGroupDialog>
+    </DataTable>
   ) : (
-    <div className="container mx-auto">
-      <DataTable
-        columns={memberColumns}
-        data={groupPets}
-        searchable={true}
-        filterable={true}
-      />
-    </div>
+    <DataTable
+      columns={memberColumns}
+      data={groupPets}
+      searchable={true}
+      filterable={true}
+    />
   );
 }
