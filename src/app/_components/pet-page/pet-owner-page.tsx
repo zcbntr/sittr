@@ -45,25 +45,7 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
     <div className="container mx-auto space-y-6 p-4">
       <div className="flex h-full w-full grow flex-row place-content-center">
         {isEditing ? (
-          <Card className="w-full max-w-[1000px]">
-            <CardContent className="p-8">
-              <div className="flex flex-row flex-wrap place-content-center gap-8">
-                <div className="flex max-w-[500px] flex-col place-content-between gap-2">
-                  <PetEditForm pet={pet} />
-                </div>
-
-                <div className="flex max-w-[800px] grow flex-col gap-2">
-                  <div className="text-xl">Notes for Sitters</div>
-                  <div className="h-full w-full">
-                    <Textarea
-                      placeholder={`Include information that will help sitters take care of ${pet.name}, such as allergies, behaviours, or their favourite toy.`}
-                      className="h-full w-full"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <PetEditForm pet={pet} />
         ) : (
           <Card className="w-full max-w-[1000px]">
             <CardContent className="p-8">
@@ -147,6 +129,7 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
                     <Textarea
                       placeholder={`Include information that will help sitters take care of ${pet.name}, such as allergies, behaviours, or their favourite toy.`}
                       className="h-full w-full"
+                      disabled
                     />
                   </div>
                 </div>

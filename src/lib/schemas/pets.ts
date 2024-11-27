@@ -13,6 +13,7 @@ export const petSchema = z.object({
   dob: z.coerce.date(),
   sex: SexEnum.optional(),
   image: z.string().optional(),
+  note: z.string().optional(),
 });
 
 export type Pet = z.infer<typeof petSchema>;
@@ -49,3 +50,10 @@ export const updatePetSchema = z.object({
 });
 
 export type UpdatePetFormInput = z.infer<typeof updatePetSchema>;
+
+export const updatePetNoteSchema = z.object({
+  petId: z.string(),
+  note: z.string(),
+});
+
+export type UpdatePetNoteFormInput = z.infer<typeof updatePetNoteSchema>;

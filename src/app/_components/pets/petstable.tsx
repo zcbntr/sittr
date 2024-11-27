@@ -11,7 +11,7 @@ export default function PetsTable({ pets }: { pets: Pet[] }) {
         columns={columns}
         data={pets}
         searchable={true}
-        filterable={true}
+        filterable={false}
       >
         <CreatePetDialog>
           <Button>New Pet</Button>
