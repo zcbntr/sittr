@@ -24,12 +24,13 @@ export type PetList = z.infer<typeof petListSchema>;
 
 export const createPetInputSchema = z
   .object({
-    name: z.string().min(3).max(50),
-    species: z.string().min(3).max(50),
+    name: z.string().min(2).max(50),
+    species: z.string().min(2).max(50),
     breed: z.string().min(3).max(50).optional(),
     dob: z.coerce.date(),
     sex: SexEnum.optional(),
     image: z.string().optional(),
+    note: z.string().max(1500).optional(),
   })
   .refine((data) => data.dob < new Date(), {
     message: "Birthdate must be in the past",
@@ -42,18 +43,12 @@ export type CreatePetFormInput = z.infer<typeof createPetInputSchema>;
 
 export const updatePetSchema = z.object({
   petId: z.string(),
-  name: z.string(),
-  species: z.string(),
-  breed: z.string().optional(),
+  name: z.string().min(2).max(50),
+  species: z.string().min(2).max(50),
+  breed: z.string().min(3).max(50).optional(),
   dob: z.coerce.date(),
   sex: SexEnum.optional(),
+  note: z.string().max(1500).optional(),
 });
 
 export type UpdatePetFormInput = z.infer<typeof updatePetSchema>;
-
-export const updatePetNoteSchema = z.object({
-  petId: z.string(),
-  note: z.string(),
-});
-
-export type UpdatePetNoteFormInput = z.infer<typeof updatePetNoteSchema>;

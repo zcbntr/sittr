@@ -1,8 +1,8 @@
 "use server";
 
-import { createPetInputSchema, updatePetNoteSchema, updatePetSchema } from "~/lib/schemas/pets";
+import { createPetInputSchema, updatePetSchema } from "~/lib/schemas/pets";
 import { db } from "../db";
-import { petImages, petNotes, pets } from "../db/schema";
+import { petImages, pets } from "../db/schema";
 import { authenticatedProcedure, ownsPetProcedure } from "./zsa-procedures";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -115,32 +115,4 @@ export const deletePetImageAction = ownsPetProcedure
 
     revalidatePath(`/pets/${pet.id}`);
     revalidatePath(`/pets/${pet.id}?editing=true`);
-  });
-
-export const editPetNote = ownsPetProcedure
-  .createServerAction()
-  .input(updatePetNoteSchema)
-  .handler(async ({ input, ctx }) => {
-    const { pet } = ctx;
-    const { petId, note } = input;
-
-    // Check if the note already exists
-    const existingNote = await db.query.petNotes.findFirst({
-      where: and(eq(petNotes.petId, petId)),
-    });
-
-    if (!existingNote) {
-      await db.insert(petNotes).values({ petId, note }).execute();
-      revalidatePath(`/pets/${pet.id}`);
-      return;
-    } else {
-      await db
-        .update(petNotes)
-        .set({ note })
-        .where(eq(pets.id, petId))
-        .execute();
-
-      revalidatePath(`/pets/${pet.id}`);
-      return;
-    }
   });

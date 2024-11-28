@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getTaskAPISchema, type Task, TaskTypeEnum } from "~/lib/schemas/tasks";
+import { getTaskAPISchema, type Task } from "~/lib/schemas/tasks";
 import { getOwnedTaskById, getTasksInRange } from "~/server/queries/tasks";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {

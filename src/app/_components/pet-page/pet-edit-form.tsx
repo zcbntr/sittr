@@ -15,12 +15,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import {
-  type Pet,
-  SexEnum,
-  updatePetNoteSchema,
-  updatePetSchema,
-} from "~/lib/schemas/pets";
+import { type Pet, SexEnum, updatePetSchema } from "~/lib/schemas/pets";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Popover,
@@ -79,14 +74,6 @@ export function PetEditForm({ pet }: { pet: Pet }) {
     },
   });
 
-  const notesForm = useForm<z.infer<typeof updatePetNoteSchema>>({
-    resolver: zodResolver(updatePetNoteSchema),
-    defaultValues: {
-      petId: pet.petId,
-      note: pet.note,
-    },
-  });
-
   const { isPending: updatePending, execute: executeUpdate } = useServerAction(
     updatePetAction,
     {
@@ -99,16 +86,6 @@ export function PetEditForm({ pet }: { pet: Pet }) {
       },
     },
   );
-
-  const { isPending: updateNotePending, execute: executeUpdateNote } =
-    useServerAction(updatePetAction, {
-      onError: ({ err }) => {
-        toast.error(err.message);
-      },
-      onSuccess: () => {
-        toast.success("Notes updated!");
-      },
-    });
 
   const { isPending: imageDeletePending, execute: executeDeleteImage } =
     useServerAction(deletePetImageAction, {
@@ -123,80 +100,80 @@ export function PetEditForm({ pet }: { pet: Pet }) {
   return (
     <Card className="w-full max-w-[1000px]">
       <CardContent className="p-8">
-        <div className="flex flex-row flex-wrap place-content-center gap-8">
-          <div className="flex max-w-[500px] flex-col place-content-between gap-2">
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-row place-content-center">
-                  <Avatar className="h-36 w-36">
-                    <AvatarImage
-                      src={pet.image ?? recentUploadUrl}
-                      alt={`${pet.name}'s avatar`}
-                      className="h-18"
-                    />
-                    {/* Make this actually be the initials rather than first letter */}
-                    <AvatarFallback delayMs={600}>
-                      {pet.name.substring(0, 1)}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
+        <Form {...updateForm}>
+          <form
+            onSubmit={updateForm.handleSubmit((values) =>
+              executeUpdate(values),
+            )}
+            className="space-y-2"
+          >
+            <div className="flex flex-row flex-wrap place-content-center gap-8">
+              <div className="flex max-w-[500px] flex-col place-content-between gap-2">
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-row place-content-center">
+                      <Avatar className="h-36 w-36">
+                        <AvatarImage
+                          src={pet.image ?? recentUploadUrl}
+                          alt={`${pet.name}'s avatar`}
+                          className="h-18"
+                        />
+                        {/* Make this actually be the initials rather than first letter */}
+                        <AvatarFallback delayMs={600}>
+                          {pet.name.substring(0, 1)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
 
-                {(pet.image ?? recentUploadUrl) && (
-                  <div className="flex flex-row place-content-center gap-2">
-                    <UploadButton
-                      endpoint="editPetImageUploader"
-                      input={{ petId: pet.petId }}
-                      onClientUploadComplete={(res) => {
-                        // Do something with the response
-                        if (res[0]?.serverData.url)
-                          setRecentUploadUrl(res[0].serverData.url);
-                        else alert("Image Upload Error!");
-                      }}
-                      onUploadError={(error: Error) => {
-                        // Do something with the error.
-                        alert(`Image Upload Error! ${error.message}`);
-                      }}
-                    />
+                    {(pet.image ?? recentUploadUrl) && (
+                      <div className="flex flex-row place-content-center gap-2">
+                        <UploadButton
+                          endpoint="editPetImageUploader"
+                          input={{ petId: pet.petId }}
+                          onClientUploadComplete={(res) => {
+                            // Do something with the response
+                            if (res[0]?.serverData.url)
+                              setRecentUploadUrl(res[0].serverData.url);
+                            else alert("Image Upload Error!");
+                          }}
+                          onUploadError={(error: Error) => {
+                            // Do something with the error.
+                            alert(`Image Upload Error! ${error.message}`);
+                          }}
+                        />
 
-                    <Button
-                      className="h-10 w-10"
-                      size="icon"
-                      disabled={imageDeletePending}
-                      onClick={async () => {
-                        await executeDeleteImage({ petId: pet.petId });
-                        setRecentUploadUrl(undefined);
-                      }}
-                    >
-                      <MdCancel />
-                    </Button>
+                        <Button
+                          className="h-10 w-10"
+                          size="icon"
+                          disabled={imageDeletePending}
+                          onClick={async () => {
+                            await executeDeleteImage({ petId: pet.petId });
+                            setRecentUploadUrl(undefined);
+                          }}
+                        >
+                          <MdCancel />
+                        </Button>
+                      </div>
+                    )}
+
+                    {!pet.image && !recentUploadUrl && (
+                      <UploadButton
+                        endpoint="editPetImageUploader"
+                        input={{ petId: pet.petId }}
+                        onClientUploadComplete={(res) => {
+                          // Do something with the response
+                          if (res[0]?.serverData.url)
+                            setRecentUploadUrl(res[0].serverData.url);
+                          else alert("Image Upload Error!");
+                        }}
+                        onUploadError={(error: Error) => {
+                          // Do something with the error.
+                          alert(`Image Upload Error! ${error.message}`);
+                        }}
+                      />
+                    )}
                   </div>
-                )}
 
-                {!pet.image && !recentUploadUrl && (
-                  <UploadButton
-                    endpoint="editPetImageUploader"
-                    input={{ petId: pet.petId }}
-                    onClientUploadComplete={(res) => {
-                      // Do something with the response
-                      if (res[0]?.serverData.url)
-                        setRecentUploadUrl(res[0].serverData.url);
-                      else alert("Image Upload Error!");
-                    }}
-                    onUploadError={(error: Error) => {
-                      // Do something with the error.
-                      alert(`Image Upload Error! ${error.message}`);
-                    }}
-                  />
-                )}
-              </div>
-
-              <Form {...updateForm}>
-                <form
-                  onSubmit={updateForm.handleSubmit((values) =>
-                    executeUpdate(values),
-                  )}
-                  className="space-y-2"
-                >
                   <FormField
                     control={updateForm.control}
                     name="name"
@@ -324,10 +301,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                   />
 
                   <div className="flex flex-row gap-2 pt-2">
-                    <Button
-                      type="submit"
-                      disabled={updatePending ?? updateNotePending}
-                    >
+                    <Button type="submit" disabled={updatePending}>
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
                           <MdEdit size={"1.2rem"} />
@@ -339,7 +313,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                     <Button
                       type="reset"
                       onClick={exitEditMode}
-                      disabled={updatePending ?? updateNotePending}
+                      disabled={updatePending}
                     >
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
@@ -349,32 +323,36 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                       </div>
                     </Button>
                   </div>
-                </form>
-              </Form>
-            </div>
-          </div>
-
-          {/* Trigger on submit of this form when normal form is submitted */}
-          <div className="flex max-w-[800px] grow flex-col gap-2">
-            <Form {...notesForm}>
-              <form
-                onSubmit={updateForm.handleSubmit((values) =>
-                  executeUpdateNote(values),
-                )}
-                className="space-y-2"
-              >
-                <div className="text-xl">Notes for Sitters</div>
-                <div className="h-full w-full">
-                  <Textarea
-                    placeholder={`Include information that will help sitters take care of ${pet.name}, such as allergies, behaviours, or their favourite toy.`}
-                    className="h-full w-full"
-                    disabled={updatePending ?? updateNotePending}
-                  />
                 </div>
-              </form>
-            </Form>
-          </div>
-        </div>
+              </div>
+
+              <div className="flex max-w-[800px] grow flex-col gap-2">
+                <FormField
+                  control={updateForm.control}
+                  name="note"
+                  disabled={updatePending}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes for Sitters</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder={`Include information that will help sitters take care of ${pet.name}, such as allergies, behaviours, or a favourite toy.`}
+                          className="h-full w-full"
+                          {...field}
+                        />
+                      </FormControl>
+                      {/* <FormDescription>
+                        You can <span>@mention</span> other users and
+                        organizations.
+                      </FormDescription> */}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );

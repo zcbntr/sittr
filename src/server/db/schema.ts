@@ -115,6 +115,7 @@ export const pets = createTable("pets", {
   dob: timestamp("dob", { withTimezone: true }).notNull(),
   sex: sexEnum("sex"),
   image: text("image"),
+  note: text("note"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -128,36 +129,9 @@ export const petRelations = relations(pets, ({ one }) => ({
     fields: [pets.id],
     references: [tasks.pet],
   }),
-  petNotes: one(petNotes, {
-    fields: [pets.id],
-    references: [petNotes.petId],
-  }),
   petImages: one(petImages, {
     fields: [pets.id],
     references: [petImages.petId],
-  }),
-}));
-
-export const petNotes = createTable("pet_notes", {
-  id: text("id")
-    .$defaultFn(() => uuid())
-    .primaryKey(),
-  petId: text("pet_id")
-    .references(() => pets.id, { onDelete: "cascade" })
-    .notNull(),
-  note: text("note").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-    () => new Date(),
-  ),
-});
-
-export const petNotesRelations = relations(petNotes, ({ one }) => ({
-  petDetails: one(pets, {
-    fields: [petNotes.petId],
-    references: [pets.id],
   }),
 }));
 
