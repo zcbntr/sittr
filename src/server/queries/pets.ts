@@ -35,6 +35,7 @@ export async function getPetById(petId: string): Promise<Pet> {
     dob: pet.dob,
     sex: pet.sex ? pet.sex : undefined,
     image: pet.petImages?.url ? pet.petImages.url : undefined,
+    note: pet.note ? pet.note : undefined,
   });
 }
 
@@ -94,6 +95,7 @@ export async function getOwnedPets(): Promise<Pet[]> {
       dob: pet.dob,
       sex: pet.sex ? pet.sex : undefined,
       image: pet.petImages?.url ? pet.petImages.url : undefined,
+      note: pet.note ? pet.note : undefined,
     });
   });
 

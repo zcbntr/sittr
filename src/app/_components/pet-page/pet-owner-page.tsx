@@ -22,13 +22,13 @@ import { useServerAction } from "zsa-react";
 import { deletePetAction } from "~/server/actions/pet-actions";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { Textarea } from "~/components/ui/textarea";
 import { getPetAgeString } from "~/lib/utils";
 
 export function PetOwnerPage({ pet }: { pet: Pet }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("editing");
+  const petAgeString = getPetAgeString(pet.dob);
 
   const { isPending, execute } = useServerAction(deletePetAction, {
     onError: ({ err }) => {
@@ -38,8 +38,6 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
       toast.success("Pet deleted!");
     },
   });
-
-  const petAgeString = getPetAgeString(pet.dob);
 
   return (
     <div className="container mx-auto space-y-6 p-4">
@@ -125,12 +123,8 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
 
                 <div className="flex max-w-[800px] grow flex-col gap-2">
                   <div className="text-xl">Notes for Sitters</div>
-                  <div className="h-full w-full">
-                    <Textarea
-                      placeholder={`Include information that will help sitters take care of ${pet.name}, such as allergies, behaviours, or their favourite toy.`}
-                      className="h-full w-full"
-                      disabled
-                    />
+                  <div className="w-240 flex max-h-full min-h-[250px] min-w-[270px] rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 sm:h-[620px] sm:w-full md:text-sm">
+                    {pet.note ?? `No notes written for ${pet.name}`}
                   </div>
                 </div>
               </div>

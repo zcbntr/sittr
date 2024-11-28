@@ -71,6 +71,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
       dob: pet.dob,
       breed: pet.breed,
       sex: pet.sex,
+      note: pet.note,
     },
   });
 
@@ -98,7 +99,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
     });
 
   return (
-    <Card className="w-full max-w-[1000px]">
+    <Card className="w-min max-w-[1000px] sm:w-full">
       <CardContent className="p-8">
         <Form {...updateForm}>
           <form
@@ -108,7 +109,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
             className="space-y-2"
           >
             <div className="flex flex-row flex-wrap place-content-center gap-8">
-              <div className="flex max-w-[500px] flex-col place-content-between gap-2">
+              <div className="min-w-240px flex max-w-[500px] flex-col place-content-between gap-2">
                 <div className="flex flex-col gap-2">
                   <div className="flex flex-col gap-2">
                     <div className="flex flex-row place-content-center">
@@ -326,29 +327,29 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                 </div>
               </div>
 
-              <div className="flex max-w-[800px] grow flex-col gap-2">
-                <FormField
-                  control={updateForm.control}
-                  name="note"
-                  disabled={updatePending}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notes for Sitters</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder={`Include information that will help sitters take care of ${pet.name}, such as allergies, behaviours, or a favourite toy.`}
-                          className="h-full w-full"
-                          {...field}
-                        />
-                      </FormControl>
-                      {/* <FormDescription>
-                        You can <span>@mention</span> other users and
-                        organizations.
-                      </FormDescription> */}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="flex h-full max-w-[800px] grow flex-col gap-2">
+                <div className="flex flex-row place-content-center gap-2">
+                  <FormField
+                    control={updateForm.control}
+                    name="note"
+                    disabled={updatePending}
+                    render={({ field }) => (
+                      <FormItem className="h-full sm:w-full">
+                        <FormLabel className="text-xl">
+                          Notes for Sitters
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder={`Include information that will help sitters take care of ${pet.name}, such as allergies, behaviours, or a favourite toy.`}
+                            className="w-240 max-h-full min-h-[250px] min-w-[270px] sm:h-[620px] sm:w-full"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </div>
           </form>
