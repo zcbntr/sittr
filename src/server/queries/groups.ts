@@ -19,6 +19,7 @@ import {
 } from "~/lib/schemas/groups";
 import { type Pet, petSchema } from "~/lib/schemas/pets";
 import { createClerkClient } from "@clerk/backend";
+import { userSchema } from "~/lib/schemas/users";
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
