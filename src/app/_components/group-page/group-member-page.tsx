@@ -8,7 +8,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
@@ -30,39 +29,30 @@ export function GroupMemberPage({
       <Card>
         <CardHeader>
           <CardTitle>
-            <h3 className="text-lg font-semibold">{group?.name}</h3>
+            <div className="text-lg font-semibold">{group?.name}</div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">{group?.description}</p>
-        </CardContent>
-      </Card>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4">
+              <p className="text-muted-foreground">{group?.description}</p>
+            </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Group Members</CardTitle>
-          <CardDescription>
-            View the members of your pet sitting group
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <GroupMembersTable groupId={group.groupId} groupMembers={groupMembers} />
-        </CardContent>
-      </Card>
+            <hr className="my-2 h-px border-0 bg-gray-200 dark:bg-gray-700"></hr>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Pets</CardTitle>
-          <CardDescription>
-            View the pets your group takes care of
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <GroupPetsTable
-            groupId={group.groupId}
-            groupPets={groupPets}
-            isOwner={false}
-          />
+            <div className="flex flex-col">
+              <div className="text-lg">Members</div>
+              <GroupMembersTable
+                groupId={group.groupId}
+                groupMembers={groupMembers}
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <div className="text-lg">Pets</div>
+              <GroupPetsTable groupId={group.groupId} groupPets={groupPets} />
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

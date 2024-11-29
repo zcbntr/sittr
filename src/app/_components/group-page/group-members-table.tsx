@@ -10,11 +10,13 @@ import { type GroupMember } from "~/lib/schemas/groups";
 export default function GroupMembersTable({
   groupId,
   groupMembers,
+  isOwner,
 }: {
   groupId: string;
   groupMembers: GroupMember[];
+  isOwner?: boolean;
 }) {
-  return (
+  return isOwner ? (
     <DataTable
       columns={columns}
       data={groupMembers}
@@ -25,5 +27,12 @@ export default function GroupMembersTable({
         <Button>Create Invite</Button>
       </CreateGroupInviteDialog>
     </DataTable>
+  ) : (
+    <DataTable
+      columns={columns}
+      data={groupMembers}
+      searchable={true}
+      filterable={false}
+    />
   );
 }

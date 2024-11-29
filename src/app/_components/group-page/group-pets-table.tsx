@@ -13,7 +13,7 @@ export default function GroupPetsTable({
 }: {
   groupId: string;
   groupPets: GroupPet[];
-  isOwner: boolean;
+  isOwner?: boolean;
 }) {
   return isOwner ? (
     <DataTable

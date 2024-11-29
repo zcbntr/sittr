@@ -116,6 +116,7 @@ export function GroupOwnerPage({
                 <GroupMembersTable
                   groupId={group.groupId}
                   groupMembers={groupMembers}
+                  isOwner
                 />
               </div>
 
@@ -124,7 +125,7 @@ export function GroupOwnerPage({
                 <GroupPetsTable
                   groupId={group.groupId}
                   groupPets={groupPets}
-                  isOwner={true}
+                  isOwner
                 />
               </div>
             </div>
