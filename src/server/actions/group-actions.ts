@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  acceptPendingMemberSchema,
   createGroupInputSchema,
   groupDetailsSchema,
   GroupRoleEnum,
@@ -386,32 +387,78 @@ export const joinGroupAction = authenticatedProcedure
     redirect(`/group/${inviteCodeRow.groupId}`);
   });
 
+export const acceptPendingUserAction = ownsGroupProcedure
+  .createServerAction()
+  .input(acceptPendingMemberSchema)
+  .handler(async ({ input }) => {
+    const { groupId, userId } = input;
+
+    // Change the role of the user to member from pending
+    const member = await db
+      .update(usersToGroups)
+      .set({ role: GroupRoleEnum.Values.Member })
+      .where(
+        and(
+          eq(usersToGroups.userId, userId),
+          eq(usersToGroups.groupId, groupId),
+          eq(usersToGroups.role, GroupRoleEnum.Values.Pending),
+        ),
+      )
+      .returning()
+      .execute();
+
+    if (member) return;
+
+    // Check if the user exists
+    const pending = await db.query.usersToGroups.findFirst({
+      where: (model, { eq }) => eq(model.userId, userId),
+    });
+
+    if (pending)
+      throw new Error(
+        `Error: User ${pending.userId} has role ${pending.role.toString()}`,
+      );
+    else throw new Error("User does not exist");
+  });
+
+export const rejectPendingUserAction = ownsGroupProcedure
+  .createServerAction()
+  .input(acceptPendingMemberSchema)
+  .handler(async ({ input }) => {
+    const { groupId, userId } = input;
+
+    // Delete the user from members
+    const member = await db
+      .delete(usersToGroups)
+      .where(
+        and(
+          eq(usersToGroups.userId, userId),
+          eq(usersToGroups.groupId, groupId),
+          eq(usersToGroups.role, GroupRoleEnum.Values.Pending),
+        ),
+      )
+      .returning()
+      .execute();
+
+    if (member) return;
+
+    // Check if the user exists
+    const pending = await db.query.usersToGroups.findFirst({
+      where: (model, { eq }) => eq(model.userId, userId),
+    });
+
+    if (pending)
+      throw new Error(
+        `Error: User ${pending.userId} has role ${pending.role.toString()}`,
+      );
+    else throw new Error("User does not exist");
+  });
+
 export const createGroupInviteCodeAction = ownsGroupProcedure
   .createServerAction()
   .input(requestGroupInviteCodeFormInputSchema)
   .handler(async ({ input, ctx }) => {
     const { user } = ctx;
-    const { success } = await ratelimit.limit(user.userId);
-
-    if (!success) {
-      throw new Error("You are creating invites too fast");
-    }
-
-    // Check user is the owner of the group
-    const ownerRow = await db.query.usersToGroups.findFirst({
-      where: (model, { and, eq }) =>
-        and(
-          eq(model.groupId, input.groupId),
-          eq(model.userId, user.userId),
-          eq(model.role, RoleEnum.Values.Owner),
-        ),
-    });
-
-    if (!ownerRow) {
-      throw new Error(
-        "You are either not the owner of the group, not a member, or the group doesn't exist",
-      );
-    }
 
     // Create a new invite code based on the group id and random number
     function getRandomUint32() {

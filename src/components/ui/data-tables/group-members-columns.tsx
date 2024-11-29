@@ -17,7 +17,11 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { type GroupMember } from "~/lib/schemas/groups";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { removeUserFromGroupAction } from "~/server/actions/group-actions";
+import {
+  acceptPendingUserAction,
+  rejectPendingUserAction,
+  removeUserFromGroupAction,
+} from "~/server/actions/group-actions";
 
 // Column for avatar?
 export const columns: ColumnDef<GroupMember>[] = [
@@ -88,7 +92,7 @@ export const columns: ColumnDef<GroupMember>[] = [
                 Copy
               </DropdownMenuItem>
 
-              {row.original.role !== "Owner" && (
+              {row.original.role === "Pending" && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -97,20 +101,63 @@ export const columns: ColumnDef<GroupMember>[] = [
                       // eslint-disable-next-line no-alert
                       if (
                         window.confirm(
-                          "Are you sure you want to remove this member?",
+                          "Are you sure you want accept this member?",
                         )
                       ) {
-                        await removeUserFromGroupAction({
+                        await acceptPendingUserAction({
                           userId: member.userId,
                           groupId: member.groupId,
                         });
                       }
                     }}
                   >
-                    Remove
+                    Accept
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      // Fix this at some point with another dialog
+                      // eslint-disable-next-line no-alert
+                      if (
+                        window.confirm(
+                          "Are you sure you want reject this member?",
+                        )
+                      ) {
+                        await rejectPendingUserAction({
+                          userId: member.userId,
+                          groupId: member.groupId,
+                        });
+                      }
+                    }}
+                  >
+                    Deny
                   </DropdownMenuItem>
                 </>
               )}
+
+              {row.original.role !== "Owner" &&
+                row.original.role !== "Pending" && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        // Fix this at some point with another dialog
+                        // eslint-disable-next-line no-alert
+                        if (
+                          window.confirm(
+                            "Are you sure you want to remove this member?",
+                          )
+                        ) {
+                          await removeUserFromGroupAction({
+                            userId: member.userId,
+                            groupId: member.groupId,
+                          });
+                        }
+                      }}
+                    >
+                      Remove
+                    </DropdownMenuItem>
+                  </>
+                )}
             </DropdownMenuContent>
           </DropdownMenu>
         </>

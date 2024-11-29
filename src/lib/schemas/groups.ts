@@ -181,3 +181,10 @@ export const groupDetailsSchema = z.object({
 });
 
 export type GroupDetails = z.infer<typeof groupDetailsSchema>;
+
+export const acceptPendingMemberSchema = z.object({
+  groupId: z.string(),
+  userId: z.string(),
+});
+
+export type AcceptPendingMember = z.infer<typeof acceptPendingMemberSchema>;
