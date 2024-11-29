@@ -97,14 +97,14 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
       pet: task.pet
         ? petSchema.parse({
             petId: task.pet,
-            name: task.pet?.name,
-            ownerId: task.pet?.ownerId,
-            createdBy: task.pet?.createdBy,
-            species: task.pet?.species,
-            breed: task.pet?.breed,
-            dob: task.pet?.dob,
-            sex: task.pet?.sex,
-            image: task.pet?.image,
+            name: task.pet.name,
+            ownerId: task.pet.ownerId,
+            createdBy: task.pet.createdBy,
+            species: task.pet.species,
+            breed: task.pet.breed,
+            dob: task.pet.dob,
+            sex: task.pet.sex,
+            image: task.pet.image,
           })
         : null,
       group: task.group

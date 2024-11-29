@@ -7,12 +7,14 @@ import { groups, petImages, pets, petsToGroups } from "../db/schema";
 import {
   type Group,
   type GroupMember,
+  groupMemberSchema,
   type GroupPet,
   groupPetSchema,
   groupSchema,
 } from "~/lib/schemas/groups";
 import { type Pet, petSchema } from "~/lib/schemas/pets";
 import { createClerkClient } from "@clerk/backend";
+import { userSchema } from "~/lib/schemas/users";
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
@@ -27,6 +29,13 @@ export async function getGroupById(id: string): Promise<Group | null> {
 
   const group = await db.query.groups.findFirst({
     where: (model, { eq }) => eq(model.id, id),
+    with: {
+      petsToGroups: {
+        with: {
+          pet: true,
+        },
+      },
+    },
   });
 
   if (!group) {
@@ -38,14 +47,15 @@ export async function getGroupById(id: string): Promise<Group | null> {
     createdBy: group.createdBy,
     name: group.name,
     description: group.description,
+    pets: group.petsToGroups.map((petToGroup) => petToGroup.pet),
   });
 }
 
-export async function getGroupsByIds(ids: string[]): Promise<Group[] | string> {
+export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
   const user = await auth();
 
   if (!user.userId) {
-    return "Unauthorized";
+    throw new Error("Unauthorized");
   }
 
   const groupsList = await db
@@ -165,13 +175,11 @@ export async function getGroupPets(groupId: string): Promise<GroupPet[]> {
   });
 }
 
-export async function getUsersPetsNotInGroup(
-  groupId: string,
-): Promise<Pet[] | string> {
+export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
   const user = await auth();
 
   if (!user.userId) {
-    return "Unauthorized";
+    throw new Error("Unauthorized");
   }
 
   const petsNotInGroup = await db.query.pets.findMany({
@@ -224,6 +232,7 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
       group: {
         with: {
           usersToGroups: true,
+          petsToGroups: { with: { pet: true } },
         },
       },
     },
@@ -233,12 +242,38 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
     throw new Error("Failed to get groups user is in");
   }
 
+  const clerkUsers = await clerkClient.users.getUserList();
   return groupMemberList.map((groupMember) => {
+    const members = clerkUsers.data;
+
     return groupSchema.parse({
       groupId: groupMember.groupId,
       createdBy: groupMember.group.createdBy,
       name: groupMember.group.name,
       description: groupMember.group.description,
+      pets: groupMember.group.petsToGroups.map((petToGroup) =>
+        petSchema.parse({
+          petId: petToGroup.pet.id,
+          name: petToGroup.pet.name,
+          ownerId: petToGroup.pet.ownerId,
+          createdBy: petToGroup.pet.createdBy,
+          species: petToGroup.pet.species,
+          breed: petToGroup.pet.breed,
+          dob: petToGroup.pet.dob,
+          sex: petToGroup.pet.sex,
+          image: petToGroup.pet.image,
+        }),
+      ),
+      members: groupMember.group.usersToGroups.map((userToGroup) =>
+        groupMemberSchema.parse({
+          id: userToGroup.id,
+          groupId: userToGroup.groupId,
+          userId: userToGroup.userId,
+          name: members.find((x) => x.id === userToGroup.userId)?.fullName,
+          avatar: members.find((x) => x.id === userToGroup.userId)?.imageUrl,
+          role: userToGroup.role,
+        }),
+      ),
     });
   });
 }

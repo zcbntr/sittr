@@ -49,7 +49,7 @@ export const columns: ColumnDef<Group>[] = [
         return (
           <div className="flex flex-row gap-2">
             {group.members.map((member) => (
-              <Avatar>
+              <Avatar key={member.id}>
                 <AvatarImage
                   src={member.avatar}
                   alt={`${member.name}'s avatar`}
@@ -91,7 +91,7 @@ export const columns: ColumnDef<Group>[] = [
         return (
           <div className="flex flex-row gap-2">
             {group.pets.map((pet) => (
-              <Link href={`/pets/${pet.petId}`}>
+              <Link href={`/pets/${pet.petId}`} key={pet.petId}>
                 <Avatar>
                   <AvatarImage src={pet.image} alt={`${pet.name}'s avatar`} />
                   {/* Make this actually be the initials rather than first letter */}
