@@ -31,6 +31,11 @@ export const columns: ColumnDef<Group>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => {
+      const group = row.original;
+
+      return <Link href={`/groups/${group.groupId}`}>{group.name}</Link>;
+    },
   },
   {
     accessorKey: "members",
@@ -86,11 +91,13 @@ export const columns: ColumnDef<Group>[] = [
         return (
           <div className="flex flex-row gap-2">
             {group.pets.map((pet) => (
-              <Avatar>
-                <AvatarImage src={pet.image} alt={`${pet.name}'s avatar`} />
-                {/* Make this actually be the initials rather than first letter */}
-                <AvatarFallback>{pet.name.substring(0, 1)}</AvatarFallback>
-              </Avatar>
+              <Link href={`/pets/${pet.petId}`}>
+                <Avatar>
+                  <AvatarImage src={pet.image} alt={`${pet.name}'s avatar`} />
+                  {/* Make this actually be the initials rather than first letter */}
+                  <AvatarFallback>{pet.name.substring(0, 1)}</AvatarFallback>
+                </Avatar>
+              </Link>
             ))}
           </div>
         );
@@ -98,16 +105,18 @@ export const columns: ColumnDef<Group>[] = [
       if (group.pets.length > 3 && group.pets[0] && group.pets[1])
         return (
           <div className="flex flex-row gap-2">
-            <Avatar>
-              <AvatarImage
-                src={group.pets[0].image}
-                alt={`${group.pets[0].name}'s avatar`}
-              />
-              {/* Make this actually be the initials rather than first letter */}
-              <AvatarFallback>
-                {group.pets[0].name.substring(0, 1)}
-              </AvatarFallback>
-            </Avatar>
+            <Link href={`/pets/${group.pets[0].petId}`}>
+              <Avatar>
+                <AvatarImage
+                  src={group.pets[0].image}
+                  alt={`${group.pets[0].name}'s avatar`}
+                />
+                {/* Make this actually be the initials rather than first letter */}
+                <AvatarFallback>
+                  {group.pets[0].name.substring(0, 1)}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
             <div className="flex flex-col place-content-center">{`and ${group.pets.length - 1} more. `}</div>
           </div>
         );
