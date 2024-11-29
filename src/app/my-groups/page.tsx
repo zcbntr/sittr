@@ -1,30 +1,27 @@
 import { Suspense } from "react";
+import { getGroupsUserIsIn } from "~/server/queries/groups";
+import { Group } from "~/lib/schemas/groups";
 import GroupsTable from "../_components/groups/groupstable";
-import CreateGroupDialog from "../_components/groups/creategroupdialog";
-import { Button } from "~/components/ui/button";
-import JoinGroupDialog from "../_components/groups/join-group-dialog";
 
-const MyGroupsPage = () => (
-  <>
-    <section className="container mx-auto py-4">
-      <h1 className="text-3xl">My Groups</h1>
-      <div className="flex flex-row gap-4 py-4">
-        <CreateGroupDialog>
-          <Button variant="outline">New Group</Button>
-        </CreateGroupDialog>
-        <JoinGroupDialog>
-          <Button variant="outline">Join Group</Button>
-        </JoinGroupDialog>
-      </div>
-    </section>
-    <section>
-      <Suspense fallback={<div>Loading...</div>}>
-        <div className="container mx-auto">
-          <GroupsTable />
-        </div>
-      </Suspense>
-    </section>
-  </>
-);
+export default async function Page() {
+  const groups = await getGroupsUserIsIn();
 
-export default MyGroupsPage;
+  return <MyGroupsPage groups={groups} />;
+}
+
+function MyGroupsPage({ groups }: { groups: Group[] }) {
+  return (
+    <>
+      <section className="container mx-auto py-4">
+        <h1 className="text-3xl">My Groups</h1>
+      </section>
+      <section>
+        <Suspense fallback={<div>Loading...</div>}>
+          <div className="container mx-auto">
+            <GroupsTable groups={groups} />
+          </div>
+        </Suspense>
+      </section>
+    </>
+  );
+}

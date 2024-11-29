@@ -19,7 +19,6 @@ import { type Pet } from "~/lib/schemas/pets";
 import { deletePetAction } from "~/server/actions/pet-actions";
 import { Avatar, AvatarFallback, AvatarImage } from "../avatar";
 
-// Add a column for notes? Column for small image of pet?
 export const columns: ColumnDef<Pet>[] = [
   {
     accessorKey: "avatar",
