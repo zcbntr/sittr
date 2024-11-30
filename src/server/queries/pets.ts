@@ -3,8 +3,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { petSchema, type Pet } from "~/lib/schemas/pets";
-import { inArray } from "drizzle-orm";
-import { pets } from "../db/schema";
+import { eq, and, or, inArray } from "drizzle-orm";
+import { petImages, pets, petsToGroups, usersToGroups } from "../db/schema";
 
 export async function getPetById(petId: string): Promise<Pet> {
   const user = await auth();
@@ -13,29 +13,43 @@ export async function getPetById(petId: string): Promise<Pet> {
     throw new Error("Unauthorized");
   }
 
-  const pet = await db.query.pets.findFirst({
-    where: (model, { and, eq }) =>
-      and(eq(model.id, petId), eq(model.ownerId, user.userId)),
-    with: {
-      petImages: true,
-    },
-  });
+  // Allow users who are members of a group which sits for the pet to view the pet
+  // This will give two rows of each pet if the owner is also a member of a group which sits for the pet
+  // Not a big issue as we limit to 1, but could be optimized
+  const petRows = await db
+    .select()
+    .from(pets)
+    .leftJoin(petsToGroups, eq(petsToGroups.petId, pets.id))
+    .leftJoin(usersToGroups, eq(usersToGroups.groupId, petsToGroups.groupId))
+    .leftJoin(petImages, eq(petImages.petId, pets.id))
+    .where(
+      and(
+        eq(pets.id, petId),
+        or(
+          eq(usersToGroups.userId, user.userId),
+          eq(pets.ownerId, user.userId),
+        ),
+      ),
+    )
+    .limit(1);
 
-  if (!pet) {
+  if (!petRows || petRows.length === 0 || petRows[0] === undefined) {
     throw new Error("Pet not found");
   }
 
+  const petRow = petRows[0];
+
   return petSchema.parse({
-    petId: pet.id,
-    ownerId: pet.ownerId,
-    createdBy: pet.createdBy,
-    name: pet.name,
-    species: pet.species,
-    breed: pet.breed ? pet.breed : undefined,
-    dob: pet.dob,
-    sex: pet.sex ? pet.sex : undefined,
-    image: pet.petImages?.url ? pet.petImages.url : undefined,
-    note: pet.note ? pet.note : undefined,
+    petId: petRow.pets.id,
+    ownerId: petRow.pets.ownerId,
+    createdBy: petRow.pets.createdBy,
+    name: petRow.pets.name,
+    species: petRow.pets.species,
+    breed: petRow.pets.breed ? petRow.pets.breed : undefined,
+    dob: petRow.pets.dob,
+    sex: petRow.pets.sex ? petRow.pets.sex : undefined,
+    image: petRow.pet_images?.url ? petRow.pet_images.url : undefined,
+    note: petRow.pets.note ? petRow.pets.note : undefined,
   });
 }
 
