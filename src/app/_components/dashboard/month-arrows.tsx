@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { getDominantMonth } from "~/lib/utils";
+import { MdArrowBack, MdArrowForward } from "react-icons/md";
 
 export default function MonthArrows({
   initialFrom,
@@ -37,7 +38,7 @@ export default function MonthArrows({
             router.replace(`${pathname}?${params.toString()}`);
           }}
         >
-          {"<"}
+          <MdArrowBack />
         </span>
       </Button>
       <div className="flex flex-col place-content-center">
@@ -55,7 +56,7 @@ export default function MonthArrows({
             router.replace(`${pathname}?${params.toString()}`);
           }}
         >
-          {">"}
+          <MdArrowForward />
         </span>
       </Button>
     </div>

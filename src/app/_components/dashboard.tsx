@@ -35,7 +35,7 @@ export default async function Dashboard({
     <div className="flex flex-col gap-3 p-5">
       <h1 className="text-xl">Dashboard</h1>
       <section>
-        <div className="flex flex-row flex-wrap place-content-end gap-3">
+        <div className="flex flex-row flex-wrap place-content-center sm:place-content-end gap-2">
           <div className="flex flex-col place-content-center">
             <CreateTaskDialog groups={groups}>
               <Button variant="outline">
