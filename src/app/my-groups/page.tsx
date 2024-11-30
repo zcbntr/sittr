@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
-import { Group } from "~/lib/schemas/groups";
+import { type Group } from "~/lib/schemas/groups";
 import GroupsTable from "../_components/groups/groupstable";
 
 export default async function Page() {

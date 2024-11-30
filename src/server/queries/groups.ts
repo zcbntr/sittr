@@ -243,7 +243,7 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
       group: {
         with: {
           usersToGroups: true,
-          petsToGroups: { with: { pet: true } },
+          petsToGroups: { with: { pet: { with: { petImages: true } } } },
         },
       },
     },
@@ -272,7 +272,7 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
           breed: petToGroup.pet.breed,
           dob: petToGroup.pet.dob,
           sex: petToGroup.pet.sex,
-          image: petToGroup.pet.image,
+          image: petToGroup.pet.petImages?.url,
         }),
       ),
       members: groupMember.group.usersToGroups.map((userToGroup) =>
