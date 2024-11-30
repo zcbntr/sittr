@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
@@ -12,7 +12,7 @@ const f = createUploadthing();
 // FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
   // Define as many FileRoutes as you like, each with a unique routeSlug
-  createPetImageUploader: f({ image: { maxFileSize: "2MB" } })
+  createPetImageUploader: f({ image: { maxFileSize: "4MB" } })
     // Set permissions and file types for this FileRoute
     .middleware(async ({ req }) => {
       // This code runs on your server before upload
@@ -28,6 +28,21 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       // This code RUNS ON YOUR SERVER after upload
+
+      // Delete existing image(s) for this user missing a pet id
+      const existingImages = await db
+        .delete(petImages)
+        .where(
+          and(
+            eq(petImages.uploadedBy, metadata.userId),
+            isNull(petImages.petId),
+          ),
+        )
+        .returning({ fileHash: petImages.fileKey })
+        .execute();
+
+      // Remove old image from uploadthing
+      await utapi.deleteFiles(existingImages.map((i) => i.fileHash));
 
       const petImageRow = await db
         .insert(petImages)
@@ -49,7 +64,7 @@ export const ourFileRouter = {
         url: file.url,
       };
     }),
-  editPetImageUploader: f({ image: { maxFileSize: "2MB" } })
+  editPetImageUploader: f({ image: { maxFileSize: "4MB" } })
     .input(
       z.object({
         petId: z.string(),
