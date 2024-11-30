@@ -3,12 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { eq, inArray } from "drizzle-orm";
-import {
-  groups,
-  petImages,
-  pets,
-  petsToGroups,
-} from "../db/schema";
+import { groups, petImages, pets, petsToGroups } from "../db/schema";
 import {
   type Group,
   type GroupMember,
@@ -19,7 +14,6 @@ import {
 } from "~/lib/schemas/groups";
 import { type Pet, petSchema } from "~/lib/schemas/pets";
 import { createClerkClient } from "@clerk/backend";
-import { userSchema } from "~/lib/schemas/users";
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
@@ -52,7 +46,19 @@ export async function getGroupById(id: string): Promise<Group | null> {
     createdBy: group.createdBy,
     name: group.name,
     description: group.description,
-    pets: group.petsToGroups.map((petToGroup) => petToGroup.pet),
+    pets: group.petsToGroups.map((petToGroup) =>
+      petSchema.parse({
+        petId: petToGroup.pet.id,
+        ownerId: petToGroup.pet.ownerId,
+        createdBy: petToGroup.pet.createdBy,
+        name: petToGroup.pet.name,
+        species: petToGroup.pet.species,
+        breed: petToGroup.pet.breed,
+        dob: petToGroup.pet.dob,
+        sex: petToGroup.pet.sex,
+        image: petToGroup.pet.image,
+      }),
+    ),
   });
 }
 

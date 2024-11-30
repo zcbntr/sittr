@@ -13,7 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { type Group } from "~/lib/schemas/groups";
+import { RoleEnum, type Group } from "~/lib/schemas/groups";
 import { Avatar, AvatarFallback, AvatarImage } from "../avatar";
 import Link from "next/link";
 
@@ -142,7 +142,7 @@ export const columns: ColumnDef<Group>[] = [
               <DropdownMenuItem
                 onClick={async () =>
                   await navigator.clipboard.writeText(
-                    `${group.name} - Created by ${group.createdBy} - ${group.description}`,
+                    `${group.name} - Owned by ${group.members?.find((x) => x.role === RoleEnum.Values.Owner)?.name} - ${group.description}`,
                   )
                 }
               >
