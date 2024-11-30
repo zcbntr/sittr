@@ -83,7 +83,7 @@ export default function CreateGroupInviteDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-svh w-5/6 overflow-y-scroll rounded-md max-w-[350px]">
+      <DialogContent className="max-h-svh w-5/6 max-w-[350px] overflow-y-scroll rounded-md">
         <DialogHeader>
           <DialogTitle>New Group Invite Link</DialogTitle>
           <DialogDescription>
@@ -132,7 +132,7 @@ export default function CreateGroupInviteDialog({
               name="maxUses"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Max Uses</FormLabel>
+                  <FormLabel>Max Uses *</FormLabel>
                   <FormControl>
                     <Input {...field} type="number" />
                   </FormControl>
@@ -145,7 +145,7 @@ export default function CreateGroupInviteDialog({
               name="expiresIn"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Expires In</FormLabel>
+                  <FormLabel>Expires In *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -193,7 +193,7 @@ export default function CreateGroupInviteDialog({
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Requires Approval</FormLabel>
+                    <FormLabel>Requires Approval *</FormLabel>
                     <FormDescription>
                       You will need to manually approve each user who requests
                       to join via the link. (Coming soon)

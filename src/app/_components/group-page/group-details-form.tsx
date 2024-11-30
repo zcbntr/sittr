@@ -64,7 +64,7 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Name *</FormLabel>
               <FormControl>
                 <Input placeholder="Jake's Little Helpers" {...field} />
               </FormControl>

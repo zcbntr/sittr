@@ -5,7 +5,6 @@ import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -62,6 +61,7 @@ export default function CreatePetDialog({
       name: "",
       species: "",
       breed: "",
+      sex: undefined,
       dob: undefined,
       image: "",
     },
@@ -119,7 +119,7 @@ export default function CreatePetDialog({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Name *</FormLabel>
                     <FormControl>
                       <Input placeholder="Jake" {...field} />
                     </FormControl>
@@ -132,7 +132,7 @@ export default function CreatePetDialog({
                 name="species"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Species</FormLabel>
+                    <FormLabel>Species *</FormLabel>
                     <FormControl>
                       <Input placeholder="Dog" {...field} />
                     </FormControl>

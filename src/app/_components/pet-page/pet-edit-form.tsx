@@ -180,7 +180,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Name</FormLabel>
+                        <FormLabel>Name *</FormLabel>
                         <FormControl>
                           <Input placeholder="Jake" {...field} />
                         </FormControl>
@@ -194,7 +194,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                     name="species"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Species</FormLabel>
+                        <FormLabel>Species *</FormLabel>
                         <FormControl>
                           <Input placeholder="Dog" {...field} />
                         </FormControl>

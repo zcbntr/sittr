@@ -107,7 +107,7 @@ export default function CreateGroupDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Name *</FormLabel>
                   <FormControl>
                     <Input placeholder="Jake's little helpers" {...field} />
                   </FormControl>

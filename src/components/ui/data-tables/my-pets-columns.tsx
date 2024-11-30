@@ -50,6 +50,15 @@ export const columns: ColumnDef<Pet>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => {
+      const pet = row.original;
+
+      return (
+        <Link href={`/pets/${pet.petId}`}>
+          <span>{pet.name}</span>
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "species",

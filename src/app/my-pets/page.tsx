@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import PetsTable from "../_components/pets/petstable";
+import PetsTable from "../_components/my-pets/petstable";
 import type { Pet } from "~/lib/schemas/pets";
 import { getOwnedPets } from "~/server/queries/pets";
 

@@ -46,7 +46,7 @@ export async function getPetById(petId: string): Promise<Pet> {
     name: petRow.pets.name,
     species: petRow.pets.species,
     breed: petRow.pets.breed ? petRow.pets.breed : undefined,
-    dob: petRow.pets.dob,
+    dob: petRow.pets.dob ? petRow.pets.dob : undefined,
     sex: petRow.pets.sex ? petRow.pets.sex : undefined,
     image: petRow.pet_images?.url ? petRow.pet_images.url : undefined,
     note: petRow.pets.note ? petRow.pets.note : undefined,
@@ -76,9 +76,10 @@ export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
       name: pet.name,
       species: pet.species,
       breed: pet.breed ? pet.breed : undefined,
-      dob: pet.dob,
+      dob: pet.dob ? pet.dob : undefined,
       sex: pet.sex ? pet.sex : undefined,
       image: pet.image ? pet.image : undefined,
+      note: pet.note ? pet.note : undefined,
     });
   });
 }
@@ -106,7 +107,7 @@ export async function getOwnedPets(): Promise<Pet[]> {
       name: pet.name,
       species: pet.species,
       breed: pet.breed ? pet.breed : undefined,
-      dob: pet.dob,
+      dob: pet.dob ? pet.dob : undefined,
       sex: pet.sex ? pet.sex : undefined,
       image: pet.petImages?.url ? pet.petImages.url : undefined,
       note: pet.note ? pet.note : undefined,

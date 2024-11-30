@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
 import { type Group } from "~/lib/schemas/groups";
-import GroupsTable from "../_components/groups/groupstable";
+import GroupsTable from "../_components/my-groups/groupstable";
 
 export default async function Page() {
   const groups = await getGroupsUserIsIn();

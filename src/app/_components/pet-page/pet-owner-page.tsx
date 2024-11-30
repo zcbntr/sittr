@@ -28,7 +28,7 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("editing");
-  const petAgeString = getPetAgeString(pet.dob);
+  const petAgeString = pet.dob ? getPetAgeString(pet.dob) : null;
 
   const { isPending, execute } = useServerAction(deletePetAction, {
     onError: ({ err }) => {
@@ -62,30 +62,44 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
                       </AvatarFallback>
                     </Avatar>
 
-                    <div className="flex flex-col">
+                    <div className="flex flex-col gap-0.5">
                       <p className="text-2xl font-semibold">{pet.name}</p>
-                      <p className="pt-2 text-lg text-muted-foreground">
-                        {pet.species}
+                      <p className="pt-2 text-xl text-muted-foreground">
+                        {pet.species} (
+                        <span className="text-lg text-muted-foreground">
+                          {pet.breed}
+                        </span>
+                        )
                       </p>
-                      <p className="text-lg font-light text-muted-foreground">
-                        {pet.breed}
-                      </p>
-                      <p className="text-lg text-muted-foreground">{pet.sex}</p>
-                      <p className="text-lg font-light text-muted-foreground">
-                        {petAgeString} old
-                      </p>
+
+                      {pet.sex && (
+                        <p className="text-xl text-muted-foreground">
+                          {pet.sex}
+                        </p>
+                      )}
+                      {petAgeString && (
+                        <p className="text-xl text-muted-foreground">
+                          {petAgeString} old
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   <div className="mt-6 flex flex-row flex-wrap place-content-center gap-3">
-                    <Button onClick={() => router.replace("?editing=true")}>
+                    <Button
+                      className="w-full sm:w-min"
+                      onClick={() => router.replace("?editing=true")}
+                    >
                       <MdEdit className="mr-1 h-4 w-4" />
                       Edit Pet
                     </Button>
 
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="destructive">
+                        <Button
+                          className="w-full sm:w-min"
+                          variant="destructive"
+                        >
                           <MdDelete className="mr-1 h-4 w-4" />
                           Delete
                         </Button>

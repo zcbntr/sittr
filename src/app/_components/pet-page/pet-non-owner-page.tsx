@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getPetAgeString } from "~/lib/utils";
 
 export function PetNonOwnerPage({ pet }: { pet: Pet }) {
-  const petAgeString = getPetAgeString(pet.dob);
+  const petAgeString = pet.dob ? getPetAgeString(pet.dob) : null;
   return (
     <div className="container mx-auto space-y-6 p-4">
       <div className="flex h-full w-full grow flex-row place-content-center">
@@ -34,9 +34,14 @@ export function PetNonOwnerPage({ pet }: { pet: Pet }) {
                       {pet.species}
                     </p>
                     <p className="text-lg text-muted-foreground">{pet.breed}</p>
-                    <p className="text-lg text-muted-foreground">
-                      {petAgeString} old
-                    </p>
+                    {pet.sex && (
+                      <p className="text-lg text-muted-foreground">{pet.sex}</p>
+                    )}
+                    {petAgeString && (
+                      <p className="text-lg text-muted-foreground">
+                        {petAgeString} old
+                      </p>
+                    )}
                   </div>
                 </div>
                 <span id="padding" />

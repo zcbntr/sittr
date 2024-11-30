@@ -112,7 +112,7 @@ export const pets = createTable("pets", {
   name: varchar("name", { length: 255 }).notNull(),
   species: varchar("species", { length: 255 }).notNull(),
   breed: varchar("breed", { length: 255 }),
-  dob: timestamp("dob", { withTimezone: true }).notNull(),
+  dob: timestamp("dob", { withTimezone: true }),
   sex: sexEnum("sex"),
   image: text("image"),
   note: text("note"),
