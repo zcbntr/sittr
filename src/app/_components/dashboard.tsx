@@ -14,6 +14,7 @@ import type { TaskTypeEnum } from "~/lib/schemas/tasks";
 import TaskTypeSelect from "./dashboard/tasks-type-select";
 import { Suspense } from "react";
 import MonthArrows from "./dashboard/month-arrows";
+import { MdAddTask } from "react-icons/md";
 
 export default async function Dashboard({
   dateFrom,
@@ -36,23 +37,13 @@ export default async function Dashboard({
     <div className="flex flex-col gap-3 p-5">
       <h1 className="text-xl">Dashboard</h1>
       <section>
-        <div className="flex flex-row flex-wrap gap-3">
+        <div className="flex flex-row flex-wrap place-content-end gap-3">
           <div className="flex flex-col place-content-center">
             <CreateTaskDialog groups={groups}>
-              <Button variant="outline">New Task</Button>
+              <Button variant="outline">
+                <MdAddTask className="h-4 w-4" />
+              </Button>
             </CreateTaskDialog>
-          </div>
-
-          <div className="flex flex-col place-content-center">
-            <CreatePetDialog>
-              <Button variant="outline">New Pet</Button>
-            </CreatePetDialog>
-          </div>
-
-          <div className="flex flex-col place-content-center">
-            <CreateGroupDialog>
-              <Button variant="outline">New Group</Button>
-            </CreateGroupDialog>
           </div>
 
           <div className="flex flex-col place-content-center">
