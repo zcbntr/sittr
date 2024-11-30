@@ -24,6 +24,7 @@ export const columns: ColumnDef<GroupPet>[] = [
       return (
         <Button
           variant="ghost"
+          className="p-0"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Name

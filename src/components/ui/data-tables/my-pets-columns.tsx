@@ -22,7 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../avatar";
 export const columns: ColumnDef<Pet>[] = [
   {
     accessorKey: "avatar",
-    header: "Avatar",
+    header: "",
     cell: ({ row }) => {
       const pet = row.original;
 
@@ -43,6 +43,7 @@ export const columns: ColumnDef<Pet>[] = [
       return (
         <Button
           variant="ghost"
+          className="p-0"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Name
