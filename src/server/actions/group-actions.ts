@@ -9,7 +9,6 @@ import {
   petsToGroupFormInputSchema,
   petToGroupFormInputSchema,
   requestGroupInviteCodeFormInputSchema,
-  RoleEnum,
   userGroupPairSchema,
 } from "~/lib/schemas/groups";
 import { db } from "../db";
@@ -62,7 +61,7 @@ export const createGroupAction = authenticatedProcedure
         .values({
           groupId: newGroup[0].id,
           userId: user.userId,
-          role: RoleEnum.Values.Owner,
+          role: GroupRoleEnum.Values.Owner,
         })
         .returning()
         .execute();
@@ -246,7 +245,7 @@ export const removeUserFromGroupAction = ownsGroupProcedure
       .where(
         and(
           eq(usersToGroups.groupId, input.groupId),
-          eq(usersToGroups.role, RoleEnum.Values.Owner),
+          eq(usersToGroups.role, GroupRoleEnum.Values.Owner),
         ),
       )
       .execute()
@@ -284,7 +283,7 @@ export const leaveGroupAction = authenticatedProcedure
       .where(
         and(
           eq(usersToGroups.groupId, input.groupId),
-          eq(usersToGroups.role, RoleEnum.Values.Owner),
+          eq(usersToGroups.role, GroupRoleEnum.Values.Owner),
         ),
       )
       .execute()
@@ -407,7 +406,10 @@ export const acceptPendingUserAction = ownsGroupProcedure
       .returning()
       .execute();
 
-    if (member) return;
+    if (member) {
+      revalidatePath(`/group/${groupId}`);
+      return;
+    }
 
     // Check if the user exists
     const pending = await db.query.usersToGroups.findFirst({
@@ -440,7 +442,10 @@ export const rejectPendingUserAction = ownsGroupProcedure
       .returning()
       .execute();
 
-    if (member) return;
+    if (member) {
+      revalidatePath(`/group/${groupId}`);
+      return;
+    }
 
     // Check if the user exists
     const pending = await db.query.usersToGroups.findFirst({

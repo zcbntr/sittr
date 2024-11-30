@@ -5,9 +5,6 @@ import { petSchema, SexEnum } from "./pets";
 // Group Schemas
 // -----------------------------------------------------------------------------
 
-export const RoleEnum = z.enum(["Owner", "Sitter"]);
-export type RoleEnum = z.infer<typeof RoleEnum>;
-
 export const GroupRoleEnum = z.enum(["Owner", "Member", "Pending"]);
 export type GroupRoleEnum = z.infer<typeof GroupRoleEnum>;
 

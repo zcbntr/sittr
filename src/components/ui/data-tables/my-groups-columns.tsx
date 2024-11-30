@@ -2,9 +2,7 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
-
 import { MoreHorizontal } from "lucide-react";
-
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -13,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { RoleEnum, type Group } from "~/lib/schemas/groups";
+import { GroupRoleEnum, type Group } from "~/lib/schemas/groups";
 import { Avatar, AvatarFallback, AvatarImage } from "../avatar";
 import Link from "next/link";
 
@@ -42,13 +40,16 @@ export const columns: ColumnDef<Group>[] = [
     header: "Members",
     cell: ({ row }) => {
       const group = row.original;
+      const filteredMembers = group.members?.filter(
+        (x) => x.role != GroupRoleEnum.Values.Pending,
+      );
 
-      if (!group.members) return <>No members</>;
+      if (!filteredMembers) return <>No members</>;
 
-      if (group.members.length <= 3)
+      if (filteredMembers.length <= 3)
         return (
           <div className="flex flex-row gap-2">
-            {group.members.map((member) => (
+            {filteredMembers.map((member) => (
               <Avatar key={member.id}>
                 <AvatarImage
                   src={member.avatar}
@@ -61,20 +62,24 @@ export const columns: ColumnDef<Group>[] = [
           </div>
         );
 
-      if (group.members.length > 3 && group.members[0] && group.members[1])
+      if (
+        filteredMembers.length > 3 &&
+        filteredMembers[0] &&
+        filteredMembers[1]
+      )
         return (
           <div className="flex flex-row gap-2">
             <Avatar>
               <AvatarImage
-                src={group.members[0].avatar}
-                alt={`${group.members[0].name}'s avatar`}
+                src={filteredMembers[0].avatar}
+                alt={`${filteredMembers[0].name}'s avatar`}
               />
               {/* Make this actually be the initials rather than first letter */}
               <AvatarFallback>
-                {group.members[0].name.substring(0, 1)}
+                {filteredMembers[0].name.substring(0, 1)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col place-content-center">{`and ${group.members.length - 1} more. `}</div>
+            <div className="flex flex-col place-content-center">{`and ${filteredMembers.length - 1} more. `}</div>
           </div>
         );
     },
@@ -142,7 +147,7 @@ export const columns: ColumnDef<Group>[] = [
               <DropdownMenuItem
                 onClick={async () =>
                   await navigator.clipboard.writeText(
-                    `${group.name} - Owned by ${group.members?.find((x) => x.role === RoleEnum.Values.Owner)?.name} - ${group.description}`,
+                    `${group.name} - Owned by ${group.members?.find((x) => x.role === GroupRoleEnum.Values.Owner)?.name} - ${group.description}`,
                   )
                 }
               >
