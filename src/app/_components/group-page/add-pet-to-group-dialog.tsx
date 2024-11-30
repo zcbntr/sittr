@@ -21,7 +21,7 @@ import {
   FormItem,
   FormMessage,
 } from "~/components/ui/form";
-import { type Pet, petListSchema } from "~/lib/schemas/pets";
+import { type Pet } from "~/lib/schemas/pets";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -35,16 +35,16 @@ import { toast } from "sonner";
 
 export default function AddPetToGroupDialog({
   groupId,
+  petsNotInGroup,
   children,
 }: {
   groupId: string;
+  petsNotInGroup: Pet[];
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
 
-  const [pets, setPets] = React.useState<Pet[]>([]);
   const [selectedPetIds, setSelectedPetIds] = React.useState<string[]>([]);
-  const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 
   const form = useForm<z.infer<typeof petsToGroupFormInputSchema>>({
     resolver: zodResolver(petsToGroupFormInputSchema),
@@ -64,36 +64,10 @@ export default function AddPetToGroupDialog({
     },
   });
 
-  React.useEffect(() => {
-    localStorage.setItem(
-      "addPetFormModified",
-      form.formState.isDirty.toString(),
-    );
-
-    async function fetchPets() {
-      await fetch("../api/pets-not-in-group?id=" + groupId)
-        .then((res) => res.json())
-        .then((data) => petListSchema.safeParse(data))
-        .then((validatedPetListObject) => {
-          if (!validatedPetListObject.success) {
-            throw new Error("Failed to fetch pets");
-          }
-
-          if (validatedPetListObject.data.length > 0) {
-            setPets(validatedPetListObject.data);
-          } else if (validatedPetListObject.data.length === 0) {
-            setPetsEmpty(true);
-          }
-        });
-    }
-
-    void fetchPets();
-  }, [groupId, form.formState.isDirty]);
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-dvw h-5/6 max-h-svh w-11/12 gap-4 rounded-md sm:w-[533px]">
+      <DialogContent className="max-w-dvw h-min max-h-svh w-11/12 gap-4 rounded-md sm:w-[533px]">
         <DialogHeader className="pb-2">
           <DialogTitle>Add Pet(s) *</DialogTitle>
           <DialogDescription>
@@ -112,46 +86,57 @@ export default function AddPetToGroupDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <DropdownMenu>
-                    <DropdownMenuTrigger disabled={petsEmpty} asChild>
+                    <DropdownMenuTrigger
+                      disabled={petsNotInGroup.length === 0}
+                      asChild
+                    >
                       <Button variant="outline">
                         {/* Probably a better way of doing this */}
-                        {!petsEmpty && selectedPetIds.length === 0 && (
-                          <div>None</div>
-                        )}
-                        {!petsEmpty && selectedPetIds.length === 1 && (
-                          <div>
-                            {
-                              pets.find((x) => x.petId == selectedPetIds[0])
-                                ?.name
-                            }
-                          </div>
-                        )}
-                        {!petsEmpty && selectedPetIds.length === 2 && (
-                          <div>
-                            {pets.find((x) => x.petId == selectedPetIds[0])
-                              ?.name +
-                              " and " +
-                              pets.find((x) => x.petId == selectedPetIds[1])
-                                ?.name}
-                          </div>
-                        )}
+                        {petsNotInGroup.length > 0 &&
+                          selectedPetIds.length === 0 && <div>None</div>}
+                        {petsNotInGroup.length > 0 &&
+                          selectedPetIds.length === 1 && (
+                            <div>
+                              {
+                                petsNotInGroup.find(
+                                  (x) => x.petId == selectedPetIds[0],
+                                )?.name
+                              }
+                            </div>
+                          )}
+                        {petsNotInGroup.length > 0 &&
+                          selectedPetIds.length === 2 && (
+                            <div>
+                              {petsNotInGroup.find(
+                                (x) => x.petId == selectedPetIds[0],
+                              )?.name +
+                                " and " +
+                                petsNotInGroup.find(
+                                  (x) => x.petId == selectedPetIds[1],
+                                )?.name}
+                            </div>
+                          )}
                         {selectedPetIds.length >= 3 && (
                           <div>
-                            {pets.find((x) => x.petId == selectedPetIds[0])
-                              ?.name +
+                            {petsNotInGroup.find(
+                              (x) => x.petId == selectedPetIds[0],
+                            )?.name +
                               ", " +
-                              pets.find((x) => x.petId == selectedPetIds[1])
-                                ?.name +
+                              petsNotInGroup.find(
+                                (x) => x.petId == selectedPetIds[1],
+                              )?.name +
                               ", and " +
                               (selectedPetIds.length - 2).toString() +
                               " more"}
                           </div>
                         )}
-                        {petsEmpty && <div>Nothing to display</div>}
+                        {petsNotInGroup.length === 0 && (
+                          <div>Nothing to display</div>
+                        )}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
-                      {pets.map(function (pet, i) {
+                      {petsNotInGroup.map(function (pet, i) {
                         return (
                           <DropdownMenuCheckboxItem
                             key={i}
@@ -193,7 +178,9 @@ export default function AddPetToGroupDialog({
             <DialogFooter>
               <Button
                 type="submit"
-                disabled={petsEmpty || selectedPetIds.length == 0}
+                disabled={
+                  petsNotInGroup.length === 0 || selectedPetIds.length == 0
+                }
               >
                 {selectedPetIds.length <= 1 && <div>Add Pet</div>}
                 {selectedPetIds.length > 1 && <div>Add Pets</div>}

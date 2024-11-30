@@ -23,14 +23,17 @@ import {
 import { useServerAction } from "zsa-react";
 import { deleteGroupAction } from "~/server/actions/group-actions";
 import { toast } from "sonner";
+import { type Pet } from "~/lib/schemas/pets";
 
 export function GroupOwnerPage({
   group,
   groupPets,
+  petsNotInGroup,
   groupMembers,
 }: {
   group: Group;
   groupPets: GroupPet[];
+  petsNotInGroup: Pet[];
   groupMembers: GroupMember[];
 }) {
   const router = useRouter();
@@ -125,6 +128,7 @@ export function GroupOwnerPage({
                 <GroupPetsTable
                   groupId={group.groupId}
                   groupPets={groupPets}
+                  petsNotInGroup={petsNotInGroup}
                   isOwner
                 />
               </div>

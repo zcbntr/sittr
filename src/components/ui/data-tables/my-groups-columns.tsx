@@ -135,7 +135,7 @@ export const columns: ColumnDef<Group>[] = [
       const group = row.original;
 
       return (
-        <>
+        <div className="flex flex-row place-content-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
@@ -156,7 +156,7 @@ export const columns: ColumnDef<Group>[] = [
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </>
+        </div>
       );
     },
   },

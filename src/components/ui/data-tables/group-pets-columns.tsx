@@ -71,7 +71,7 @@ export const columns: ColumnDef<GroupPet>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       return (
-        <>
+        <div className="flex flex-row place-content-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
@@ -109,7 +109,7 @@ export const columns: ColumnDef<GroupPet>[] = [
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </>
+        </div>
       );
     },
   },

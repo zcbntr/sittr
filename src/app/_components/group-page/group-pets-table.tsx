@@ -5,24 +5,31 @@ import { type GroupPet } from "~/lib/schemas/groups";
 import React from "react";
 import { Button } from "~/components/ui/button";
 import AddPetToGroupDialog from "./add-pet-to-group-dialog";
+import { type Pet } from "~/lib/schemas/pets";
 
 export default function GroupPetsTable({
   groupId,
   groupPets,
+  petsNotInGroup,
   isOwner,
 }: {
   groupId: string;
   groupPets: GroupPet[];
+  petsNotInGroup?: Pet[];
   isOwner?: boolean;
 }) {
-  return isOwner ? (
+  if (isOwner && !petsNotInGroup) {
+    return null;
+  }
+
+  return isOwner && petsNotInGroup ? (
     <DataTable
       columns={ownerColumns}
       data={groupPets}
       searchable={true}
       filterable={false}
     >
-      <AddPetToGroupDialog groupId={groupId}>
+      <AddPetToGroupDialog groupId={groupId} petsNotInGroup={petsNotInGroup}>
         <Button>Add Pet</Button>
       </AddPetToGroupDialog>
     </DataTable>

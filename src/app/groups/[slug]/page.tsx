@@ -7,7 +7,9 @@ import {
   getGroupMembers,
   getGroupPets,
   getIsUserGroupOwner,
+  getUsersPetsNotInGroup,
 } from "~/server/queries/groups";
+import { type Pet } from "~/lib/schemas/pets";
 
 export default async function Page({
   params,
@@ -37,10 +39,13 @@ export default async function Page({
     const userIsOwner = userIsOwnerOrError;
 
     if (userIsOwner) {
+      const petsNotInGroup: Pet[] = await getUsersPetsNotInGroup(group.groupId);
+
       return (
         <GroupOwnerPage
           group={group}
           groupPets={groupPets}
+          petsNotInGroup={petsNotInGroup}
           groupMembers={groupMembers}
         />
       );

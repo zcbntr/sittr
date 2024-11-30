@@ -220,12 +220,14 @@ export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
     return petSchema.parse({
       petId: pet.id,
       ownerId: pet.ownerId,
+      createdBy: pet.createdBy,
       name: pet.name,
       species: pet.species,
-      breed: pet.breed,
-      dob: pet.dob,
-      sex: pet.sex,
-      image: pet.petImages?.url,
+      breed: pet.breed ? pet.breed : undefined,
+      dob: pet.dob ? pet.dob : undefined,
+      sex: pet.sex ? pet.sex : undefined,
+      image: pet.petImages ? pet.petImages?.url : undefined,
+      note: pet.note ? pet.note : undefined,
     });
   });
 }
