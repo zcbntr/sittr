@@ -4,8 +4,6 @@ ability to satisfy sitting requests (if sitter) */
 
 import CalendarComponent from "~/components/calendar";
 import { Button } from "~/components/ui/button";
-import CreatePetDialog from "./pets/createpetdialog";
-import CreateGroupDialog from "./groups/creategroupdialog";
 import CreateTaskDialog from "./tasks/createtaskdialog";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
 import { auth } from "@clerk/nextjs/server";
