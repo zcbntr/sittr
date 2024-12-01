@@ -1,7 +1,6 @@
 import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
-import { type Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { TopNav } from "./_components/topnav";
@@ -10,11 +9,23 @@ import { Analytics } from "@vercel/analytics/next";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./api/uploadthing/core";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "sittr",
-  description: "Get help with your pets",
+  title: { template: "%s | Sittr", default: "Sittr" },
+  description: "Invite friends and family to sit for your pets",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
+  applicationName: "sittr",
+  referrer: "origin-when-cross-origin",
+  keywords: ["Sitting", "Pet", "Dog", "Cat", "Bird", "Fish"],
+  authors: [{ name: "Zac" }],
+  creator: "Zac Benattar",
+  publisher: "Zac Benattar",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
 };
 
 export default function RootLayout({
