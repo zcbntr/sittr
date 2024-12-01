@@ -160,7 +160,7 @@ export default function CreateTaskDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Name *</FormLabel>
                   <FormControl>
                     <Input placeholder="Give Jake his dinner" {...field} />
                   </FormControl>
@@ -192,7 +192,7 @@ export default function CreateTaskDialog({
                 <FormItem className="flex flex-col justify-between pr-1">
                   <div className="flex flex-row gap-3">
                     <div className="flex flex-col place-content-center">
-                      <FormLabel className="">Span Time Period</FormLabel>
+                      <FormLabel className="">Span Time Period *</FormLabel>
                     </div>
 
                     <div className="flex flex-col place-content-center">
@@ -224,7 +224,9 @@ export default function CreateTaskDialog({
                   name="dueDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-left">Due Date/Time</FormLabel>
+                      <FormLabel className="text-left">
+                        Due Date/Time *
+                      </FormLabel>
                       <Popover>
                         <FormControl>
                           <PopoverTrigger asChild>
@@ -279,7 +281,7 @@ export default function CreateTaskDialog({
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel className="text-left">
-                        Start Date/Time
+                        Start Date/Time *
                       </FormLabel>
                       <Popover>
                         <FormControl>
@@ -330,7 +332,9 @@ export default function CreateTaskDialog({
                   name="dateRange.to"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-left">End Date/Time</FormLabel>
+                      <FormLabel className="text-left">
+                        End Date/Time *
+                      </FormLabel>
                       <Popover>
                         <FormControl>
                           <PopoverTrigger asChild>
@@ -382,7 +386,7 @@ export default function CreateTaskDialog({
               name="groupId"
               render={({}) => (
                 <FormItem>
-                  <FormLabel>Group</FormLabel>
+                  <FormLabel>Group *</FormLabel>
                   <Select
                     onValueChange={(value) => {
                       form.setValue("groupId", value);
@@ -403,7 +407,10 @@ export default function CreateTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {groups.map((group) => (
-                        <SelectItem key={group.groupId} value={group.groupId.toString()}>
+                        <SelectItem
+                          key={group.groupId}
+                          value={group.groupId.toString()}
+                        >
                           {group.name}
                         </SelectItem>
                       ))}
@@ -419,7 +426,7 @@ export default function CreateTaskDialog({
               name="petId"
               render={({}) => (
                 <FormItem>
-                  <FormLabel>Pet</FormLabel>
+                  <FormLabel>Pet *</FormLabel>
                   <Select
                     onValueChange={(value) => {
                       form.setValue("petId", value);
