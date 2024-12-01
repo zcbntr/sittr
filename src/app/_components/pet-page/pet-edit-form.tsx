@@ -135,11 +135,11 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                             // Do something with the response
                             if (res[0]?.serverData.url)
                               setRecentUploadUrl(res[0].serverData.url);
-                            else alert("Image Upload Error!");
+                            else toast.error("Image Upload Error!");
                           }}
                           onUploadError={(error: Error) => {
                             // Do something with the error.
-                            alert(`Image Upload Error! ${error.message}`);
+                            toast.error(`Image Upload Error! ${error.message}`);
                           }}
                         />
 
@@ -165,11 +165,11 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                           // Do something with the response
                           if (res[0]?.serverData.url)
                             setRecentUploadUrl(res[0].serverData.url);
-                          else alert("Image Upload Error!");
+                          else toast.error("Image Upload Error!");
                         }}
                         onUploadError={(error: Error) => {
                           // Do something with the error.
-                          alert(`Image Upload Error! ${error.message}`);
+                          toast.error(`Image Upload Error! ${error.message}`);
                         }}
                       />
                     )}

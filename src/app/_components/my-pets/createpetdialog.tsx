@@ -77,13 +77,6 @@ export default function CreatePetDialog({
     },
   });
 
-  React.useEffect(() => {
-    localStorage.setItem(
-      "createPetFormModified",
-      form.formState.isDirty.toString(),
-    );
-  });
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -100,11 +93,13 @@ export default function CreatePetDialog({
                 // Do something with the response
                 if (res[0]?.serverData.imageId)
                   form.setValue("image", res[0].serverData.imageId);
-                else alert("Image Upload Error!");
+                else {
+                  toast.error("Image upload error");
+                }
               }}
               onUploadError={(error: Error) => {
                 // Do something with the error.
-                alert(`Image Upload Error! ${error.message}`);
+                toast.error(`Image Upload Error! ${error.message}`);
               }}
             />
           </div>
