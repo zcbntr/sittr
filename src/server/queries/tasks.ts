@@ -88,12 +88,14 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
-      dueDate: task.dueDate,
-      dateRange: task.dateRangeFrom &&
-        task.dateRangeTo && {
-          from: task.dateRangeFrom,
-          to: task.dateRangeTo,
-        },
+      dueDate: task.dueMode ? task.dueDate : undefined,
+      dateRange:
+        !task.dueMode && task.dateRangeFrom && task.dateRangeTo
+          ? {
+              from: task.dateRangeFrom,
+              to: task.dateRangeTo,
+            }
+          : undefined,
       pet: task.pet
         ? petSchema.parse({
             petId: task.pet,
@@ -222,12 +224,16 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
       name: task.tasks.name,
       description: task.tasks.description,
       dueMode: task.tasks.dueMode,
-      dueDate: task.tasks.dueDate,
-      dateRange: task.tasks.dateRangeFrom &&
-        task.tasks.dateRangeTo && {
-          from: task.tasks.dateRangeFrom,
-          to: task.tasks.dateRangeTo,
-        },
+      dueDate: task.tasks.dueMode ? task.tasks.dueDate : undefined,
+      dateRange:
+        !task.tasks.dueMode &&
+        task.tasks.dateRangeFrom &&
+        task.tasks.dateRangeTo
+          ? {
+              from: task.tasks.dateRangeFrom,
+              to: task.tasks.dateRangeTo,
+            }
+          : undefined,
       pet: task.pets
         ? petSchema.parse({
             petId: task.pets.id,
@@ -348,12 +354,14 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
     name: task.name,
     description: task.description,
     dueMode: task.dueMode,
-    dueDate: task.dueDate,
-    dateRange: task.dateRangeFrom &&
-      task.dateRangeTo && {
-        from: task.dateRangeFrom,
-        to: task.dateRangeTo,
-      },
+    dueDate: task.dueMode ? task.dueDate : undefined,
+    dateRange:
+      !task.dueMode && task.dateRangeFrom && task.dateRangeTo
+        ? {
+            from: task.dateRangeFrom,
+            to: task.dateRangeTo,
+          }
+        : undefined,
     pet: petSchema.parse({
       petId: task.pet,
       name: task.pet?.name,
@@ -492,12 +500,14 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
-      dueDate: task.dueDate,
-      dateRange: task.dateRangeFrom &&
-        task.dateRangeTo && {
-          from: task.dateRangeFrom,
-          to: task.dateRangeTo,
-        },
+      dueDate: task.dueMode ? task.dueDate : undefined,
+      dateRange:
+        !task.dueMode && task.dateRangeFrom && task.dateRangeTo
+          ? {
+              from: task.dateRangeFrom,
+              to: task.dateRangeTo,
+            }
+          : undefined,
       pet: task.pet
         ? petSchema.parse({
             petId: task.pet.id,
@@ -636,12 +646,18 @@ async function getTasksSittingForInRange(
       name: joinedTaskRow.tasks.name,
       description: joinedTaskRow.tasks.description,
       dueMode: joinedTaskRow.tasks.dueMode,
-      dueDate: joinedTaskRow.tasks.dueDate,
-      dateRange: joinedTaskRow.tasks.dateRangeFrom &&
-        joinedTaskRow.tasks.dateRangeTo && {
-          from: joinedTaskRow.tasks.dateRangeFrom,
-          to: joinedTaskRow.tasks.dateRangeTo,
-        },
+      dueDate: joinedTaskRow.tasks.dueMode
+        ? joinedTaskRow.tasks.dueDate
+        : undefined,
+      dateRange:
+        !joinedTaskRow.tasks.dueMode &&
+        joinedTaskRow.tasks.dateRangeFrom &&
+        joinedTaskRow.tasks.dateRangeTo
+          ? {
+              from: joinedTaskRow.tasks.dateRangeFrom,
+              to: joinedTaskRow.tasks.dateRangeTo,
+            }
+          : undefined,
       pet: joinedTaskRow.pets
         ? petSchema.parse({
             petId: joinedTaskRow.pets.id,
@@ -855,12 +871,14 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
-      dueDate: task.dueDate,
-      dateRange: task.dateRangeFrom &&
-        task.dateRangeTo && {
-          from: task.dateRangeFrom,
-          to: task.dateRangeTo,
-        },
+      dueDate: task.dueMode ? task.dueDate : undefined,
+      dateRange:
+        !task.dueMode && task.dateRangeFrom && task.dateRangeTo
+          ? {
+              from: task.dateRangeFrom,
+              to: task.dateRangeTo,
+            }
+          : undefined,
       pet: task.petId
         ? petSchema.parse({
             petId: task.petId,
@@ -1077,12 +1095,14 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
-      dueDate: task.dueDate,
-      dateRange: task.dateRangeFrom &&
-        task.dateRangeTo && {
-          from: task.dateRangeFrom,
-          to: task.dateRangeTo,
-        },
+      dueDate: task.dueMode ? task.dueDate : undefined,
+      dateRange:
+        !task.dueMode && task.dateRangeFrom && task.dateRangeTo
+          ? {
+              from: task.dateRangeFrom,
+              to: task.dateRangeTo,
+            }
+          : undefined,
       pet: task.petId
         ? petSchema.parse({
             petId: task.petId,

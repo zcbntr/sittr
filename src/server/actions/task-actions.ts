@@ -61,9 +61,9 @@ export const updateTaskAction = ownsTaskProcedure
       .set({
         name: input.name,
         dueMode: input.dueMode,
-        dateRangeFrom: input.dateRange?.from,
-        dateRangeTo: input.dateRange?.to,
-        dueDate: input.dueDate,
+        dateRangeFrom: !input.dueMode ? input.dateRange?.from : null,
+        dateRangeTo: !input.dueMode ? input.dateRange?.to : null,
+        dueDate: input.dueMode ? input.dueDate : null,
         description: input.description,
         pet: input.petId,
         group: input.groupId,
