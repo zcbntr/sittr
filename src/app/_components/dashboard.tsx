@@ -49,7 +49,7 @@ export default async function Dashboard({
           </div>
 
           <div className="flex flex-col place-content-center">
-            <MonthArrows initialFrom={dateFrom} initialTo={dateTo} />
+            <MonthArrows from={dateFrom} to={dateTo} />
           </div>
         </div>
       </section>

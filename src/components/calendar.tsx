@@ -72,18 +72,19 @@ class CalendarEvent {
     this.title = _task.name;
     this.allDay = _task.dueMode;
     this.dueMode = _task.dueMode;
-    this.dueDate = _task.dueDate ? new Date(_task.dueDate) : null;
+    this.dueDate = _task.dueDate ? _task.dueDate : null;
     this.dateRange = _task.dateRange ? _task.dateRange : null;
-    this.start = _task.dateRange?.from
-      ? _task.dateRange.from
-      : _task.dueDate
-        ? _task.dueDate
-        : new Date();
-    this.end = _task.dateRange?.to
-      ? _task.dateRange.to
-      : _task.dueDate
-        ? addMilliseconds(_task.dueDate, 1)
+
+    if (_task.dueMode) {
+      this.start = _task.dueDate ? _task.dueDate : new Date();
+      this.end = addMilliseconds(_task.dueDate ? _task.dueDate : new Date(), 1);
+    } else {
+      this.start = _task.dateRange?.from ? _task.dateRange.from : new Date();
+      this.end = _task.dateRange?.to
+        ? addMilliseconds(_task.dateRange.to, 1)
         : addMilliseconds(new Date(), 1);
+    }
+
     this.markedAsDone = _task.markedAsDone;
     this.markedAsDoneBy = _task.markedAsDoneBy
       ? _task.markedAsDoneBy
