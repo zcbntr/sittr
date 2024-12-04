@@ -56,11 +56,12 @@ export default function Home() {
         <div className="flex flex-col gap-8">
           <div className="flex flex-row place-content-center">
             <span className="text-center text-2xl font-light">
-              Invite <span className="font-medium">friends and family</span> to sit for your pets.
+              Invite <span className="font-medium">friends and family</span> to
+              sit for your pets.
             </span>
           </div>
 
-          <div className="pt-5 pb-20 flex flex-row place-content-center gap-4">
+          <div className="flex flex-row place-content-center gap-4 pb-20 pt-5">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -78,7 +79,9 @@ export default function Home() {
                             placeholder="Invite code"
                             {...field}
                           />
-                          <Button type="submit" className="border h-[40px]">Join Group</Button>
+                          <Button type="submit" className="h-[40px] border">
+                            Join Group
+                          </Button>
                         </div>
                       </FormControl>
                       <FormMessage />

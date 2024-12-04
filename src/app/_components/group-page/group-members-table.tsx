@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "~/components/ui/data-table";
-import React from "react";
+import React, { useState } from "react";
 import CreateGroupInviteDialog from "./create-group-invite-dialog";
 import { Button } from "~/components/ui/button";
 import { type GroupMember } from "~/lib/schemas/groups";
@@ -43,7 +43,7 @@ export default function GroupMembersTable({
   groupMembers: GroupMember[];
   isOwner?: boolean;
 }) {
-  const [alertState, setAlertState] = React.useState("");
+  const [alertState, setAlertState] = useState("");
 
   const columns: ColumnDef<GroupMember>[] = [
     {
@@ -123,7 +123,7 @@ export default function GroupMembersTable({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={async () => {
-                          setAlertState("accept");
+                          setAlertState(`accept-${member.userId}`);
                         }}
                       >
                         Accept
@@ -146,7 +146,9 @@ export default function GroupMembersTable({
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={async () => setAlertState("removal")}
+                          onClick={async () =>
+                            setAlertState(`remove-${member.userId}`)
+                          }
                         >
                           Remove
                         </DropdownMenuItem>
@@ -155,7 +157,7 @@ export default function GroupMembersTable({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <AlertDialog open={alertState === "removal"}>
+            <AlertDialog open={alertState === `remove-${member.userId}`}>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
@@ -187,7 +189,7 @@ export default function GroupMembersTable({
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <AlertDialog open={alertState === "accept"}>
+            <AlertDialog open={alertState === `accept-${member.userId}`}>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
