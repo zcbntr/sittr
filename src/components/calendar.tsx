@@ -59,8 +59,10 @@ class CalendarEvent {
   group: Group;
   markedAsDone: boolean;
   markedAsDoneBy?: User;
+  markedAsDoneAt: Date | null;
   claimed: boolean;
   claimedBy?: User;
+  claimedAt: Date | null;
   desc: string;
   resourceId?: string;
   tooltip?: string;
@@ -89,8 +91,10 @@ class CalendarEvent {
     this.markedAsDoneBy = _task.markedAsDoneBy
       ? _task.markedAsDoneBy
       : undefined;
+    this.markedAsDoneAt = _task.markedAsDoneAt ? _task.markedAsDoneAt : null;
     this.claimed = _task.claimed;
     this.claimedBy = _task.claimedBy ? _task.claimedBy : undefined;
+    this.claimedAt = _task.claimedAt ? _task.claimedAt : null;
     this.pet = _task.pet;
     this.group = _task.group;
     this.desc = _task.description ? _task.description : "";
@@ -172,8 +176,10 @@ export default function CalendarComponent({
             dateRange: event.dateRange,
             markedAsDone: event.markedAsDone,
             markedAsDoneBy: event.markedAsDoneBy,
+            markedAsDoneAt: event.markedAsDoneAt,
             claimed: event.claimed,
             claimedBy: event.claimedBy,
+            claimedAt: event.claimedAt,
             requiresVerification: false,
           }),
         );
@@ -200,8 +206,10 @@ export default function CalendarComponent({
               },
             markedAsDone: event.markedAsDone,
             markedAsDoneBy: event.markedAsDoneBy,
+            markedAsDoneAt: event.markedAsDoneAt,
             claimed: event.claimed,
             claimedBy: event.claimedBy,
+            claimedAt: event.claimedAt,
             requiresVerification: false,
           }),
         );

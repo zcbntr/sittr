@@ -132,6 +132,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
             avatar: markedAsDoneUser.imageUrl,
           })
         : null,
+      markedAsDoneAt: task.markedAsDoneAt,
       claimed: task.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
@@ -140,6 +141,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
             avatar: claimingUser.imageUrl,
           })
         : null,
+      claimedAt: task.claimedAt,
     });
   });
 
@@ -270,6 +272,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
             avatar: markedAsDoneUser?.imageUrl,
           })
         : null,
+      markedAsDoneAt: task.tasks.markedAsDoneAt,
       claimed: task.tasks.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
@@ -278,6 +281,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
             avatar: claimingUser?.imageUrl,
           })
         : null,
+      claimedAt: task.tasks.claimedAt,
     });
   });
 }
@@ -396,6 +400,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
           avatar: markedAsDoneUser.imageUrl,
         })
       : null,
+    markedAsDoneAt: task.markedAsDoneAt,
     claimed: task.claimedBy !== null,
     claimedBy: claimingUser
       ? userSchema.parse({
@@ -404,6 +409,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
           avatar: claimingUser.imageUrl,
         })
       : null,
+    claimedAt: task.claimedAt,
   });
 }
 
@@ -544,6 +550,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
             avatar: markedAsDoneUser.imageUrl,
           })
         : null,
+      markedAsDoneAt: task.markedAsDoneAt,
       claimed: task.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
@@ -552,6 +559,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
             avatar: claimingUser.imageUrl,
           })
         : null,
+      claimedAt: task.claimedAt,
     });
   });
 
@@ -697,6 +705,7 @@ async function getTasksSittingForInRange(
             avatar: markedAsDoneUser?.imageUrl,
           })
         : null,
+      markedAsDoneAt: joinedTaskRow.tasks.markedAsDoneAt,
       claimed: joinedTaskRow.tasks.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
@@ -705,6 +714,7 @@ async function getTasksSittingForInRange(
             avatar: claimingUser?.imageUrl,
           })
         : null,
+      claimedAt: joinedTaskRow.tasks.claimedAt,
     });
 
     if (!parse.success) {
@@ -751,7 +761,9 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       groupDescription: groups.description,
       groupCreatedBy: groups.createdBy,
       claimedBy: tasks.claimedBy,
+      claimedAt: tasks.claimedAt,
       markedAsDoneBy: tasks.markedAsDoneBy,
+      markedAsDoneAt: tasks.markedAsDoneAt,
       requiresVerification: tasks.requiresVerification,
       createdAt: tasks.createdAt,
       updatedAt: tasks.updatedAt,
@@ -799,7 +811,9 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       groupDescription: groups.description,
       groupCreatedBy: groups.createdBy,
       claimedBy: tasks.claimedBy,
+      claimedAt: tasks.claimedAt,
       markedAsDoneBy: tasks.markedAsDoneBy,
+      markedAsDoneAt: tasks.markedAsDoneAt,
       requiresVerification: tasks.requiresVerification,
       createdAt: tasks.createdAt,
       updatedAt: tasks.updatedAt,
@@ -920,6 +934,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
             avatar: markedAsDoneUser?.imageUrl,
           })
         : null,
+      markedAsDoneAt: task.markedAsDoneAt,
       claimed: task.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
@@ -928,6 +943,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
             avatar: claimingUser?.imageUrl,
           })
         : null,
+      claimedAt: task.claimedAt,
     });
 
     if (!parse.success) {
@@ -975,7 +991,9 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
       groupDescription: groups.description,
       groupCreatedBy: groups.createdBy,
       claimedBy: tasks.claimedBy,
+      claimedAt: tasks.claimedAt,
       markedAsDoneBy: tasks.markedAsDoneBy,
+      markedAsDoneAt: tasks.markedAsDoneAt,
       requiresVerification: tasks.requiresVerification,
       createdAt: tasks.createdAt,
       updatedAt: tasks.updatedAt,
@@ -1024,7 +1042,9 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
       groupDescription: groups.description,
       groupCreatedBy: groups.createdBy,
       claimedBy: tasks.claimedBy,
+      claimedAt: tasks.claimedAt,
       markedAsDoneBy: tasks.markedAsDoneBy,
+      markedAsDoneAt: tasks.markedAsDoneAt,
       requiresVerification: tasks.requiresVerification,
       createdAt: tasks.createdAt,
       updatedAt: tasks.updatedAt,
@@ -1146,6 +1166,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
             avatar: markedAsDoneUser?.imageUrl,
           })
         : null,
+      markedAsDoneAt: task.markedAsDoneAt,
       claimed: task.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
@@ -1154,6 +1175,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
             avatar: claimingUser?.imageUrl,
           })
         : null,
+      claimedAt: task.claimedAt,
     });
 
     if (!parse.success) {

@@ -95,12 +95,15 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
         .update(tasks)
         .set({
           markedAsDoneBy: null,
+          markedAsDoneAt: null,
         })
         .where(eq(tasks.id, input.taskId))
         .execute();
 
       revalidatePath(`/tasks/${task.id}`);
       revalidatePath("/");
+
+      return input.markedAsDone;
     } else if (task.claimedBy !== user.userId) {
       throw new Error("You can't mark a task as done if you didn't claim it");
     } else {
@@ -112,13 +115,17 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
         .update(tasks)
         .set({
           markedAsDoneBy: user.userId,
+          markedAsDoneAt: new Date(),
           claimedBy: user.userId,
+          claimedAt: new Date(),
         })
         .where(eq(tasks.id, input.taskId))
         .execute();
 
       revalidatePath(`/tasks/${task.id}`);
       revalidatePath("/");
+
+      return input.markedAsDone;
     }
   });
 
@@ -160,18 +167,22 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         throw new Error("Task is already claimed by you");
       }
 
-      // Unclaim the task
+      // Unclaim the task and unset marked as done
       await db
         .update(tasks)
         .set({
           claimedBy: null,
+          claimedAt: null,
+          markedAsDoneBy: null,
+          markedAsDoneAt: null,
         })
-        .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, user.userId)))
+        .where(and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, user.userId))))
         .execute();
 
       revalidatePath("/");
       revalidatePath(`/tasks/${task.id}`);
-      return;
+
+      return input.claimed;
       // If the task is claimed by another user, the user cannot claim it
     } else if (task?.claimedBy) {
       throw new Error("Task is already claimed by another user");
@@ -185,6 +196,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         .update(tasks)
         .set({
           claimedBy: user.userId,
+          claimedAt: new Date(),
         })
         .where(
           and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, user.userId))),
@@ -200,5 +212,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
 
       revalidatePath("/");
       revalidatePath(`/tasks/${task.id}`);
+
+      return input.claimed;
     }
   });

@@ -38,6 +38,8 @@ export default function ViewTaskDialog({
 }) {
   const [open, setOpen] = useState<boolean>(false);
 
+  console.log(task?.claimedAt);
+
   const {
     isPending: claimPending,
     execute: executeClaim,
@@ -46,8 +48,12 @@ export default function ViewTaskDialog({
     onError: ({ err }) => {
       toast.error(err.message);
     },
-    onSuccess: () => {
-      toast.success("Task claimed!");
+    onSuccess: (data) => {
+      if (data.data) {
+        toast.success("Task claimed!");
+      } else {
+        toast.success("Task unclaimed!");
+      }
     },
   });
 
@@ -59,8 +65,12 @@ export default function ViewTaskDialog({
     onError: ({ err }) => {
       toast.error(err.message);
     },
-    onSuccess: () => {
-      toast.success("Marked as done!");
+    onSuccess: (data) => {
+      if (data.data) {
+        toast.success("Marked as done!");
+      } else {
+        toast.success("Unmarked as done!");
+      }
     },
   });
 
@@ -126,6 +136,24 @@ export default function ViewTaskDialog({
 
           <div>{task?.description}</div>
 
+          {task?.claimed &&
+            task.claimedBy?.userId == userId &&
+            task?.claimedAt && (
+              <div className="text-sm font-medium">
+                You claimed this task on{" "}
+                {format(task?.claimedAt, "MMM do HH:mm")}
+              </div>
+            )}
+
+          {task?.markedAsDone &&
+            task.markedAsDoneBy?.userId == userId &&
+            task?.markedAsDoneAt && (
+              <div className="text-sm font-medium">
+                You completed this task on{" "}
+                {format(task?.markedAsDoneAt, "MMM do HH:mm")}
+              </div>
+            )}
+
           <div className="grid grid-cols-2 gap-4">
             <Button
               disabled={
@@ -178,9 +206,9 @@ export default function ViewTaskDialog({
             <Button
               disabled={
                 !task ||
-                (task?.claimedBy !== null &&
-                  task?.claimedBy !== undefined &&
-                  task?.claimedBy.userId !== userId &&
+                (task?.markedAsDoneBy !== null &&
+                  task?.markedAsDoneBy !== undefined &&
+                  task?.markedAsDoneBy.userId !== userId &&
                   userId !== null) ||
                 markAsDonePending ||
                 claimPending
@@ -194,24 +222,26 @@ export default function ViewTaskDialog({
                 });
               }}
             >
-              {task?.claimedBy && task?.claimedBy.userId !== userId && (
-                <div className="flex flex-row flex-nowrap">
-                  <div className="flex flex-col place-content-center">
-                    <MdOutlineCheck className="mr-1 h-4 w-4" />
-                  </div>
+              {task?.markedAsDoneBy &&
+                task?.markedAsDoneBy.userId !== userId && (
+                  <div className="flex flex-row flex-nowrap">
+                    <div className="flex flex-col place-content-center">
+                      <MdOutlineCheck className="mr-1 h-4 w-4" />
+                    </div>
 
-                  <div>Marked as complete by {task?.claimedBy.name}</div>
-                </div>
-              )}
-              {task?.claimedBy && task?.claimedBy.userId === userId && (
-                <div className="flex flex-row flex-nowrap">
-                  <div className="flex flex-col place-content-center">
-                    <MdOutlineCircle className="mr-1 h-4 w-4" />
+                    <div>Marked as complete by {task?.markedAsDoneBy.name}</div>
                   </div>
-                  <div>Unmark as complete</div>
-                </div>
-              )}
-              {!task?.claimedBy && (
+                )}
+              {task?.markedAsDoneBy &&
+                task?.markedAsDoneBy.userId === userId && (
+                  <div className="flex flex-row flex-nowrap">
+                    <div className="flex flex-col place-content-center">
+                      <MdOutlineCircle className="mr-1 h-4 w-4" />
+                    </div>
+                    <div>Unmark as complete</div>
+                  </div>
+                )}
+              {!task?.markedAsDoneBy && (
                 <div className="flex flex-row flex-nowrap">
                   <div className="flex flex-col place-content-center">
                     <MdOutlineCheck className="mr-1 h-4 w-4" />
