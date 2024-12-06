@@ -197,7 +197,6 @@ export default function EditTaskDialog({
       <DialogContent className="h-5/6 max-h-svh w-11/12 max-w-[450px] rounded-md sm:h-fit">
         <DialogHeader className="pb-2">
           <DialogTitle>Edit Task</DialogTitle>
-          <DialogDescription>Update the details of the task.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -209,7 +208,7 @@ export default function EditTaskDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Name *</FormLabel>
                   <FormControl>
                     <Input placeholder="Give Jake his dinner" {...field} />
                   </FormControl>
@@ -229,64 +228,68 @@ export default function EditTaskDialog({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dueMode"
+              render={({ field }) => (
+                <FormItem className="flex flex-col justify-between pr-1">
+                  <div className="flex flex-row gap-3">
+                    <div className="flex flex-col place-content-center">
+                      <FormLabel className="">Span Time Period</FormLabel>
+                    </div>
+
+                    <div className="flex flex-col place-content-center">
+                      <FormControl>
+                        <Switch
+                          checked={!field.value}
+                          onCheckedChange={() => {
+                            form.setValue("dueMode", !dueMode);
+                            setDueMode(!dueMode);
+                          }}
+                        />
+                      </FormControl>
+                    </div>
+                  </div>
+
                   <FormDescription>
-                    Include important information sitters need to know. (Not
-                    required)
+                    Toggle whether the task has a due date/time or is a span of
+                    time.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex flex-col gap-3 rounded-lg border p-4">
-              <FormField
-                control={form.control}
-                name="dueMode"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between gap-3 pr-1">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">
-                        Span Time Period
-                      </FormLabel>
-                      <FormDescription>
-                        Toggle whether the task has a due date/time or is a span
-                        of time.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={!field.value}
-                        onCheckedChange={() => {
-                          form.setValue("dueMode", !dueMode);
-                          setDueMode(!dueMode);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {dueMode && (
+
+            {dueMode && (
+              <div className="grid grid-cols-1 gap-2">
                 <FormField
                   control={form.control}
                   name="dueDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-left">Due Date/Time</FormLabel>
+                      <FormLabel className="text-left">
+                        Due Date/Time *
+                      </FormLabel>
                       <Popover>
                         <FormControl>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-[280px] justify-start text-left font-normal",
+                                "w-full justify-start text-left font-normal",
                                 !field.value && "text-muted-foreground",
                               )}
                             >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              <CalendarIcon className="h-4 w-4" />
                               {field.value ? (
-                                format(field.value, "PPP HH:mm:ss")
+                                format(field.value, "MMMM do HH:mm")
                               ) : (
-                                <span>Pick a date</span>
+                                <span>Pick a due date & time</span>
                               )}
                             </Button>
                           </PopoverTrigger>
@@ -294,7 +297,7 @@ export default function EditTaskDialog({
                         <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
-                            selected={field.value ? field.value : new Date()}
+                            selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
                             fromDate={subDays(new Date(), 1)}
@@ -306,7 +309,7 @@ export default function EditTaskDialog({
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
                               setDate={field.onChange}
-                              date={field.value ? field.value : new Date()}
+                              date={field.value}
                             />
                           </div>
                         </PopoverContent>
@@ -315,16 +318,18 @@ export default function EditTaskDialog({
                     </FormItem>
                   )}
                 />
-              )}
+              </div>
+            )}
 
-              {!dueMode && (
+            {!dueMode && (
+              <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="dateRange.from"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel className="text-left">
-                        Start Date/Time
+                        Start Date/Time *
                       </FormLabel>
                       <Popover>
                         <FormControl>
@@ -332,15 +337,15 @@ export default function EditTaskDialog({
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-[280px] justify-start text-left font-normal",
+                                "w-full justify-start text-left font-normal",
                                 !field.value && "text-muted-foreground",
                               )}
                             >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              <CalendarIcon className="h-4 w-4" />
                               {field.value ? (
-                                format(field.value, "PPP HH:mm:ss")
+                                format(field.value, "MMM do HH:mm")
                               ) : (
-                                <span>Pick a start date/time</span>
+                                <span>Pick a start date & time</span>
                               )}
                             </Button>
                           </PopoverTrigger>
@@ -369,30 +374,30 @@ export default function EditTaskDialog({
                     </FormItem>
                   )}
                 />
-              )}
 
-              {!dueMode && (
                 <FormField
                   control={form.control}
                   name="dateRange.to"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-left">End Date/Time</FormLabel>
+                      <FormLabel className="text-left">
+                        End Date/Time *
+                      </FormLabel>
                       <Popover>
                         <FormControl>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-[280px] justify-start text-left font-normal",
+                                "w-full justify-start text-left font-normal",
                                 !field.value && "text-muted-foreground",
                               )}
                             >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              <CalendarIcon className="h-4 w-4" />
                               {field.value ? (
-                                format(field.value, "PPP HH:mm:ss")
+                                format(field.value, "MMM do HH:mm")
                               ) : (
-                                <span>Pick a end date/time</span>
+                                <span>Pick a end date & time</span>
                               )}
                             </Button>
                           </PopoverTrigger>
@@ -421,15 +426,15 @@ export default function EditTaskDialog({
                     </FormItem>
                   )}
                 />
-              )}
-            </div>
+              </div>
+            )}
 
             <FormField
               control={form.control}
               name="groupId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Group</FormLabel>
+                  <FormLabel>Group *</FormLabel>
                   <Select
                     onValueChange={(value) => {
                       form.setValue("groupId", value);
@@ -460,9 +465,6 @@ export default function EditTaskDialog({
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    Select a group to associate with this task.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -473,7 +475,7 @@ export default function EditTaskDialog({
               name="petId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Pet</FormLabel>
+                  <FormLabel>Pet *</FormLabel>
                   <Select
                     defaultValue={
                       task?.pet.petId ? task.pet.petId.toString() : ""
@@ -506,10 +508,6 @@ export default function EditTaskDialog({
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    Select a pet to associate with this task. The pet must be
-                    assigned to the selected group.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

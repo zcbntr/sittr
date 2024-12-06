@@ -147,7 +147,7 @@ export default function CreateTaskDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       {/* Don't mess with the height - ideally we want m-5 and h-[svh-5] (and w-[svw-5]) but this doesn't work so sticking with h-5/6 for now which is based on whole page height */}
       <DialogContent className="h-5/6 max-h-svh w-11/12 max-w-[450px] rounded-md sm:h-fit">
-        <DialogHeader>
+        <DialogHeader className="pb-2">
           <DialogTitle>New Task</DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -192,7 +192,7 @@ export default function CreateTaskDialog({
                 <FormItem className="flex flex-col justify-between pr-1">
                   <div className="flex flex-row gap-3">
                     <div className="flex flex-col place-content-center">
-                      <FormLabel className="">Span Time Period *</FormLabel>
+                      <FormLabel className="">Span Time Period</FormLabel>
                     </div>
 
                     <div className="flex flex-col place-content-center">
@@ -239,7 +239,7 @@ export default function CreateTaskDialog({
                             >
                               <CalendarIcon className="h-4 w-4" />
                               {field.value ? (
-                                format(field.value, "PPP HH:mm:ss")
+                                format(field.value, "MMMM do HH:mm")
                               ) : (
                                 <span>Pick a due date & time</span>
                               )}
@@ -295,7 +295,7 @@ export default function CreateTaskDialog({
                             >
                               <CalendarIcon className="h-4 w-4" />
                               {field.value ? (
-                                format(field.value, "PPP HH:mm:ss")
+                                format(field.value, "MMM do HH:mm")
                               ) : (
                                 <span>Pick a start date & time</span>
                               )}
@@ -347,7 +347,7 @@ export default function CreateTaskDialog({
                             >
                               <CalendarIcon className="h-4 w-4" />
                               {field.value ? (
-                                format(field.value, "PPP HH:mm:ss")
+                                format(field.value, "MMM do HH:mm")
                               ) : (
                                 <span>Pick a end date & time</span>
                               )}
