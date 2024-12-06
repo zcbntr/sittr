@@ -4,7 +4,14 @@ import { type Task, taskSchema, TaskTypeEnum } from "~/lib/schemas/tasks";
 import { eq, and, or, lte, gte, inArray, not, isNull } from "drizzle-orm";
 import { auth, createClerkClient } from "@clerk/nextjs/server";
 import { db } from "../db";
-import { groups, pets, petsToGroups, tasks, usersToGroups } from "../db/schema";
+import {
+  groups,
+  petImages,
+  pets,
+  petsToGroups,
+  tasks,
+  usersToGroups,
+} from "../db/schema";
 import { union } from "drizzle-orm/pg-core";
 import { userSchema } from "~/lib/schemas/users";
 import { petSchema } from "~/lib/schemas/pets";
@@ -22,7 +29,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
   }
 
   const userTasks = await db.query.tasks.findMany({
-    with: { group: true, pet: true },
+    with: { group: true, pet: { with: { petImages: true } } },
     where: (model, { eq }) => eq(model.ownerId, user.userId),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
@@ -106,7 +113,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
             breed: task.pet.breed,
             dob: task.pet.dob,
             sex: task.pet.sex,
-            image: task.pet.image,
+            image: task.pet.petImages ? task.pet.petImages.url : undefined,
           })
         : null,
       group: task.group
@@ -283,7 +290,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
   }
 
   const task = await db.query.tasks.findFirst({
-    with: { group: true, pet: true },
+    with: { group: true, pet: { with: { petImages: true } } },
     where: (model, { and, eq }) =>
       and(eq(model.id, taskId), eq(model.ownerId, user.userId)),
   });
@@ -371,7 +378,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
       breed: task.pet?.breed,
       dob: task.pet?.dob,
       sex: task.pet?.sex,
-      image: task.pet?.image,
+      image: task.pet?.petImages ? task.pet.petImages.url : undefined,
     }),
     group: task.group
       ? groupSchema.parse({
@@ -426,7 +433,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
   }
 
   const tasksInRange = await db.query.tasks.findMany({
-    with: { group: true, pet: true },
+    with: { group: true, pet: { with: { petImages: true } } },
     where: (model, { and, eq, gte, lte }) =>
       and(
         eq(model.ownerId, user.userId),
@@ -518,7 +525,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
             breed: task.pet.breed,
             dob: task.pet.dob,
             sex: task.pet.sex,
-            image: task.pet.image,
+            image: task.pet.petImages ? task.pet.petImages.url : undefined,
           })
         : null,
       group: task.group
@@ -568,6 +575,7 @@ async function getTasksSittingForInRange(
     .leftJoin(groups, eq(tasks.pet, groups.id))
     .leftJoin(usersToGroups, eq(groups.id, usersToGroups.groupId))
     .leftJoin(pets, eq(tasks.pet, pets.id))
+    .leftJoin(petImages, eq(pets.id, petImages.petId))
     .where(
       and(
         eq(usersToGroups.userId, user.userId),
@@ -668,7 +676,9 @@ async function getTasksSittingForInRange(
             breed: joinedTaskRow.pets.breed,
             dob: joinedTaskRow.pets.dob,
             sex: joinedTaskRow.pets.sex,
-            image: joinedTaskRow.pets.image,
+            image: joinedTaskRow.pet_images
+              ? joinedTaskRow.pet_images.url
+              : undefined,
           })
         : null,
       group: joinedTaskRow.groups
@@ -735,7 +745,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       petBreed: pets.breed,
       petDob: pets.dob,
       petSex: pets.sex,
-      petImage: pets.image,
+      petImage: petImages.url,
       groupId: groups.id,
       groupName: groups.name,
       groupDescription: groups.description,
@@ -751,6 +761,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     .leftJoin(groups, eq(tasks.group, groups.id))
     .leftJoin(petsToGroups, eq(groups.id, petsToGroups.groupId))
     .leftJoin(pets, eq(tasks.pet, pets.id))
+    .leftJoin(petImages, eq(pets.id, petImages.petId))
     .where(
       and(
         eq(usersToGroups.userId, user.userId),
@@ -782,7 +793,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
       petBreed: pets.breed,
       petDob: pets.dob,
       petSex: pets.sex,
-      petImage: pets.image,
+      petImage: petImages.url,
       groupId: groups.id,
       groupName: groups.name,
       groupDescription: groups.description,
@@ -797,6 +808,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     .leftJoin(groups, eq(tasks.group, groups.id))
     .leftJoin(petsToGroups, eq(groups.id, petsToGroups.groupId))
     .leftJoin(pets, eq(tasks.pet, pets.id))
+    .leftJoin(petImages, eq(pets.id, petImages.petId))
     .where(
       and(
         eq(tasks.ownerId, user.userId),
@@ -957,7 +969,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
       petBreed: pets.breed,
       petDob: pets.dob,
       petSex: pets.sex,
-      petImage: pets.image,
+      petImage: petImages.url,
       groupId: groups.id,
       groupName: groups.name,
       groupDescription: groups.description,
@@ -973,6 +985,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
     .leftJoin(usersToGroups, eq(groups.id, usersToGroups.groupId))
     .leftJoin(petsToGroups, eq(groups.id, petsToGroups.groupId))
     .leftJoin(pets, eq(tasks.pet, pets.id))
+    .leftJoin(petImages, eq(pets.id, petImages.petId))
     .where(
       and(
         eq(usersToGroups.userId, user.userId),
@@ -1005,7 +1018,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
       petBreed: pets.breed,
       petDob: pets.dob,
       petSex: pets.sex,
-      petImage: pets.image,
+      petImage: petImages.url,
       groupId: groups.id,
       groupName: groups.name,
       groupDescription: groups.description,
@@ -1020,6 +1033,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
     .leftJoin(groups, eq(tasks.group, groups.id))
     .leftJoin(petsToGroups, eq(groups.id, petsToGroups.groupId))
     .leftJoin(pets, eq(tasks.pet, pets.id))
+    .leftJoin(petImages, eq(pets.id, petImages.petId))
     .where(
       and(
         eq(tasks.ownerId, user.userId),

@@ -115,7 +115,6 @@ export default function ViewTaskDialog({
       <DialogContent className="h-5/6 max-h-svh w-11/12 max-w-[450px] rounded-md sm:h-fit">
         <DialogHeader className="pb-2">
           <DialogTitle>{task?.name}</DialogTitle>
-          <DialogDescription>{task?.description}</DialogDescription>
         </DialogHeader>
 
         <div className="h-full w-full space-y-4 px-1">
@@ -127,7 +126,7 @@ export default function ViewTaskDialog({
                 </div>
 
                 <div>
-                  {task?.dueDate ? format(task.dueDate, "PPP HH:mm") : ""}
+                  {task?.dueDate ? format(task.dueDate, "MMMM do HH:mm") : ""}
                 </div>
               </div>
             </div>
@@ -135,27 +134,20 @@ export default function ViewTaskDialog({
 
           {!task?.dueMode && (
             <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2">
-              <Input readOnly>
+              <div className="flex flex-row rounded-md">
                 <div className="flex flex-col place-content-center">
-                  <CalendarIcon className="h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4" />
                 </div>
                 <div>
                   {task?.dateRange?.from
-                    ? format(task.dateRange.from, "PPP HH:mm")
-                    : ""}
-                </div>
-              </Input>
-
-              <Input readOnly>
-                <div className="flex flex-col place-content-center">
-                  <CalendarIcon className="h-4 w-4" />
-                </div>
-                <div>
+                    ? format(task.dateRange.from, "MMM do HH:mm")
+                    : ""}{" "}
+                  -
                   {task?.dateRange?.to
-                    ? format(task?.dateRange?.to, "PPP HH:mm")
+                    ? format(task?.dateRange?.to, "MMM do HH:mm")
                     : ""}
                 </div>
-              </Input>
+              </div>
             </div>
           )}
 
@@ -176,6 +168,8 @@ export default function ViewTaskDialog({
               {task?.pet.name} ({task?.group.name})
             </div>
           </div>
+
+          <div>{task?.description}</div>
 
           <Form {...claimTaskForm}>
             <form onSubmit={claimTaskForm.handleSubmit(executeClaim)}>
