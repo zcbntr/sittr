@@ -44,8 +44,10 @@ export const tasks = createTable("tasks", {
   }),
   // The user who is planning to complete the task
   claimedBy: text("claimed_by"),
+  claimedAt: timestamp("claimed_at", { withTimezone: true }),
   // If the task is marked as done, the user who marked it as done
   markedAsDoneBy: text("marked_as_done_by"),
+  markedAsDoneAt: timestamp("marked_as_done_at", { withTimezone: true }),
   requiresVerification: boolean("requires_verification")
     .notNull()
     .default(false),

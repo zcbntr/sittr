@@ -169,7 +169,8 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, user.userId)))
         .execute();
 
-      revalidatePath("/tasks");
+      revalidatePath("/");
+      revalidatePath(`/tasks/${task.id}`);
       return;
       // If the task is claimed by another user, the user cannot claim it
     } else if (task?.claimedBy) {
@@ -197,7 +198,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         );
       }
 
-      revalidatePath("/tasks");
       revalidatePath("/");
+      revalidatePath(`/tasks/${task.id}`);
     }
   });

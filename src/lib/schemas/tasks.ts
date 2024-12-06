@@ -22,8 +22,10 @@ export const taskSchema = z.object({
   requiresVerification: z.boolean().optional().default(false),
   markedAsDone: z.boolean(),
   markedAsDoneBy: userSchema.optional().nullable(),
+  markedAsDoneAt: z.date().optional().nullable(),
   claimed: z.boolean(),
   claimedBy: userSchema.optional().nullable(),
+  claimedAt: z.date().optional().nullable(),
 });
 
 export type Task = z.infer<typeof taskSchema>;
