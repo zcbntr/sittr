@@ -46,7 +46,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
 
     if (!createdByUser) {
       throw new Error(
-        "User creating task not found in Clerk. The user may have deleted their account.",
+        "User who created task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -54,7 +54,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
 
     if (!ownerUser) {
       throw new Error(
-        "User owning task not found in Clerk. The user may have deleted their account.",
+        "User who owns task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -63,7 +63,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
 
       if (!claimingUser) {
         throw new Error(
-          "User claiming task not found in Clerk. The user may have deleted their account.",
+          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -75,7 +75,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
 
       if (!markedAsDoneUser) {
         throw new Error(
-          "User marking task as done not found in Clerk. The user may have deleted their account.",
+          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -124,7 +124,6 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
             createdBy: task.group.createdBy,
           })
         : null,
-      markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
             userId: markedAsDoneUser.id,
@@ -180,7 +179,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
 
     if (!createdByUser) {
       throw new Error(
-        "User creating task not found in Clerk. The user may have deleted their account.",
+        "User who created task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -190,7 +189,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
 
     if (!ownerUser) {
       throw new Error(
-        "User owning task not found in Clerk. The user may have deleted their account.",
+        "User who owns task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -201,7 +200,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
 
       if (!claimingUser) {
         throw new Error(
-          "User claiming task not found in Clerk. The user may have deleted their account.",
+          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -213,7 +212,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
 
       if (!markedAsDoneUser) {
         throw new Error(
-          "User marking task as done not found in Clerk. The user may have deleted their account.",
+          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -264,21 +263,20 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
             createdBy: task.groups.createdBy,
           })
         : null,
-      markedAsDone: task.tasks.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
-            userId: markedAsDoneUser?.id,
-            name: markedAsDoneUser?.fullName,
-            avatar: markedAsDoneUser?.imageUrl,
+            userId: markedAsDoneUser.id,
+            name: markedAsDoneUser.fullName,
+            avatar: markedAsDoneUser.imageUrl,
           })
         : null,
       markedAsDoneAt: task.tasks.markedAsDoneAt,
       claimed: task.tasks.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
-            userId: claimingUser?.id,
-            name: claimingUser?.fullName,
-            avatar: claimingUser?.imageUrl,
+            userId: claimingUser.id,
+            name: claimingUser.fullName,
+            avatar: claimingUser.imageUrl,
           })
         : null,
       claimedAt: task.tasks.claimedAt,
@@ -315,7 +313,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
 
   if (!createdByUser) {
     throw new Error(
-      "User creating task not found in Clerk. The user may have deleted their account.",
+      "User who created task was not found in Clerk. The user may have deleted their account.",
     );
   }
 
@@ -323,7 +321,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
 
   if (!ownerUser) {
     throw new Error(
-      "User owning task not found in Clerk. The user may have deleted their account.",
+      "User who owns task was not found in Clerk. The user may have deleted their account.",
     );
   }
 
@@ -332,7 +330,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
 
     if (!claimingUser) {
       throw new Error(
-        "User claiming task not found in Clerk. The user may have deleted their account.",
+        "User who marked task as done was not found in Clerk. The user may have deleted their account.",
       );
     }
   }
@@ -344,7 +342,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
 
     if (!markedAsDoneUser) {
       throw new Error(
-        "User marking task as done not found in Clerk. The user may have deleted their account.",
+        "User who marked task as done was not found in Clerk. The user may have deleted their account.",
       );
     }
   }
@@ -392,7 +390,6 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
           createdBy: task.group.createdBy,
         })
       : null,
-    markedAsDone: task.markedAsDoneBy !== null,
     markedAsDoneBy: markedAsDoneUser
       ? userSchema.parse({
           userId: markedAsDoneUser.id,
@@ -411,6 +408,225 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
       : null,
     claimedAt: task.claimedAt,
   });
+}
+
+export async function getVisibleTaskById(taskId: string): Promise<Task> {
+  const user = await auth();
+
+  if (!user.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Get tasks in range where the user is in the group the task is assigned to
+  const groupInTasksInRange = db
+    .select({
+      taskId: tasks.id,
+      ownerId: tasks.ownerId,
+      createdBy: tasks.createdBy,
+      name: tasks.name,
+      description: tasks.description,
+      completed: tasks.completed,
+      dueMode: tasks.dueMode,
+      dueDate: tasks.dueDate,
+      dateRangeFrom: tasks.dateRangeFrom,
+      dateRangeTo: tasks.dateRangeTo,
+      petId: pets.id,
+      petName: pets.name,
+      petCreatedBy: pets.createdBy,
+      petOwnerId: pets.ownerId,
+      petSpecies: pets.species,
+      petBreed: pets.breed,
+      petDob: pets.dob,
+      petSex: pets.sex,
+      petImage: petImages.url,
+      groupId: groups.id,
+      groupName: groups.name,
+      groupDescription: groups.description,
+      groupCreatedBy: groups.createdBy,
+      claimedBy: tasks.claimedBy,
+      claimedAt: tasks.claimedAt,
+      markedAsDoneBy: tasks.markedAsDoneBy,
+      markedAsDoneAt: tasks.markedAsDoneAt,
+      requiresVerification: tasks.requiresVerification,
+      createdAt: tasks.createdAt,
+      updatedAt: tasks.updatedAt,
+    })
+    .from(tasks)
+    .leftJoin(usersToGroups, eq(tasks.group, usersToGroups.groupId))
+    .leftJoin(groups, eq(tasks.group, groups.id))
+    .leftJoin(petsToGroups, eq(groups.id, petsToGroups.groupId))
+    .leftJoin(pets, eq(tasks.pet, pets.id))
+    .leftJoin(petImages, eq(pets.id, petImages.petId))
+    .where(
+      and(
+        eq(usersToGroups.userId, user.userId),
+        eq(tasks.id, taskId),
+        not(eq(tasks.ownerId, user.userId)),
+      ),
+    );
+
+  const tasksOwnedInRange = db
+    .select({
+      taskId: tasks.id,
+      ownerId: tasks.ownerId,
+      createdBy: tasks.createdBy,
+      name: tasks.name,
+      description: tasks.description,
+      completed: tasks.completed,
+      dueMode: tasks.dueMode,
+      dueDate: tasks.dueDate,
+      dateRangeFrom: tasks.dateRangeFrom,
+      dateRangeTo: tasks.dateRangeTo,
+      petId: pets.id,
+      petName: pets.name,
+      petCreatedBy: pets.createdBy,
+      petOwnerId: pets.ownerId,
+      petSpecies: pets.species,
+      petBreed: pets.breed,
+      petDob: pets.dob,
+      petSex: pets.sex,
+      petImage: petImages.url,
+      groupId: groups.id,
+      groupName: groups.name,
+      groupDescription: groups.description,
+      groupCreatedBy: groups.createdBy,
+      claimedBy: tasks.claimedBy,
+      claimedAt: tasks.claimedAt,
+      markedAsDoneBy: tasks.markedAsDoneBy,
+      markedAsDoneAt: tasks.markedAsDoneAt,
+      requiresVerification: tasks.requiresVerification,
+      createdAt: tasks.createdAt,
+      updatedAt: tasks.updatedAt,
+    })
+    .from(tasks)
+    .leftJoin(groups, eq(tasks.group, groups.id))
+    .leftJoin(petsToGroups, eq(groups.id, petsToGroups.groupId))
+    .leftJoin(pets, eq(tasks.pet, pets.id))
+    .leftJoin(petImages, eq(pets.id, petImages.petId))
+    .where(and(eq(tasks.ownerId, user.userId), eq(tasks.id, taskId)));
+
+  const allTasksVisible = await union(groupInTasksInRange, tasksOwnedInRange);
+
+  if (allTasksVisible.length === 0 || !allTasksVisible?.[0]) {
+    throw new Error("Task not found");
+  }
+
+  const task = allTasksVisible[0];
+
+  const clerkUsers = await clerkClient.users.getUserList();
+
+  let claimingUser = null;
+  let markedAsDoneUser = null;
+
+  const createdByUser = clerkUsers.data.find(
+    (user) => user.id === task.createdBy,
+  );
+
+  if (!createdByUser) {
+    throw new Error(
+      "User who created task was not found in Clerk. The user may have deleted their account.",
+    );
+  }
+
+  const ownerUser = clerkUsers.data.find((user) => user.id === task.ownerId);
+
+  if (!ownerUser) {
+    throw new Error(
+      "User who owns task was not found in Clerk. The user may have deleted their account.",
+    );
+  }
+
+  if (task.claimedBy !== null) {
+    claimingUser = clerkUsers.data.find((user) => user.id === task.claimedBy);
+
+    if (!claimingUser) {
+      throw new Error(
+        "User who claimed task was not found in Clerk. The user may have deleted their account.",
+      );
+    }
+  }
+
+  if (task.markedAsDoneBy !== null) {
+    markedAsDoneUser = clerkUsers.data.find(
+      (user) => user.id === task.markedAsDoneBy,
+    );
+
+    if (!markedAsDoneUser) {
+      throw new Error(
+        "User who marked task as done was not found in Clerk. The user may have deleted their account.",
+      );
+    }
+  }
+
+  const parse = taskSchema.safeParse({
+    taskId: task.taskId,
+    owner: userSchema.parse({
+      userId: ownerUser?.id,
+      name: ownerUser?.fullName,
+      avatar: ownerUser?.imageUrl,
+    }),
+    createdBy: userSchema.parse({
+      userId: createdByUser?.id,
+      name: createdByUser?.fullName,
+      avatar: createdByUser?.imageUrl,
+    }),
+    name: task.name,
+    description: task.description,
+    dueMode: task.dueMode,
+    dueDate: task.dueMode ? task.dueDate : undefined,
+    dateRange:
+      !task.dueMode && task.dateRangeFrom && task.dateRangeTo
+        ? {
+            from: task.dateRangeFrom,
+            to: task.dateRangeTo,
+          }
+        : undefined,
+    pet: task.petId
+      ? petSchema.parse({
+          petId: task.petId,
+          ownerId: task.petOwnerId,
+          createdBy: task.petCreatedBy,
+          name: task.petName,
+          species: task.petSpecies,
+          breed: task.petBreed,
+          dob: task.petDob,
+          sex: task.petSex,
+          image: task.petImage,
+        })
+      : null,
+    group: task.groupId
+      ? groupSchema.parse({
+          groupId: task.groupId,
+          name: task.groupName,
+          description: task.groupDescription,
+          createdBy: task.groupCreatedBy,
+        })
+      : null,
+    markedAsDoneBy: markedAsDoneUser
+      ? userSchema.parse({
+          userId: markedAsDoneUser.id,
+          name: markedAsDoneUser.fullName,
+          avatar: markedAsDoneUser.imageUrl,
+        })
+      : null,
+    markedAsDoneAt: task.markedAsDoneAt,
+    claimed: task.claimedBy !== null,
+    claimedBy: claimingUser
+      ? userSchema.parse({
+          userId: claimingUser.id,
+          name: claimingUser.fullName,
+          avatar: claimingUser.imageUrl,
+        })
+      : null,
+    claimedAt: task.claimedAt,
+  });
+
+  if (!parse.success) {
+    console.log(parse.error);
+    throw new Error("Failed to parse task");
+  }
+
+  return parse.data;
 }
 
 export async function getTasksInRange(
@@ -464,7 +680,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
 
     if (!createdByUser) {
       throw new Error(
-        "User creating task not found in Clerk. The user may have deleted their account.",
+        "User who created task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -472,7 +688,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
 
     if (!ownerUser) {
       throw new Error(
-        "User owning task not found in Clerk. The user may have deleted their account.",
+        "User who owns task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -481,7 +697,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
 
       if (!claimingUser) {
         throw new Error(
-          "User claiming task not found in Clerk. The user may have deleted their account.",
+          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -493,7 +709,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
 
       if (!markedAsDoneUser) {
         throw new Error(
-          "User marking task as done not found in Clerk. The user may have deleted their account.",
+          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -542,7 +758,6 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
             createdBy: task.group.createdBy,
           })
         : null,
-      markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
             userId: markedAsDoneUser.id,
@@ -609,7 +824,7 @@ async function getTasksSittingForInRange(
 
     if (!createdByUser) {
       throw new Error(
-        "User creating task not found in Clerk. The user may have deleted their account.",
+        "User who created task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -619,7 +834,7 @@ async function getTasksSittingForInRange(
 
     if (!ownerUser) {
       throw new Error(
-        "User owning task not found in Clerk. The user may have deleted their account.",
+        "User who owns task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -630,7 +845,7 @@ async function getTasksSittingForInRange(
 
       if (!claimingUser) {
         throw new Error(
-          "User claiming task not found in Clerk. The user may have deleted their account.",
+          "User who claimed task not was found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -642,7 +857,7 @@ async function getTasksSittingForInRange(
 
       if (!markedAsDoneUser) {
         throw new Error(
-          "User marking task as done not found in Clerk. The user may have deleted their account.",
+          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -697,21 +912,20 @@ async function getTasksSittingForInRange(
             createdBy: joinedTaskRow.groups.createdBy,
           })
         : null,
-      markedAsDone: joinedTaskRow.tasks.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
-            userId: markedAsDoneUser?.id,
-            name: markedAsDoneUser?.fullName,
-            avatar: markedAsDoneUser?.imageUrl,
+            userId: markedAsDoneUser.id,
+            name: markedAsDoneUser.fullName,
+            avatar: markedAsDoneUser.imageUrl,
           })
         : null,
       markedAsDoneAt: joinedTaskRow.tasks.markedAsDoneAt,
       claimed: joinedTaskRow.tasks.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
-            userId: claimingUser?.id,
-            name: claimingUser?.fullName,
-            avatar: claimingUser?.imageUrl,
+            userId: claimingUser.id,
+            name: claimingUser.fullName,
+            avatar: claimingUser.imageUrl,
           })
         : null,
       claimedAt: joinedTaskRow.tasks.claimedAt,
@@ -848,7 +1062,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
     if (!createdByUser) {
       throw new Error(
-        "User creating task not found in Clerk. The user may have deleted their account.",
+        "User who created task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -856,7 +1070,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
     if (!ownerUser) {
       throw new Error(
-        "User owning task not found in Clerk. The user may have deleted their account.",
+        "User who owns task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -865,7 +1079,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
       if (!claimingUser) {
         throw new Error(
-          "User claiming task not found in Clerk. The user may have deleted their account.",
+          "User who claimed task was not found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -877,7 +1091,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
       if (!markedAsDoneUser) {
         throw new Error(
-          "User marking task as done not found in Clerk. The user may have deleted their account.",
+          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -926,21 +1140,20 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
             createdBy: task.groupCreatedBy,
           })
         : null,
-      markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
-            userId: markedAsDoneUser?.id,
-            name: markedAsDoneUser?.fullName,
-            avatar: markedAsDoneUser?.imageUrl,
+            userId: markedAsDoneUser.id,
+            name: markedAsDoneUser.fullName,
+            avatar: markedAsDoneUser.imageUrl,
           })
         : null,
       markedAsDoneAt: task.markedAsDoneAt,
       claimed: task.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
-            userId: claimingUser?.id,
-            name: claimingUser?.fullName,
-            avatar: claimingUser?.imageUrl,
+            userId: claimingUser.id,
+            name: claimingUser.fullName,
+            avatar: claimingUser.imageUrl,
           })
         : null,
       claimedAt: task.claimedAt,
@@ -1080,7 +1293,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
 
     if (!createdByUser) {
       throw new Error(
-        "User creating task not found in Clerk. The user may have deleted their account.",
+        "User who created task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -1088,7 +1301,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
 
     if (!ownerUser) {
       throw new Error(
-        "User owning task not found in Clerk. The user may have deleted their account.",
+        "User who owns task was not found in Clerk. The user may have deleted their account.",
       );
     }
 
@@ -1097,7 +1310,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
 
       if (!claimingUser) {
         throw new Error(
-          "User claiming task not found in Clerk. The user may have deleted their account.",
+          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -1109,7 +1322,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
 
       if (!markedAsDoneUser) {
         throw new Error(
-          "User marking task as done not found in Clerk. The user may have deleted their account.",
+          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
         );
       }
     }
@@ -1158,21 +1371,19 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
             createdBy: task.groupCreatedBy,
           })
         : null,
-      markedAsDone: task.markedAsDoneBy !== null,
       markedAsDoneBy: markedAsDoneUser
         ? userSchema.parse({
-            userId: markedAsDoneUser?.id,
-            name: markedAsDoneUser?.fullName,
-            avatar: markedAsDoneUser?.imageUrl,
+            userId: markedAsDoneUser.id,
+            name: markedAsDoneUser.fullName,
+            avatar: markedAsDoneUser.imageUrl,
           })
         : null,
       markedAsDoneAt: task.markedAsDoneAt,
-      claimed: task.claimedBy !== null,
       claimedBy: claimingUser
         ? userSchema.parse({
-            userId: claimingUser?.id,
-            name: claimingUser?.fullName,
-            avatar: claimingUser?.imageUrl,
+            userId: claimingUser.id,
+            name: claimingUser.fullName,
+            avatar: claimingUser.imageUrl,
           })
         : null,
       claimedAt: task.claimedAt,

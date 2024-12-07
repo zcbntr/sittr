@@ -6,13 +6,13 @@ import CalendarComponent from "~/components/calendar";
 import { Button } from "~/components/ui/button";
 import CreateTaskDialog from "./tasks/createtaskdialog";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
-import { auth } from "@clerk/nextjs/server";
 import { getTasksInRange } from "~/server/queries/tasks";
 import type { TaskTypeEnum } from "~/lib/schemas/tasks";
 import TaskTypeSelect from "./dashboard/tasks-type-select";
 import { Suspense } from "react";
 import MonthArrows from "./dashboard/month-arrows";
 import { MdAddTask } from "react-icons/md";
+import { getCurrentLoggedInUser } from "~/server/queries/users";
 
 export default async function Dashboard({
   dateFrom,
@@ -23,10 +23,8 @@ export default async function Dashboard({
   dateTo: Date;
   tasksType: TaskTypeEnum;
 }) {
-  const { userId } = await auth();
-  if (!userId) return null;
-
-  const [groups, tasks] = await Promise.all([
+  const [currentUser, groups, tasks] = await Promise.all([
+    getCurrentLoggedInUser(),
     getGroupsUserIsIn(),
     getTasksInRange(dateFrom, dateTo, tasksType),
   ]);
@@ -35,7 +33,7 @@ export default async function Dashboard({
     <div className="flex flex-col gap-3 p-5">
       <h1 className="text-xl">Dashboard</h1>
       <section>
-        <div className="flex flex-row flex-wrap place-content-center sm:place-content-end gap-2">
+        <div className="flex flex-row flex-wrap place-content-center gap-2 sm:place-content-end">
           <div className="flex flex-col place-content-center">
             <CreateTaskDialog groups={groups}>
               <Button variant="outline">
@@ -59,7 +57,11 @@ export default async function Dashboard({
           fallback={<div>Loading table...</div>}
         >
           <div className="pb-5">
-            <CalendarComponent userId={userId} groups={groups} tasks={tasks} />
+            <CalendarComponent
+              currentUser={currentUser}
+              groups={groups}
+              tasks={tasks}
+            />
           </div>
         </Suspense>
       </section>

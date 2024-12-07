@@ -19,13 +19,11 @@ export const taskSchema = z.object({
   dateRange: dateRangeSchema.optional().nullable(),
   pet: petSchema,
   group: groupSchema,
-  requiresVerification: z.boolean().optional().default(false),
-  markedAsDone: z.boolean(),
-  markedAsDoneBy: userSchema.optional().nullable(),
-  markedAsDoneAt: z.date().optional().nullable(),
-  claimed: z.boolean(),
-  claimedBy: userSchema.optional().nullable(),
-  claimedAt: z.date().optional().nullable(),
+  requiresVerification: z.boolean().default(false),
+  markedAsDoneBy: userSchema.nullable().optional(),
+  markedAsDoneAt: z.date().nullable().optional(),
+  claimedBy: userSchema.nullable().optional(),
+  claimedAt: z.date().nullable().optional(),
 });
 
 export type Task = z.infer<typeof taskSchema>;
@@ -159,7 +157,7 @@ export type CreateTaskFormProps = z.infer<typeof createTaskFormProps>;
 
 export const setMarkedAsCompleteFormProps = z.object({
   taskId: z.string(),
-  markedAsDone: z.boolean(),
+  markAsDone: z.boolean(),
 });
 
 export type SetMarkedAsCompleteFormProps = z.infer<
@@ -168,7 +166,7 @@ export type SetMarkedAsCompleteFormProps = z.infer<
 
 export const setClaimTaskFormProps = z.object({
   taskId: z.string(),
-  claimed: z.boolean(),
+  claim: z.boolean(),
 });
 
 export type SetClaimTaskFormProps = z.infer<typeof setClaimTaskFormProps>;

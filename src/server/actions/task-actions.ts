@@ -17,6 +17,7 @@ import {
 import { and, eq, not } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { ratelimit } from "../ratelimit";
+import { getVisibleTaskById } from "../queries/tasks";
 
 export const createTaskAction = authenticatedProcedure
   .createServerAction()
@@ -87,7 +88,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
 
     // Check if the task is marked as done by the user
     if (task.markedAsDoneBy === user.userId) {
-      if (input.markedAsDone == true) {
+      if (input.markAsDone) {
         throw new Error("Task is already marked as done by you");
       }
 
@@ -103,11 +104,13 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
       revalidatePath(`/tasks/${task.id}`);
       revalidatePath("/");
 
-      return input.markedAsDone;
+      const updatedTask = await getVisibleTaskById(input.taskId);
+
+      return updatedTask;
     } else if (task.claimedBy !== user.userId) {
       throw new Error("You can't mark a task as done if you didn't claim it");
     } else {
-      if (input.markedAsDone == false) {
+      if (!input.markAsDone) {
         throw new Error("You cannot unmark a task not marked as done by you");
       }
 
@@ -125,7 +128,9 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
       revalidatePath(`/tasks/${task.id}`);
       revalidatePath("/");
 
-      return input.markedAsDone;
+      const updatedTask = await getVisibleTaskById(input.taskId);
+
+      return updatedTask;
     }
   });
 
@@ -163,7 +168,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
 
     // Check if the task has been claimed by the user
     if (task?.claimedBy === user.userId) {
-      if (input.claimed == true) {
+      if (input.claim) {
         throw new Error("Task is already claimed by you");
       }
 
@@ -176,19 +181,23 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
           markedAsDoneBy: null,
           markedAsDoneAt: null,
         })
-        .where(and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, user.userId))))
+        .where(
+          and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, user.userId))),
+        )
         .execute();
 
       revalidatePath("/");
       revalidatePath(`/tasks/${task.id}`);
 
-      return input.claimed;
+      const updatedTask = await getVisibleTaskById(input.taskId);
+
+      return updatedTask;
       // If the task is claimed by another user, the user cannot claim it
     } else if (task?.claimedBy) {
       throw new Error("Task is already claimed by another user");
       // If the task is not completed and not claimed, the user can claim it
     } else {
-      if (input.claimed == false) {
+      if (!input.claim) {
         throw new Error("You cannot unclaim a task not claimed by you");
       }
 
@@ -213,6 +222,8 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
       revalidatePath("/");
       revalidatePath(`/tasks/${task.id}`);
 
-      return input.claimed;
+      const updatedTask = await getVisibleTaskById(input.taskId);
+
+      return updatedTask;
     }
   });

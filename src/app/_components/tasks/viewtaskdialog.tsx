@@ -9,14 +9,18 @@ import {
 } from "~/components/ui/dialog";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { type Task } from "~/lib/schemas/tasks";
+import {
+  setClaimTaskFormProps,
+  setMarkedAsCompleteFormProps,
+  type Task,
+} from "~/lib/schemas/tasks";
 import {
   setClaimTaskAction,
   setTaskMarkedAsDoneAction,
 } from "~/server/actions/task-actions";
 import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
@@ -26,19 +30,43 @@ import {
   MdOutlineCheck,
   MdOutlineCircle,
 } from "react-icons/md";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type z } from "zod";
+import { Form } from "~/components/ui/form";
+import { type User } from "~/lib/schemas/users";
 
 export default function ViewTaskDialog({
-  userId,
-  task,
+  currentUser,
+  initialTaskData,
   children,
 }: {
-  userId: string | null;
-  task: Task | undefined;
+  currentUser: User | null;
+  initialTaskData: Task | undefined;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState<boolean>(false);
+  const [task, setTask] = useState<Task | undefined>(initialTaskData);
 
-  console.log(task?.claimedAt);
+  const claimTaskForm = useForm<z.infer<typeof setClaimTaskFormProps>>({
+    resolver: zodResolver(setClaimTaskFormProps),
+    defaultValues: {
+      taskId: task?.taskId,
+      claim: task?.claimedBy?.userId === currentUser?.userId,
+    },
+    mode: "onSubmit",
+  });
+
+  const markAsCompleteForm = useForm<
+    z.infer<typeof setMarkedAsCompleteFormProps>
+  >({
+    resolver: zodResolver(setMarkedAsCompleteFormProps),
+    defaultValues: {
+      taskId: task?.taskId,
+      markAsDone: task?.markedAsDoneBy?.userId === currentUser?.userId,
+    },
+    mode: "onSubmit",
+  });
 
   const {
     isPending: claimPending,
@@ -49,10 +77,17 @@ export default function ViewTaskDialog({
       toast.error(err.message);
     },
     onSuccess: (data) => {
-      if (data.data) {
+      setTask(data.data);
+      if (data.data.claimedBy?.userId === currentUser?.userId) {
         toast.success("Task claimed!");
+        claimTaskForm.reset();
+        claimTaskForm.setValue("taskId", data.data.taskId);
+        claimTaskForm.setValue("claim", false);
       } else {
         toast.success("Task unclaimed!");
+        claimTaskForm.reset();
+        claimTaskForm.setValue("taskId", data.data.taskId);
+        claimTaskForm.setValue("claim", true);
       }
     },
   });
@@ -66,18 +101,31 @@ export default function ViewTaskDialog({
       toast.error(err.message);
     },
     onSuccess: (data) => {
-      if (data.data) {
+      setTask(data.data);
+      if (data.data.markedAsDoneBy?.userId === currentUser?.userId) {
         toast.success("Marked as done!");
+        markAsCompleteForm.reset();
+        markAsCompleteForm.setValue("taskId", data.data.taskId);
+        markAsCompleteForm.setValue("markAsDone", false);
       } else {
         toast.success("Unmarked as done!");
+        markAsCompleteForm.reset();
+        markAsCompleteForm.setValue("taskId", data.data.taskId);
+        markAsCompleteForm.setValue("markAsDone", true);
       }
     },
   });
 
+  useEffect(() => {
+    if (initialTaskData) {
+      setTask(initialTaskData);
+    }
+  }, [initialTaskData]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="h-5/6 max-h-svh w-11/12 max-w-[450px] rounded-md sm:h-fit">
+      <DialogContent className="h-5/6 max-h-svh w-11/12 max-w-[500px] rounded-md sm:h-fit">
         <DialogHeader className="pb-2">
           <DialogTitle>{task?.name}</DialogTitle>
         </DialogHeader>
@@ -98,20 +146,18 @@ export default function ViewTaskDialog({
           )}
 
           {!task?.dueMode && (
-            <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2">
-              <div className="flex flex-row rounded-md">
-                <div className="flex flex-col place-content-center">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                </div>
-                <div>
-                  {task?.dateRange?.from
-                    ? format(task.dateRange.from, "MMM do HH:mm")
-                    : ""}{" "}
-                  -
-                  {task?.dateRange?.to
-                    ? format(task?.dateRange?.to, "MMM do HH:mm")
-                    : ""}
-                </div>
+            <div className="flex flex-row rounded-md">
+              <div className="flex flex-col place-content-center">
+                <CalendarIcon className="mr-2 h-4 w-4" />
+              </div>
+              <div>
+                {task?.dateRange?.from
+                  ? format(task.dateRange.from, "MMM do HH:mm")
+                  : ""}{" "}
+                -
+                {task?.dateRange?.to
+                  ? format(task?.dateRange?.to, "MMM do HH:mm")
+                  : ""}
               </div>
             </div>
           )}
@@ -136,121 +182,115 @@ export default function ViewTaskDialog({
 
           <div>{task?.description}</div>
 
-          {task?.claimed &&
-            task.claimedBy?.userId == userId &&
+          {task?.claimedBy?.userId == currentUser?.userId &&
             task?.claimedAt && (
               <div className="text-sm font-medium">
                 You claimed this task on{" "}
-                {format(task?.claimedAt, "MMM do HH:mm")}
+                {format(task.claimedAt, "MMM do HH:mm")}
               </div>
             )}
 
-          {task?.markedAsDone &&
-            task.markedAsDoneBy?.userId == userId &&
+          {task?.markedAsDoneBy?.userId == currentUser?.userId &&
             task?.markedAsDoneAt && (
               <div className="text-sm font-medium">
                 You completed this task on{" "}
-                {format(task?.markedAsDoneAt, "MMM do HH:mm")}
+                {format(task.markedAsDoneAt, "MMM do HH:mm")}
               </div>
             )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <Button
-              disabled={
-                !task ||
-                (task?.claimedBy !== null &&
-                  task?.claimedBy !== undefined &&
-                  task?.claimedBy.userId !== userId &&
-                  userId !== null) ||
-                markAsDonePending ||
-                claimPending
-              }
-              onClick={async () => {
-                if (!task) return;
+          <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2">
+            <Form {...claimTaskForm}>
+              <form onSubmit={claimTaskForm.handleSubmit(executeClaim)}>
+                <Button
+                  className="h-fit w-full"
+                  disabled={
+                    (!claimTaskForm.getValues("taskId") ||
+                      (task?.claimedBy &&
+                        task.claimedBy?.userId !== currentUser?.userId)) ??
+                    (markAsDonePending || claimPending)
+                  }
+                  type="submit"
+                >
+                  {task?.claimedBy &&
+                    task.claimedBy?.userId !== currentUser?.userId && (
+                      <div className="flex flex-row flex-nowrap">
+                        <div className="flex flex-col place-content-center">
+                          <MdLockOutline className="mr-1 h-4 w-4" />
+                        </div>
 
-                await executeClaim({
-                  taskId: task?.taskId,
-                  claimed: !task.claimed,
-                });
-              }}
-            >
-              {task?.claimedBy && task?.claimedBy.userId !== userId && (
-                <div className="flex flex-row flex-nowrap">
-                  <div className="flex flex-col place-content-center">
-                    <MdLockOutline className="mr-1 h-4 w-4" />
-                  </div>
+                        <div>Claimed by {task.claimedBy?.name}</div>
+                      </div>
+                    )}
+                  {task?.claimedBy &&
+                    task.claimedBy?.userId === currentUser?.userId && (
+                      <div className="flex flex-row flex-nowrap">
+                        <div className="flex flex-col place-content-center">
+                          <MdLockOpen className="mr-1 h-4 w-4" />
+                        </div>
 
-                  <div>Claimed by {task?.claimedBy.name}</div>
-                </div>
-              )}
-              {task?.claimedBy && task?.claimedBy.userId === userId && (
-                <div className="flex flex-row flex-nowrap">
-                  <div className="flex flex-col place-content-center">
-                    <MdLockOpen className="mr-1 h-4 w-4" />
-                  </div>
+                        <div>Unclaim Task</div>
+                      </div>
+                    )}
+                  {!task?.claimedBy && (
+                    <div className="flex flex-row flex-nowrap">
+                      <div className="flex flex-col place-content-center">
+                        <MdLockOutline className="mr-1 h-4 w-4" />
+                      </div>
 
-                  <div>Unclaim Task</div>
-                </div>
-              )}
-              {!task?.claimedBy && (
-                <div className="flex flex-row flex-nowrap">
-                  <div className="flex flex-col place-content-center">
-                    <MdLockOutline className="mr-1 h-4 w-4" />
-                  </div>
-
-                  <div>Claim Task</div>
-                </div>
-              )}
-            </Button>
-
-            <Button
-              disabled={
-                !task ||
-                (task?.markedAsDoneBy !== null &&
-                  task?.markedAsDoneBy !== undefined &&
-                  task?.markedAsDoneBy.userId !== userId &&
-                  userId !== null) ||
-                markAsDonePending ||
-                claimPending
-              }
-              onClick={async () => {
-                if (!task) return;
-
-                await executeMarkAsDone({
-                  taskId: task?.taskId,
-                  markedAsDone: !task.markedAsDone,
-                });
-              }}
-            >
-              {task?.markedAsDoneBy &&
-                task?.markedAsDoneBy.userId !== userId && (
-                  <div className="flex flex-row flex-nowrap">
-                    <div className="flex flex-col place-content-center">
-                      <MdOutlineCheck className="mr-1 h-4 w-4" />
+                      <div>Claim Task</div>
                     </div>
+                  )}
+                </Button>
+              </form>
+            </Form>
 
-                    <div>Marked as complete by {task?.markedAsDoneBy.name}</div>
-                  </div>
-                )}
-              {task?.markedAsDoneBy &&
-                task?.markedAsDoneBy.userId === userId && (
-                  <div className="flex flex-row flex-nowrap">
-                    <div className="flex flex-col place-content-center">
-                      <MdOutlineCircle className="mr-1 h-4 w-4" />
+            <Form {...markAsCompleteForm}>
+              <form
+                onSubmit={markAsCompleteForm.handleSubmit(executeMarkAsDone)}
+              >
+                <Button
+                  className="h-fit w-full"
+                  disabled={
+                    (!markAsCompleteForm.getValues("taskId") ||
+                      (task?.markedAsDoneBy &&
+                        task.markedAsDoneBy?.userId !== currentUser?.userId)) ??
+                    (markAsDonePending || claimPending)
+                  }
+                  type="submit"
+                >
+                  {task?.markedAsDoneBy &&
+                    task.markedAsDoneBy?.userId !== currentUser?.userId && (
+                      <div className="flex flex-row flex-nowrap">
+                        <div className="flex flex-col place-content-center">
+                          <MdOutlineCheck className="mr-1 h-4 w-4" />
+                        </div>
+
+                        <div>
+                          Marked as complete by {task.markedAsDoneBy?.name}
+                        </div>
+                      </div>
+                    )}
+                  {task?.markedAsDoneBy &&
+                    task.markedAsDoneBy?.userId === currentUser?.userId && (
+                      <div className="flex flex-row flex-nowrap">
+                        <div className="flex flex-col place-content-center">
+                          <MdOutlineCircle className="mr-1 h-4 w-4" />
+                        </div>
+                        <div>Unmark as complete</div>
+                      </div>
+                    )}
+                  {!task?.markedAsDoneBy && (
+                    <div className="flex flex-row flex-nowrap">
+                      <div className="flex flex-col place-content-center">
+                        <MdOutlineCheck className="mr-1 h-4 w-4" />
+                      </div>
+
+                      <div>Mark as complete</div>
                     </div>
-                    <div>Unmark as complete</div>
-                  </div>
-                )}
-              {!task?.markedAsDoneBy && (
-                <div className="flex flex-row flex-nowrap">
-                  <div className="flex flex-col place-content-center">
-                    <MdOutlineCheck className="mr-1 h-4 w-4" />
-                  </div>
-
-                  <div>Mark as complete</div>
-                </div>
-              )}
-            </Button>
+                  )}
+                </Button>
+              </form>
+            </Form>
           </div>
         </div>
 
