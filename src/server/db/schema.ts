@@ -133,10 +133,14 @@ export const tasks = createTable("tasks", {
     onDelete: "cascade",
   }),
   // The user who is planning to complete the task
-  claimedBy: text("claimed_by"),
+  claimedBy: text("claimed_by").references(() => users.id, {
+    onDelete: "set null",
+  }),
   claimedAt: timestamp("claimed_at", { withTimezone: true }),
   // If the task is marked as done, the user who marked it as done
-  markedAsDoneBy: text("marked_as_done_by"),
+  markedAsDoneBy: text("marked_as_done_by").references(() => users.id, {
+    onDelete: "set null",
+  }),
   markedAsDoneAt: timestamp("marked_as_done_at", { withTimezone: true }),
   requiresVerification: boolean("requires_verification")
     .notNull()
@@ -152,6 +156,18 @@ export const tasks = createTable("tasks", {
 export const tasksRelations = relations(tasks, ({ one }) => ({
   owner: one(users, {
     fields: [tasks.ownerId],
+    references: [users.id],
+  }),
+  creator: one(users, {
+    fields: [tasks.createdBy],
+    references: [users.id],
+  }),
+  claimedBy: one(users, {
+    fields: [tasks.claimedBy],
+    references: [users.id],
+  }),
+  markedAsDoneBy: one(users, {
+    fields: [tasks.markedAsDoneBy],
     references: [users.id],
   }),
   pet: one(pets, {

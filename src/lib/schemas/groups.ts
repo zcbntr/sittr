@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { petSchema, SexEnum } from "./pets";
+import { userSchema } from "./users";
 
 // -----------------------------------------------------------------------------
 // Group Schemas
@@ -17,11 +18,8 @@ export const DurationEnum = z.enum([
 export type DurationEnum = z.infer<typeof DurationEnum>;
 
 export const groupMemberSchema = z.object({
-  id: z.string(),
   groupId: z.string(),
-  userId: z.string(),
-  name: z.string(),
-  avatar: z.string().optional(),
+  user: userSchema,
   role: GroupRoleEnum,
 });
 
@@ -33,7 +31,7 @@ export type GroupMemberList = z.infer<typeof groupMemberListSchema>;
 
 export const groupSchema = z.object({
   groupId: z.string(),
-  createdBy: z.string(),
+  createdBy: userSchema.nullable(),
   name: z.string(),
   description: z.string().optional(),
   members: z.array(groupMemberSchema).optional(),
@@ -48,7 +46,7 @@ export type GroupList = z.infer<typeof groupListSchema>;
 
 export const groupInviteCodeSchema = z.object({
   inviteId: z.string(),
-  createdBy: z.string(),
+  createdBy: userSchema,
   code: z.string(),
   groupId: z.string(),
   uses: z.number(),
@@ -58,15 +56,6 @@ export const groupInviteCodeSchema = z.object({
 });
 
 export type GroupInviteCode = z.infer<typeof groupInviteCodeSchema>;
-
-export const userToGroupSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  groupId: z.string(),
-  role: GroupRoleEnum,
-});
-
-export type UserToGroup = z.infer<typeof userToGroupSchema>;
 
 export const petToGroupSchema = z.object({
   id: z.string(),
@@ -81,16 +70,15 @@ export const petToGroupListSchema = z.array(petToGroupSchema);
 export type PetToGroupList = z.infer<typeof petToGroupListSchema>;
 
 export const groupPetSchema = z.object({
-  id: z.string(),
   petId: z.string(),
-  ownerId: z.string(),
+  owner: userSchema,
   name: z.string(),
   species: z.string(),
   breed: z.string().optional(),
   dob: z.coerce.date(),
   sex: SexEnum.optional(),
   image: z.string().optional(),
-  groupId: z.string(),
+  group: groupSchema,
 });
 
 export type GroupPet = z.infer<typeof groupPetSchema>;

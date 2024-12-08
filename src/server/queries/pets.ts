@@ -1,15 +1,15 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { petSchema, type Pet } from "~/lib/schemas/pets";
 import { eq, and, or, inArray } from "drizzle-orm";
 import { petImages, pets, petsToGroups, usersToGroups } from "../db/schema";
+import { auth } from "~/auth";
 
 export async function getPetById(petId: string): Promise<Pet> {
-  const user = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!user.userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
@@ -25,10 +25,7 @@ export async function getPetById(petId: string): Promise<Pet> {
     .where(
       and(
         eq(pets.id, petId),
-        or(
-          eq(usersToGroups.userId, user.userId),
-          eq(pets.ownerId, user.userId),
-        ),
+        or(eq(usersToGroups.userId, userId), eq(pets.ownerId, userId)),
       ),
     )
     .limit(1);
@@ -54,9 +51,9 @@ export async function getPetById(petId: string): Promise<Pet> {
 }
 
 export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
-  const user = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!user.userId) {
+  if (!userId) {
     return "Unauthorized";
   }
 
@@ -85,14 +82,14 @@ export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
 }
 
 export async function getOwnedPets(): Promise<Pet[]> {
-  const user = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!user.userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
   const ownedPets = await db.query.pets.findMany({
-    where: (model, { eq }) => eq(model.ownerId, user.userId),
+    where: (model, { eq }) => eq(model.ownerId, userId),
     with: {
       petImages: true,
     },

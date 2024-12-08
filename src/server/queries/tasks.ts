@@ -9,84 +9,41 @@ import {
   pets,
   petsToGroups,
   tasks,
+  users,
   usersToGroups,
 } from "../db/schema";
 import { union } from "drizzle-orm/pg-core";
 import { userSchema } from "~/lib/schemas/users";
 import { petSchema } from "~/lib/schemas/pets";
 import { groupSchema } from "~/lib/schemas/groups";
+import { auth } from "~/auth";
 
 export async function getAllOwnedTasks(): Promise<Task[]> {
-  const user = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!user.userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
   const userTasks = await db.query.tasks.findMany({
-    with: { group: true, pet: { with: { petImages: true } } },
-    where: (model, { eq }) => eq(model.ownerId, user.userId),
+    with: {
+      owner: true,
+      creator: true,
+      claimedBy: true,
+      markedAsDoneBy: true,
+      group: true,
+      pet: { with: { petImages: true } },
+    },
+    where: (model, { eq }) => eq(model.ownerId, userId),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
   // Turn into task schema
-  const clerkUsers = await clerkClient.users.getUserList();
   const tasksList: Task[] = userTasks.map((task) => {
-    let claimingUser = null;
-    let markedAsDoneUser = null;
-
-    const createdByUser = clerkUsers.data.find(
-      (user) => user.id === task.createdBy,
-    );
-
-    if (!createdByUser) {
-      throw new Error(
-        "User who created task was not found in Clerk. The user may have deleted their account.",
-      );
-    }
-
-    const ownerUser = clerkUsers.data.find((user) => user.id === task.ownerId);
-
-    if (!ownerUser) {
-      throw new Error(
-        "User who owns task was not found in Clerk. The user may have deleted their account.",
-      );
-    }
-
-    if (task.claimedBy !== null) {
-      claimingUser = clerkUsers.data.find((user) => user.id === task.claimedBy);
-
-      if (!claimingUser) {
-        throw new Error(
-          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
-        );
-      }
-    }
-
-    if (task.markedAsDoneBy !== null) {
-      markedAsDoneUser = clerkUsers.data.find(
-        (user) => user.id === task.markedAsDoneBy,
-      );
-
-      if (!markedAsDoneUser) {
-        throw new Error(
-          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
-        );
-      }
-    }
-
     return taskSchema.parse({
       taskId: task.id,
-      owner: userSchema.parse({
-        userId: ownerUser?.id,
-        name: ownerUser?.fullName,
-        avatar: ownerUser?.imageUrl,
-      }),
-      createdBy: userSchema.parse({
-        userId: createdByUser?.id,
-        name: createdByUser?.fullName,
-        avatar: createdByUser?.imageUrl,
-      }),
+      owner: userSchema.parse(task.owner),
+      createdBy: userSchema.parse(task.createdBy),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -119,22 +76,12 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
             createdBy: task.group.createdBy,
           })
         : null,
-      markedAsDoneBy: markedAsDoneUser
-        ? userSchema.parse({
-            userId: markedAsDoneUser.id,
-            name: markedAsDoneUser.fullName,
-            avatar: markedAsDoneUser.imageUrl,
-          })
+      markedAsDoneBy: task.markedAsDoneBy
+        ? userSchema.parse(task.markedAsDoneBy)
         : null,
       markedAsDoneAt: task.markedAsDoneAt,
       claimed: task.claimedBy !== null,
-      claimedBy: claimingUser
-        ? userSchema.parse({
-            userId: claimingUser.id,
-            name: claimingUser.fullName,
-            avatar: claimingUser.imageUrl,
-          })
-        : null,
+      claimedBy: task.claimedBy ? userSchema.parse(task.claimedBy) : null,
       claimedAt: task.claimedAt,
     });
   });
@@ -143,9 +90,9 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
 }
 
 export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
-  const user = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!user.userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
@@ -155,7 +102,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
     .leftJoin(usersToGroups, eq(tasks.group, usersToGroups.groupId))
     .leftJoin(groups, eq(tasks.group, groups.id))
     .leftJoin(pets, eq(tasks.pet, pets.id))
-    .where(and(inArray(tasks.id, taskIds), eq(tasks.ownerId, user.userId)));
+    .where(and(inArray(tasks.id, taskIds), eq(tasks.ownerId, userId)));
 
   if (!joinedTasksList) {
     throw new Error("Tasks not found");
@@ -280,16 +227,16 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
 }
 
 export async function getOwnedTaskById(taskId: string): Promise<Task> {
-  const user = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!user.userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
   const task = await db.query.tasks.findFirst({
     with: { group: true, pet: { with: { petImages: true } } },
     where: (model, { and, eq }) =>
-      and(eq(model.id, taskId), eq(model.ownerId, user.userId)),
+      and(eq(model.id, taskId), eq(model.ownerId, userId)),
   });
 
   if (!task) {
@@ -406,9 +353,9 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
 }
 
 export async function getVisibleTaskById(taskId: string): Promise<Task> {
-  const user = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!user.userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
@@ -447,6 +394,7 @@ export async function getVisibleTaskById(taskId: string): Promise<Task> {
       updatedAt: tasks.updatedAt,
     })
     .from(tasks)
+    .leftJoin(users, eq(tasks.ownerId, users.id))
     .leftJoin(usersToGroups, eq(tasks.group, usersToGroups.groupId))
     .leftJoin(groups, eq(tasks.group, groups.id))
     .leftJoin(petsToGroups, eq(groups.id, petsToGroups.groupId))
@@ -454,9 +402,9 @@ export async function getVisibleTaskById(taskId: string): Promise<Task> {
     .leftJoin(petImages, eq(pets.id, petImages.petId))
     .where(
       and(
-        eq(usersToGroups.userId, user.userId),
+        eq(usersToGroups.userId, userId),
         eq(tasks.id, taskId),
-        not(eq(tasks.ownerId, user.userId)),
+        not(eq(tasks.ownerId, userId)),
       ),
     );
 
@@ -498,7 +446,7 @@ export async function getVisibleTaskById(taskId: string): Promise<Task> {
     .leftJoin(petsToGroups, eq(groups.id, petsToGroups.groupId))
     .leftJoin(pets, eq(tasks.pet, pets.id))
     .leftJoin(petImages, eq(pets.id, petImages.petId))
-    .where(and(eq(tasks.ownerId, user.userId), eq(tasks.id, taskId)));
+    .where(and(eq(tasks.ownerId, userId), eq(tasks.id, taskId)));
 
   const allTasksVisible = await union(groupInTasksInRange, tasksOwnedInRange);
 
@@ -643,9 +591,9 @@ export async function getTasksInRange(
 }
 
 async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
-  const user = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!user.userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
@@ -653,7 +601,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
     with: { group: true, pet: { with: { petImages: true } } },
     where: (model, { and, eq, gte, lte }) =>
       and(
-        eq(model.ownerId, user.userId),
+        eq(model.ownerId, userId),
         or(
           and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
@@ -780,9 +728,9 @@ async function getTasksSittingForInRange(
   from: Date,
   to: Date,
 ): Promise<Task[]> {
-  const user = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!user.userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
@@ -796,12 +744,12 @@ async function getTasksSittingForInRange(
     .leftJoin(petImages, eq(pets.id, petImages.petId))
     .where(
       and(
-        eq(usersToGroups.userId, user.userId),
+        eq(usersToGroups.userId, userId),
         or(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
         ),
-        not(eq(tasks.ownerId, user.userId)),
+        not(eq(tasks.ownerId, userId)),
       ),
     )
     .execute();
@@ -937,9 +885,9 @@ async function getTasksSittingForInRange(
 }
 
 async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
-  const user = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!user.userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
@@ -985,12 +933,12 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     .leftJoin(petImages, eq(pets.id, petImages.petId))
     .where(
       and(
-        eq(usersToGroups.userId, user.userId),
+        eq(usersToGroups.userId, userId),
         or(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeTo, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
         ),
-        not(eq(tasks.ownerId, user.userId)),
+        not(eq(tasks.ownerId, userId)),
       ),
     );
 
@@ -1034,7 +982,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     .leftJoin(petImages, eq(pets.id, petImages.petId))
     .where(
       and(
-        eq(tasks.ownerId, user.userId),
+        eq(tasks.ownerId, userId),
         or(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
@@ -1166,9 +1114,9 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 }
 
 async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
-  const user = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!user.userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
@@ -1214,12 +1162,12 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
     .leftJoin(petImages, eq(pets.id, petImages.petId))
     .where(
       and(
-        eq(usersToGroups.userId, user.userId),
+        eq(usersToGroups.userId, userId),
         or(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeTo, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
         ),
-        not(eq(tasks.ownerId, user.userId)),
+        not(eq(tasks.ownerId, userId)),
         isNull(tasks.claimedBy),
       ),
     );
@@ -1264,7 +1212,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
     .leftJoin(petImages, eq(pets.id, petImages.petId))
     .where(
       and(
-        eq(tasks.ownerId, user.userId),
+        eq(tasks.ownerId, userId),
         or(
           and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
           and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
