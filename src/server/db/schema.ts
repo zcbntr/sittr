@@ -14,8 +14,13 @@ import {
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import type { AdapterAccountType } from "next-auth/adapters";
-import { GroupRoleEnum } from "~/lib/schemas/groups";
-import { SexEnum } from "~/lib/schemas/pets";
+import { z } from "zod";
+
+export const GroupRoleEnum = z.enum(["Owner", "Member", "Pending"]);
+export type GroupRoleEnum = z.infer<typeof GroupRoleEnum>;
+
+export const SexEnum = z.enum(["Male", "Female", "Unspecified"]);
+export type SexEnum = z.infer<typeof SexEnum>;
 
 export const groupRoleEnum = pgEnum("role", GroupRoleEnum.options);
 export const sexEnum = pgEnum("sex", SexEnum.options);
@@ -344,29 +349,24 @@ export const groupInviteCodesRelations = relations(
   }),
 );
 
-export const petImages = createTable(
-  "pet_images",
-  {
-    // Do not use .notNull() here, as the pet may not have been created yet
-    petId: text("pet_id").references(() => pets.id, { onDelete: "cascade" }),
-    uploadedBy: text("uploaded_by")
-      .notNull()
-      .references(() => users.id, { onDelete: "set null" }),
-    url: text("url").notNull(),
-    fileKey: text("file_key").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),
-    ),
-  },
-  (t) => ({
-    compoundKey: primaryKey({
-      columns: [t.petId, t.fileKey],
-    }),
-  }),
-);
+export const petImages = createTable("pet_images", {
+  id: text("id")
+    .$defaultFn(() => crypto.randomUUID())
+    .primaryKey(),
+  // Do not use .notNull() here, as the pet may not have been created yet
+  petId: text("pet_id").references(() => pets.id, { onDelete: "cascade" }),
+  uploadedBy: text("uploaded_by")
+    .notNull()
+    .references(() => users.id, { onDelete: "set null" }),
+  url: text("url").notNull(),
+  fileKey: text("file_key").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
 
 export const petImagesRelations = relations(petImages, ({ one }) => ({
   pet: one(pets, {

@@ -1,7 +1,5 @@
 import { z } from "zod";
-
-export const SexEnum = z.enum(["Male", "Female", "Unspecified"]);
-export type SexEnum = z.infer<typeof SexEnum>;
+import { SexEnum } from "~/server/db/schema";
 
 export const petSchema = z.object({
   petId: z.string(),

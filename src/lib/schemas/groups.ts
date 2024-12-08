@@ -1,13 +1,11 @@
 import { z } from "zod";
 import { petSchema, SexEnum } from "./pets";
 import { userSchema } from "./users";
+import { GroupRoleEnum } from "~/server/db/schema";
 
 // -----------------------------------------------------------------------------
 // Group Schemas
 // -----------------------------------------------------------------------------
-
-export const GroupRoleEnum = z.enum(["Owner", "Member", "Pending"]);
-export type GroupRoleEnum = z.infer<typeof GroupRoleEnum>;
 
 export const DurationEnum = z.enum([
   "24 Hours",
