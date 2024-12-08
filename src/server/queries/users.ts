@@ -1,48 +1,55 @@
 "use server";
 
-import { auth, createClerkClient } from "@clerk/nextjs/server";
-import { type User, userSchema } from "~/lib/schemas/users";
-
-const clerkClient = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY,
-});
+import { auth } from "~/auth";
+import { User, selectUserSchema } from "~/lib/schemas/users";
+import { db } from "../db";
 
 export async function getCurrentLoggedInUser(): Promise<User> {
-  const { userId } = await auth();
+  const session = await auth();
+
+  const userId = session?.user?.id;
 
   if (!userId) {
     throw new Error("Unauthorized");
   }
 
-  const clerkUser = await clerkClient.users.getUser(userId);
+  const userRow = await db.query.users.findFirst({
+    where: (model, { eq }) => eq(model.id, userId),
+  });
 
-  if (!clerkUser) {
-    throw new Error("Failed to get user from Clerk");
+  if (!userRow) {
+    throw new Error("User not found");
   }
 
-  return userSchema.parse({
-    userId: userId,
-    name: clerkUser.fullName,
-    avatar: clerkUser.imageUrl,
+  return selectUserSchema.parse({
+    id: userId,
+    name: userRow?.name,
+    email: userRow?.email,
+    emailVerified: userRow.emailVerified,
+    image: userRow.image,
   });
 }
 
 export async function getUserByUserId(userId: string): Promise<User> {
-  const user = await auth();
+  const session = await auth();
 
-  if (!user.userId) {
+  if (!session?.user) {
     throw new Error("Unauthorized");
   }
 
-  const clerkUser = await clerkClient.users.getUser(userId);
+  const userRow = await db.query.users.findFirst({
+    where: (model, { eq }) => eq(model.id, userId),
+  });
 
-  if (!clerkUser) {
-    throw new Error("Failed to get user from Clerk");
+  if (!userRow) {
+    throw new Error("User not found");
   }
 
-  return userSchema.parse({
-    userId: userId,
-    name: clerkUser.fullName,
-    avatar: clerkUser.imageUrl,
+  return selectUserSchema.parse({
+    id: userId,
+    name: userRow?.name,
+    email: userRow?.email,
+    emailVerified: userRow.emailVerified,
+    image: userRow.image,
   });
 }

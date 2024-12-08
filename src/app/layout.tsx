@@ -1,7 +1,6 @@
 import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
-import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { TopNav } from "./_components/topnav";
 import { Footer } from "./_components/footer";
@@ -32,34 +31,32 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ClerkProvider dynamic>
-      <html lang="en" className={`${GeistSans.variable}`}>
-        <body className={`${GeistSans.variable}`}>
-          <Analytics />
-          <NextSSRPlugin
-            /**
-             * The `extractRouterConfig` will extract **only** the route configs
-             * from the router to prevent additional information from being
-             * leaked to the client. The data passed to the client is the same
-             * as if you were to fetch `/api/uploadthing` directly.
-             */
-            routerConfig={extractRouterConfig(ourFileRouter)}
-          />
+    <html lang="en" className={`${GeistSans.variable}`}>
+      <body className={`${GeistSans.variable}`}>
+        <Analytics />
+        <NextSSRPlugin
+          /**
+           * The `extractRouterConfig` will extract **only** the route configs
+           * from the router to prevent additional information from being
+           * leaked to the client. The data passed to the client is the same
+           * as if you were to fetch `/api/uploadthing` directly.
+           */
+          routerConfig={extractRouterConfig(ourFileRouter)}
+        />
 
-          <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
-            <main className="overflow-y-scroll">
-              <div className="h-min min-h-dvh">
-                <TopNav />
-                {children}
-              </div>
+        <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
+          <main className="overflow-y-scroll">
+            <div className="h-min min-h-dvh">
+              <TopNav />
+              {children}
+            </div>
 
-              <Footer />
-            </main>
-          </div>
+            <Footer />
+          </main>
+        </div>
 
-          <Toaster />
-        </body>
-      </html>
-    </ClerkProvider>
+        <Toaster />
+      </body>
+    </html>
   );
 }

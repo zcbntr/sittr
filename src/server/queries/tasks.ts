@@ -2,7 +2,6 @@
 
 import { type Task, taskSchema, TaskTypeEnum } from "~/lib/schemas/tasks";
 import { eq, and, or, lte, gte, inArray, not, isNull } from "drizzle-orm";
-import { auth, createClerkClient } from "@clerk/nextjs/server";
 import { db } from "../db";
 import {
   groups,
@@ -16,10 +15,6 @@ import { union } from "drizzle-orm/pg-core";
 import { userSchema } from "~/lib/schemas/users";
 import { petSchema } from "~/lib/schemas/pets";
 import { groupSchema } from "~/lib/schemas/groups";
-
-const clerkClient = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY,
-});
 
 export async function getAllOwnedTasks(): Promise<Task[]> {
   const user = await auth();

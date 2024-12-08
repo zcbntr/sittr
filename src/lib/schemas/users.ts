@@ -1,9 +1,7 @@
 import { z } from "zod";
+import { users } from "~/server/db/schema";
+import { createSelectSchema } from "drizzle-zod";
 
-export const userSchema = z.object({
-  userId: z.string(),
-  name: z.string(),
-  avatar: z.string().optional(),
-});
+export const selectUserSchema = createSelectSchema(users);
 
-export type User = z.infer<typeof userSchema>;
+export type User = z.infer<typeof selectUserSchema>;

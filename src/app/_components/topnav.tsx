@@ -1,19 +1,34 @@
-"use client";
-
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { MdGroups, MdPets } from "react-icons/md";
+import { auth } from "~/auth";
 
-export function TopNav() {
-  return (
-    <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
-      <div className="container mx-auto flex items-center justify-between">
-        <Link href="/" className="text-4xl font-bold">
-          sittr
-        </Link>
-        <nav className="items-center space-x-6 md:flex">
-          <div className="flex place-content-center">
-            <SignedIn>
+export async function TopNav() {
+  const session = await auth();
+
+  if (!session)
+    return (
+      <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
+        <div className="container mx-auto flex items-center justify-between">
+          <Link href="/" className="text-4xl font-bold">
+            sittr
+          </Link>
+          <nav className="items-center space-x-6 md:flex">
+            <div className="flex place-content-center">
+              <SignInButton />
+            </div>
+          </nav>
+        </div>
+      </header>
+    );
+  else
+    return (
+      <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
+        <div className="container mx-auto flex items-center justify-between">
+          <Link href="/" className="text-4xl font-bold">
+            sittr
+          </Link>
+          <nav className="items-center space-x-6 md:flex">
+            <div className="flex place-content-center">
               <UserButton
                 userProfileMode="navigation"
                 userProfileUrl="/user-profile"
@@ -39,13 +54,9 @@ export function TopNav() {
                   ></UserButton.Link>
                 </UserButton.MenuItems>
               </UserButton>
-            </SignedIn>
-            <SignedOut>
-              <SignInButton />
-            </SignedOut>
-          </div>
-        </nav>
-      </div>
-    </header>
-  );
+            </div>
+          </nav>
+        </div>
+      </header>
+    );
 }
