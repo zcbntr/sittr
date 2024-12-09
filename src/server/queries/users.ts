@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "~/auth";
-import { User, selectUserSchema } from "~/lib/schemas/users";
+import { User, userSchema } from "~/lib/schemas/users";
 import { db } from "../db";
 
 export async function getCurrentLoggedInUser(): Promise<User> {
@@ -21,7 +21,7 @@ export async function getCurrentLoggedInUser(): Promise<User> {
     throw new Error("User not found");
   }
 
-  return selectUserSchema.parse({
+  return userSchema.parse({
     id: userId,
     name: userRow?.name,
     email: userRow?.email,
@@ -45,7 +45,7 @@ export async function getUserByUserId(userId: string): Promise<User> {
     throw new Error("User not found");
   }
 
-  return selectUserSchema.parse({
+  return userSchema.parse({
     id: userId,
     name: userRow?.name,
     email: userRow?.email,

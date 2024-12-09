@@ -1,20 +1,21 @@
-import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { createServerActionProcedure } from "zsa";
 import { db } from "../db";
 import { groups, tasks, usersToGroups } from "../db/schema";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { auth } from "~/auth";
 
 export const authenticatedProcedure = createServerActionProcedure().handler(
   async () => {
-    const user = await auth();
-    if (!user.userId) {
+    const userId = (await auth())?.user?.id;
+
+    if (!userId) {
       // Return to homepage
       redirect("/");
     }
 
-    return { user };
+    return { userId };
   },
 );
 
@@ -23,18 +24,18 @@ export const ownsPetProcedure = createServerActionProcedure(
 )
   .input(z.object({ petId: z.string() }))
   .handler(async ({ ctx, input }) => {
-    const { user } = ctx;
+    const { userId } = ctx;
 
     const pet = await db.query.pets.findFirst({
       where: (model, { and, eq }) =>
-        and(eq(model.id, input.petId), eq(model.ownerId, user.userId)),
+        and(eq(model.id, input.petId), eq(model.ownerId, userId)),
     });
 
     if (!pet) {
       throw new Error("Pet not found");
     }
 
-    return { user, pet };
+    return { userId, pet };
   });
 
 export const ownsTaskProcedure = createServerActionProcedure(
@@ -42,17 +43,17 @@ export const ownsTaskProcedure = createServerActionProcedure(
 )
   .input(z.object({ taskId: z.string() }))
   .handler(async ({ ctx, input }) => {
-    const { user } = ctx;
+    const { userId } = ctx;
     const task = await db.query.tasks.findFirst({
       where: (model, { and, eq }) =>
-        and(eq(model.id, input.taskId), eq(model.createdBy, user.userId)),
+        and(eq(model.id, input.taskId), eq(model.createdBy, userId)),
     });
 
     if (!task) {
       throw new Error("Task not found");
     }
 
-    return { user, task };
+    return { userId, task };
   });
 
 export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
@@ -61,7 +62,7 @@ export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
   .input(z.object({ taskId: z.string() }))
   // Check if the user is in the group the task is assigned to
   .handler(async ({ ctx, input }) => {
-    const { user } = ctx;
+    const { userId } = ctx;
     const taskRow = (
       await db
         .select()
@@ -69,10 +70,7 @@ export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
         .leftJoin(groups, eq(tasks.group, groups.id))
         .leftJoin(usersToGroups, eq(groups.id, usersToGroups.groupId))
         .where(
-          and(
-            eq(tasks.id, input.taskId),
-            eq(usersToGroups.userId, user.userId),
-          ),
+          and(eq(tasks.id, input.taskId), eq(usersToGroups.userId, userId)),
         )
     )[0];
 
@@ -83,7 +81,7 @@ export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
     // Return just the task part of the row
     const task = taskRow.tasks;
 
-    return { user, task };
+    return { userId, task };
   });
 
 export const ownsGroupProcedure = createServerActionProcedure(
@@ -91,7 +89,7 @@ export const ownsGroupProcedure = createServerActionProcedure(
 )
   .input(z.object({ groupId: z.string() }))
   .handler(async ({ ctx, input }) => {
-    const { user } = ctx;
+    const { userId } = ctx;
 
     // Check if the user is the owner of the group by left joining group members
     const groupRow = (
@@ -102,7 +100,7 @@ export const ownsGroupProcedure = createServerActionProcedure(
         .where(
           and(
             eq(groups.id, input.groupId),
-            eq(usersToGroups.userId, user.userId),
+            eq(usersToGroups.userId, userId),
             eq(usersToGroups.role, "Owner"),
           ),
         )
@@ -114,5 +112,5 @@ export const ownsGroupProcedure = createServerActionProcedure(
 
     const group = groupRow.groups;
 
-    return { user, group };
+    return { userId, group };
   });

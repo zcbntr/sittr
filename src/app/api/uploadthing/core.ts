@@ -1,10 +1,11 @@
-import { auth } from "@clerk/nextjs/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
+import { auth } from "~/auth";
 import { db } from "~/server/db";
 import { petImages } from "~/server/db/schema";
+import { imageRateLimit } from "~/server/ratelimit";
 import { utapi } from "~/server/uploadthing";
 
 const f = createUploadthing();
@@ -16,15 +17,20 @@ export const ourFileRouter = {
     // Set permissions and file types for this FileRoute
     .middleware(async ({ req }) => {
       // This code runs on your server before upload
-      const user = await auth();
+      const userId = (await auth())?.user?.id;
 
-      // If you throw, the user will not be able to upload
-      if (!user) throw new Error("No user was returned from auth()");
       // eslint-disable-next-line @typescript-eslint/only-throw-error
-      if (!user.userId) throw new UploadThingError("Unauthorized");
+      if (!userId) throw new UploadThingError("Unauthorized");
+
+      const { success } = await imageRateLimit.limit(userId);
+
+      if (!success) {
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        throw new UploadThingError("You are uploading images too fast");
+      }
 
       // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: user.userId };
+      return { userId: userId };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       // This code RUNS ON YOUR SERVER after upload
@@ -73,15 +79,20 @@ export const ourFileRouter = {
     // Set permissions and file types for this FileRoute
     .middleware(async ({ req, input }) => {
       // This code runs on your server before upload
-      const user = await auth();
+      const userId = (await auth())?.user?.id;
 
-      // If you throw, the user will not be able to upload
-      if (!user) throw new Error("No user was returned from auth()");
       // eslint-disable-next-line @typescript-eslint/only-throw-error
-      if (!user.userId) throw new UploadThingError("Unauthorized");
+      if (!userId) throw new UploadThingError("Unauthorized");
+
+      const { success } = await imageRateLimit.limit(userId);
+
+      if (!success) {
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        throw new UploadThingError("You are uploading images too fast");
+      }
 
       // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: user.userId, petId: input.petId };
+      return { userId: userId, petId: input.petId };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       // This code RUNS ON YOUR SERVER after upload

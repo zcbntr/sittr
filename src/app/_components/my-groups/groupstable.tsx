@@ -3,7 +3,7 @@
 import { DataTable } from "~/components/ui/data-table";
 import CreateGroupDialog from "./creategroupdialog";
 import { Button } from "~/components/ui/button";
-import { type Group, GroupRoleEnum } from "~/lib/schemas/groups";
+import { type Group } from "~/lib/schemas/groups";
 import JoinGroupDialog from "./join-group-dialog";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
@@ -30,16 +30,13 @@ import {
 } from "~/components/ui/alert-dialog";
 import { useState } from "react";
 import { leaveGroupAction } from "~/server/actions/group-actions";
-import { useUser } from "@clerk/nextjs";
+import { auth } from "~/auth";
+import { GroupRoleEnum } from "~/server/db/schema";
 
-export default function GroupsTable({ groups }: { groups: Group[] }) {
+export default async function GroupsTable({ groups }: { groups: Group[] }) {
   const [alertState, setAlertState] = useState("");
 
-  const { isLoaded, isSignedIn, user } = useUser();
-
-  if (!isLoaded || !isSignedIn) {
-    return null;
-  }
+  const user = await auth();
 
   const columns: ColumnDef<Group>[] = [
     {
@@ -78,13 +75,15 @@ export default function GroupsTable({ groups }: { groups: Group[] }) {
           return (
             <div className="flex flex-row gap-2">
               {filteredMembers.map((member) => (
-                <Avatar key={member.id}>
+                <Avatar key={member.groupId + member.user.id}>
                   <AvatarImage
-                    src={member.avatar}
-                    alt={`${member.name}'s avatar`}
+                    src={member.user.image ? member.user.image : undefined}
+                    alt={`${member.user.name}'s avatar`}
                   />
                   {/* Make this actually be the initials rather than first letter */}
-                  <AvatarFallback>{member.name.substring(0, 1)}</AvatarFallback>
+                  <AvatarFallback>
+                    {member.user.name?.substring(0, 1)}
+                  </AvatarFallback>
                 </Avatar>
               ))}
             </div>
@@ -99,12 +98,16 @@ export default function GroupsTable({ groups }: { groups: Group[] }) {
             <div className="flex flex-row gap-2">
               <Avatar>
                 <AvatarImage
-                  src={filteredMembers[0].avatar}
-                  alt={`${filteredMembers[0].name}'s avatar`}
+                  src={
+                    filteredMembers[0].user.image
+                      ? filteredMembers[0].user.image
+                      : undefined
+                  }
+                  alt={`${filteredMembers[0].user.name}'s avatar`}
                 />
                 {/* Make this actually be the initials rather than first letter */}
                 <AvatarFallback>
-                  {filteredMembers[0].name.substring(0, 1)}
+                  {filteredMembers[0].user.name?.substring(0, 1)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col place-content-center">{`and ${filteredMembers.length - 1} more. `}</div>
@@ -176,15 +179,15 @@ export default function GroupsTable({ groups }: { groups: Group[] }) {
                   <DropdownMenuItem
                     onClick={async () =>
                       await navigator.clipboard.writeText(
-                        `${group.name} - Owned by ${group.members?.find((x) => x.role === GroupRoleEnum.Values.Owner)?.name} - ${group.description}`,
+                        `${group.name} - Owned by ${group.members?.find((x) => x.role === GroupRoleEnum.Values.Owner)?.user.name} - ${group.description}`,
                       )
                     }
                   >
                     Copy
                   </DropdownMenuItem>
                   {/* Show only if not group owner */}
-                  {group.members?.find((x) => x.userId === user.id)?.role ===
-                  GroupRoleEnum.Values.Owner ? null : (
+                  {group.members?.find((x) => x.user.id === user?.user?.id)
+                    ?.role === GroupRoleEnum.Values.Owner ? null : (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem

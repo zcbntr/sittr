@@ -15,9 +15,9 @@ export const createPetAction = authenticatedProcedure
   .createServerAction()
   .input(createPetInputSchema)
   .handler(async ({ input, ctx }) => {
-    const { user } = ctx;
+    const { userId } = ctx;
     // Once image upload is locked down to only paying customers we can remove the ratelimiting here
-    const { success } = await ratelimit.limit(user.userId);
+    const { success } = await ratelimit.limit(userId);
 
     if (!success) {
       throw new Error("You are creating pets too fast");
@@ -26,8 +26,8 @@ export const createPetAction = authenticatedProcedure
     const petRow = await db
       .insert(pets)
       .values({
-        createdBy: user.userId,
-        ownerId: user.userId,
+        createdBy: userId,
+        ownerId: userId,
         name: input.name,
         species: input.species,
         breed: input.breed,
@@ -54,7 +54,7 @@ export const updatePetAction = ownsPetProcedure
   .createServerAction()
   .input(updatePetSchema)
   .handler(async ({ input, ctx }) => {
-    const { user, pet } = ctx;
+    const { userId, pet } = ctx;
 
     await db
       .update(pets)
@@ -66,7 +66,7 @@ export const updatePetAction = ownsPetProcedure
         sex: input.sex,
         note: input.note,
       })
-      .where(and(eq(pets.id, input.petId), eq(pets.ownerId, user.userId)))
+      .where(and(eq(pets.id, input.petId), eq(pets.ownerId, userId)))
       .execute();
 
     revalidatePath(`/pets/${pet.id}`);
@@ -76,16 +76,11 @@ export const deletePetAction = authenticatedProcedure
   .createServerAction()
   .input(z.object({ petId: z.string() }))
   .handler(async ({ input, ctx }) => {
-    const { user } = ctx;
-    const { success } = await ratelimit.limit(user.userId);
-
-    if (!success) {
-      throw new Error("You are deleting pets too fast");
-    }
+    const { userId } = ctx;
 
     await db
       .delete(pets)
-      .where(and(eq(pets.id, input.petId), eq(pets.ownerId, user.userId)))
+      .where(and(eq(pets.id, input.petId), eq(pets.ownerId, userId)))
       .execute();
 
     redirect(`/pets`);

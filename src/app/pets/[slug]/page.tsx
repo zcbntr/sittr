@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { auth } from "@clerk/nextjs/server";
 import { PetOwnerPage } from "~/app/_components/pet-page/pet-owner-page";
 import { PetNonOwnerPage } from "~/app/_components/pet-page/pet-non-owner-page";
 import { getPetById } from "~/server/queries/pets";
+import { auth } from "~/auth";
 
 export default async function Page({
   params,
@@ -19,7 +19,12 @@ export default async function Page({
     return <PetDoesNotExistPage />;
   } else {
     // Check if user is the owner of the pet
-    const { userId } = await auth();
+    const userId = (await auth())?.user?.id;
+
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
     if (pet.ownerId == userId) {
       return <PetOwnerPage pet={pet} />;
     } else {

@@ -4,7 +4,6 @@ import {
   acceptPendingMemberSchema,
   createGroupInputSchema,
   groupDetailsSchema,
-  GroupRoleEnum,
   joinGroupFormSchema,
   petsToGroupFormInputSchema,
   petToGroupFormInputSchema,
@@ -15,6 +14,7 @@ import { db } from "../db";
 import { authenticatedProcedure, ownsGroupProcedure } from "./zsa-procedures";
 import {
   groupInviteCodes,
+  GroupRoleEnum,
   groups,
   petsToGroups,
   usersToGroups,

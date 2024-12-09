@@ -23,21 +23,15 @@ export const createTaskAction = authenticatedProcedure
   .createServerAction()
   .input(createTaskInputSchema)
   .handler(async ({ input, ctx }) => {
-    const { user } = ctx;
-
-    const { success } = await ratelimit.limit(user.userId);
-
-    if (!success) {
-      throw new Error("You are creating tasks too fast");
-    }
+    const { userId } = ctx;
 
     await db
       .insert(tasks)
       .values({
         name: input.name,
         dueMode: input.dueMode,
-        createdBy: user.userId,
-        ownerId: user.userId,
+        createdBy: userId,
+        ownerId: userId,
         dateRangeFrom: !input.dueMode ? input.dateRange?.from : null,
         dateRangeTo: !input.dueMode ? input.dateRange?.to : null,
         dueDate: input.dueMode ? input.dueDate : null,
@@ -55,7 +49,7 @@ export const updateTaskAction = ownsTaskProcedure
   // This needs to become a taskeditschema
   .input(updateTaskInputSchema)
   .handler(async ({ input, ctx }) => {
-    const { user, task } = ctx;
+    const { userId, task } = ctx;
 
     await db
       .update(tasks)
@@ -69,7 +63,7 @@ export const updateTaskAction = ownsTaskProcedure
         pet: input.petId,
         group: input.groupId,
       })
-      .where(and(eq(tasks.id, task.id), eq(tasks.ownerId, user.userId)))
+      .where(and(eq(tasks.id, task.id), eq(tasks.ownerId, userId)))
       .execute();
 
     revalidatePath(`/tasks/${task.id}`);
@@ -79,7 +73,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
   .createServerAction()
   .input(setMarkedAsCompleteFormProps)
   .handler(async ({ input, ctx }) => {
-    const { user, task } = ctx;
+    const { userId, task } = ctx;
 
     // Check if the task is already completed
     if (task.completed) {
@@ -87,7 +81,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
     }
 
     // Check if the task is marked as done by the user
-    if (task.markedAsDoneBy === user.userId) {
+    if (task.markedAsDoneBy === userId) {
       if (input.markAsDone) {
         throw new Error("Task is already marked as done by you");
       }
@@ -107,7 +101,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
       const updatedTask = await getVisibleTaskById(input.taskId);
 
       return updatedTask;
-    } else if (task.claimedBy !== user.userId) {
+    } else if (task.claimedBy !== userId) {
       throw new Error("You can't mark a task as done if you didn't claim it");
     } else {
       if (!input.markAsDone) {
@@ -117,9 +111,9 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
       await db
         .update(tasks)
         .set({
-          markedAsDoneBy: user.userId,
+          markedAsDoneBy: userId,
           markedAsDoneAt: new Date(),
-          claimedBy: user.userId,
+          claimedBy: userId,
           claimedAt: new Date(),
         })
         .where(eq(tasks.id, input.taskId))
@@ -138,8 +132,8 @@ export const deleteTaskAction = ownsTaskProcedure
   .createServerAction()
   .input(taskSchema.pick({ taskId: true }))
   .handler(async ({ input, ctx }) => {
-    const { user } = ctx;
-    const { success } = await ratelimit.limit(user.userId);
+    const { userId } = ctx;
+    const { success } = await ratelimit.limit(userId);
 
     if (!success) {
       throw new Error("You are deleting tasks too fast");
@@ -147,7 +141,7 @@ export const deleteTaskAction = ownsTaskProcedure
 
     await db
       .delete(tasks)
-      .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, user.userId)))
+      .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, userId)))
       .execute();
 
     revalidatePath("/tasks");
@@ -158,7 +152,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
   .createServerAction()
   .input(setClaimTaskFormProps)
   .handler(async ({ input, ctx }) => {
-    const { user, task } = ctx;
+    const { userId, task } = ctx;
 
     if (task.completed && task.requiresVerification) {
       throw new Error(
@@ -167,7 +161,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
     }
 
     // Check if the task has been claimed by the user
-    if (task?.claimedBy === user.userId) {
+    if (task?.claimedBy === userId) {
       if (input.claim) {
         throw new Error("Task is already claimed by you");
       }
@@ -181,9 +175,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
           markedAsDoneBy: null,
           markedAsDoneAt: null,
         })
-        .where(
-          and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, user.userId))),
-        )
+        .where(and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, userId))))
         .execute();
 
       revalidatePath("/");
@@ -204,12 +196,10 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
       const updatedRow = await db
         .update(tasks)
         .set({
-          claimedBy: user.userId,
+          claimedBy: userId,
           claimedAt: new Date(),
         })
-        .where(
-          and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, user.userId))),
-        )
+        .where(and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, userId))))
         .returning()
         .execute();
 
