@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MdGroups, MdPets } from "react-icons/md";
+// import { MdGroups, MdPets } from "react-icons/md";
 import { auth } from "~/auth";
 import SignInButton from "~/components/sign-in-button";
 import SignOutButton from "~/components/sign-out-button";
@@ -7,7 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getCurrentLoggedInUser } from "~/server/queries/users";
 
 export async function TopNav() {
-  const userId = (await auth())?.user?.id;
+  const userEmail = (await auth())?.user?.email;
+  const userId = userEmail ? await getCurrentLoggedInUser() : undefined;
 
   if (!userId) {
     return (

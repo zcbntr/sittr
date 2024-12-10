@@ -69,6 +69,13 @@ export const accounts = createTable(
   }),
 );
 
+export const accountRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
+}));
+
 export const sessions = createTable("session", {
   sessionToken: text("sessionToken").primaryKey(),
   userId: text("userId")

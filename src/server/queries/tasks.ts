@@ -18,6 +18,7 @@ import { petSchema } from "~/lib/schemas/pets";
 import { groupSchema } from "~/lib/schemas/groups";
 import { auth } from "~/auth";
 import { TaskTypeEnum } from "~/lib/schemas";
+import { getCurrentLoggedInUser, getUserByEmail } from "./users";
 
 export async function getAllOwnedTasks(): Promise<Task[]> {
   const userId = (await auth())?.user?.id;
@@ -129,28 +130,20 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
       dueMode: task.dueMode,
       dueDate: task.dueMode ? task.dueDate : undefined,
       dateRange:
-        !task.dueMode &&
-        task.dateRangeFrom &&
-        task.dateRangeTo
+        !task.dueMode && task.dateRangeFrom && task.dateRangeTo
           ? {
               from: task.dateRangeFrom,
               to: task.dateRangeTo,
             }
           : undefined,
-      pet: task.pet
-        ? petSchema.parse(task.pet)
-        : null,
-      group: task.group
-        ? groupSchema.parse(task.group)
-        : null,
+      pet: task.pet ? petSchema.parse(task.pet) : null,
+      group: task.group ? groupSchema.parse(task.group) : null,
       markedAsDoneBy: task.markedAsDoneBy
         ? userSchema.parse(task.markedAsDoneBy)
         : null,
       markedAsDoneAt: task.markedAsDoneAt,
       claimed: task.claimedBy !== null,
-      claimedBy: task.claimedBy
-        ? userSchema.parse(task.claimedBy)
-        : null,
+      claimedBy: task.claimedBy ? userSchema.parse(task.claimedBy) : null,
       claimedAt: task.claimedAt,
     });
   });
@@ -815,172 +808,58 @@ async function getTasksSittingForInRange(
 }
 
 async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
-  const userId = (await auth())?.user?.id;
+  const userRow = await getCurrentLoggedInUser();
+  const userId = userRow.id;
 
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  // Get tasks in range where the user is in the group the task is assigned to
-  const groupInTasksInRange = db
-    .select({
-      taskId: tasks.id,
-      ownerId: tasks.ownerId,
-      createdBy: tasks.createdBy,
-      name: tasks.name,
-      description: tasks.description,
-      completed: tasks.completed,
-      dueMode: tasks.dueMode,
-      dueDate: tasks.dueDate,
-      dateRangeFrom: tasks.dateRangeFrom,
-      dateRangeTo: tasks.dateRangeTo,
-      petId: pets.id,
-      petName: pets.name,
-      petCreatedBy: pets.createdBy,
-      petOwnerId: pets.ownerId,
-      petSpecies: pets.species,
-      petBreed: pets.breed,
-      petDob: pets.dob,
-      petSex: pets.sex,
-      petImage: petImages.url,
-      groupId: groups.id,
-      groupName: groups.name,
-      groupDescription: groups.description,
-      groupCreatedBy: groups.createdBy,
-      claimedBy: tasks.claimedBy,
-      claimedAt: tasks.claimedAt,
-      markedAsDoneBy: tasks.markedAsDoneBy,
-      markedAsDoneAt: tasks.markedAsDoneAt,
-      requiresVerification: tasks.requiresVerification,
-      createdAt: tasks.createdAt,
-      updatedAt: tasks.updatedAt,
-    })
-    .from(tasks)
-    .leftJoin(usersToGroups, eq(tasks.group, usersToGroups.groupId))
-    .leftJoin(groups, eq(tasks.group, groups.id))
-    .leftJoin(petsToGroups, eq(groups.id, petsToGroups.groupId))
-    .leftJoin(pets, eq(tasks.pet, pets.id))
-    .leftJoin(petImages, eq(pets.id, petImages.petId))
-    .where(
+  const tasksVisibleViaGroupsUserIn = await db.query.tasks.findMany({
+    with: {
+      owner: true,
+      creator: true,
+      claimedBy: true,
+      markedAsDoneBy: true,
+      group: true,
+      pet: { with: { petImages: true } },
+    },
+    where: (model, { and, or, eq, gte, lte }) =>
       and(
-        eq(usersToGroups.userId, userId),
         or(
-          and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeTo, to)),
-          and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
+          and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
+          and(gte(model.dueDate, from), lte(model.dueDate, to)),
         ),
-        not(eq(tasks.ownerId, userId)),
+        not(eq(model.ownerId, userId)),
       ),
-    );
+    orderBy: (model, { desc }) => desc(model.createdAt),
+  });
 
-  const tasksOwnedInRange = db
-    .select({
-      taskId: tasks.id,
-      ownerId: tasks.ownerId,
-      createdBy: tasks.createdBy,
-      name: tasks.name,
-      description: tasks.description,
-      completed: tasks.completed,
-      dueMode: tasks.dueMode,
-      dueDate: tasks.dueDate,
-      dateRangeFrom: tasks.dateRangeFrom,
-      dateRangeTo: tasks.dateRangeTo,
-      petId: pets.id,
-      petName: pets.name,
-      petCreatedBy: pets.createdBy,
-      petOwnerId: pets.ownerId,
-      petSpecies: pets.species,
-      petBreed: pets.breed,
-      petDob: pets.dob,
-      petSex: pets.sex,
-      petImage: petImages.url,
-      groupId: groups.id,
-      groupName: groups.name,
-      groupDescription: groups.description,
-      groupCreatedBy: groups.createdBy,
-      claimedBy: tasks.claimedBy,
-      claimedAt: tasks.claimedAt,
-      markedAsDoneBy: tasks.markedAsDoneBy,
-      markedAsDoneAt: tasks.markedAsDoneAt,
-      requiresVerification: tasks.requiresVerification,
-      createdAt: tasks.createdAt,
-      updatedAt: tasks.updatedAt,
-    })
-    .from(tasks)
-    .leftJoin(groups, eq(tasks.group, groups.id))
-    .leftJoin(petsToGroups, eq(groups.id, petsToGroups.groupId))
-    .leftJoin(pets, eq(tasks.pet, pets.id))
-    .leftJoin(petImages, eq(pets.id, petImages.petId))
-    .where(
+  const ownedTasks = await db.query.tasks.findMany({
+    with: {
+      owner: true,
+      creator: true,
+      claimedBy: true,
+      markedAsDoneBy: true,
+      group: true,
+      pet: { with: { petImages: true } },
+    },
+    where: (model, { and, or, eq, gte, lte }) =>
       and(
-        eq(tasks.ownerId, userId),
         or(
-          and(gte(tasks.dateRangeFrom, from), lte(tasks.dateRangeFrom, to)),
-          and(gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
+          and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
+          and(gte(model.dueDate, from), lte(model.dueDate, to)),
         ),
+        eq(model.ownerId, userId),
       ),
-    );
+    orderBy: (model, { desc }) => desc(model.createdAt),
+  });
 
-  const allTasksVisible = await union(groupInTasksInRange, tasksOwnedInRange);
+  const allTasksVisible = [...tasksVisibleViaGroupsUserIn, ...ownedTasks];
 
   // For all tasks, if any of ownedBy, markedAsDoneBy, claimedBy are not null, fetch the user name for each
   // Then Turn into task schema
-  const clerkUsers = await clerkClient.users.getUserList();
   const tasksList: Task[] = allTasksVisible.map((task) => {
-    let claimingUser = null;
-    let markedAsDoneUser = null;
-
-    const createdByUser = clerkUsers.data.find(
-      (user) => user.id === task.createdBy,
-    );
-
-    if (!createdByUser) {
-      throw new Error(
-        "User who created task was not found in Clerk. The user may have deleted their account.",
-      );
-    }
-
-    const ownerUser = clerkUsers.data.find((user) => user.id === task.ownerId);
-
-    if (!ownerUser) {
-      throw new Error(
-        "User who owns task was not found in Clerk. The user may have deleted their account.",
-      );
-    }
-
-    if (task.claimedBy !== null) {
-      claimingUser = clerkUsers.data.find((user) => user.id === task.claimedBy);
-
-      if (!claimingUser) {
-        throw new Error(
-          "User who claimed task was not found in Clerk. The user may have deleted their account.",
-        );
-      }
-    }
-
-    if (task.markedAsDoneBy !== null) {
-      markedAsDoneUser = clerkUsers.data.find(
-        (user) => user.id === task.markedAsDoneBy,
-      );
-
-      if (!markedAsDoneUser) {
-        throw new Error(
-          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
-        );
-      }
-    }
-
     const parse = taskSchema.safeParse({
-      taskId: task.taskId,
-      owner: userSchema.parse({
-        userId: ownerUser?.id,
-        name: ownerUser?.fullName,
-        avatar: ownerUser?.imageUrl,
-      }),
-      createdBy: userSchema.parse({
-        userId: createdByUser?.id,
-        name: createdByUser?.fullName,
-        avatar: createdByUser?.imageUrl,
-      }),
+      taskId: task.id,
+      owner: userSchema.parse(task.owner),
+      createdBy: userSchema.parse(task.createdBy),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -992,43 +871,14 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
               to: task.dateRangeTo,
             }
           : undefined,
-      pet: task.petId
-        ? petSchema.parse({
-            petId: task.petId,
-            ownerId: task.petOwnerId,
-            createdBy: task.petCreatedBy,
-            name: task.petName,
-            species: task.petSpecies,
-            breed: task.petBreed,
-            dob: task.petDob,
-            sex: task.petSex,
-            image: task.petImage,
-          })
-        : null,
-      group: task.groupId
-        ? groupSchema.parse({
-            groupId: task.groupId,
-            name: task.groupName,
-            description: task.groupDescription,
-            createdBy: task.groupCreatedBy,
-          })
-        : null,
-      markedAsDoneBy: markedAsDoneUser
-        ? userSchema.parse({
-            userId: markedAsDoneUser.id,
-            name: markedAsDoneUser.fullName,
-            avatar: markedAsDoneUser.imageUrl,
-          })
+      pet: task.pet ? petSchema.parse(task.pet) : null,
+      group: task.group ? groupSchema.parse(task.group) : null,
+      markedAsDoneBy: task.markedAsDoneBy
+        ? userSchema.parse(task.markedAsDoneBy)
         : null,
       markedAsDoneAt: task.markedAsDoneAt,
       claimed: task.claimedBy !== null,
-      claimedBy: claimingUser
-        ? userSchema.parse({
-            userId: claimingUser.id,
-            name: claimingUser.fullName,
-            avatar: claimingUser.imageUrl,
-          })
-        : null,
+      claimedBy: task.claimedBy ? userSchema.parse(task.claimedBy) : null,
       claimedAt: task.claimedAt,
     });
 
@@ -1044,11 +894,8 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 }
 
 async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
-  const userId = (await auth())?.user?.id;
-
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
+  const userRow = await getCurrentLoggedInUser();
+  const userId = userRow.id;
 
   // Get tasks in range where the user is in the group the task is assigned to
   const groupInTasksInRange = db
