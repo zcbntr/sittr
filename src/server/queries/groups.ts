@@ -14,6 +14,7 @@ import {
 import { type Pet, petSchema } from "~/lib/schemas/pets";
 import { auth } from "~/auth";
 import { getUserByEmail } from "./users";
+import { userSchema } from "~/lib/schemas/users";
 
 export async function getGroupById(id: string): Promise<Group | null> {
   const userId = (await auth())?.user?.id;
@@ -223,7 +224,7 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
     with: {
       group: {
         with: {
-          usersToGroups: true,
+          usersToGroups: { with: { user: true } },
           petsToGroups: { with: { pet: { with: { petImages: true } } } },
         },
       },
@@ -234,10 +235,8 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
     throw new Error("Failed to get groups user is in");
   }
 
-  const clerkUsers = await clerkClient.users.getUserList();
+  // Could a query work here?
   return groupMemberList.map((groupMember) => {
-    const members = clerkUsers.data;
-
     return groupSchema.parse({
       groupId: groupMember.groupId,
       createdBy: groupMember.group.createdBy,
@@ -259,7 +258,7 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
       members: groupMember.group.usersToGroups.map((userToGroup) =>
         groupMemberSchema.parse({
           groupId: userToGroup.groupId,
-          userId: userToGroup.userId,
+          user: userSchema.parse(userToGroup.user),
           role: userToGroup.role,
         }),
       ),

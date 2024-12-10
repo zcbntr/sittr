@@ -7,27 +7,21 @@ import { db } from "../db";
 export async function getCurrentLoggedInUser(): Promise<User> {
   const session = await auth();
 
-  const userId = session?.user?.id;
+  const userEmail = session?.user?.email;
 
-  if (!userId) {
+  if (!userEmail) {
     throw new Error("Unauthorized");
   }
 
   const userRow = await db.query.users.findFirst({
-    where: (model, { eq }) => eq(model.id, userId),
+    where: (model, { eq }) => eq(model.email, userEmail),
   });
 
   if (!userRow) {
     throw new Error("User not found");
   }
 
-  return userSchema.parse({
-    id: userId,
-    name: userRow?.name,
-    email: userRow?.email,
-    emailVerified: userRow.emailVerified,
-    image: userRow.image,
-  });
+  return userSchema.parse(userRow);
 }
 
 export async function getUserByUserId(userId: string): Promise<User> {
@@ -45,13 +39,7 @@ export async function getUserByUserId(userId: string): Promise<User> {
     throw new Error("User not found");
   }
 
-  return userSchema.parse({
-    id: userId,
-    name: userRow?.name,
-    email: userRow?.email,
-    emailVerified: userRow.emailVerified,
-    image: userRow.image,
-  });
+  return userSchema.parse(userRow);
 }
 
 export async function getUserByEmail(email: string): Promise<User> {
@@ -69,11 +57,5 @@ export async function getUserByEmail(email: string): Promise<User> {
     throw new Error("User not found");
   }
 
-  return userSchema.parse({
-    id: userRow.id,
-    name: userRow?.name,
-    email: userRow?.email,
-    emailVerified: userRow.emailVerified,
-    image: userRow.image,
-  });
+  return userSchema.parse(userRow);
 }

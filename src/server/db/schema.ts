@@ -33,6 +33,18 @@ export const users = createTable("user", {
   image: text("image"),
 });
 
+export const userRelations = relations(users, ({ many }) => ({
+  accounts: many(accounts),
+  sessions: many(sessions),
+  verificationTokens: many(verificationTokens),
+  authenticators: many(authenticators),
+  tasks: many(tasks),
+  pets: many(pets),
+  groups: many(groups),
+  groupInviteCodes: many(groupInviteCodes),
+  usersToGroups: many(usersToGroups),
+}));
+
 export const accounts = createTable(
   "account",
   {

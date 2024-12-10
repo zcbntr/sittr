@@ -1,7 +1,7 @@
 "use server";
 
 import { type Task, taskSchema } from "~/lib/schemas/tasks";
-import { eq, and, or, lte, gte, inArray, not, isNull } from "drizzle-orm";
+import { eq, and, or, lte, gte, not, isNull } from "drizzle-orm";
 import { db } from "../db";
 import {
   groups,
@@ -17,6 +17,7 @@ import { userSchema } from "~/lib/schemas/users";
 import { petSchema } from "~/lib/schemas/pets";
 import { groupSchema } from "~/lib/schemas/groups";
 import { auth } from "~/auth";
+import { TaskTypeEnum } from "~/lib/schemas";
 
 export async function getAllOwnedTasks(): Promise<Task[]> {
   const userId = (await auth())?.user?.id;
@@ -96,132 +97,61 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
     throw new Error("Unauthorized");
   }
 
-  const joinedTasksList = await db
-    .select()
-    .from(tasks)
-    .leftJoin(usersToGroups, eq(tasks.group, usersToGroups.groupId))
-    .leftJoin(groups, eq(tasks.group, groups.id))
-    .leftJoin(pets, eq(tasks.pet, pets.id))
-    .where(and(inArray(tasks.id, taskIds), eq(tasks.ownerId, userId)));
+  const userWithTasks = await db.query.users.findFirst({
+    with: {
+      tasks: {
+        with: {
+          owner: true,
+          creator: true,
+          claimedBy: true,
+          markedAsDoneBy: true,
+          group: true,
+          pet: { with: { petImages: true } },
+        },
+      },
+    },
+    where: (model, { and, eq, inArray }) =>
+      and(eq(model.id, userId), inArray(tasks.id, taskIds)),
+  });
 
-  if (!joinedTasksList) {
+  if (!userWithTasks) {
     throw new Error("Tasks not found");
   }
 
-  // Get user details for createdBy, owner, claimedBy, markedAsDoneBy
   // Turn into task schema
-  const clerkUsers = await clerkClient.users.getUserList();
-  return joinedTasksList.map((task) => {
-    let claimingUser = null;
-    let markedAsDoneUser = null;
-
-    const createdByUser = clerkUsers.data.find(
-      (user) => user.id === task.tasks.createdBy,
-    );
-
-    if (!createdByUser) {
-      throw new Error(
-        "User who created task was not found in Clerk. The user may have deleted their account.",
-      );
-    }
-
-    const ownerUser = clerkUsers.data.find(
-      (user) => user.id === task.tasks.ownerId,
-    );
-
-    if (!ownerUser) {
-      throw new Error(
-        "User who owns task was not found in Clerk. The user may have deleted their account.",
-      );
-    }
-
-    if (task.tasks.claimedBy !== null) {
-      claimingUser = clerkUsers.data.find(
-        (user) => user.id === task.tasks.claimedBy,
-      );
-
-      if (!claimingUser) {
-        throw new Error(
-          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
-        );
-      }
-    }
-
-    if (task.tasks.markedAsDoneBy !== null) {
-      markedAsDoneUser = clerkUsers.data.find(
-        (user) => user.id === task.tasks.markedAsDoneBy,
-      );
-
-      if (!markedAsDoneUser) {
-        throw new Error(
-          "User who marked task as done was not found in Clerk. The user may have deleted their account.",
-        );
-      }
-    }
-
+  return userWithTasks.tasks.map((task) => {
     return taskSchema.parse({
-      taskId: task.tasks.id,
-      owner: userSchema.parse({
-        userId: ownerUser?.id,
-        name: ownerUser?.fullName,
-        avatar: ownerUser?.imageUrl,
-      }),
-      createdBy: userSchema.parse({
-        userId: createdByUser?.id,
-        name: createdByUser?.fullName,
-        avatar: createdByUser?.imageUrl,
-      }),
-      name: task.tasks.name,
-      description: task.tasks.description,
-      dueMode: task.tasks.dueMode,
-      dueDate: task.tasks.dueMode ? task.tasks.dueDate : undefined,
+      taskId: task.id,
+      owner: userSchema.parse(task.owner),
+      createdBy: userSchema.parse(task.creator),
+      name: task.name,
+      description: task.description,
+      dueMode: task.dueMode,
+      dueDate: task.dueMode ? task.dueDate : undefined,
       dateRange:
-        !task.tasks.dueMode &&
-        task.tasks.dateRangeFrom &&
-        task.tasks.dateRangeTo
+        !task.dueMode &&
+        task.dateRangeFrom &&
+        task.dateRangeTo
           ? {
-              from: task.tasks.dateRangeFrom,
-              to: task.tasks.dateRangeTo,
+              from: task.dateRangeFrom,
+              to: task.dateRangeTo,
             }
           : undefined,
-      pet: task.pets
-        ? petSchema.parse({
-            petId: task.pets.id,
-            name: task.pets.name,
-            ownerId: task.pets.ownerId,
-            createdBy: task.pets.createdBy,
-            species: task.pets.species,
-            breed: task.pets.breed,
-            dob: task.pets.dob,
-            sex: task.pets?.sex,
-            image: task.pets.image,
-          })
+      pet: task.pet
+        ? petSchema.parse(task.pet)
         : null,
-      group: task.groups
-        ? groupSchema.parse({
-            groupId: task.groups.id,
-            name: task.groups.name,
-            description: task.groups.description,
-            createdBy: task.groups.createdBy,
-          })
+      group: task.group
+        ? groupSchema.parse(task.group)
         : null,
-      markedAsDoneBy: markedAsDoneUser
-        ? userSchema.parse({
-            userId: markedAsDoneUser.id,
-            name: markedAsDoneUser.fullName,
-            avatar: markedAsDoneUser.imageUrl,
-          })
+      markedAsDoneBy: task.markedAsDoneBy
+        ? userSchema.parse(task.markedAsDoneBy)
         : null,
-      markedAsDoneAt: task.tasks.markedAsDoneAt,
-      claimed: task.tasks.claimedBy !== null,
-      claimedBy: claimingUser
-        ? userSchema.parse({
-            userId: claimingUser.id,
-            name: claimingUser.fullName,
-            avatar: claimingUser.imageUrl,
-          })
+      markedAsDoneAt: task.markedAsDoneAt,
+      claimed: task.claimedBy !== null,
+      claimedBy: task.claimedBy
+        ? userSchema.parse(task.claimedBy)
         : null,
-      claimedAt: task.tasks.claimedAt,
+      claimedAt: task.claimedAt,
     });
   });
 }
