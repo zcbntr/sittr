@@ -214,7 +214,7 @@ export default function GroupPetsTable({
                     onClick={async () => {
                       await removePetFromGroupAction({
                         petId: row.original.petId,
-                        groupId: row.original.groupId,
+                        groupId: row.original.group.groupId,
                       });
                       setAlertState("");
                     }}

@@ -1,3 +1,5 @@
+"use server";
+
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
