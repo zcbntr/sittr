@@ -2,7 +2,7 @@
 
 import { db } from "~/server/db";
 import { eq, inArray } from "drizzle-orm";
-import { groups, petImages, pets, petsToGroups, users } from "../db/schema";
+import { groups, petImages, pets, petsToGroups } from "../db/schema";
 import {
   type Group,
   type GroupMember,
@@ -13,6 +13,7 @@ import {
 } from "~/lib/schemas/groups";
 import { type Pet, petSchema } from "~/lib/schemas/pets";
 import { auth } from "~/auth";
+import { getUserByEmail } from "./users";
 
 export async function getGroupById(id: string): Promise<Group | null> {
   const userId = (await auth())?.user?.id;
@@ -207,11 +208,15 @@ export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
 }
 
 export async function getGroupsUserIsIn(): Promise<Group[]> {
-  const userId = (await auth())?.user?.id;
+  const session = await auth();
 
-  if (!userId) {
+  if (!session?.user?.email) {
     throw new Error("Unauthorized");
   }
+
+  const user = await getUserByEmail(session?.user?.email);
+
+  const userId = user.id;
 
   const groupMemberList = await db.query.usersToGroups.findMany({
     where: (model, { eq }) => eq(model.userId, userId),

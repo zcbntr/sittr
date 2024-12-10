@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { type z } from "zod";
 import { users } from "~/server/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 

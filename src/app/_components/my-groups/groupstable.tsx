@@ -30,13 +30,10 @@ import {
 } from "~/components/ui/alert-dialog";
 import { useState } from "react";
 import { leaveGroupAction } from "~/server/actions/group-actions";
-import { auth } from "~/auth";
-import { GroupRoleEnum } from "~/server/db/schema";
+import { GroupRoleEnum } from "~/lib/schemas";
 
-export default async function GroupsTable({ groups }: { groups: Group[] }) {
+export default function GroupsTable({ groups, userId }: { groups: Group[], userId: string }) {
   const [alertState, setAlertState] = useState("");
-
-  const user = await auth();
 
   const columns: ColumnDef<Group>[] = [
     {
@@ -186,7 +183,7 @@ export default async function GroupsTable({ groups }: { groups: Group[] }) {
                     Copy
                   </DropdownMenuItem>
                   {/* Show only if not group owner */}
-                  {group.members?.find((x) => x.user.id === user?.user?.id)
+                  {group.members?.find((x) => x.user.id === userId)
                     ?.role === GroupRoleEnum.Values.Owner ? null : (
                     <>
                       <DropdownMenuSeparator />

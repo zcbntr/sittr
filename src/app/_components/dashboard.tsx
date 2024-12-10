@@ -7,12 +7,12 @@ import { Button } from "~/components/ui/button";
 import CreateTaskDialog from "./tasks/createtaskdialog";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
 import { getTasksInRange } from "~/server/queries/tasks";
-import type { TaskTypeEnum } from "~/lib/schemas/tasks";
 import TaskTypeSelect from "./dashboard/tasks-type-select";
 import { Suspense } from "react";
 import MonthArrows from "./dashboard/month-arrows";
 import { MdAddTask } from "react-icons/md";
 import { getCurrentLoggedInUser } from "~/server/queries/users";
+import { type TaskTypeEnum } from "~/lib/schemas";
 
 export default async function Dashboard({
   dateFrom,

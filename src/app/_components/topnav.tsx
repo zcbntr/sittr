@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { MdGroups, MdPets } from "react-icons/md";
 import { auth } from "~/auth";
-import SignIn from "~/components/sign-in-button";
+import SignInButton from "~/components/sign-in-button";
+import SignOutButton from "~/components/sign-out-button";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getCurrentLoggedInUser } from "~/server/queries/users";
 
@@ -17,7 +18,7 @@ export async function TopNav() {
           </Link>
           <nav className="items-center space-x-6 md:flex">
             <div className="flex place-content-center">
-              <SignIn />
+              <SignInButton />
             </div>
           </nav>
         </div>
@@ -45,6 +46,7 @@ export async function TopNav() {
                 </Avatar>
               </Link>
             </div>
+            <SignOutButton />
           </nav>
         </div>
       </header>
