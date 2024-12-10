@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // -----------------------------------------------------------------------------
-// General schemas
+// General schemas and client side shit
 // -----------------------------------------------------------------------------
 
 export const dateRangeSchema = z
@@ -20,6 +20,20 @@ export const dateRangeSchema = z
   });
 
 export type DateRange = z.infer<typeof dateRangeSchema>;
+
+export const TaskTypeEnum = z.enum([
+  "All",
+  "Sitting For",
+  "Owned",
+  "Unclaimed",
+]);
+export type TaskTypeEnum = z.infer<typeof TaskTypeEnum>;
+
+export const GroupRoleEnum = z.enum(["Owner", "Member", "Pending"]);
+export type GroupRoleEnum = z.infer<typeof GroupRoleEnum>;
+
+export const SexEnum = z.enum(["Male", "Female", "Unspecified"]);
+export type SexEnum = z.infer<typeof SexEnum>;
 
 // -----------------------------------------------------------------------------
 // API form schemas
@@ -41,3 +55,4 @@ export const basicGetAPIFormSchema = z
   });
 
 export type BasicGetAPIFormSchema = z.infer<typeof basicGetAPIFormSchema>;
+

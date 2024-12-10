@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { petSchema } from "./pets";
 import { userSchema } from "./users";
-import { GroupRoleEnum, SexEnum } from "~/server/db/schema";
+import { GroupRoleEnum, SexEnum } from ".";
 
 // -----------------------------------------------------------------------------
 // Group Schemas

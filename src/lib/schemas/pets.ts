@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SexEnum } from "~/server/db/schema";
+import { SexEnum } from ".";
 
 export const petSchema = z.object({
   petId: z.string(),
