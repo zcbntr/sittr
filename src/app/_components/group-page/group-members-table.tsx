@@ -53,16 +53,14 @@ export default function GroupMembersTable({
         const member = row.original;
 
         return (
-          <Link href={`/profile/${member.user.id}`}>
+          <Link href={`/profile/${member.userId}`}>
             <Avatar>
               <AvatarImage
-                src={member.user.image ? member.user.image : undefined}
-                alt={`${member.user.name}'s avatar`}
+                src={member.avatar}
+                alt={`${member.name}'s avatar`}
               />
               {/* Make this actually be the initials rather than first letter */}
-              <AvatarFallback>
-                {member.user.name?.substring(0, 1)}
-              </AvatarFallback>
+              <AvatarFallback>{member.name.substring(0, 1)}</AvatarFallback>
             </Avatar>
           </Link>
         );
@@ -85,9 +83,7 @@ export default function GroupMembersTable({
       cell: ({ row }) => {
         const member = row.original;
 
-        return (
-          <Link href={`/profile/${member.user.id}`}>{member.user.name}</Link>
-        );
+        return <Link href={`/profile/${member.userId}`}>{member.name}</Link>;
       },
     },
     {
@@ -115,7 +111,7 @@ export default function GroupMembersTable({
                   <DropdownMenuItem
                     onClick={() =>
                       navigator.clipboard.writeText(
-                        `${member.user.name} - ${member.role}`,
+                        `${member.name} - ${member.role}`,
                       )
                     }
                   >
@@ -127,7 +123,7 @@ export default function GroupMembersTable({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={async () => {
-                          setAlertState(`accept-${member.user.id}`);
+                          setAlertState(`accept-${member.userId}`);
                         }}
                       >
                         Accept
@@ -135,7 +131,7 @@ export default function GroupMembersTable({
                       <DropdownMenuItem
                         onClick={async () => {
                           await rejectPendingUserAction({
-                            userId: member.user.id,
+                            userId: member.userId,
                             groupId: member.groupId,
                           });
                         }}
@@ -151,7 +147,7 @@ export default function GroupMembersTable({
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={async () =>
-                            setAlertState(`remove-${member.user.id}`)
+                            setAlertState(`remove-${member.userId}`)
                           }
                         >
                           Remove
@@ -161,18 +157,18 @@ export default function GroupMembersTable({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <AlertDialog open={alertState === `remove-${member.user.id}`}>
+            <AlertDialog open={alertState === `remove-${member.userId}`}>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    Confirm removal of {member.user.name}
+                    Confirm removal of {member.name}
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     This action removes{" "}
-                    <span className="font-semibold">{member.user.name}</span>{" "}
-                    from the group. This user will no longer have access to
-                    group information, group tasks, and will no longer be able
-                    to view the details of your pets that the group sits for.
+                    <span className="font-semibold">{member.name}</span> from
+                    the group. This user will no longer have access to group
+                    information, group tasks, and will no longer be able to view
+                    the details of your pets that the group sits for.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -182,7 +178,7 @@ export default function GroupMembersTable({
                   <AlertDialogAction
                     onClick={async () => {
                       await removeUserFromGroupAction({
-                        userId: member.user.id,
+                        userId: member.userId,
                         groupId: member.groupId,
                       });
                       setAlertState("");
@@ -193,16 +189,16 @@ export default function GroupMembersTable({
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <AlertDialog open={alertState === `accept-${member.user.id}`}>
+            <AlertDialog open={alertState === `accept-${member.userId}`}>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    Confirm accepting of {member.user.name}
+                    Confirm accepting of {member.name}
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     This action adds{" "}
-                    <span className="font-semibold">{member.user.name}</span> to
-                    the group. This user will have access to group information,
+                    <span className="font-semibold">{member.name}</span> to the
+                    group. This user will have access to group information,
                     group tasks, and will and will be able to view the details
                     of your pets that the group sits for.
                   </AlertDialogDescription>
@@ -214,7 +210,7 @@ export default function GroupMembersTable({
                   <AlertDialogAction
                     onClick={async () => {
                       await acceptPendingUserAction({
-                        userId: member.user.id,
+                        userId: member.userId,
                         groupId: member.groupId,
                       });
                       setAlertState("");

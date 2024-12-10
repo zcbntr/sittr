@@ -9,7 +9,6 @@ import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./api/uploadthing/core";
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: { template: "%s | Sittr", default: "Sittr" },
@@ -48,10 +47,7 @@ export default function RootLayout({
         <div className="grid grid-rows-[auto,1fr] bg-[#f5f5f5] text-[#333]">
           <main className="overflow-y-scroll">
             <div className="h-min min-h-dvh">
-              <Suspense fallback={<div>Loading...</div>}>
-                <TopNav />
-              </Suspense>
-
+              <TopNav />
               {children}
             </div>
 

@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { type Pet, updatePetSchema } from "~/lib/schemas/pets";
+import { type Pet, SexEnum, updatePetSchema } from "~/lib/schemas/pets";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Popover,
@@ -43,7 +43,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { UploadButton } from "~/lib/uploadthing";
 import { Card, CardContent } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
-import { SexEnum } from "~/server/db/schema";
 
 export function PetEditForm({ pet }: { pet: Pet }) {
   const [dob, setDOB] = React.useState<Date | undefined>();
