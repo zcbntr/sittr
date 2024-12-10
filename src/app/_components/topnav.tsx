@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { MdGroups, MdPets } from "react-icons/md";
 import { auth } from "~/auth";
+import SignIn from "~/components/sign-in-button";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { getCurrentLoggedInUser } from "~/server/queries/users";
 
 export async function TopNav() {
-  const session = await auth();
+  const userId = (await auth())?.user?.id;
 
-  if (!session)
+  if (!userId) {
     return (
       <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
         <div className="container mx-auto flex items-center justify-between">
@@ -14,13 +17,15 @@ export async function TopNav() {
           </Link>
           <nav className="items-center space-x-6 md:flex">
             <div className="flex place-content-center">
-              <SignInButton />
+              <SignIn />
             </div>
           </nav>
         </div>
       </header>
     );
-  else
+  } else {
+    const user = await getCurrentLoggedInUser();
+
     return (
       <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
         <div className="container mx-auto flex items-center justify-between">
@@ -29,34 +34,20 @@ export async function TopNav() {
           </Link>
           <nav className="items-center space-x-6 md:flex">
             <div className="flex place-content-center">
-              <UserButton
-                userProfileMode="navigation"
-                userProfileUrl="/user-profile"
-              >
-                <UserButton.MenuItems>
-                  <UserButton.Link
-                    label="My Groups"
-                    labelIcon={
-                      <div className="flex flex-row place-content-center">
-                        <MdGroups size="1.5em" />
-                      </div>
-                    }
-                    href="/my-groups"
-                  ></UserButton.Link>
-                  <UserButton.Link
-                    label="My Pets"
-                    labelIcon={
-                      <div className="flex flex-row place-content-center">
-                        <MdPets size="1.5em" />
-                      </div>
-                    }
-                    href="/my-pets"
-                  ></UserButton.Link>
-                </UserButton.MenuItems>
-              </UserButton>
+              <Link href={`/profile/${user.id}`}>
+                <Avatar>
+                  <AvatarImage
+                    src={user.image ? user.image : undefined}
+                    alt={`${user.name}'s avatar`}
+                  />
+                  {/* Make this actually be the initials rather than first letter */}
+                  <AvatarFallback>{user.name?.substring(0, 1)}</AvatarFallback>
+                </Avatar>
+              </Link>
             </div>
           </nav>
         </div>
       </header>
     );
+  }
 }

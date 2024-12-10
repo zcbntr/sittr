@@ -1,6 +1,6 @@
 import { signIn } from "~/auth";
 
-export default function SignIn() {
+export default function SignInButton() {
   return (
     <form
       action={async () => {
@@ -8,7 +8,7 @@ export default function SignIn() {
         await signIn("google", { redirectTo: "/" });
       }}
     >
-      <button type="submit">Signin with Google</button>
+      <button type="submit">Sign In</button>
     </form>
   );
 }

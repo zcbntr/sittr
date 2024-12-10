@@ -1,6 +1,6 @@
 "use server";
 
-import { type Task, taskSchema, TaskTypeEnum } from "~/lib/schemas/tasks";
+import { type Task, taskSchema } from "~/lib/schemas/tasks";
 import { eq, and, or, lte, gte, inArray, not, isNull } from "drizzle-orm";
 import { db } from "../db";
 import {
