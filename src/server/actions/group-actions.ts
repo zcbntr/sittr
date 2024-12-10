@@ -14,7 +14,6 @@ import { db } from "../db";
 import { authenticatedProcedure, ownsGroupProcedure } from "./zsa-procedures";
 import {
   groupInviteCodes,
-  GroupRoleEnum,
   groups,
   petsToGroups,
   usersToGroups,
@@ -25,17 +24,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { addMilliseconds } from "date-fns";
 import { ratelimit } from "../ratelimit";
+import { GroupRoleEnum } from "~/lib/schemas";
 
 export const createGroupAction = authenticatedProcedure
   .createServerAction()
   .input(createGroupInputSchema)
   .handler(async ({ input, ctx }) => {
-    const { user } = ctx;
-    const { success } = await ratelimit.limit(user.userId);
-
-    if (!success) {
-      throw new Error("You are creating groups too fast");
-    }
+    const { userId } = ctx;
 
     // Create group, add user to groupMembers, add pets to group, all in a transaction
     await db.transaction(async (db) => {
@@ -43,7 +38,7 @@ export const createGroupAction = authenticatedProcedure
       const newGroup = await db
         .insert(groups)
         .values({
-          createdBy: user.userId,
+          createdBy: userId,
           name: input.name,
           description: input.description,
         })
@@ -60,7 +55,7 @@ export const createGroupAction = authenticatedProcedure
         .insert(usersToGroups)
         .values({
           groupId: newGroup[0].id,
-          userId: user.userId,
+          userId: userId,
           role: GroupRoleEnum.Values.Owner,
         })
         .returning()
@@ -112,8 +107,8 @@ export const deleteGroupAction = ownsGroupProcedure
   .createServerAction()
   .input(z.object({ groupId: z.string() }))
   .handler(async ({ ctx, input }) => {
-    const { user } = ctx;
-    const { success } = await ratelimit.limit(user.userId);
+    const { userId } = ctx;
+    const { success } = await ratelimit.limit(userId);
 
     if (!success) {
       throw new Error("You are deleting groups too fast");
@@ -127,14 +122,7 @@ export const deleteGroupAction = ownsGroupProcedure
 export const addPetToGroupAction = ownsGroupProcedure
   .createServerAction()
   .input(petToGroupFormInputSchema)
-  .handler(async ({ ctx, input }) => {
-    const { user } = ctx;
-    const { success } = await ratelimit.limit(user.userId);
-
-    if (!success) {
-      throw new Error("You are adding pets to the group too fast");
-    }
-
+  .handler(async ({ input }) => {
     await db
       .insert(petsToGroups)
       .values({
@@ -149,14 +137,7 @@ export const addPetToGroupAction = ownsGroupProcedure
 export const addPetsToGroupAction = ownsGroupProcedure
   .createServerAction()
   .input(petsToGroupFormInputSchema)
-  .handler(async ({ ctx, input }) => {
-    const { user } = ctx;
-    const { success } = await ratelimit.limit(user.userId);
-
-    if (!success) {
-      throw new Error("You are adding pets to the group too fast");
-    }
-
+  .handler(async ({ input }) => {
     await db.transaction(async (db) => {
       for (const petId of input.petIds) {
         await db
@@ -175,14 +156,7 @@ export const addPetsToGroupAction = ownsGroupProcedure
 export const removePetFromGroupAction = ownsGroupProcedure
   .createServerAction()
   .input(petToGroupFormInputSchema)
-  .handler(async ({ ctx, input }) => {
-    const { user } = ctx;
-    const { success } = await ratelimit.limit(user.userId);
-
-    if (!success) {
-      throw new Error("You are removing pets from the group too fast");
-    }
-
+  .handler(async ({ input }) => {
     await db
       .delete(petsToGroups)
       .where(
@@ -274,7 +248,7 @@ export const leaveGroupAction = authenticatedProcedure
   .createServerAction()
   .input(z.object({ groupId: z.string() }))
   .handler(async ({ input, ctx }) => {
-    const { user } = ctx;
+    const { userId } = ctx;
 
     // Check if user is the last owner of the group
     const ownerCount = await db
@@ -300,7 +274,7 @@ export const leaveGroupAction = authenticatedProcedure
       .where(
         and(
           eq(usersToGroups.groupId, input.groupId),
-          eq(usersToGroups.userId, user.userId),
+          eq(usersToGroups.userId, userId),
         ),
       )
       .execute();
@@ -312,12 +286,7 @@ export const joinGroupAction = authenticatedProcedure
   .createServerAction()
   .input(joinGroupFormSchema)
   .handler(async ({ input, ctx }) => {
-    const { user } = ctx;
-    const { success } = await ratelimit.limit(user.userId);
-
-    if (!success) {
-      throw new Error("You are joining too many groups too fast");
-    }
+    const { userId } = ctx;
 
     // This needs to be a find many if there becomes lots of groups
     const inviteCodeRow = await db.query.groupInviteCodes.findFirst({
@@ -355,7 +324,7 @@ export const joinGroupAction = authenticatedProcedure
       .insert(usersToGroups)
       .values({
         groupId: inviteCodeRow.groupId,
-        userId: user.userId,
+        userId: userId,
         role: inviteCodeRow.requiresApproval
           ? GroupRoleEnum.Values.Pending
           : GroupRoleEnum.Values.Member,
@@ -463,7 +432,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
   .createServerAction()
   .input(requestGroupInviteCodeFormInputSchema)
   .handler(async ({ input, ctx }) => {
-    const { user } = ctx;
+    const { userId } = ctx;
 
     // Create a new invite code based on the group id and random number
     function getRandomUint32() {
@@ -501,7 +470,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
     const newInviteCodeRow = await db
       .insert(groupInviteCodes)
       .values({
-        createdBy: user.userId,
+        createdBy: userId,
         groupId: input.groupId,
         code: inviteCode,
         maxUses: input.maxUses,
