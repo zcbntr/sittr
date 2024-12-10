@@ -2,28 +2,16 @@ import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   integer,
-  pgEnum,
   pgTableCreator,
   text,
   timestamp,
   unique,
   varchar,
-  pgTable,
   primaryKey,
+  pgEnum,
 } from "drizzle-orm/pg-core";
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
 import type { AdapterAccountType } from "next-auth/adapters";
-import { z } from "zod";
-
-export const GroupRoleEnum = z.enum(["Owner", "Member", "Pending"]);
-export type GroupRoleEnum = z.infer<typeof GroupRoleEnum>;
-
-export const SexEnum = z.enum(["Male", "Female", "Unspecified"]);
-export type SexEnum = z.infer<typeof SexEnum>;
-
-export const groupRoleEnum = pgEnum("role", GroupRoleEnum.options);
-export const sexEnum = pgEnum("sex", SexEnum.options);
+import { GroupRoleEnum, SexEnum } from "~/lib/schemas";
 
 /**
  * Multi-project schema feature of Drizzle ORM.
@@ -32,12 +20,10 @@ export const sexEnum = pgEnum("sex", SexEnum.options);
  */
 export const createTable = pgTableCreator((name) => `sittr_${name}`);
 
-const connectionString = "postgres://postgres:postgres@localhost:5432/drizzle";
-const pool = postgres(connectionString, { max: 1 });
+export const groupRoleEnum = pgEnum("role", GroupRoleEnum.options);
+export const sexEnum = pgEnum("sex", SexEnum.options);
 
-export const db = drizzle(pool);
-
-export const users = pgTable("user", {
+export const users = createTable("user", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -47,7 +33,7 @@ export const users = pgTable("user", {
   image: text("image"),
 });
 
-export const accounts = pgTable(
+export const accounts = createTable(
   "account",
   {
     userId: text("userId")
@@ -71,7 +57,7 @@ export const accounts = pgTable(
   }),
 );
 
-export const sessions = pgTable("session", {
+export const sessions = createTable("session", {
   sessionToken: text("sessionToken").primaryKey(),
   userId: text("userId")
     .notNull()
@@ -79,7 +65,7 @@ export const sessions = pgTable("session", {
   expires: timestamp("expires", { mode: "date" }).notNull(),
 });
 
-export const verificationTokens = pgTable(
+export const verificationTokens = createTable(
   "verificationToken",
   {
     identifier: text("identifier").notNull(),
@@ -93,7 +79,7 @@ export const verificationTokens = pgTable(
   }),
 );
 
-export const authenticators = pgTable(
+export const authenticators = createTable(
   "authenticator",
   {
     credentialID: text("credentialID").notNull().unique(),

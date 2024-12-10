@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dateRangeSchema } from ".";
+import { dateRangeSchema, TaskTypeEnum } from ".";
 import { userSchema } from "./users";
 import { groupSchema } from "./groups";
 import { petSchema } from "./pets";
@@ -35,14 +35,6 @@ export type TaskList = z.infer<typeof taskListSchema>;
 // -----------------------------------------------------------------------------
 // API form schemas
 // -----------------------------------------------------------------------------
-
-export const TaskTypeEnum = z.enum([
-  "All",
-  "Sitting For",
-  "Owned",
-  "Unclaimed",
-]);
-export type TaskTypeEnum = z.infer<typeof TaskTypeEnum>;
 
 export const getTaskAPISchema = z
   .object({

@@ -8,8 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { TaskTypeEnum } from "~/lib/schemas/tasks";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { TaskTypeEnum } from "~/lib/schemas";
 
 export default function TaskTypeSelect({
   initialType,
