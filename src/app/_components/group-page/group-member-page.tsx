@@ -2,7 +2,6 @@
 
 import {
   type GroupMember,
-  type GroupPet,
   type Group,
 } from "~/lib/schemas/groups";
 import {
@@ -14,6 +13,7 @@ import {
 import React from "react";
 import GroupPetsTable from "./group-pets-table";
 import GroupMembersTable from "./group-members-table";
+import { type Pet } from "~/lib/schemas/pets";
 
 export function GroupMemberPage({
   group,
@@ -21,7 +21,7 @@ export function GroupMemberPage({
   groupMembers,
 }: {
   group: Group;
-  groupPets: GroupPet[];
+  groupPets: Pet[];
   groupMembers: GroupMember[];
 }) {
   return (

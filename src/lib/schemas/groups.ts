@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { petSchema } from "./pets";
 import { userSchema } from "./users";
-import { GroupRoleEnum, SexEnum } from ".";
+import { GroupRoleEnum } from ".";
 
 // -----------------------------------------------------------------------------
 // Group Schemas
@@ -66,24 +66,6 @@ export type PetToGroup = z.infer<typeof petToGroupSchema>;
 export const petToGroupListSchema = z.array(petToGroupSchema);
 
 export type PetToGroupList = z.infer<typeof petToGroupListSchema>;
-
-export const groupPetSchema = z.object({
-  petId: z.string(),
-  owner: userSchema,
-  name: z.string(),
-  species: z.string(),
-  breed: z.string().optional(),
-  dob: z.coerce.date(),
-  sex: SexEnum.optional(),
-  image: z.string().optional(),
-  group: groupSchema,
-});
-
-export type GroupPet = z.infer<typeof groupPetSchema>;
-
-export const groupPetListSchema = z.array(groupPetSchema);
-
-export type GroupPetList = z.infer<typeof groupPetListSchema>;
 
 export const joinGroupFormSchema = z.object({
   inviteCode: z.string(),

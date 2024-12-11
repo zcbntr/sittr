@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { GroupMemberPage } from "~/app/_components/group-page/group-member-page";
 import { GroupOwnerPage } from "~/app/_components/group-page/group-owner-page";
-import type { GroupMember, GroupPet } from "~/lib/schemas/groups";
+import type { GroupMember } from "~/lib/schemas/groups";
 import {
   getGroupById,
   getGroupMembers,
@@ -26,7 +26,7 @@ export default async function Page({
 
     return <GroupDoesNotExistPage />;
   } else {
-    const groupPets: GroupPet[] = await getGroupPets(group.groupId);
+    const groupPets: Pet[] = await getGroupPets(group.groupId);
     const groupMembers: GroupMember[] = await getGroupMembers(group.groupId);
 
     // Check if user is the owner of the group

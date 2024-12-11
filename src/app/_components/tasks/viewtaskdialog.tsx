@@ -52,7 +52,7 @@ export default function ViewTaskDialog({
     resolver: zodResolver(setClaimTaskFormProps),
     defaultValues: {
       taskId: task?.taskId,
-      claim: task?.claimedBy?.userId === currentUser?.userId,
+      claim: task?.claimedBy?.id === currentUser?.id,
     },
     mode: "onSubmit",
   });
@@ -63,7 +63,7 @@ export default function ViewTaskDialog({
     resolver: zodResolver(setMarkedAsCompleteFormProps),
     defaultValues: {
       taskId: task?.taskId,
-      markAsDone: task?.markedAsDoneBy?.userId === currentUser?.userId,
+      markAsDone: task?.markedAsDoneBy?.id === currentUser?.id,
     },
     mode: "onSubmit",
   });
@@ -78,7 +78,7 @@ export default function ViewTaskDialog({
     },
     onSuccess: (data) => {
       setTask(data.data);
-      if (data.data.claimedBy?.userId === currentUser?.userId) {
+      if (data.data.claimedBy?.id === currentUser?.id) {
         toast.success("Task claimed!");
         claimTaskForm.reset();
         claimTaskForm.setValue("taskId", data.data.taskId);
@@ -102,7 +102,7 @@ export default function ViewTaskDialog({
     },
     onSuccess: (data) => {
       setTask(data.data);
-      if (data.data.markedAsDoneBy?.userId === currentUser?.userId) {
+      if (data.data.markedAsDoneBy?.id === currentUser?.id) {
         toast.success("Marked as done!");
         markAsCompleteForm.reset();
         markAsCompleteForm.setValue("taskId", data.data.taskId);
@@ -182,7 +182,7 @@ export default function ViewTaskDialog({
 
           <div>{task?.description}</div>
 
-          {task?.claimedBy?.userId == currentUser?.userId &&
+          {task?.claimedBy?.id == currentUser?.id &&
             task?.claimedAt && (
               <div className="text-sm font-medium">
                 You claimed this task on{" "}
@@ -190,7 +190,7 @@ export default function ViewTaskDialog({
               </div>
             )}
 
-          {task?.markedAsDoneBy?.userId == currentUser?.userId &&
+          {task?.markedAsDoneBy?.id == currentUser?.id &&
             task?.markedAsDoneAt && (
               <div className="text-sm font-medium">
                 You completed this task on{" "}
@@ -206,13 +206,13 @@ export default function ViewTaskDialog({
                   disabled={
                     (!claimTaskForm.getValues("taskId") ||
                       (task?.claimedBy &&
-                        task.claimedBy?.userId !== currentUser?.userId)) ??
+                        task.claimedBy?.id !== currentUser?.id)) ??
                     (markAsDonePending || claimPending)
                   }
                   type="submit"
                 >
                   {task?.claimedBy &&
-                    task.claimedBy?.userId !== currentUser?.userId && (
+                    task.claimedBy?.id !== currentUser?.id && (
                       <div className="flex flex-row flex-nowrap">
                         <div className="flex flex-col place-content-center">
                           <MdLockOutline className="mr-1 h-4 w-4" />
@@ -222,7 +222,7 @@ export default function ViewTaskDialog({
                       </div>
                     )}
                   {task?.claimedBy &&
-                    task.claimedBy?.userId === currentUser?.userId && (
+                    task.claimedBy?.id === currentUser?.id && (
                       <div className="flex flex-row flex-nowrap">
                         <div className="flex flex-col place-content-center">
                           <MdLockOpen className="mr-1 h-4 w-4" />
@@ -253,13 +253,13 @@ export default function ViewTaskDialog({
                   disabled={
                     (!markAsCompleteForm.getValues("taskId") ||
                       (task?.markedAsDoneBy &&
-                        task.markedAsDoneBy?.userId !== currentUser?.userId)) ??
+                        task.markedAsDoneBy?.id !== currentUser?.id)) ??
                     (markAsDonePending || claimPending)
                   }
                   type="submit"
                 >
                   {task?.markedAsDoneBy &&
-                    task.markedAsDoneBy?.userId !== currentUser?.userId && (
+                    task.markedAsDoneBy?.id !== currentUser?.id && (
                       <div className="flex flex-row flex-nowrap">
                         <div className="flex flex-col place-content-center">
                           <MdOutlineCheck className="mr-1 h-4 w-4" />
@@ -271,7 +271,7 @@ export default function ViewTaskDialog({
                       </div>
                     )}
                   {task?.markedAsDoneBy &&
-                    task.markedAsDoneBy?.userId === currentUser?.userId && (
+                    task.markedAsDoneBy?.id === currentUser?.id && (
                       <div className="flex flex-row flex-nowrap">
                         <div className="flex flex-col place-content-center">
                           <MdOutlineCircle className="mr-1 h-4 w-4" />

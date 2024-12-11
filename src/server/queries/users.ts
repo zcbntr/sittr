@@ -3,6 +3,7 @@
 import { auth } from "~/auth";
 import { type User, userSchema } from "~/lib/schemas/users";
 import { db } from "../db";
+import { redirect } from "next/navigation";
 
 export async function getCurrentLoggedInUser(): Promise<User> {
   const session = await auth();
@@ -10,7 +11,7 @@ export async function getCurrentLoggedInUser(): Promise<User> {
   const userEmail = session?.user?.email;
 
   if (!userEmail) {
-    throw new Error("Unauthorized");
+    redirect("/");
   }
 
   const userRow = await db.query.users.findFirst({

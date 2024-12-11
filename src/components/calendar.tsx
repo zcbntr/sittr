@@ -153,7 +153,7 @@ export default function CalendarComponent({
 
   const handleEventSelect = (event: CalendarEvent) => {
     // Check if the user owns the task
-    if (event.owner.userId !== currentUser.userId) {
+    if (event.owner.id !== currentUser.id) {
       const button = document.getElementById("openViewTaskDialogHiddenButton");
       if (button) {
         setSelectedTask(
@@ -253,9 +253,8 @@ export default function CalendarComponent({
 
             // If the task is marked as done, or claimed by another user, change the background opacity
             if (
-              (event.claimedBy &&
-                event.claimedBy?.userId != currentUser.userId) ||
-              (!event.claimedBy && event.owner.userId != currentUser.userId)
+              (event.claimedBy && event.claimedBy?.id != currentUser.id) ||
+              (!event.claimedBy && event.owner.id != currentUser.id)
             ) {
               newStyle.opacity = 0.5;
             }
@@ -294,7 +293,10 @@ export default function CalendarComponent({
           <Button id="openEditTaskDialogHiddenButton" className="hidden" />
         </EditTaskDialog>
 
-        <ViewTaskDialog currentUser={currentUser} initialTaskData={selectedTask}>
+        <ViewTaskDialog
+          currentUser={currentUser}
+          initialTaskData={selectedTask}
+        >
           <Button id="openViewTaskDialogHiddenButton" className="hidden" />
         </ViewTaskDialog>
       </div>

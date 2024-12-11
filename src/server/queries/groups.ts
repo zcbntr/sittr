@@ -2,13 +2,11 @@
 
 import { db } from "~/server/db";
 import { eq, inArray } from "drizzle-orm";
-import { groups, petImages, pets, petsToGroups } from "../db/schema";
+import { groups, petsToGroups } from "../db/schema";
 import {
   type Group,
   type GroupMember,
   groupMemberSchema,
-  type GroupPet,
-  groupPetSchema,
   groupSchema,
 } from "~/lib/schemas/groups";
 import { type Pet, petSchema } from "~/lib/schemas/pets";
@@ -125,40 +123,24 @@ export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
   });
 }
 
-export async function getGroupPets(groupId: string): Promise<GroupPet[]> {
+export async function getGroupPets(groupId: string): Promise<Pet[]> {
   const userId = (await auth())?.user?.id;
 
   if (!userId) {
     throw new Error("Unauthorized");
   }
 
-  const groupPetsList = await db
-    .select()
-    .from(pets)
-    .leftJoin(petsToGroups, eq(petsToGroups.petId, pets.id))
-    .leftJoin(petImages, eq(petImages.petId, pets.id))
-    .where(eq(petsToGroups.groupId, groupId));
+  const groupPets = await db.query.groups.findFirst({
+    where: (model, { eq }) => eq(model.id, groupId),
+    with: { petsToGroups: { with: { pet: { with: { petImages: true } } } } },
+  });
 
-  if (!groupPetsList) {
-    throw new Error("Failed to get pets of group");
+  if (!groupPets) {
+    throw new Error("Failed to get group pets");
   }
 
-  return groupPetsList.map((pet) => {
-    if (pet.pets_to_groups === null) {
-      throw new Error("Failed to get pets of group");
-    }
-
-    return groupPetSchema.parse({
-      petId: pet.pets.id,
-      groupId: pet.pets_to_groups.groupId,
-      owner: pet.pets.ownerId,
-      name: pet.pets.name,
-      species: pet.pets.species,
-      breed: pet.pets.breed,
-      dob: pet.pets.dob,
-      sex: pet.pets.sex,
-      image: pet.pet_images?.url,
-    });
+  return groupPets.petsToGroups.map((groupPet) => {
+    return petSchema.parse(groupPet.pet);
   });
 }
 

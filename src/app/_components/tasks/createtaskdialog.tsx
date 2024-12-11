@@ -24,8 +24,6 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import {
-  type GroupPet,
-  groupPetListSchema,
   type Group,
 } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
@@ -55,6 +53,7 @@ import { useEffect, useState } from "react";
 import { createTaskAction } from "~/server/actions/task-actions";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
+import { type Pet, petListSchema } from "~/lib/schemas/pets";
 
 export default function CreateTaskDialog({
   groups,
@@ -67,7 +66,7 @@ export default function CreateTaskDialog({
 }) {
   const [open, setOpen] = React.useState<boolean>(false);
 
-  const [groupPets, setGroupPets] = useState<GroupPet[]>([]);
+  const [groupPets, setGroupPets] = useState<Pet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
@@ -109,7 +108,7 @@ export default function CreateTaskDialog({
         },
       })
         .then((res) => res.json())
-        .then((json) => groupPetListSchema.safeParse(json))
+        .then((json) => petListSchema.safeParse(json))
         .then((validatedPetListObject) => {
           if (!validatedPetListObject.success) {
             throw new Error("Failed to get group's pets");

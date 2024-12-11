@@ -32,7 +32,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createPetInputSchema, SexEnum } from "~/lib/schemas/pets";
+import { createPetInputSchema } from "~/lib/schemas/pets";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
 import { createPetAction } from "~/server/actions/pet-actions";
@@ -44,6 +44,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { SexEnum } from "~/lib/schemas";
 
 export default function CreatePetDialog({
   children,

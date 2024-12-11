@@ -32,8 +32,6 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import {
-  type GroupPet,
-  groupPetListSchema,
   type Group,
 } from "~/lib/schemas/groups";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
@@ -66,6 +64,7 @@ import {
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
+import { petListSchema, type Pet } from "~/lib/schemas/pets";
 
 export default function EditTaskDialog({
   groups,
@@ -78,7 +77,7 @@ export default function EditTaskDialog({
 }) {
   const [open, setOpen] = useState<boolean>(false);
 
-  const [groupPets, setGroupPets] = useState<GroupPet[]>([]);
+  const [groupPets, setGroupPets] = useState<Pet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
@@ -170,7 +169,7 @@ export default function EditTaskDialog({
         },
       })
         .then((res) => res.json())
-        .then((json) => groupPetListSchema.safeParse(json))
+        .then((json) => petListSchema.safeParse(json))
         .then((validatedPetListObject) => {
           if (!validatedPetListObject.success) {
             throw new Error("Failed to get group's pets");

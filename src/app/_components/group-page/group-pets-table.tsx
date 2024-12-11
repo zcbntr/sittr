@@ -1,7 +1,6 @@
 "use client";
 
 import { DataTable } from "~/components/ui/data-table";
-import { type GroupPet } from "~/lib/schemas/groups";
 import React, { useState } from "react";
 import { Button } from "~/components/ui/button";
 import AddPetToGroupDialog from "./add-pet-to-group-dialog";
@@ -38,7 +37,7 @@ export default function GroupPetsTable({
   isOwner,
 }: {
   groupId: string;
-  groupPets: GroupPet[];
+  groupPets: Pet[];
   petsNotInGroup?: Pet[];
   isOwner?: boolean;
 }) {
@@ -48,7 +47,7 @@ export default function GroupPetsTable({
     return null;
   }
 
-  const memberColumns: ColumnDef<GroupPet>[] = [
+  const memberColumns: ColumnDef<Pet>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -81,6 +80,8 @@ export default function GroupPetsTable({
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
+        const pet = row.original;
+
         return (
           <div className="flex flex-row place-content-end">
             <DropdownMenu>
@@ -95,7 +96,7 @@ export default function GroupPetsTable({
                 <DropdownMenuItem
                   onClick={() =>
                     navigator.clipboard.writeText(
-                      `${row.original.name} - ${row.original.species} ${row.original.breed ? "(" + row.original.breed + ")" : ""}`,
+                      `${pet.name} - ${pet.species} ${pet.breed ? "(" + pet.breed + ")" : ""}`,
                     )
                   }
                 >
@@ -109,7 +110,7 @@ export default function GroupPetsTable({
     },
   ];
 
-  const ownerColumns: ColumnDef<GroupPet>[] = [
+  const ownerColumns: ColumnDef<Pet>[] = [
     {
       accessorKey: "avatar",
       header: "",
@@ -213,8 +214,8 @@ export default function GroupPetsTable({
                   <AlertDialogAction
                     onClick={async () => {
                       await removePetFromGroupAction({
-                        petId: row.original.petId,
-                        groupId: row.original.groupId,
+                        petId: pet.petId,
+                        groupId: groupId,
                       });
                       setAlertState("");
                     }}
