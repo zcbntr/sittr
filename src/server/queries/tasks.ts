@@ -12,11 +12,12 @@ import { getLoggedInUser } from "./users";
 
 export async function getAllOwnedTasks(): Promise<Task[]> {
   const user = await getLoggedInUser();
-  const userId = user.id;
 
-  if (!userId) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
+
+  const userId = user.id;
 
   const userTasks = await db.query.tasks.findMany({
     with: {
@@ -84,15 +85,16 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
 
 export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
   const user = await getLoggedInUser();
-  const userId = user.id;
 
-  if (!userId) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
 
+  const userId = user.id;
+
   const userWithTasks = await db.query.users.findFirst({
     with: {
-      tasks: {
+      tasksOwned: {
         with: {
           owner: true,
           creator: true,
@@ -112,7 +114,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
   }
 
   // Turn into task schema
-  return userWithTasks.tasks.map((task) => {
+  return userWithTasks.tasksOwned.map((task) => {
     return taskSchema.parse({
       taskId: task.id,
       owner: userSchema.parse(task.owner),
@@ -143,11 +145,12 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
 
 export async function getOwnedTaskById(taskId: string): Promise<Task> {
   const user = await getLoggedInUser();
-  const userId = user.id;
 
-  if (!userId) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
+
+  const userId = user.id;
 
   const task = await db.query.tasks.findFirst({
     with: {
@@ -202,11 +205,12 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
 
 export async function getVisibleTaskById(taskId: string): Promise<Task> {
   const user = await getLoggedInUser();
-  const userId = user.id;
 
-  if (!userId) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
+
+  const userId = user.id;
 
   const task = await db.query.tasks.findFirst({
     with: {
@@ -279,11 +283,12 @@ export async function getTasksInRange(
 
 async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
   const user = await getLoggedInUser();
-  const userId = user.id;
 
-  if (!userId) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
+
+  const userId = user.id;
 
   const tasksInRange = await db.query.tasks.findMany({
     with: {
@@ -350,6 +355,11 @@ async function getTasksSittingForInRange(
   to: Date,
 ): Promise<Task[]> {
   const user = await getLoggedInUser();
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
   const userId = user.id;
 
   const tasksSittingForInRange = await db.query.tasks.findMany({
@@ -413,6 +423,11 @@ async function getTasksSittingForInRange(
 
 async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
   const user = await getLoggedInUser();
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
   const userId = user.id;
 
   const tasksVisibleViaGroupsUserIn = await db.query.tasks.findMany({
@@ -457,7 +472,6 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
   const allTasksVisible = [...tasksVisibleViaGroupsUserIn, ...ownedTasks];
 
-  // For all tasks, if any of ownedBy, markedAsDoneBy, claimedBy are not null, fetch the user name for each
   // Then Turn into task schema
   const tasksList: Task[] = allTasksVisible.map((task) => {
     const parse = taskSchema.safeParse({
@@ -499,6 +513,11 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
 async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
   const user = await getLoggedInUser();
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
   const userId = user.id;
 
   const unclaimedTasksVisibleViaGroupsUserIn = await db.query.tasks.findMany({

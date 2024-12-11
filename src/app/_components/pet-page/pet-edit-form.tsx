@@ -72,7 +72,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
       dob: pet.dob,
       breed: pet.breed,
       sex: pet.sex,
-      note: pet.note,
+      note: pet.note ? pet.note : undefined,
     },
   });
 

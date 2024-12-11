@@ -26,7 +26,7 @@ export default async function Page({
       throw new Error("Unauthorized");
     }
 
-    if (pet.ownerId == userId) {
+    if (pet.owner.id == userId) {
       return <PetOwnerPage pet={pet} />;
     } else {
       return <PetNonOwnerPage pet={pet} />;

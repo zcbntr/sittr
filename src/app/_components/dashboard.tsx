@@ -13,6 +13,7 @@ import MonthArrows from "./dashboard/month-arrows";
 import { MdAddTask } from "react-icons/md";
 import { getLoggedInUser } from "~/server/queries/users";
 import { type TaskTypeEnum } from "~/lib/schemas";
+import { redirect } from "next/navigation";
 
 export default async function Dashboard({
   dateFrom,
@@ -28,6 +29,10 @@ export default async function Dashboard({
     getGroupsUserIsIn(),
     getTasksInRange(dateFrom, dateTo, tasksType),
   ]);
+
+  if (!currentUser) {
+    redirect("/login");
+  }
 
   return (
     <div className="flex flex-col gap-3 p-5">
