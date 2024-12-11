@@ -4,11 +4,12 @@ import { db } from "../db";
 import { groups, tasks, usersToGroups } from "../db/schema";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { auth } from "~/auth";
+import { getLoggedInUser } from "../queries/users";
 
 export const authenticatedProcedure = createServerActionProcedure().handler(
   async () => {
-    const userId = (await auth())?.user?.id;
+    const user = await getLoggedInUser();
+    const userId = user?.id;
 
     if (!userId) {
       // Return to homepage
