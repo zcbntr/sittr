@@ -2,7 +2,7 @@
 
 import { db } from "~/server/db";
 import { petSchema, type Pet } from "~/lib/schemas/pets";
-import { eq, and, or, inArray } from "drizzle-orm";
+import { eq, and, or } from "drizzle-orm";
 import { petImages, pets, petsToGroups, usersToGroups } from "../db/schema";
 import { getLoggedInUser } from "./users";
 
@@ -13,6 +13,10 @@ export async function getPetById(petId: string): Promise<Pet> {
   if (!userId) {
     throw new Error("Unauthorized");
   }
+
+  throw new Error("Not implemented");
+
+  // THis will fail due to the join on usersToGroups not giving enough data to parse owner and creator
 
   // Allow users who are members of a group which sits for the pet to view the pet
   // This will give two rows of each pet if the owner is also a member of a group which sits for the pet
@@ -60,7 +64,14 @@ export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
   }
 
   // Convert to a query so we can easily get pet images
-  const petsList = await db.select().from(pets).where(inArray(pets.id, petIds));
+  const petsList = await db.query.pets.findMany({
+    where: (model, { inArray }) => inArray(model.id, petIds),
+    with: {
+      petImages: true,
+      owner: true,
+      creator: true,
+    },
+  });
 
   if (!petsList) {
     throw new Error("Pets not found");
@@ -70,8 +81,8 @@ export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
   return petsList.map((pet) => {
     return petSchema.parse({
       petId: pet.id,
-      ownerId: pet.ownerId,
-      createdBy: pet.createdBy,
+      owner: pet.owner,
+      creator: pet.creator,
       name: pet.name,
       species: pet.species,
       breed: pet.breed ? pet.breed : undefined,
@@ -95,6 +106,8 @@ export async function getOwnedPets(): Promise<Pet[]> {
     where: (model, { eq }) => eq(model.ownerId, userId),
     with: {
       petImages: true,
+      owner: true,
+      creator: true,
     },
   });
 
@@ -102,8 +115,8 @@ export async function getOwnedPets(): Promise<Pet[]> {
   const petsList: Pet[] = ownedPets.map((pet) => {
     return petSchema.parse({
       petId: pet.id,
-      ownerId: pet.ownerId,
-      createdBy: pet.createdBy,
+      owner: pet.owner,
+      creator: pet.creator,
       name: pet.name,
       species: pet.species,
       breed: pet.breed ? pet.breed : undefined,

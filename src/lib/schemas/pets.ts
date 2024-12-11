@@ -1,17 +1,18 @@
 import { z } from "zod";
 import { SexEnum } from ".";
+import { userSchema } from "./users";
 
 export const petSchema = z.object({
   petId: z.string(),
-  ownerId: z.string(),
-  createdBy: z.string(),
+  owner: userSchema,
+  creator: userSchema,
   name: z.string(),
   species: z.string(),
   breed: z.string().optional(),
   dob: z.coerce.date().optional(),
   sex: SexEnum.optional(),
   image: z.string().optional(),
-  note: z.string().optional(),
+  note: z.string().optional().nullable(),
 });
 
 export type Pet = z.infer<typeof petSchema>;

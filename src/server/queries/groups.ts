@@ -10,23 +10,30 @@ import {
   groupSchema,
 } from "~/lib/schemas/groups";
 import { type Pet, petSchema } from "~/lib/schemas/pets";
-import { auth } from "~/auth";
-import { getUserByEmail } from "./users";
+import { getLoggedInUser } from "./users";
 import { userSchema } from "~/lib/schemas/users";
 
 export async function getGroupById(id: string): Promise<Group | null> {
-  const userId = (await auth())?.user?.id;
+  const user = await getLoggedInUser();
 
-  if (!userId) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
 
   const group = await db.query.groups.findFirst({
     where: (model, { eq }) => eq(model.id, id),
     with: {
+      creator: true,
+      usersToGroups: {
+        with: {
+          user: true,
+        },
+        // User must be in the group to view it
+        where: (model, { eq }) => eq(model.userId, user.id),
+      },
       petsToGroups: {
         with: {
-          pet: true,
+          pet: { with: { creator: true, owner: true } },
         },
       },
     },
@@ -38,14 +45,14 @@ export async function getGroupById(id: string): Promise<Group | null> {
 
   return groupSchema.parse({
     groupId: group.id,
-    createdBy: group.createdBy,
+    createdBy: group.creator,
     name: group.name,
     description: group.description,
     pets: group.petsToGroups.map((petToGroup) =>
       petSchema.parse({
         petId: petToGroup.pet.id,
-        ownerId: petToGroup.pet.ownerId,
-        createdBy: petToGroup.pet.createdBy,
+        owner: petToGroup.pet.owner,
+        creator: petToGroup.pet.creator,
         name: petToGroup.pet.name,
         species: petToGroup.pet.species,
         breed: petToGroup.pet.breed,
@@ -58,9 +65,9 @@ export async function getGroupById(id: string): Promise<Group | null> {
 }
 
 export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
-  const userId = (await auth())?.user?.id;
+  const user = await getLoggedInUser();
 
-  if (!userId) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
 
@@ -84,11 +91,13 @@ export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
 }
 
 export async function getIsUserGroupOwner(groupId: string): Promise<boolean> {
-  const userId = (await auth())?.user?.id;
+  const user = await getLoggedInUser();
 
-  if (!userId) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
+
+  const userId = user.id;
 
   const groupMember = await db.query.usersToGroups.findFirst({
     where: (model, { and, eq }) =>
@@ -103,9 +112,9 @@ export async function getIsUserGroupOwner(groupId: string): Promise<boolean> {
 }
 
 export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
-  const userId = (await auth())?.user?.id;
+  const user = await getLoggedInUser();
 
-  if (!userId) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
 
@@ -124,15 +133,21 @@ export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
 }
 
 export async function getGroupPets(groupId: string): Promise<Pet[]> {
-  const userId = (await auth())?.user?.id;
+  const user = await getLoggedInUser();
 
-  if (!userId) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
 
   const groupPets = await db.query.groups.findFirst({
     where: (model, { eq }) => eq(model.id, groupId),
-    with: { petsToGroups: { with: { pet: { with: { petImages: true } } } } },
+    with: {
+      petsToGroups: {
+        with: {
+          pet: { with: { creator: true, owner: true, petImages: true } },
+        },
+      },
+    },
   });
 
   if (!groupPets) {
@@ -140,16 +155,29 @@ export async function getGroupPets(groupId: string): Promise<Pet[]> {
   }
 
   return groupPets.petsToGroups.map((groupPet) => {
-    return petSchema.parse(groupPet.pet);
+    return petSchema.parse({
+      petId: groupPet.pet.id,
+      owner: userSchema.parse(groupPet.pet.owner),
+      creator: userSchema.parse(groupPet.pet.creator),
+      name: groupPet.pet.name,
+      species: groupPet.pet.species,
+      breed: groupPet.pet.breed,
+      dob: groupPet.pet.dob instanceof Date ? groupPet.pet.dob : new Date(),
+      sex: groupPet.pet.sex,
+      image: groupPet.pet.petImages?.url,
+      note: groupPet.pet.note,
+    });
   });
 }
 
 export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
-  const userId = (await auth())?.user?.id;
+  const user = await getLoggedInUser();
 
-  if (!userId) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
+
+  const userId = user.id;
 
   const petsNotInGroup = await db.query.pets.findMany({
     where: (model, { and, not, inArray }) =>
@@ -167,6 +195,8 @@ export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
       ),
     with: {
       petImages: true,
+      owner: true,
+      creator: true,
     },
   });
 
@@ -177,8 +207,8 @@ export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
   return petsNotInGroup.map((pet) => {
     return petSchema.parse({
       petId: pet.id,
-      ownerId: pet.ownerId,
-      createdBy: pet.createdBy,
+      owner: pet.owner,
+      creator: pet.creator,
       name: pet.name,
       species: pet.species,
       breed: pet.breed ? pet.breed : undefined,
@@ -191,13 +221,11 @@ export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
 }
 
 export async function getGroupsUserIsIn(): Promise<Group[]> {
-  const session = await auth();
+  const user = await getLoggedInUser();
 
-  if (!session?.user?.email) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
-
-  const user = await getUserByEmail(session?.user?.email);
 
   const userId = user.id;
 
@@ -206,8 +234,13 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
     with: {
       group: {
         with: {
+          creator: true,
           usersToGroups: { with: { user: true } },
-          petsToGroups: { with: { pet: { with: { petImages: true } } } },
+          petsToGroups: {
+            with: {
+              pet: { with: { petImages: true, owner: true, creator: true } },
+            },
+          },
         },
       },
     },
@@ -217,19 +250,18 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
     throw new Error("Failed to get groups user is in");
   }
 
-  // Could a query work here?
   return groupMemberList.map((groupMember) => {
     return groupSchema.parse({
       groupId: groupMember.groupId,
-      createdBy: groupMember.group.createdBy,
+      createdBy: groupMember.group.creator,
       name: groupMember.group.name,
       description: groupMember.group.description,
       pets: groupMember.group.petsToGroups.map((petToGroup) =>
         petSchema.parse({
           petId: petToGroup.pet.id,
           name: petToGroup.pet.name,
-          ownerId: petToGroup.pet.ownerId,
-          createdBy: petToGroup.pet.createdBy,
+          owner: petToGroup.pet.owner,
+          creator: petToGroup.pet.creator,
           species: petToGroup.pet.species,
           breed: petToGroup.pet.breed,
           dob: petToGroup.pet.dob,
