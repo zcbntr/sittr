@@ -22,39 +22,13 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     }
 
     if (requestParams.data.all) {
-      const petsOrErrorMessage = await getOwnedPets();
+      const pets = await getOwnedPets();
 
-      if (typeof petsOrErrorMessage === "string") {
-        return NextResponse.json(
-          {
-            status: "error",
-            error: petsOrErrorMessage,
-          },
-          { status: 400 },
-        );
-      }
-
-      return NextResponse.json(
-        { status: "success", data: petsOrErrorMessage },
-        { status: 200 },
-      );
+      return NextResponse.json(pets);
     } else if (requestParams.data.id) {
-      const petOrErrorMessage = await getPetById(requestParams.data.id);
+      const pet = await getPetById(requestParams.data.id);
 
-      if (typeof petOrErrorMessage === "string") {
-        return NextResponse.json(
-          {
-            status: "error",
-            error: petOrErrorMessage,
-          },
-          { status: 400 },
-        );
-      }
-
-      return NextResponse.json(
-        { status: "success", data: [petOrErrorMessage] },
-        { status: 200 },
-      );
+      return NextResponse.json(pet);
     }
 
     return NextResponse.json({
@@ -62,7 +36,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
       error: "Invalid request params",
     });
   } catch (error) {
-    console.error(error);
+    console.log(error);
 
     return NextResponse.json({
       status: 500,

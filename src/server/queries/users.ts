@@ -5,7 +5,7 @@ import { type User, userSchema } from "~/lib/schemas/users";
 import { db } from "../db";
 import { redirect } from "next/navigation";
 
-export async function getCurrentLoggedInUser(): Promise<User> {
+export async function getLoggedInUser(): Promise<User> {
   const session = await auth();
 
   const userEmail = session?.user?.email;

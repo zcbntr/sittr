@@ -2,11 +2,11 @@ import { Suspense } from "react";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
 import { type Group } from "~/lib/schemas/groups";
 import GroupsTable from "../_components/my-groups/groupstable";
-import { getCurrentLoggedInUser } from "~/server/queries/users";
+import { getLoggedInUser } from "~/server/queries/users";
 
 export default async function Page() {
   const [user, groups] = await Promise.all([
-    getCurrentLoggedInUser(),
+    getLoggedInUser(),
     getGroupsUserIsIn(),
   ]);
 

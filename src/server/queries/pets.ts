@@ -4,10 +4,11 @@ import { db } from "~/server/db";
 import { petSchema, type Pet } from "~/lib/schemas/pets";
 import { eq, and, or, inArray } from "drizzle-orm";
 import { petImages, pets, petsToGroups, usersToGroups } from "../db/schema";
-import { auth } from "~/auth";
+import { getLoggedInUser } from "./users";
 
 export async function getPetById(petId: string): Promise<Pet> {
-  const userId = (await auth())?.user?.id;
+  const user = await getLoggedInUser();
+  const userId = user?.id;
 
   if (!userId) {
     throw new Error("Unauthorized");
@@ -51,10 +52,11 @@ export async function getPetById(petId: string): Promise<Pet> {
 }
 
 export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
-  const userId = (await auth())?.user?.id;
+  const user = await getLoggedInUser();
+  const userId = user?.id;
 
   if (!userId) {
-    return "Unauthorized";
+    throw new Error("Unauthorized");
   }
 
   // Convert to a query so we can easily get pet images
@@ -82,7 +84,8 @@ export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
 }
 
 export async function getOwnedPets(): Promise<Pet[]> {
-  const userId = (await auth())?.user?.id;
+  const user = await getLoggedInUser();
+  const userId = user?.id;
 
   if (!userId) {
     throw new Error("Unauthorized");

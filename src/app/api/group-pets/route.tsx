@@ -19,18 +19,14 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     }
 
     if (requestParams.data.id) {
-      const groupPetsOrErrorMessage = await getGroupPets(requestParams.data.id);
+      const groupPets = await getGroupPets(requestParams.data.id);
 
-      if (typeof groupPetsOrErrorMessage === "string") {
-        return NextResponse.json({ error: groupPetsOrErrorMessage });
-      }
-
-      return NextResponse.json(groupPetsOrErrorMessage);
+      return NextResponse.json(groupPets);
     }
 
     return NextResponse.json({ error: "Invalid request params" });
   } catch (error) {
-    console.error(error);
+    console.log(error);
 
     return NextResponse.json(
       { error: "Internal Server Error" },

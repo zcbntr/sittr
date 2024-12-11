@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { getCurrentLoggedInUser } from "~/server/queries/users";
+import { getLoggedInUser } from "~/server/queries/users";
 import {
   MdOutlineExitToApp,
   MdOutlineGroup,
@@ -24,7 +24,7 @@ import { Button } from "~/components/ui/button";
 
 export async function TopNav() {
   const userEmail = (await auth())?.user?.email;
-  const userId = userEmail ? await getCurrentLoggedInUser() : undefined;
+  const userId = userEmail ? await getLoggedInUser() : undefined;
 
   if (!userId) {
     return (
@@ -42,7 +42,7 @@ export async function TopNav() {
       </header>
     );
   } else {
-    const user = await getCurrentLoggedInUser();
+    const user = await getLoggedInUser();
 
     return (
       <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">

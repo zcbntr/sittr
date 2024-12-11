@@ -2,9 +2,9 @@ import { and, eq, isNull } from "drizzle-orm";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
-import { auth } from "~/auth";
 import { db } from "~/server/db";
 import { petImages } from "~/server/db/schema";
+import { getLoggedInUser } from "~/server/queries/users";
 import { imageRateLimit } from "~/server/ratelimit";
 import { utapi } from "~/server/uploadthing";
 
@@ -15,9 +15,10 @@ export const ourFileRouter = {
   // Define as many FileRoutes as you like, each with a unique routeSlug
   createPetImageUploader: f({ image: { maxFileSize: "4MB" } })
     // Set permissions and file types for this FileRoute
-    .middleware(async ({ req }) => {
+    .middleware(async ({}) => {
       // This code runs on your server before upload
-      const userId = (await auth())?.user?.id;
+      const user = await getLoggedInUser();
+      const userId = user?.id;
 
       // eslint-disable-next-line @typescript-eslint/only-throw-error
       if (!userId) throw new UploadThingError("Unauthorized");
@@ -77,9 +78,10 @@ export const ourFileRouter = {
       }),
     )
     // Set permissions and file types for this FileRoute
-    .middleware(async ({ req, input }) => {
+    .middleware(async ({ input }) => {
       // This code runs on your server before upload
-      const userId = (await auth())?.user?.id;
+      const user = await getLoggedInUser();
+      const userId = user?.id;
 
       // eslint-disable-next-line @typescript-eslint/only-throw-error
       if (!userId) throw new UploadThingError("Unauthorized");

@@ -8,10 +8,10 @@ import { userSchema } from "~/lib/schemas/users";
 import { petSchema } from "~/lib/schemas/pets";
 import { groupSchema } from "~/lib/schemas/groups";
 import { TaskTypeEnum } from "~/lib/schemas";
-import { getCurrentLoggedInUser } from "./users";
+import { getLoggedInUser } from "./users";
 
 export async function getAllOwnedTasks(): Promise<Task[]> {
-  const user = await getCurrentLoggedInUser();
+  const user = await getLoggedInUser();
   const userId = user.id;
 
   if (!userId) {
@@ -83,7 +83,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
 }
 
 export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
-  const user = await getCurrentLoggedInUser();
+  const user = await getLoggedInUser();
   const userId = user.id;
 
   if (!userId) {
@@ -142,7 +142,7 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
 }
 
 export async function getOwnedTaskById(taskId: string): Promise<Task> {
-  const user = await getCurrentLoggedInUser();
+  const user = await getLoggedInUser();
   const userId = user.id;
 
   if (!userId) {
@@ -201,7 +201,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
 }
 
 export async function getVisibleTaskById(taskId: string): Promise<Task> {
-  const user = await getCurrentLoggedInUser();
+  const user = await getLoggedInUser();
   const userId = user.id;
 
   if (!userId) {
@@ -278,7 +278,7 @@ export async function getTasksInRange(
 }
 
 async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
-  const user = await getCurrentLoggedInUser();
+  const user = await getLoggedInUser();
   const userId = user.id;
 
   if (!userId) {
@@ -349,7 +349,7 @@ async function getTasksSittingForInRange(
   from: Date,
   to: Date,
 ): Promise<Task[]> {
-  const user = await getCurrentLoggedInUser();
+  const user = await getLoggedInUser();
   const userId = user.id;
 
   const tasksSittingForInRange = await db.query.tasks.findMany({
@@ -412,7 +412,7 @@ async function getTasksSittingForInRange(
 }
 
 async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
-  const user = await getCurrentLoggedInUser();
+  const user = await getLoggedInUser();
   const userId = user.id;
 
   const tasksVisibleViaGroupsUserIn = await db.query.tasks.findMany({
@@ -498,7 +498,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 }
 
 async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
-  const user = await getCurrentLoggedInUser();
+  const user = await getLoggedInUser();
   const userId = user.id;
 
   const unclaimedTasksVisibleViaGroupsUserIn = await db.query.tasks.findMany({

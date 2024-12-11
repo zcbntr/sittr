@@ -3,15 +3,11 @@ import { getOwnedPets } from "~/server/queries/pets";
 
 export async function GET(): Promise<NextResponse<unknown>> {
   try {
-    const petsOrErrorMessage = await getOwnedPets();
+    const pets = await getOwnedPets();
 
-    if (typeof petsOrErrorMessage === "string") {
-      return NextResponse.json({ error: petsOrErrorMessage });
-    }
-
-    return NextResponse.json(petsOrErrorMessage);
+    return NextResponse.json(pets);
   } catch (error) {
-    console.error(error);
+    console.log(error);
 
     return NextResponse.json(
       { error: "Internal Server Error" },

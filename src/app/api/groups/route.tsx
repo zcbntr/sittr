@@ -1,8 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { basicGetAPIFormSchema } from "~/lib/schemas";
 import {
-  basicGetAPIFormSchema,
-} from "~/lib/schemas";
-import { getGroupById, getGroupsByIds, getGroupsUserIsIn } from "~/server/queries/groups";
+  getGroupById,
+  getGroupsByIds,
+  getGroupsUserIsIn,
+} from "~/server/queries/groups";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -20,34 +22,22 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     }
 
     if (requestParams.data.all) {
-      const groupsInOrErrorMessage = await getGroupsUserIsIn();
+      const groupsUserIsIn = await getGroupsUserIsIn();
 
-      if (typeof groupsInOrErrorMessage === "string") {
-        return NextResponse.json({ error: groupsInOrErrorMessage });
-      }
-
-      return NextResponse.json(groupsInOrErrorMessage);
+      return NextResponse.json(groupsUserIsIn);
     } else if (requestParams.data.id) {
-      const groupOrErrorMessage = await getGroupById(requestParams.data.id);
+      const group = await getGroupById(requestParams.data.id);
 
-      if (typeof groupOrErrorMessage === "string") {
-        return NextResponse.json({ error: groupOrErrorMessage });
-      }
-
-      return NextResponse.json(groupOrErrorMessage);
+      return NextResponse.json(group);
     } else if (requestParams.data.ids) {
-      const groupsOrErrorMessage = await getGroupsByIds(requestParams.data.ids);
+      const groups = await getGroupsByIds(requestParams.data.ids);
 
-      if (typeof groupsOrErrorMessage === "string") {
-        return NextResponse.json({ error: groupsOrErrorMessage });
-      }
-
-      return NextResponse.json(groupsOrErrorMessage);
+      return NextResponse.json(groups);
     }
 
     return NextResponse.json({ error: "Invalid request params" });
   } catch (error) {
-    console.error(error);
+    console.log(error);
 
     return NextResponse.json(
       { error: "Internal Server Error" },

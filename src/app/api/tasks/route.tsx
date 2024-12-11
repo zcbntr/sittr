@@ -21,13 +21,9 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
     }
 
     if (requestParams.data.id) {
-      const taskOrErrorMessage = await getOwnedTaskById(requestParams.data.id);
+      const task = await getOwnedTaskById(requestParams.data.id);
 
-      if (typeof taskOrErrorMessage === "string") {
-        return NextResponse.json({ error: taskOrErrorMessage });
-      }
-
-      return NextResponse.json(taskOrErrorMessage);
+      return NextResponse.json(task);
     } else if (requestParams.data.dateRange) {
       const tasksInRange: Task[] = await getTasksInRange(
         requestParams.data.dateRange.from,
