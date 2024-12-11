@@ -3,7 +3,7 @@ import { TaskTypeEnum } from "~/lib/schemas";
 import Dashboard from "./_components/dashboard";
 import Home from "./_components/homepage";
 import { endOfMonth, endOfWeek, startOfMonth, startOfWeek } from "date-fns";
-import { getUserByEmail } from "~/server/queries/users";
+import { getLoggedInUser } from "~/server/queries/users";
 
 export default async function Page({
   searchParams,
@@ -16,7 +16,7 @@ export default async function Page({
 
   if (!session?.user?.email) return <Home />;
 
-  const userId = await getUserByEmail(session?.user?.email);
+  const user = await getLoggedInUser();
 
   // Safely convert the date strings to Date objects.
   // If they are not specified, default to the start and end of calendar month page.
@@ -30,7 +30,7 @@ export default async function Page({
     ? (type as TaskTypeEnum)
     : TaskTypeEnum.Values.All;
 
-  if (userId)
+  if (user)
     return (
       <Dashboard
         dateFrom={dateFromValidated}
@@ -38,5 +38,5 @@ export default async function Page({
         tasksType={tasksTypeValidated}
       />
     );
-  else return <div>Error</div>;
+  else return <Home />;
 }

@@ -10,12 +10,19 @@ import {
   getUsersPetsNotInGroup,
 } from "~/server/queries/groups";
 import { type Pet } from "~/lib/schemas/pets";
+import { redirect } from "next/navigation";
+import { getLoggedInUser } from "~/server/queries/users";
 
 export default async function Page({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const user = await getLoggedInUser();
+  if (!user) {
+    redirect("/");
+  }
+
   // Get the data for the group from the slug
   const slug = (await params).slug;
 

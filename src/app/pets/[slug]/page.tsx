@@ -36,17 +36,21 @@ export default async function Page({
 
 function PetDoesNotExistPage() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <h3 className="text-lg font-semibold">Pet Not Found</h3>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground">
-          The pet you are looking for does not exist.
-        </p>
-      </CardContent>
-    </Card>
+    <div className="container mx-auto space-y-6 p-4">
+      <div className="flex h-full w-full grow flex-row place-content-center">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h3 className="text-lg font-semibold">Pet Not Found</h3>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              The pet you are looking for does not exist.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

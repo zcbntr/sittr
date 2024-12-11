@@ -1,6 +1,5 @@
 import Link from "next/link";
 // import { MdGroups, MdPets } from "react-icons/md";
-import { auth } from "~/auth";
 import SignInButton from "~/components/sign-in-button";
 import SignOutButton from "~/components/sign-out-button";
 import {
@@ -14,19 +13,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getLoggedInUser } from "~/server/queries/users";
 import {
-  MdOutlineExitToApp,
   MdOutlineGroup,
   MdOutlinePerson,
   MdOutlinePets,
   MdOutlineSettings,
 } from "react-icons/md";
-import { Button } from "~/components/ui/button";
 
 export async function TopNav() {
-  const userEmail = (await auth())?.user?.email;
-  const userId = userEmail ? await getLoggedInUser() : undefined;
+  const user = await getLoggedInUser();
 
-  if (!userId) {
+  if (!user) {
     return (
       <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
         <div className="container mx-auto flex items-center justify-between">
@@ -42,8 +38,6 @@ export async function TopNav() {
       </header>
     );
   } else {
-    const user = await getLoggedInUser();
-
     return (
       <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
         <div className="container mx-auto flex items-center justify-between">

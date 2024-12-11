@@ -3,23 +3,24 @@
 import { auth } from "~/auth";
 import { type User, userSchema } from "~/lib/schemas/users";
 import { db } from "../db";
-import { redirect } from "next/navigation";
 
-export async function getLoggedInUser(): Promise<User> {
+export async function getLoggedInUser(): Promise<User | undefined> {
   const session = await auth();
 
   const userEmail = session?.user?.email;
 
+  // User has no session or is not logged in
   if (!userEmail) {
-    redirect("/");
+    return undefined;
   }
 
   const userRow = await db.query.users.findFirst({
     where: (model, { eq }) => eq(model.email, userEmail),
   });
 
+  // User has a session but not in the database - something has gone horribly wrong
   if (!userRow) {
-    throw new Error("User not found");
+    return undefined;
   }
 
   return userSchema.parse(userRow);

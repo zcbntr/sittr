@@ -34,12 +34,13 @@ export const users = createTable("user", {
 });
 
 export const userRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts),
-  sessions: many(sessions),
-  verificationTokens: many(verificationTokens),
-  authenticators: many(authenticators),
-  tasks: many(tasks),
-  pets: many(pets),
+  tasksCreated: many(tasks, { relationName: "creator" }),
+  tasksOwned: many(tasks, { relationName: "owner" }),
+  tasksClaimed: many(tasks, { relationName: "claimedBy" }),
+  tasksMarkedAsDone: many(tasks, { relationName: "markedAsDoneBy" }),
+  petsCreated: many(pets, { relationName: "creator" }),
+  petsOwned: many(pets, { relationName: "owner" }),
+  petImages: many(petImages, { relationName: "uploader" }),
   groups: many(groups),
   groupInviteCodes: many(groupInviteCodes),
   usersToGroups: many(usersToGroups),
@@ -68,13 +69,6 @@ export const accounts = createTable(
     }),
   }),
 );
-
-export const accountRelations = relations(accounts, ({ one }) => ({
-  user: one(users, {
-    fields: [accounts.userId],
-    references: [users.id],
-  }),
-}));
 
 export const sessions = createTable("session", {
   sessionToken: text("sessionToken").primaryKey(),
@@ -167,18 +161,22 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
   owner: one(users, {
     fields: [tasks.ownerId],
     references: [users.id],
+    relationName: "owner",
   }),
   creator: one(users, {
     fields: [tasks.createdBy],
     references: [users.id],
+    relationName: "creator",
   }),
   claimedBy: one(users, {
     fields: [tasks.claimedBy],
     references: [users.id],
+    relationName: "claimedBy",
   }),
   markedAsDoneBy: one(users, {
     fields: [tasks.markedAsDoneBy],
     references: [users.id],
+    relationName: "markedAsDoneBy",
   }),
   pet: one(pets, {
     fields: [tasks.pet],
@@ -251,6 +249,16 @@ export const pets = createTable("pets", {
 });
 
 export const petRelations = relations(pets, ({ one }) => ({
+  creator: one(users, {
+    fields: [pets.createdBy],
+    references: [users.id],
+    relationName: "creator",
+  }),
+  owner: one(users, {
+    fields: [pets.ownerId],
+    references: [users.id],
+    relationName: "owner",
+  }),
   tasks: one(tasks, {
     fields: [pets.id],
     references: [tasks.pet],
@@ -278,7 +286,12 @@ export const groups = createTable("groups", {
   ),
 });
 
-export const groupsRelations = relations(groups, ({ many }) => ({
+export const groupsRelations = relations(groups, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [groups.createdBy],
+    references: [users.id],
+    relationName: "creator",
+  }),
   tasks: many(tasks),
   groupInviteCodes: many(groupInviteCodes),
   usersToGroups: many(usersToGroups),
@@ -347,6 +360,10 @@ export const groupInviteCodes = createTable("group_invite_codes", {
 export const groupInviteCodesRelations = relations(
   groupInviteCodes,
   ({ one }) => ({
+    creator: one(users, {
+      fields: [groupInviteCodes.createdBy],
+      references: [users.id],
+    }),
     group: one(groups, {
       fields: [groupInviteCodes.groupId],
       references: [groups.id],
@@ -374,6 +391,11 @@ export const petImages = createTable("pet_images", {
 });
 
 export const petImagesRelations = relations(petImages, ({ one }) => ({
+  uploader: one(users, {
+    fields: [petImages.uploadedBy],
+    references: [users.id],
+    relationName: "uploader",
+  }),
   pet: one(pets, {
     fields: [petImages.petId],
     references: [pets.id],

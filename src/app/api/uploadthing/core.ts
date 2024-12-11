@@ -10,13 +10,12 @@ import { utapi } from "~/server/uploadthing";
 
 const f = createUploadthing();
 
-// FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
   // Define as many FileRoutes as you like, each with a unique routeSlug
   createPetImageUploader: f({ image: { maxFileSize: "4MB" } })
     // Set permissions and file types for this FileRoute
     .middleware(async ({}) => {
-      // This code runs on your server before upload
+      // This code runs on the server before upload
       const user = await getLoggedInUser();
       const userId = user?.id;
 
@@ -34,7 +33,7 @@ export const ourFileRouter = {
       return { userId: userId };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      // This code RUNS ON YOUR SERVER after upload
+      // This code runs on the server after upload
 
       // Delete existing image(s) for this user missing a pet id
       const existingImages = await db
@@ -79,7 +78,7 @@ export const ourFileRouter = {
     )
     // Set permissions and file types for this FileRoute
     .middleware(async ({ input }) => {
-      // This code runs on your server before upload
+      // This code runs on the server before upload
       const user = await getLoggedInUser();
       const userId = user?.id;
 
@@ -97,7 +96,7 @@ export const ourFileRouter = {
       return { userId: userId, petId: input.petId };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      // This code RUNS ON YOUR SERVER after upload
+      // This code runs on the server after upload
 
       // Check for exisiting pet image
       const existingImageRow = await db.query.petImages.findFirst({

@@ -3,6 +3,7 @@ import { getGroupsUserIsIn } from "~/server/queries/groups";
 import { type Group } from "~/lib/schemas/groups";
 import GroupsTable from "../_components/my-groups/groupstable";
 import { getLoggedInUser } from "~/server/queries/users";
+import { redirect } from "next/navigation";
 
 export default async function Page() {
   const [user, groups] = await Promise.all([
@@ -11,7 +12,7 @@ export default async function Page() {
   ]);
 
   if (!user) {
-    throw new Error("User not found");
+    redirect("/");
   }
 
   return <MyGroupsPage groups={groups} userId={user.id} />;
