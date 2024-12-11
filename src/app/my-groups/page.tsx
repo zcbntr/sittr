@@ -5,12 +5,14 @@ import GroupsTable from "../_components/my-groups/groupstable";
 import { getCurrentLoggedInUser } from "~/server/queries/users";
 
 export default async function Page() {
-  const user = await getCurrentLoggedInUser();
+  const [user, groups] = await Promise.all([
+    getCurrentLoggedInUser(),
+    getGroupsUserIsIn(),
+  ]);
+
   if (!user) {
     throw new Error("User not found");
   }
-
-  const groups = await getGroupsUserIsIn();
 
   return <MyGroupsPage groups={groups} userId={user.id} />;
 }

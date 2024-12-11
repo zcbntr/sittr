@@ -31,7 +31,6 @@ export default async function Dashboard({
 
   return (
     <div className="flex flex-col gap-3 p-5">
-      <h1 className="text-xl">Dashboard</h1>
       <section>
         <div className="flex flex-row flex-wrap place-content-center gap-2 sm:place-content-end">
           <div className="flex flex-col place-content-center">
