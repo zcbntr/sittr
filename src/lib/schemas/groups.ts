@@ -29,7 +29,8 @@ export type GroupMemberList = z.infer<typeof groupMemberListSchema>;
 
 export const groupSchema = z.object({
   groupId: z.string(),
-  createdBy: userSchema.nullable(),
+  creatorId: z.string(),
+  createdBy: userSchema.nullable().optional(),
   name: z.string(),
   description: z.string().optional(),
   members: z.array(groupMemberSchema).optional(),

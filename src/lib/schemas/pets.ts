@@ -3,9 +3,11 @@ import { SexEnum } from ".";
 import { userSchema } from "./users";
 
 export const petSchema = z.object({
-  petId: z.string(),
-  owner: userSchema,
-  creator: userSchema,
+  id: z.string(),
+  ownerId: z.string(),
+  creatorId: z.string(),
+  owner: userSchema.optional(),
+  creator: userSchema.optional(),
   name: z.string(),
   species: z.string(),
   breed: z.string().optional(),

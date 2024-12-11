@@ -150,27 +150,21 @@ export default function CreateGroupDialog({
                         )}
                         {!petsEmpty && selectedPetIds.length === 1 && (
                           <div>
-                            {
-                              pets.find((x) => x.petId == selectedPetIds[0])
-                                ?.name
-                            }
+                            {pets.find((x) => x.id == selectedPetIds[0])?.name}
                           </div>
                         )}
                         {!petsEmpty && selectedPetIds.length === 2 && (
                           <div>
-                            {pets.find((x) => x.petId == selectedPetIds[0])
-                              ?.name +
+                            {pets.find((x) => x.id == selectedPetIds[0])?.name +
                               " and " +
-                              pets.find((x) => x.petId == selectedPetIds[1])
-                                ?.name}
+                              pets.find((x) => x.id == selectedPetIds[1])?.name}
                           </div>
                         )}
                         {selectedPetIds.length >= 3 && (
                           <div>
-                            {pets.find((x) => x.petId == selectedPetIds[0])
-                              ?.name +
+                            {pets.find((x) => x.id == selectedPetIds[0])?.name +
                               ", " +
-                              pets.find((x) => x.petId == selectedPetIds[1])
+                              pets.find((x) => x.id == selectedPetIds[1])
                                 ?.name +
                               ", and " +
                               (selectedPetIds.length - 2).toString() +
@@ -185,23 +179,20 @@ export default function CreateGroupDialog({
                         return (
                           <DropdownMenuCheckboxItem
                             key={i}
-                            checked={selectedPetIds.includes(pet.petId)}
+                            checked={selectedPetIds.includes(pet.id)}
                             onCheckedChange={() => {
-                              if (!selectedPetIds.includes(pet.petId)) {
-                                setSelectedPetIds([
-                                  ...selectedPetIds,
-                                  pet.petId,
-                                ]);
-                                field.onChange([...selectedPetIds, pet.petId]);
+                              if (!selectedPetIds.includes(pet.id)) {
+                                setSelectedPetIds([...selectedPetIds, pet.id]);
+                                field.onChange([...selectedPetIds, pet.id]);
                               } else {
                                 setSelectedPetIds(
                                   selectedPetIds.filter(
-                                    (sId) => sId !== pet.petId,
+                                    (sId) => sId !== pet.id,
                                   ),
                                 );
                                 field.onChange(
                                   selectedPetIds.filter(
-                                    (sId) => sId !== pet.petId,
+                                    (sId) => sId !== pet.id,
                                   ),
                                 );
                               }

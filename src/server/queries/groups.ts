@@ -83,7 +83,7 @@ export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
   return groupsList.map((group) => {
     return groupSchema.parse({
       groupId: group.id,
-      createdBy: group.createdBy,
+      createdBy: group.creatorId,
       name: group.name,
       description: group.description,
     });
@@ -156,8 +156,10 @@ export async function getGroupPets(groupId: string): Promise<Pet[]> {
 
   return groupPets.petsToGroups.map((groupPet) => {
     return petSchema.parse({
-      petId: groupPet.pet.id,
+      id: groupPet.pet.id,
+      ownerId: groupPet.pet.ownerId,
       owner: userSchema.parse(groupPet.pet.owner),
+      creatorId: groupPet.pet.creatorId,
       creator: userSchema.parse(groupPet.pet.creator),
       name: groupPet.pet.name,
       species: groupPet.pet.species,
@@ -206,8 +208,10 @@ export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
 
   return petsNotInGroup.map((pet) => {
     return petSchema.parse({
-      petId: pet.id,
+      id: pet.id,
+      ownerId: pet.ownerId,
       owner: pet.owner,
+      creatorId: pet.creatorId,
       creator: pet.creator,
       name: pet.name,
       species: pet.species,
@@ -253,14 +257,17 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
   return groupMemberList.map((groupMember) => {
     return groupSchema.parse({
       groupId: groupMember.groupId,
-      createdBy: groupMember.group.creator,
+      creatorId: groupMember.group.creatorId,
+      creator: groupMember.group.creator,
       name: groupMember.group.name,
       description: groupMember.group.description,
       pets: groupMember.group.petsToGroups.map((petToGroup) =>
         petSchema.parse({
-          petId: petToGroup.pet.id,
+          id: petToGroup.pet.id,
           name: petToGroup.pet.name,
+          ownerId: petToGroup.pet.ownerId,
           owner: petToGroup.pet.owner,
+          creatorId: petToGroup.pet.creatorId,
           creator: petToGroup.pet.creator,
           species: petToGroup.pet.species,
           breed: petToGroup.pet.breed,

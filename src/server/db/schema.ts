@@ -29,7 +29,7 @@ export const users = createTable("user", {
     .$defaultFn(() => crypto.randomUUID()),
   name: text("name"),
   email: text("email").unique(),
-  emailVerified: timestamp("emailVerified", { mode: "date" }),
+  emailVerified: timestamp("email_verified", { mode: "date" }),
   image: text("image"),
 });
 
@@ -49,12 +49,12 @@ export const userRelations = relations(users, ({ many }) => ({
 export const accounts = createTable(
   "account",
   {
-    userId: text("userId")
+    userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     type: text("type").$type<AdapterAccountType>().notNull(),
     provider: text("provider").notNull(),
-    providerAccountId: text("providerAccountId").notNull(),
+    providerAccountId: text("provider_account_id").notNull(),
     refresh_token: text("refresh_token"),
     access_token: text("access_token"),
     expires_at: integer("expires_at"),
@@ -71,15 +71,15 @@ export const accounts = createTable(
 );
 
 export const sessions = createTable("session", {
-  sessionToken: text("sessionToken").primaryKey(),
-  userId: text("userId")
+  sessionToken: text("session_token").primaryKey(),
+  userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   expires: timestamp("expires", { mode: "date" }).notNull(),
 });
 
 export const verificationTokens = createTable(
-  "verificationToken",
+  "verification_token",
   {
     identifier: text("identifier").notNull(),
     token: text("token").notNull(),
@@ -95,15 +95,15 @@ export const verificationTokens = createTable(
 export const authenticators = createTable(
   "authenticator",
   {
-    credentialID: text("credentialID").notNull().unique(),
+    credentialID: text("credential_id").notNull().unique(),
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    providerAccountId: text("providerAccountId").notNull(),
-    credentialPublicKey: text("credentialPublicKey").notNull(),
+    providerAccountId: text("provider_account_id").notNull(),
+    credentialPublicKey: text("credential_public_key").notNull(),
     counter: integer("counter").notNull(),
-    credentialDeviceType: text("credentialDeviceType").notNull(),
-    credentialBackedUp: boolean("credentialBackedUp").notNull(),
+    credentialDeviceType: text("credential_device_type").notNull(),
+    credentialBackedUp: boolean("credential_backed_up").notNull(),
     transports: text("transports"),
   },
   (authenticator) => ({
@@ -121,7 +121,7 @@ export const tasks = createTable("tasks", {
   ownerId: text("owner_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  createdBy: text("created_by")
+  creatorId: text("creator_id")
     .notNull()
     .references(() => users.id, { onDelete: "set null" }),
   name: varchar("name", { length: 255 }).notNull(),
@@ -164,7 +164,7 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
     relationName: "owner",
   }),
   creator: one(users, {
-    fields: [tasks.createdBy],
+    fields: [tasks.creatorId],
     references: [users.id],
     relationName: "creator",
   }),
@@ -227,7 +227,7 @@ export const pets = createTable("pets", {
   id: text("id")
     .$defaultFn(() => crypto.randomUUID())
     .primaryKey(),
-  createdBy: text("created_by")
+  creatorId: text("creator_id")
     .notNull()
     .references(() => users.id, { onDelete: "set null" }),
   ownerId: text("owner_id")
@@ -250,7 +250,7 @@ export const pets = createTable("pets", {
 
 export const petRelations = relations(pets, ({ one }) => ({
   creator: one(users, {
-    fields: [pets.createdBy],
+    fields: [pets.creatorId],
     references: [users.id],
     relationName: "creator",
   }),
@@ -273,7 +273,7 @@ export const groups = createTable("groups", {
   id: text("id")
     .$defaultFn(() => crypto.randomUUID())
     .primaryKey(),
-  createdBy: text("created_by")
+  creatorId: text("creator_id")
     .notNull()
     .references(() => users.id, { onDelete: "set null" }),
   name: varchar("name", { length: 255 }).notNull(),
@@ -288,7 +288,7 @@ export const groups = createTable("groups", {
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({
   creator: one(users, {
-    fields: [groups.createdBy],
+    fields: [groups.creatorId],
     references: [users.id],
     relationName: "creator",
   }),
@@ -341,7 +341,7 @@ export const groupInviteCodes = createTable("group_invite_codes", {
   groupId: text("group_id")
     .references(() => groups.id, { onDelete: "cascade" })
     .notNull(),
-  createdBy: text("created_by")
+  creatorId: text("creator_id")
     .notNull()
     .references(() => users.id),
   code: varchar("code", { length: 255 }).notNull().unique(),
@@ -361,7 +361,7 @@ export const groupInviteCodesRelations = relations(
   groupInviteCodes,
   ({ one }) => ({
     creator: one(users, {
-      fields: [groupInviteCodes.createdBy],
+      fields: [groupInviteCodes.creatorId],
       references: [users.id],
     }),
     group: one(groups, {
@@ -377,7 +377,7 @@ export const petImages = createTable("pet_images", {
     .primaryKey(),
   // Do not use .notNull() here, as the pet may not have been created yet
   petId: text("pet_id").references(() => pets.id, { onDelete: "cascade" }),
-  uploadedBy: text("uploaded_by")
+  uploaderId: text("uploader_id")
     .notNull()
     .references(() => users.id, { onDelete: "set null" }),
   url: text("url").notNull(),
@@ -392,7 +392,7 @@ export const petImages = createTable("pet_images", {
 
 export const petImagesRelations = relations(petImages, ({ one }) => ({
   uploader: one(users, {
-    fields: [petImages.uploadedBy],
+    fields: [petImages.uploaderId],
     references: [users.id],
     relationName: "uploader",
   }),

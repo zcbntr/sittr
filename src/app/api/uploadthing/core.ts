@@ -40,7 +40,7 @@ export const ourFileRouter = {
         .delete(petImages)
         .where(
           and(
-            eq(petImages.uploadedBy, metadata.userId),
+            eq(petImages.uploaderId, metadata.userId),
             isNull(petImages.petId),
           ),
         )

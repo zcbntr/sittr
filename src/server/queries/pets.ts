@@ -2,8 +2,6 @@
 
 import { db } from "~/server/db";
 import { petSchema, type Pet } from "~/lib/schemas/pets";
-import { eq, and, or } from "drizzle-orm";
-import { petImages, pets, petsToGroups, usersToGroups } from "../db/schema";
 import { getLoggedInUser } from "./users";
 
 export async function getPetById(petId: string): Promise<Pet> {
@@ -21,7 +19,7 @@ export async function getPetById(petId: string): Promise<Pet> {
   // Allow users who are members of a group which sits for the pet to view the pet
   // This will give two rows of each pet if the owner is also a member of a group which sits for the pet
   // Not a big issue as we limit to 1, but could be optimized
-  
+
   // const petRows = await db
   //   .select()
   //   .from(pets)
@@ -81,7 +79,9 @@ export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
   // Turn into zod pet type
   return petsList.map((pet) => {
     return petSchema.parse({
-      petId: pet.id,
+      id: pet.id,
+      ownerId: pet.ownerId,
+      creatorId: pet.creatorId,
       owner: pet.owner,
       creator: pet.creator,
       name: pet.name,
@@ -115,7 +115,9 @@ export async function getOwnedPets(): Promise<Pet[]> {
   // Turn into zod pet type
   const petsList: Pet[] = ownedPets.map((pet) => {
     return petSchema.parse({
-      petId: pet.id,
+      id: pet.id,
+      ownerId: pet.ownerId,
+      creatorId: pet.creatorId,
       owner: pet.owner,
       creator: pet.creator,
       name: pet.name,

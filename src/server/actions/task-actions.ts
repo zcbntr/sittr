@@ -30,7 +30,7 @@ export const createTaskAction = authenticatedProcedure
       .values({
         name: input.name,
         dueMode: input.dueMode,
-        createdBy: userId,
+        creatorId: userId,
         ownerId: userId,
         dateRangeFrom: !input.dueMode ? input.dateRange?.from : null,
         dateRangeTo: !input.dueMode ? input.dateRange?.to : null,

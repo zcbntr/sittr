@@ -26,7 +26,7 @@ export const createPetAction = authenticatedProcedure
     const petRow = await db
       .insert(pets)
       .values({
-        createdBy: userId,
+        creatorId: userId,
         ownerId: userId,
         name: input.name,
         species: input.species,

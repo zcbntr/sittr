@@ -38,7 +38,7 @@ export const createGroupAction = authenticatedProcedure
       const newGroup = await db
         .insert(groups)
         .values({
-          createdBy: userId,
+          creatorId: userId,
           name: input.name,
           description: input.description,
         })
@@ -470,7 +470,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
     const newInviteCodeRow = await db
       .insert(groupInviteCodes)
       .values({
-        createdBy: userId,
+        creatorId: userId,
         groupId: input.groupId,
         code: inviteCode,
         maxUses: input.maxUses,

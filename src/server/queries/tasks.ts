@@ -37,7 +37,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
     return taskSchema.parse({
       taskId: task.id,
       owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.createdBy),
+      createdBy: userSchema.parse(task.creatorId),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -54,7 +54,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
             petId: task.pet,
             name: task.pet.name,
             ownerId: task.pet.ownerId,
-            createdBy: task.pet.createdBy,
+            createdBy: task.pet.creatorId,
             species: task.pet.species,
             breed: task.pet.breed,
             dob: task.pet.dob,
@@ -67,7 +67,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
             groupId: task.group.id,
             name: task.group.name,
             description: task.group.description,
-            createdBy: task.group.createdBy,
+            createdBy: task.group.creatorId,
           })
         : null,
       markedAsDoneBy: task.markedAsDoneBy
@@ -172,7 +172,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
   const parse = taskSchema.safeParse({
     taskId: task.id,
     owner: userSchema.parse(task.owner),
-    createdBy: userSchema.parse(task.createdBy),
+    createdBy: userSchema.parse(task.creatorId),
     name: task.name,
     description: task.description,
     dueMode: task.dueMode,
@@ -232,7 +232,7 @@ export async function getVisibleTaskById(taskId: string): Promise<Task> {
   const parse = taskSchema.safeParse({
     taskId: task.id,
     owner: userSchema.parse(task.owner),
-    createdBy: userSchema.parse(task.createdBy),
+    createdBy: userSchema.parse(task.creatorId),
     name: task.name,
     description: task.description,
     dueMode: task.dueMode,
@@ -316,7 +316,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
     const parse = taskSchema.safeParse({
       taskId: task.id,
       owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.createdBy),
+      createdBy: userSchema.parse(task.creatorId),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -388,7 +388,7 @@ async function getTasksSittingForInRange(
     const parse = taskSchema.safeParse({
       taskId: task.id,
       owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.createdBy),
+      createdBy: userSchema.parse(task.creatorId),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -400,7 +400,19 @@ async function getTasksSittingForInRange(
               to: task.dateRangeTo,
             }
           : undefined,
-      pet: task.pet ? petSchema.parse(task.pet) : null,
+      pet: task.pet
+        ? petSchema.parse({
+            id: task.pet.id,
+            name: task.pet.name,
+            ownerId: task.pet.ownerId,
+            creatorId: task.pet.creatorId,
+            species: task.pet.species,
+            breed: task.pet.breed,
+            sex: task.pet.sex,
+            dob: task.pet.dob,
+            image: task.pet.petImages ? task.pet.petImages.url : undefined,
+          })
+        : null,
       group: task.group ? groupSchema.parse(task.group) : null,
       markedAsDoneBy: task.markedAsDoneBy
         ? userSchema.parse(task.markedAsDoneBy)
@@ -477,7 +489,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
     const parse = taskSchema.safeParse({
       taskId: task.id,
       owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.createdBy),
+      createdBy: userSchema.parse(task.creator),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -489,7 +501,19 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
               to: task.dateRangeTo,
             }
           : undefined,
-      pet: task.pet ? petSchema.parse(task.pet) : null,
+      pet: task.pet
+        ? petSchema.parse({
+            id: task.pet.id,
+            name: task.pet.name,
+            ownerId: task.pet.ownerId,
+            creatorId: task.pet.creatorId,
+            species: task.pet.species,
+            breed: task.pet.breed,
+            sex: task.pet.sex,
+            dob: task.pet.dob,
+            image: task.pet.petImages ? task.pet.petImages.url : undefined,
+          })
+        : null,
       group: task.group ? groupSchema.parse(task.group) : null,
       markedAsDoneBy: task.markedAsDoneBy
         ? userSchema.parse(task.markedAsDoneBy)
@@ -546,7 +570,7 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
     const parse = taskSchema.safeParse({
       taskId: task.id,
       owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.createdBy),
+      createdBy: userSchema.parse(task.creatorId),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,
@@ -558,7 +582,19 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
               to: task.dateRangeTo,
             }
           : undefined,
-      pet: task.pet ? petSchema.parse(task.pet) : null,
+      pet: task.pet
+        ? petSchema.parse({
+            id: task.pet.id,
+            name: task.pet.name,
+            ownerId: task.pet.ownerId,
+            creatorId: task.pet.creatorId,
+            species: task.pet.species,
+            breed: task.pet.breed,
+            sex: task.pet.sex,
+            dob: task.pet.dob,
+            image: task.pet.petImages ? task.pet.petImages.url : undefined,
+          })
+        : null,
       group: task.group ? groupSchema.parse(task.group) : null,
       markedAsDoneBy: task.markedAsDoneBy
         ? userSchema.parse(task.markedAsDoneBy)
