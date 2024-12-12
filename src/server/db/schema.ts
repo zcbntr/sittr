@@ -157,7 +157,7 @@ export const tasks = createTable("tasks", {
   ),
 });
 
-export const tasksRelations = relations(tasks, ({ one }) => ({
+export const tasksRelations = relations(tasks, ({ one, many }) => ({
   owner: one(users, {
     fields: [tasks.ownerId],
     references: [users.id],
@@ -186,6 +186,7 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
     fields: [tasks.group],
     references: [groups.id],
   }),
+  notifications: many(notification),
 }));
 
 export const petsToGroups = createTable(
@@ -248,7 +249,7 @@ export const pets = createTable("pets", {
   ),
 });
 
-export const petRelations = relations(pets, ({ one }) => ({
+export const petRelations = relations(pets, ({ one, many }) => ({
   creator: one(users, {
     fields: [pets.creatorId],
     references: [users.id],
@@ -267,6 +268,8 @@ export const petRelations = relations(pets, ({ one }) => ({
     fields: [pets.id],
     references: [petImages.petId],
   }),
+  notifications: many(notification),
+  petsToGroups: many(petsToGroups),
 }));
 
 export const groups = createTable("groups", {
@@ -296,6 +299,7 @@ export const groupsRelations = relations(groups, ({ one, many }) => ({
   groupInviteCodes: many(groupInviteCodes),
   usersToGroups: many(usersToGroups),
   petsToGroups: many(petsToGroups),
+  notifications: many(notification),
 }));
 
 export const usersToGroups = createTable(
@@ -398,6 +402,47 @@ export const petImagesRelations = relations(petImages, ({ one }) => ({
   }),
   pet: one(pets, {
     fields: [petImages.petId],
+    references: [pets.id],
+  }),
+}));
+
+export const notification = createTable("notification", {
+  id: text("id")
+    .$defaultFn(() => crypto.randomUUID())
+    .primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  associatedTask: text("associated_task").references(() => tasks.id, {
+    onDelete: "set null",
+  }),
+  associatedGroup: text("associated_group").references(() => groups.id, {
+    onDelete: "set null",
+  }),
+  associatedPet: text("associated_pet").references(() => pets.id, {
+    onDelete: "set null",
+  }),
+  message: text("message").notNull(),
+  read: boolean("read").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const notificationRelations = relations(notification, ({ one }) => ({
+  associatedTask: one(tasks, {
+    fields: [notification.associatedTask],
+    references: [tasks.id],
+  }),
+  associatedGroup: one(groups, {
+    fields: [notification.associatedGroup],
+    references: [groups.id],
+  }),
+  associatedPet: one(pets, {
+    fields: [notification.associatedPet],
     references: [pets.id],
   }),
 }));
