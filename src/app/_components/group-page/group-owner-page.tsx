@@ -98,7 +98,7 @@ export function GroupOwnerPage({
                         <AlertDialogAction
                           disabled={isPending}
                           onClick={async () => {
-                            await execute({ groupId: group.groupId });
+                            await execute({ groupId: group.id });
                           }}
                         >
                           Confirm
@@ -117,7 +117,7 @@ export function GroupOwnerPage({
               <div className="flex flex-col">
                 <div className="text-lg">Members</div>
                 <GroupMembersTable
-                  groupId={group.groupId}
+                  groupId={group.id}
                   groupMembers={groupMembers}
                   isOwner
                 />
@@ -126,7 +126,7 @@ export function GroupOwnerPage({
               <div className="flex flex-col">
                 <div className="text-lg">Pets</div>
                 <GroupPetsTable
-                  groupId={group.groupId}
+                  groupId={group.id}
                   groupPets={groupPets}
                   petsNotInGroup={petsNotInGroup}
                   isOwner

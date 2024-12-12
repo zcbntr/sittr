@@ -43,14 +43,14 @@ export function GroupMemberPage({
             <div className="flex flex-col">
               <div className="text-lg">Members</div>
               <GroupMembersTable
-                groupId={group.groupId}
+                groupId={group.id}
                 groupMembers={groupMembers}
               />
             </div>
 
             <div className="flex flex-col">
               <div className="text-lg">Pets</div>
-              <GroupPetsTable groupId={group.groupId} groupPets={groupPets} />
+              <GroupPetsTable groupId={group.id} groupPets={groupPets} />
             </div>
           </div>
         </CardContent>

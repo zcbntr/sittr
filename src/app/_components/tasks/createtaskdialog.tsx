@@ -405,8 +405,8 @@ export default function CreateTaskDialog({
                     <SelectContent>
                       {groups.map((group) => (
                         <SelectItem
-                          key={group.groupId}
-                          value={group.groupId.toString()}
+                          key={group.id}
+                          value={group.id.toString()}
                         >
                           {group.name}
                         </SelectItem>

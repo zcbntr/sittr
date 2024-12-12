@@ -513,8 +513,8 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
             dob: task.pet.dob,
             image: task.pet.petImages ? task.pet.petImages.url : undefined,
           })
-        : null,
-      group: task.group ? groupSchema.parse(task.group) : null,
+        : undefined,
+      group: task.group ? groupSchema.parse(task.group) : undefined,
       markedAsDoneBy: task.markedAsDoneBy
         ? userSchema.parse(task.markedAsDoneBy)
         : null,

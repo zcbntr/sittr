@@ -37,7 +37,7 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
   const form = useForm<z.infer<typeof groupDetailsSchema>>({
     resolver: zodResolver(groupDetailsSchema),
     defaultValues: {
-      groupId: group.groupId,
+      groupId: group.id,
       name: group.name,
       description: group.description,
     },

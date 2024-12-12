@@ -53,7 +53,7 @@ export default function GroupsTable({ groups, userId }: { groups: Group[], userI
       cell: ({ row }) => {
         const group = row.original;
 
-        return <Link href={`/groups/${group.groupId}`}>{group.name}</Link>;
+        return <Link href={`/groups/${group.id}`}>{group.name}</Link>;
       },
     },
     {
@@ -189,7 +189,7 @@ export default function GroupsTable({ groups, userId }: { groups: Group[], userI
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={async () => {
-                          setAlertState(`leave-${group.groupId}`);
+                          setAlertState(`leave-${group.id}`);
                         }}
                       >
                         Leave
@@ -199,7 +199,7 @@ export default function GroupsTable({ groups, userId }: { groups: Group[], userI
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <AlertDialog open={alertState === `leave-${group.groupId}`}>
+            <AlertDialog open={alertState === `leave-${group.id}`}>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
@@ -221,7 +221,7 @@ export default function GroupsTable({ groups, userId }: { groups: Group[], userI
                   <AlertDialogAction
                     onClick={async () => {
                       await leaveGroupAction({
-                        groupId: group.groupId,
+                        groupId: group.id,
                       });
                       setAlertState("");
                     }}

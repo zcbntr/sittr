@@ -31,9 +31,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import {
-  type Group,
-} from "~/lib/schemas/groups";
+import { type Group } from "~/lib/schemas/groups";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import {
   Select,
@@ -94,8 +92,8 @@ export default function EditTaskDialog({
       dueMode: task?.dueMode ? task.dueMode : true,
       dueDate: task?.dueDate ? task.dueDate : undefined,
       dateRange: task?.dateRange ? task.dateRange : undefined,
-      petId: task?.pet.petId ? task.pet.petId : "",
-      groupId: task?.group.groupId ? task.group.groupId : "",
+      petId: task?.pet.id ? task.pet.id : "",
+      groupId: task?.group.id ? task.group.id : "",
     },
   });
 
@@ -157,9 +155,9 @@ export default function EditTaskDialog({
     form.setValue("dueMode", task?.dueMode ? task.dueMode : true);
     form.setValue("dueDate", task?.dueDate ? task.dueDate : undefined);
     form.setValue("dateRange", task?.dateRange ? task.dateRange : undefined);
-    form.setValue("petId", task?.pet.petId ? task.pet.petId : "");
-    form.setValue("groupId", task?.group.groupId ? task.group.groupId : "");
-    setSelectedGroupId(task?.group.groupId ? task.group.groupId : "");
+    form.setValue("petId", task?.pet.id ? task.pet.id : "");
+    form.setValue("groupId", task?.group.id ? task.group.id : "");
+    setSelectedGroupId(task?.group.id ? task.group.id : "");
 
     async function fetchGroupPets() {
       await fetch("../api/group-pets?id=" + form.getValues("groupId"), {
@@ -454,10 +452,7 @@ export default function EditTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {groups.map((group) => (
-                        <SelectItem
-                          key={group.groupId}
-                          value={group.groupId.toString()}
-                        >
+                        <SelectItem key={group.id} value={group.id.toString()}>
                           {group.name}
                         </SelectItem>
                       ))}
@@ -475,9 +470,7 @@ export default function EditTaskDialog({
                 <FormItem>
                   <FormLabel>Pet *</FormLabel>
                   <Select
-                    defaultValue={
-                      task?.pet.petId ? task.pet.petId.toString() : ""
-                    }
+                    defaultValue={task?.pet.id ? task.pet.id.toString() : ""}
                     value={field.value?.toString()}
                     onValueChange={(value) => {
                       form.setValue("petId", value);
@@ -497,10 +490,7 @@ export default function EditTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {groupPets.map((pet) => (
-                        <SelectItem
-                          key={pet.petId}
-                          value={pet.petId.toString()}
-                        >
+                        <SelectItem key={pet.id} value={pet.id.toString()}>
                           {pet.name}
                         </SelectItem>
                       ))}

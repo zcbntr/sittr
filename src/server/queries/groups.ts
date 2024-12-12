@@ -44,7 +44,7 @@ export async function getGroupById(id: string): Promise<Group | null> {
   }
 
   return groupSchema.parse({
-    groupId: group.id,
+    id: group.id,
     createdBy: group.creator,
     name: group.name,
     description: group.description,
@@ -82,7 +82,7 @@ export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
 
   return groupsList.map((group) => {
     return groupSchema.parse({
-      groupId: group.id,
+      id: group.id,
       createdBy: group.creatorId,
       name: group.name,
       description: group.description,
@@ -256,7 +256,7 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
 
   return groupMemberList.map((groupMember) => {
     return groupSchema.parse({
-      groupId: groupMember.groupId,
+      id: groupMember.groupId,
       creatorId: groupMember.group.creatorId,
       creator: groupMember.group.creator,
       name: groupMember.group.name,
