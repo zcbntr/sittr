@@ -13,11 +13,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getLoggedInUser } from "~/server/queries/users";
 import {
+  MdNotificationImportant,
+  MdNotifications,
   MdOutlineGroup,
   MdOutlinePerson,
   MdOutlinePets,
   MdOutlineSettings,
 } from "react-icons/md";
+import { getUserNotifications } from "~/server/queries/notifications";
 
 export async function TopNav() {
   const user = await getLoggedInUser();
@@ -38,13 +41,51 @@ export async function TopNav() {
       </header>
     );
   } else {
+    const notifications = await getUserNotifications();
+
     return (
       <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
         <div className="container mx-auto flex items-center justify-between">
           <Link href="/" className="text-4xl font-bold">
             sittr
           </Link>
-          <nav className="items-center space-x-6 md:flex">
+          <nav className="items-center space-x-5 md:flex">
+            <div className="flex place-content-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <div className="flex flex-col place-content-center">
+                    <MdNotifications size={"1.5rem"} />
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {notifications.map((notification) => (
+                    <DropdownMenuItem key={notification.id}>
+                      <Link
+                        href={
+                          notification.associatedGroup
+                            ? `/groups/${notification.associatedGroup.id}`
+                            : notification.associatedPet
+                              ? `/pets/${notification.associatedPet.id}`
+                              : notification.associatedTask
+                                ? `/tasks/${notification.associatedTask.taskId}`
+                                : "/"
+                        }
+                        className="flex flex-row place-content-start gap-2"
+                      >
+                        {notification.read && (
+                          <div className="flex flex-col place-content-center">
+                            <MdNotificationImportant />
+                          </div>
+                        )}
+                        {notification.message.substring(0, 40)}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             <div className="flex place-content-center">
               <DropdownMenu>
                 <DropdownMenuTrigger>

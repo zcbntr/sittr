@@ -53,7 +53,7 @@ export const ourFileRouter = {
       const petImageRow = await db
         .insert(petImages)
         .values({
-          uploadedBy: metadata.userId,
+          uploaderId: metadata.userId,
           url: file.url,
           fileKey: file.key,
         })
@@ -108,7 +108,7 @@ export const ourFileRouter = {
         await db
           .insert(petImages)
           .values({
-            uploadedBy: metadata.userId,
+            uploaderId: metadata.userId,
             url: file.url,
             fileKey: file.key,
             petId: metadata.petId,

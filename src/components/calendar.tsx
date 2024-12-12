@@ -92,7 +92,7 @@ class CalendarEvent {
     this.pet = _task.pet;
     this.group = _task.group;
     this.desc = _task.description ? _task.description : "";
-    this.resourceId = _task.pet.petId;
+    this.resourceId = _task.pet.id;
   }
 }
 
@@ -236,7 +236,7 @@ export default function CalendarComponent({
             };
 
             // Map the event to a colour based on the petId
-            const petId = event.pet.petId;
+            const petId = event.pet.id;
             if (petId) {
               const colour =
                 coloursList[

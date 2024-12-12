@@ -120,7 +120,7 @@ export function PetOwnerPage({ pet }: { pet: Pet }) {
                         <AlertDialogFooter>
                           <AlertDialogAction
                             onClick={async () => {
-                              await execute({ petId: pet.petId });
+                              await execute({ petId: pet.id });
                             }}
                             disabled={isPending}
                           >

@@ -163,7 +163,7 @@ export default function ViewTaskDialog({
           )}
 
           <div className="flex flex-row gap-2">
-            <Link href={`/pets/${task?.pet.petId}`}>
+            <Link href={`/pets/${task?.pet.id}`}>
               <Avatar>
                 <AvatarImage
                   src={task?.pet.image}

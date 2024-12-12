@@ -65,7 +65,7 @@ export default function GroupPetsTable({
       cell: ({ row }) => {
         const pet = row.original;
 
-        return <Link href={`/pets/${pet.petId}`}>{pet.name}</Link>;
+        return <Link href={`/pets/${pet.id}`}>{pet.name}</Link>;
       },
     },
     {
@@ -118,7 +118,7 @@ export default function GroupPetsTable({
         const pet = row.original;
 
         return (
-          <Link href={`/pets/${pet.petId}`}>
+          <Link href={`/pets/${pet.id}`}>
             <Avatar>
               <AvatarImage src={pet.image} alt={`${pet.name}'s avatar`} />
               {/* Make this actually be the initials rather than first letter */}
@@ -145,7 +145,7 @@ export default function GroupPetsTable({
       cell: ({ row }) => {
         const pet = row.original;
 
-        return <Link href={`/pets/${pet.petId}`}>{pet.name}</Link>;
+        return <Link href={`/pets/${pet.id}`}>{pet.name}</Link>;
       },
     },
     {
@@ -186,7 +186,7 @@ export default function GroupPetsTable({
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={async () => {
-                      setAlertState(`remove-${pet.petId}`);
+                      setAlertState(`remove-${pet.id}`);
                     }}
                   >
                     Remove
@@ -194,7 +194,7 @@ export default function GroupPetsTable({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <AlertDialog open={alertState === `remove-${pet.petId}`}>
+            <AlertDialog open={alertState === `remove-${pet.id}`}>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
@@ -214,7 +214,7 @@ export default function GroupPetsTable({
                   <AlertDialogAction
                     onClick={async () => {
                       await removePetFromGroupAction({
-                        petId: pet.petId,
+                        petId: pet.id,
                         groupId: groupId,
                       });
                       setAlertState("");

@@ -51,7 +51,7 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
           : undefined,
       pet: task.pet
         ? petSchema.parse({
-            petId: task.pet,
+            id: task.pet,
             name: task.pet.name,
             ownerId: task.pet.ownerId,
             createdBy: task.pet.creatorId,

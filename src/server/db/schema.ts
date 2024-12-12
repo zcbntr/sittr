@@ -186,7 +186,7 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
     fields: [tasks.group],
     references: [groups.id],
   }),
-  notifications: many(notification),
+  notifications: many(notifications),
 }));
 
 export const petsToGroups = createTable(
@@ -268,7 +268,7 @@ export const petRelations = relations(pets, ({ one, many }) => ({
     fields: [pets.id],
     references: [petImages.petId],
   }),
-  notifications: many(notification),
+  notifications: many(notifications),
   petsToGroups: many(petsToGroups),
 }));
 
@@ -299,7 +299,7 @@ export const groupsRelations = relations(groups, ({ one, many }) => ({
   groupInviteCodes: many(groupInviteCodes),
   usersToGroups: many(usersToGroups),
   petsToGroups: many(petsToGroups),
-  notifications: many(notification),
+  notifications: many(notifications),
 }));
 
 export const usersToGroups = createTable(
@@ -406,7 +406,7 @@ export const petImagesRelations = relations(petImages, ({ one }) => ({
   }),
 }));
 
-export const notification = createTable("notification", {
+export const notifications = createTable("notification", {
   id: text("id")
     .$defaultFn(() => crypto.randomUUID())
     .primaryKey(),
@@ -432,17 +432,17 @@ export const notification = createTable("notification", {
   ),
 });
 
-export const notificationRelations = relations(notification, ({ one }) => ({
+export const notificationRelations = relations(notifications, ({ one }) => ({
   associatedTask: one(tasks, {
-    fields: [notification.associatedTask],
+    fields: [notifications.associatedTask],
     references: [tasks.id],
   }),
   associatedGroup: one(groups, {
-    fields: [notification.associatedGroup],
+    fields: [notifications.associatedGroup],
     references: [groups.id],
   }),
   associatedPet: one(pets, {
-    fields: [notification.associatedPet],
+    fields: [notifications.associatedPet],
     references: [pets.id],
   }),
 }));

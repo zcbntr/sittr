@@ -66,7 +66,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
   const updateForm = useForm<z.infer<typeof updatePetSchema>>({
     resolver: zodResolver(updatePetSchema),
     defaultValues: {
-      petId: pet.petId,
+      petId: pet.id,
       name: pet.name,
       species: pet.species,
       dob: pet.dob,
@@ -131,7 +131,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                       <div className="flex flex-row place-content-center gap-2">
                         <UploadButton
                           endpoint="editPetImageUploader"
-                          input={{ petId: pet.petId }}
+                          input={{ petId: pet.id }}
                           onClientUploadComplete={(res) => {
                             // Do something with the response
                             if (res[0]?.serverData.url)
@@ -149,7 +149,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                           size="icon"
                           disabled={imageDeletePending}
                           onClick={async () => {
-                            await executeDeleteImage({ petId: pet.petId });
+                            await executeDeleteImage({ petId: pet.id });
                             setRecentUploadUrl(undefined);
                           }}
                         >
@@ -161,7 +161,7 @@ export function PetEditForm({ pet }: { pet: Pet }) {
                     {!pet.image && !recentUploadUrl && (
                       <UploadButton
                         endpoint="editPetImageUploader"
-                        input={{ petId: pet.petId }}
+                        input={{ petId: pet.id }}
                         onClientUploadComplete={(res) => {
                           // Do something with the response
                           if (res[0]?.serverData.url)

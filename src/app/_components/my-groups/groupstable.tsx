@@ -124,7 +124,7 @@ export default function GroupsTable({ groups, userId }: { groups: Group[], userI
           return (
             <div className="flex flex-row gap-2">
               {group.pets.map((pet) => (
-                <Link href={`/pets/${pet.petId}`} key={pet.petId}>
+                <Link href={`/pets/${pet.id}`} key={pet.id}>
                   <Avatar>
                     <AvatarImage src={pet.image} alt={`${pet.name}'s avatar`} />
                     {/* Make this actually be the initials rather than first letter */}
@@ -138,7 +138,7 @@ export default function GroupsTable({ groups, userId }: { groups: Group[], userI
         if (group.pets.length > 3 && group.pets[0] && group.pets[1])
           return (
             <div className="flex flex-row gap-2">
-              <Link href={`/pets/${group.pets[0].petId}`}>
+              <Link href={`/pets/${group.pets[0].id}`}>
                 <Avatar>
                   <AvatarImage
                     src={group.pets[0].image}

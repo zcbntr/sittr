@@ -41,7 +41,7 @@ export default function PetsTable({ pets }: { pets: Pet[] }) {
         const pet = row.original;
 
         return (
-          <Link href={`/pets/${pet.petId}`}>
+          <Link href={`/pets/${pet.id}`}>
             <Avatar>
               <AvatarImage src={pet.image} alt={`${pet.name}'s avatar`} />
               {/* Make this actually be the initials rather than first letter */}
@@ -69,7 +69,7 @@ export default function PetsTable({ pets }: { pets: Pet[] }) {
         const pet = row.original;
 
         return (
-          <Link href={`/pets/${pet.petId}`}>
+          <Link href={`/pets/${pet.id}`}>
             <span>{pet.name}</span>
           </Link>
         );
@@ -113,7 +113,7 @@ export default function PetsTable({ pets }: { pets: Pet[] }) {
                   <DropdownMenuItem>
                     <Link
                       className="flex grow flex-row"
-                      href={`pets/${pet.petId}?editing=true`}
+                      href={`pets/${pet.id}?editing=true`}
                     >
                       Edit
                     </Link>
@@ -121,7 +121,7 @@ export default function PetsTable({ pets }: { pets: Pet[] }) {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={async () => {
-                      setAlertState(`delete-${pet.petId}`);
+                      setAlertState(`delete-${pet.id}`);
                     }}
                   >
                     Delete
@@ -129,7 +129,7 @@ export default function PetsTable({ pets }: { pets: Pet[] }) {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <AlertDialog open={alertState === `delete-${pet.petId}`}>
+            <AlertDialog open={alertState === `delete-${pet.id}`}>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
@@ -150,7 +150,7 @@ export default function PetsTable({ pets }: { pets: Pet[] }) {
                   <AlertDialogAction
                     onClick={async () => {
                       await deletePetAction({
-                        petId: row.original.petId,
+                        petId: row.original.id,
                       });
                       setAlertState("");
                     }}
