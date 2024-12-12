@@ -23,9 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import {
-  type Group,
-} from "~/lib/schemas/groups";
+import { type Group } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import {
@@ -445,10 +443,7 @@ export default function CreateTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {groupPets.map((pet) => (
-                        <SelectItem
-                          key={pet.petId}
-                          value={pet.petId.toString()}
-                        >
+                        <SelectItem key={pet.id} value={pet.id.toString()}>
                           {pet.name}
                         </SelectItem>
                       ))}
