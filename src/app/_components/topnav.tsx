@@ -42,6 +42,7 @@ export async function TopNav() {
     );
   } else {
     const notifications = await getUserNotifications();
+    const hasUnreadNotifications = notifications.some((n) => !n.read);
 
     return (
       <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
@@ -54,10 +55,15 @@ export async function TopNav() {
               <DropdownMenu>
                 <DropdownMenuTrigger>
                   <div className="flex flex-col place-content-center">
-                    <MdNotifications size={"1.5rem"} />
+                    {hasUnreadNotifications && (
+                      <MdNotificationImportant size={"1.7rem"} />
+                    )}
+                    {!hasUnreadNotifications && (
+                      <MdNotifications size={"1.7rem"} />
+                    )}
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent className="min-w-[260px]">
                   <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {notifications.map((notification) => (
@@ -83,6 +89,9 @@ export async function TopNav() {
                       </Link>
                     </DropdownMenuItem>
                   ))}
+                  {notifications.length === 0 && (
+                    <DropdownMenuItem>No notifications</DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -100,7 +109,7 @@ export async function TopNav() {
                     </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent className="min-w-[200px]">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
