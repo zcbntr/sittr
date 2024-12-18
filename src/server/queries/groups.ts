@@ -45,13 +45,16 @@ export async function getGroupById(id: string): Promise<Group | null> {
 
   return groupSchema.parse({
     id: group.id,
-    createdBy: group.creator,
+    creatorId: group.creatorId,
+    creator: group.creator,
     name: group.name,
     description: group.description,
     pets: group.petsToGroups.map((petToGroup) =>
       petSchema.parse({
-        petId: petToGroup.pet.id,
+        id: petToGroup.pet.id,
+        ownerId: petToGroup.pet.ownerId,
         owner: petToGroup.pet.owner,
+        creatorId: petToGroup.pet.creatorId,
         creator: petToGroup.pet.creator,
         name: petToGroup.pet.name,
         species: petToGroup.pet.species,

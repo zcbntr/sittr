@@ -347,7 +347,7 @@ export const groupInviteCodes = createTable("group_invite_codes", {
     .notNull(),
   creatorId: text("creator_id")
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: "cascade" }),
   code: varchar("code", { length: 255 }).notNull().unique(),
   uses: integer("uses").notNull().default(0),
   maxUses: integer("max_uses").notNull().default(1),

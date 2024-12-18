@@ -3,6 +3,10 @@
         {
             "path": "/api/cron/delete-unlinked-images",
             "schedule": "0 6 * * *"
+        },
+        {
+            "path": "/api/cron/delete-expired-invites",
+            "schedule": "0 6 * * *"
         }
     ]
 }

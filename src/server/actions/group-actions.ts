@@ -18,13 +18,14 @@ import {
   petsToGroups,
   usersToGroups,
 } from "../db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte, lt, or } from "drizzle-orm";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { addMilliseconds } from "date-fns";
 import { ratelimit } from "../ratelimit";
 import { GroupRoleEnum } from "~/lib/schemas";
+import { createServerAction } from "zsa";
 
 export const createGroupAction = authenticatedProcedure
   .createServerAction()
@@ -488,3 +489,18 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
 
     return { code };
   });
+
+export const deleteExpiredGroupInviteCodesAction = createServerAction().handler(
+  async () => {
+    await db
+      .delete(groupInviteCodes)
+      .where(
+        or(
+          lt(groupInviteCodes.expiresAt, new Date()),
+          gte(groupInviteCodes.maxUses, groupInviteCodes.uses),
+        ),
+      )
+
+      .execute();
+  },
+);

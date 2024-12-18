@@ -4,7 +4,7 @@ import { createPetInputSchema, updatePetSchema } from "~/lib/schemas/pets";
 import { db } from "../db";
 import { petImages, pets } from "../db/schema";
 import { authenticatedProcedure, ownsPetProcedure } from "./zsa-procedures";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, lt } from "drizzle-orm";
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -132,7 +132,15 @@ export const deleteOldUnlinkedImagesAction = createServerAction().handler(
     }
 
     // Delete from db
-    await db.delete(petImages).where(isNull(petImages.petId)).execute();
+    await db
+      .delete(petImages)
+      .where(
+        and(
+          isNull(petImages.petId),
+          lt(petImages.createdAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
+        ),
+      )
+      .execute();
 
     return { success: true };
   },

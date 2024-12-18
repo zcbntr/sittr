@@ -91,7 +91,7 @@ export default function CreateGroupInviteDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center space-x-2">
-          <div className="grid flex-1 gap-2">
+          <div className="grid flex-1 gap-2 px-1 pt-2">
             <Label htmlFor="link" className="sr-only">
               Link
             </Label>
@@ -125,7 +125,7 @@ export default function CreateGroupInviteDialog({
           <form
             onSubmit={form.handleSubmit((values) => execute(values))}
             onChange={form.handleSubmit((values) => execute(values))}
-            className="w-full space-y-6"
+            className="w-full space-y-6 p-1"
           >
             <FormField
               control={form.control}

@@ -41,7 +41,7 @@ export async function getPetById(petId: string): Promise<Pet> {
   // const petRow = petRows[0];
 
   // return petSchema.parse({
-  //   petId: petRow.pets.id,
+  //   id: petRow.pets.id,
   //   ownerId: petRow.pets.ownerId,
   //   createdBy: petRow.pets.createdBy,
   //   name: petRow.pets.name,
