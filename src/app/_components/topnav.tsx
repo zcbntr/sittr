@@ -47,9 +47,19 @@ export async function TopNav() {
     return (
       <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
         <div className="container mx-auto flex items-center justify-between">
-          <Link href="/" className="text-4xl font-bold">
-            sittr
-          </Link>
+          {!user.plusMembership && (
+            <Link href="/" className="text-4xl font-bold">
+              sittr
+            </Link>
+          )}
+          {user.plusMembership && (
+            <Link href="/" className="text-4xl font-bold">
+              sittr
+              <span className="mb-0.5 ml-0.5 align-top text-2xl text-violet-600">
+                +
+              </span>
+            </Link>
+          )}
           <nav className="items-center space-x-5 md:flex">
             <div className="flex place-content-center">
               <DropdownMenu>

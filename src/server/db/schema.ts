@@ -31,7 +31,7 @@ export const users = createTable("user", {
   email: text("email").unique(),
   emailVerified: timestamp("email_verified", { mode: "date" }),
   image: text("image"),
-  premium: boolean("premium").notNull().default(false),
+  plusMembership: boolean("plus_membership").notNull().default(false),
 });
 
 export const userRelations = relations(users, ({ many }) => ({
