@@ -22,6 +22,10 @@ export const ourFileRouter = {
       // eslint-disable-next-line @typescript-eslint/only-throw-error
       if (!userId) throw new UploadThingError("Unauthorized");
 
+      if (!user.premium)
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        throw new UploadThingError("You must be premium to upload images");
+
       const { success } = await imageRateLimit.limit(userId);
 
       if (!success) {
@@ -84,6 +88,10 @@ export const ourFileRouter = {
 
       // eslint-disable-next-line @typescript-eslint/only-throw-error
       if (!userId) throw new UploadThingError("Unauthorized");
+
+      if (!user.premium)
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        throw new UploadThingError("You must be premium to edit images");
 
       const { success } = await imageRateLimit.limit(userId);
 

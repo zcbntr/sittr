@@ -31,6 +31,7 @@ export const users = createTable("user", {
   email: text("email").unique(),
   emailVerified: timestamp("email_verified", { mode: "date" }),
   image: text("image"),
+  premium: boolean("premium").notNull().default(false),
 });
 
 export const userRelations = relations(users, ({ many }) => ({
@@ -88,27 +89,6 @@ export const verificationTokens = createTable(
   (verificationToken) => ({
     compositePk: primaryKey({
       columns: [verificationToken.identifier, verificationToken.token],
-    }),
-  }),
-);
-
-export const authenticators = createTable(
-  "authenticator",
-  {
-    credentialID: text("credential_id").notNull().unique(),
-    userId: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    providerAccountId: text("provider_account_id").notNull(),
-    credentialPublicKey: text("credential_public_key").notNull(),
-    counter: integer("counter").notNull(),
-    credentialDeviceType: text("credential_device_type").notNull(),
-    credentialBackedUp: boolean("credential_backed_up").notNull(),
-    transports: text("transports"),
-  },
-  (authenticator) => ({
-    compositePK: primaryKey({
-      columns: [authenticator.userId, authenticator.credentialID],
     }),
   }),
 );

@@ -88,6 +88,7 @@ export default function CreatePetDialog({
         <div className="h-full w-full space-y-2 px-1">
           <div>
             <div className="font-medium">Avatar</div>
+            {/* Change UI depending on whether user has premium or not */}
             <UploadButton
               endpoint="createPetImageUploader"
               onClientUploadComplete={(res) => {
