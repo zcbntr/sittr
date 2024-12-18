@@ -7,6 +7,14 @@
         {
             "path": "/api/cron/delete-expired-invites",
             "schedule": "0 6 * * *"
+        },
+        {
+            "path": "/api/cron/send-birthday-notifications",
+            "schedule": "0 6 * * *"
+        },
+        {
+            "path": "/api/cron/delete-old-notifications",
+            "schedule": "0 6 * * *"
         }
     ]
 }

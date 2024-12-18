@@ -1,5 +1,5 @@
 import { type NextRequest } from "next/server";
-import { deleteExpiredGroupInviteCodesAction } from "~/server/actions/group-actions";
+import { deleteExpiredGroupInviteCodes } from "~/server/actions/cron-jobs";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  await deleteExpiredGroupInviteCodesAction();
+  await deleteExpiredGroupInviteCodes();
 
   return Response.json({ success: true });
 }

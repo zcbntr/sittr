@@ -8,7 +8,7 @@ import {
   updateTaskInputSchema,
 } from "~/lib/schemas/tasks";
 import { db } from "~/server/db";
-import { tasks } from "~/server/db/schema";
+import { notifications, tasks, users } from "~/server/db/schema";
 import {
   authenticatedProcedure,
   canMarkTaskAsDoneProcedure,
@@ -118,6 +118,26 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
         })
         .where(eq(tasks.id, input.taskId))
         .execute();
+
+      // Notify the owner of the task that the task has been marked as done
+      const owner = await db.query.users.findFirst({
+        where: eq(users.id, task.ownerId),
+      });
+
+      const markedAsDoneBy = await db.query.users.findFirst({
+        where: eq(users.id, userId),
+      });
+
+      if (owner) {
+        await db
+          .insert(notifications)
+          .values({
+            userId: owner.id,
+            message: `Your task "${task.name}" has been marked as done by ${markedAsDoneBy?.name}`,
+            associatedTask: task.id,
+          })
+          .execute();
+      }
 
       revalidatePath(`/tasks/${task.id}`);
       revalidatePath("/");

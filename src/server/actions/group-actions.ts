@@ -15,17 +15,17 @@ import { authenticatedProcedure, ownsGroupProcedure } from "./zsa-procedures";
 import {
   groupInviteCodes,
   groups,
+  notifications,
   petsToGroups,
   usersToGroups,
 } from "../db/schema";
-import { and, eq, gte, lt, or } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { addMilliseconds } from "date-fns";
 import { ratelimit } from "../ratelimit";
 import { GroupRoleEnum } from "~/lib/schemas";
-import { createServerAction } from "zsa";
 
 export const createGroupAction = authenticatedProcedure
   .createServerAction()
@@ -117,6 +117,27 @@ export const deleteGroupAction = ownsGroupProcedure
 
     await db.delete(groups).where(eq(groups.id, input.groupId)).execute();
 
+    // Notify all users in the group of the deletion
+    const groupMembers = await db.query.usersToGroups.findMany({
+      where: (model, { eq }) => eq(model.groupId, input.groupId),
+    });
+
+    for (const member of groupMembers) {
+      // Ignore the user who deleted the group (owner)
+      if (member.role === GroupRoleEnum.Values.Owner) {
+        continue;
+      }
+
+      await db
+        .insert(notifications)
+        .values({
+          userId: member.userId,
+          associatedGroup: input.groupId,
+          message: `The group ${input.groupId} has been deleted`,
+        })
+        .execute();
+    }
+
     redirect("/my-groups");
   });
 
@@ -131,6 +152,31 @@ export const addPetToGroupAction = ownsGroupProcedure
         petId: input.petId,
       })
       .execute();
+
+    // Notify all users in the group of the addition
+    const groupMembers = await db.query.usersToGroups.findMany({
+      where: (model, { eq }) => eq(model.groupId, input.groupId),
+    });
+
+    const pet = await db.query.pets.findFirst({
+      where: (model, { eq }) => eq(model.id, input.petId),
+    });
+
+    for (const member of groupMembers) {
+      // Ignore the user who added the pet (owner)
+      if (member.role === GroupRoleEnum.Values.Owner) {
+        continue;
+      }
+
+      await db
+        .insert(notifications)
+        .values({
+          userId: member.userId,
+          associatedGroup: input.groupId,
+          message: `The pet ${pet?.name} has been added to the group`,
+        })
+        .execute();
+    }
 
     revalidatePath(`/group/${input.groupId}`);
   });
@@ -150,6 +196,31 @@ export const addPetsToGroupAction = ownsGroupProcedure
           .execute();
       }
     });
+
+    // Notify all users in the group of the addition
+    const groupMembers = await db.query.usersToGroups.findMany({
+      where: (model, { eq }) => eq(model.groupId, input.groupId),
+    });
+
+    const group = await db.query.groups.findFirst({
+      where: (model, { eq }) => eq(model.id, input.groupId),
+    });
+
+    for (const member of groupMembers) {
+      // Ignore the user who added the pet (owner)
+      if (member.role === GroupRoleEnum.Values.Owner) {
+        continue;
+      }
+
+      await db
+        .insert(notifications)
+        .values({
+          userId: member.userId,
+          associatedGroup: input.groupId,
+          message: `Multiple pets have been added to ${group?.name}`,
+        })
+        .execute();
+    }
 
     revalidatePath(`/group/${input.groupId}`);
   });
@@ -280,6 +351,34 @@ export const leaveGroupAction = authenticatedProcedure
       )
       .execute();
 
+    // Notify the owner of the group that the user has left
+    const group = await db.query.groups.findFirst({
+      where: (model, { eq }) => eq(model.id, input.groupId),
+    });
+
+    const owner = await db.query.usersToGroups.findFirst({
+      where: (model, { eq }) =>
+        and(
+          eq(model.groupId, input.groupId),
+          eq(model.role, GroupRoleEnum.Values.Owner),
+        ),
+    });
+
+    const leavingUser = await db.query.users.findFirst({
+      where: (model, { eq }) => eq(model.id, userId),
+    });
+
+    if (owner) {
+      await db
+        .insert(notifications)
+        .values({
+          userId: owner.userId,
+          associatedGroup: input.groupId,
+          message: `${leavingUser?.name} has left ${group?.name}`,
+        })
+        .execute();
+    }
+
     redirect("/my-groups");
   });
 
@@ -377,6 +476,20 @@ export const acceptPendingUserAction = ownsGroupProcedure
       .execute();
 
     if (member) {
+      // Notify the user that they have been accepted
+      const group = await db.query.groups.findFirst({
+        where: (model, { eq }) => eq(model.id, groupId),
+      });
+
+      await db
+        .insert(notifications)
+        .values({
+          userId: userId,
+          associatedGroup: groupId,
+          message: `You have been accepted into ${group?.name}`,
+        })
+        .execute();
+
       revalidatePath(`/group/${groupId}`);
       return;
     }
@@ -413,6 +526,20 @@ export const rejectPendingUserAction = ownsGroupProcedure
       .execute();
 
     if (member) {
+      // Notify the user that they have been rejected
+      const group = await db.query.groups.findFirst({
+        where: (model, { eq }) => eq(model.id, groupId),
+      });
+
+      await db
+        .insert(notifications)
+        .values({
+          userId: userId,
+          associatedGroup: groupId,
+          message: `You have been rejected from ${group?.name}`,
+        })
+        .execute();
+
       revalidatePath(`/group/${groupId}`);
       return;
     }
@@ -489,18 +616,3 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
 
     return { code };
   });
-
-export const deleteExpiredGroupInviteCodesAction = createServerAction().handler(
-  async () => {
-    await db
-      .delete(groupInviteCodes)
-      .where(
-        or(
-          lt(groupInviteCodes.expiresAt, new Date()),
-          gte(groupInviteCodes.maxUses, groupInviteCodes.uses),
-        ),
-      )
-
-      .execute();
-  },
-);

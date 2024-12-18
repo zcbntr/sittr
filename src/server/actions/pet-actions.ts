@@ -4,13 +4,12 @@ import { createPetInputSchema, updatePetSchema } from "~/lib/schemas/pets";
 import { db } from "../db";
 import { petImages, pets } from "../db/schema";
 import { authenticatedProcedure, ownsPetProcedure } from "./zsa-procedures";
-import { and, eq, isNull, lt } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ratelimit } from "../ratelimit";
 import { utapi } from "../uploadthing";
-import { createServerAction } from "zsa";
 
 export const createPetAction = authenticatedProcedure
   .createServerAction()
@@ -114,34 +113,3 @@ export const deletePetImageAction = ownsPetProcedure
     revalidatePath(`/pets/${pet.id}`);
     revalidatePath(`/pets/${pet.id}?editing=true`);
   });
-
-export const deleteOldUnlinkedImagesAction = createServerAction().handler(
-  async () => {
-    // Images must be at least 2 hours old to be deleted
-    const oldUnlinkedImages = await db.query.petImages.findMany({
-      where: (model, { and, isNull, lt }) =>
-        and(
-          isNull(model.petId),
-          lt(model.createdAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
-        ),
-    });
-
-    // Delete from upload thing
-    for (const image of oldUnlinkedImages) {
-      await utapi.deleteFiles(image.fileKey);
-    }
-
-    // Delete from db
-    await db
-      .delete(petImages)
-      .where(
-        and(
-          isNull(petImages.petId),
-          lt(petImages.createdAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
-        ),
-      )
-      .execute();
-
-    return { success: true };
-  },
-);
