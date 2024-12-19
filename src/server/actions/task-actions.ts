@@ -23,7 +23,7 @@ export const createTaskAction = authenticatedProcedure
   .createServerAction()
   .input(createTaskInputSchema)
   .handler(async ({ input, ctx }) => {
-    const { userId } = ctx;
+    const userId = ctx.user.id;
 
     await db
       .insert(tasks)

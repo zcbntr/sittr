@@ -28,9 +28,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import { useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 
-export default function PetsTable({ pets }: { pets: Pet[] }) {
+import { useState } from "react";
+import { type User } from "~/lib/schemas/users";
+
+export default function PetsTable({ user, pets }: { user: User; pets: Pet[] }) {
   const [alertState, setAlertState] = useState("");
 
   const columns: ColumnDef<Pet>[] = [
@@ -174,9 +182,46 @@ export default function PetsTable({ pets }: { pets: Pet[] }) {
         searchable={true}
         filterable={false}
       >
-        <CreatePetDialog>
-          <Button>New Pet</Button>
-        </CreatePetDialog>
+        {((user.plusMembership && pets.length < 100) ||
+          (!user.plusMembership && pets.length < 2)) && (
+          <CreatePetDialog>
+            <Button>New Pet</Button>
+          </CreatePetDialog>
+        )}
+        {user.plusMembership && pets.length >= 100 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="pointer-events-none inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
+                  New Pet
+                </div>
+                <Button asChild>
+                  <Link href="/login">Login</Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>You have reached the limit of pets you can have.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        {!user.plusMembership && pets.length >= 2 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="pointer-events-none inline-flex h-9 cursor-default items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
+                  New Pet
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  You have reached the limit of pets you can have without a Plus
+                  membership.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </DataTable>
     </div>
   );

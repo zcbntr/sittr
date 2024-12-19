@@ -4,7 +4,7 @@ import { createPetInputSchema, updatePetSchema } from "~/lib/schemas/pets";
 import { db } from "../db";
 import { petImages, pets } from "../db/schema";
 import { authenticatedProcedure, ownsPetProcedure } from "./zsa-procedures";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -15,19 +15,40 @@ export const createPetAction = authenticatedProcedure
   .createServerAction()
   .input(createPetInputSchema)
   .handler(async ({ input, ctx }) => {
-    const { userId } = ctx;
+    const user = ctx.user;
+
     // Once image upload is locked down to only paying customers we can remove the ratelimiting here
-    const { success } = await ratelimit.limit(userId);
+    const { success } = await ratelimit.limit(user.id);
 
     if (!success) {
       throw new Error("You are creating pets too fast");
     }
 
+    // Check how many pets the user has
+    const petCount = await db
+      .select({ count: count() })
+      .from(pets)
+      .where(eq(pets.ownerId, user.id))
+      .execute();
+
+    if (!petCount[0]?.count) {
+      throw new Error("Failed to count user's pets");
+    }
+
+    if (
+      (user.plusMembership && petCount[0]?.count >= 100) ||
+      (!user.plusMembership && petCount[0]?.count >= 2)
+    ) {
+      throw new Error(
+        "You have reached the maximum number of pets for your plan type",
+      );
+    }
+
     const petRow = await db
       .insert(pets)
       .values({
-        creatorId: userId,
-        ownerId: userId,
+        creatorId: user.id,
+        ownerId: user.id,
         name: input.name,
         species: input.species,
         breed: input.breed,
@@ -76,7 +97,7 @@ export const deletePetAction = authenticatedProcedure
   .createServerAction()
   .input(z.object({ petId: z.string() }))
   .handler(async ({ input, ctx }) => {
-    const { userId } = ctx;
+    const userId = ctx.user.id;
 
     await db
       .delete(pets)

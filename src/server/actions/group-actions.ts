@@ -31,7 +31,7 @@ export const createGroupAction = authenticatedProcedure
   .createServerAction()
   .input(createGroupInputSchema)
   .handler(async ({ input, ctx }) => {
-    const { userId } = ctx;
+    const userId = ctx.user.id;
 
     // Create group, add user to groupMembers, add pets to group, all in a transaction
     await db.transaction(async (db) => {
@@ -320,7 +320,7 @@ export const leaveGroupAction = authenticatedProcedure
   .createServerAction()
   .input(z.object({ groupId: z.string() }))
   .handler(async ({ input, ctx }) => {
-    const { userId } = ctx;
+    const userId = ctx.user.id;
 
     // Check if user is the last owner of the group
     const ownerCount = await db
@@ -386,7 +386,7 @@ export const joinGroupAction = authenticatedProcedure
   .createServerAction()
   .input(joinGroupFormSchema)
   .handler(async ({ input, ctx }) => {
-    const { userId } = ctx;
+    const userId = ctx.user.id;
 
     // This needs to be a find many if there becomes lots of groups
     const inviteCodeRow = await db.query.groupInviteCodes.findFirst({

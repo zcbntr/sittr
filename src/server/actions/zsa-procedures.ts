@@ -9,14 +9,13 @@ import { getLoggedInUser } from "../queries/users";
 export const authenticatedProcedure = createServerActionProcedure().handler(
   async () => {
     const user = await getLoggedInUser();
-    const userId = user?.id;
 
-    if (!userId) {
+    if (!user) {
       // Return to homepage
       redirect("/");
     }
 
-    return { userId };
+    return { user };
   },
 );
 
@@ -25,7 +24,7 @@ export const ownsPetProcedure = createServerActionProcedure(
 )
   .input(z.object({ petId: z.string() }))
   .handler(async ({ ctx, input }) => {
-    const { userId } = ctx;
+    const userId = ctx.user.id;
 
     const pet = await db.query.pets.findFirst({
       where: (model, { and, eq }) =>
@@ -44,7 +43,7 @@ export const ownsTaskProcedure = createServerActionProcedure(
 )
   .input(z.object({ taskId: z.string() }))
   .handler(async ({ ctx, input }) => {
-    const { userId } = ctx;
+    const userId = ctx.user.id;
     const task = await db.query.tasks.findFirst({
       where: (model, { and, eq }) =>
         and(eq(model.id, input.taskId), eq(model.creatorId, userId)),
@@ -63,7 +62,7 @@ export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
   .input(z.object({ taskId: z.string() }))
   // Check if the user is in the group the task is assigned to
   .handler(async ({ ctx, input }) => {
-    const { userId } = ctx;
+    const userId = ctx.user.id;
     const taskRow = (
       await db
         .select()
@@ -90,7 +89,7 @@ export const ownsGroupProcedure = createServerActionProcedure(
 )
   .input(z.object({ groupId: z.string() }))
   .handler(async ({ ctx, input }) => {
-    const { userId } = ctx;
+    const userId = ctx.user.id;
 
     // Check if the user is the owner of the group by left joining group members
     const groupRow = (
