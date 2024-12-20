@@ -4,7 +4,7 @@ import { createPetInputSchema, updatePetSchema } from "~/lib/schemas/pets";
 import { db } from "../db";
 import { petImages, pets } from "../db/schema";
 import { authenticatedProcedure, ownsPetProcedure } from "./zsa-procedures";
-import { and, count, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -25,19 +25,15 @@ export const createPetAction = authenticatedProcedure
     }
 
     // Check how many pets the user has
-    const petCount = await db
-      .select({ count: count() })
-      .from(pets)
-      .where(eq(pets.ownerId, user.id))
-      .execute();
+    const petCountRows = await db.query.pets.findMany({
+      where: (model, { eq }) => eq(model.ownerId, user.id),
+    });
 
-    if (!petCount[0]?.count) {
-      throw new Error("Failed to count user's pets");
-    }
+    const petCount = petCountRows.length;
 
     if (
-      (user.plusMembership && petCount[0]?.count >= 100) ||
-      (!user.plusMembership && petCount[0]?.count >= 2)
+      (user.plusMembership && petCount >= 100) ||
+      (!user.plusMembership && petCount >= 2)
     ) {
       throw new Error(
         "You have reached the maximum number of pets for your plan type",
