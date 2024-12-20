@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  await deleteOldUnlinkedImages();
+  const count = await deleteOldUnlinkedImages();
 
-  return Response.json({ success: true });
+  return Response.json({ success: true, deletedImageCount: count });
 }

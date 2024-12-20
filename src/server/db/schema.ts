@@ -107,7 +107,7 @@ export const tasks = createTable("tasks", {
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   // Set by task owner when they approve of its completion if requiresVerification is true
-  completed: boolean("completed").notNull().default(false),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
   dueMode: boolean("due_mode").notNull(),
   dueDate: timestamp("due_date", { withTimezone: true }),
   dateRangeFrom: timestamp("date_range_from", { withTimezone: true }),

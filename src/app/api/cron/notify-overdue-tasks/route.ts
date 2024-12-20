@@ -1,5 +1,5 @@
 import { type NextRequest } from "next/server";
-import { deleteExpiredGroupInviteCodes } from "~/server/actions/cron-jobs";
+import { notifyOverdueTasks } from "~/server/actions/cron-jobs";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const count = await deleteExpiredGroupInviteCodes();
+  const count = await notifyOverdueTasks();
 
-  return Response.json({ success: true, deletedInviteCodeCount: count });
+  return Response.json({ success: true, overdueTasks: count });
 }

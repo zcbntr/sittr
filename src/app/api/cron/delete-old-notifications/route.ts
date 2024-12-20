@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  await deleteOldNotifications();
+  const count = await deleteOldNotifications();
 
-  return Response.json({ success: true });
+  return Response.json({ success: true, deletedNotificationCount: count });
 }

@@ -1,4 +1,4 @@
-import { and, gte, isNull, lt, or, sql } from "drizzle-orm";
+import { and, gte, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import { db } from "../db";
 import { groupInviteCodes, notifications, petImages, pets } from "../db/schema";
 import { utapi } from "../uploadthing";
@@ -19,7 +19,7 @@ export async function deleteOldUnlinkedImages() {
   }
 
   // Delete from db
-  await db
+  const rows = await db
     .delete(petImages)
     .where(
       and(
@@ -27,7 +27,10 @@ export async function deleteOldUnlinkedImages() {
         lt(petImages.createdAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
       ),
     )
+    .returning()
     .execute();
+
+  return rows.length;
 }
 
 export async function notifyOfPetBirthdays() {
@@ -42,21 +45,29 @@ export async function notifyOfPetBirthdays() {
       sql`EXTRACT(MONTH FROM ${pets.dob}) = ${currentMonth} AND EXTRACT(DAY FROM ${pets.dob}) = ${currentDay}`,
     );
 
+  let count = 0;
+
   // Give the pets owners a notification
   for (const pet of petsWithBirthdayToday) {
-    await db
+    const row = await db
       .insert(notifications)
       .values({
         userId: pet.ownerId,
         associatedPet: pet.id,
         message: `Happy birthday ${pet.name}!`,
       })
+      .returning()
       .execute();
+
+    if (row) count++;
   }
+
+  return count;
 }
 
+// Delete expired group invite codes (those who have expired or reached their max uses)
 export async function deleteExpiredGroupInviteCodes() {
-  await db
+  const rows = await db
     .delete(groupInviteCodes)
     .where(
       or(
@@ -64,12 +75,15 @@ export async function deleteExpiredGroupInviteCodes() {
         gte(groupInviteCodes.maxUses, groupInviteCodes.uses),
       ),
     )
+    .returning()
     .execute();
+
+  return rows.length;
 }
 
 // Delete notifications older than 90 days
 export async function deleteOldNotifications() {
-  await db
+  const rows = await db
     .delete(notifications)
     .where(
       lt(
@@ -77,5 +91,81 @@ export async function deleteOldNotifications() {
         new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
       ),
     )
+    .returning()
     .execute();
+
+  return rows.length;
+}
+
+// Notify users of their tasks which they have claimed but are overdue (by 1 hour)
+export async function notifyOverdueTasks() {
+  const rows = await db.query.tasks.findMany({
+    where: (model, { and, gte, isNull, lt }) =>
+      and(
+        isNull(model.markedAsDoneBy),
+        isNotNull(model.claimedBy),
+        gte(model.claimedAt, new Date(Date.now() - 60 * 60 * 1000)),
+        lt(model.claimedAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
+      ),
+  });
+
+  let count = 0;
+  for (const task of rows) {
+    if (!task.claimedBy) continue;
+
+    const row = await db
+      .insert(notifications)
+      .values({
+        userId: task.claimedBy,
+        associatedTask: task.id,
+        message: `Task "${task.name}" is overdue!`,
+      })
+      .returning()
+      .execute();
+
+    if (row) count++;
+  }
+
+  return count;
+}
+
+// Notify all group members of tasks upcomming (within 6 hours) which are unclaimed
+export async function notifyUpcomingUnclaimedTasks() {
+  const rows = await db.query.tasks.findMany({
+    where: (model, { and, gte, isNull, lt }) =>
+      and(
+        isNull(model.markedAsDoneBy),
+        isNull(model.claimedBy),
+        or(
+          and(
+            gte(model.dueDate, new Date(Date.now())),
+            lt(model.dueDate, new Date(Date.now() + 6 * 60 * 60 * 1000)),
+          ),
+          and(
+            gte(model.dateRangeFrom, new Date(Date.now())),
+            lt(model.dateRangeFrom, new Date(Date.now() + 6 * 60 * 60 * 1000)),
+          ),
+        ),
+      ),
+    with: { group: { with: { usersToGroups: true } } },
+  });
+
+  let count = 0;
+  for (const task of rows) {
+    for (const user of task.group?.usersToGroups ?? []) {
+      const row = await db
+        .insert(notifications)
+        .values({
+          userId: user.userId,
+          associatedTask: task.id,
+          message: `Task "${task.name}" is due soon!`,
+        })
+        .returning()
+        .execute();
+
+      if (row) count++;
+    }
+  }
+
+  return count;
 }
