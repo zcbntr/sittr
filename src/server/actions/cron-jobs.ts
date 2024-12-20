@@ -2,6 +2,7 @@ import { and, gte, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import { db } from "../db";
 import { groupInviteCodes, notifications, petImages, pets } from "../db/schema";
 import { utapi } from "../uploadthing";
+import { NotificationTypeEnum } from "~/lib/schemas";
 
 export async function deleteOldUnlinkedImages() {
   // Images must be at least 2 hours old to be deleted
@@ -54,6 +55,7 @@ export async function notifyOfPetBirthdays() {
       .values({
         userId: pet.ownerId,
         associatedPet: pet.id,
+        notificationType: NotificationTypeEnum.Values["Pet Birthday"],
         message: `Happy birthday ${pet.name}!`,
       })
       .returning()
@@ -118,6 +120,7 @@ export async function notifyOverdueTasks() {
       .values({
         userId: task.claimedBy,
         associatedTask: task.id,
+        notificationType: NotificationTypeEnum.Values["Overdue Task"],
         message: `Task "${task.name}" is overdue!`,
       })
       .returning()
@@ -158,6 +161,8 @@ export async function notifyUpcomingUnclaimedTasks() {
         .values({
           userId: user.userId,
           associatedTask: task.id,
+          notificationType:
+            NotificationTypeEnum.Values["Upcoming Unclaimed Task"],
           message: `Task "${task.name}" is due soon!`,
         })
         .returning()

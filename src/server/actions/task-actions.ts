@@ -18,6 +18,7 @@ import { and, eq, not } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { ratelimit } from "../ratelimit";
 import { getVisibleTaskById } from "../queries/tasks";
+import { NotificationTypeEnum } from "~/lib/schemas";
 
 export const createTaskAction = authenticatedProcedure
   .createServerAction()
@@ -76,8 +77,8 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
     const { userId, task } = ctx;
 
     // Check if the task is already completed
-    if (task.completed) {
-      throw new Error("Task is already marked as done");
+    if (task.completedAt) {
+      throw new Error("Task is already set as completed by the owner");
     }
 
     // Check if the task is marked as done by the user
@@ -134,6 +135,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
           .values({
             userId: owner.id,
             message: `Your task "${task.name}" has been marked as done by ${markedAsDoneBy?.name}`,
+            notificationType: NotificationTypeEnum.Values["Completed Task"],
             associatedTask: task.id,
           })
           .execute();
@@ -174,7 +176,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
   .handler(async ({ input, ctx }) => {
     const { userId, task } = ctx;
 
-    if (task.completed && task.requiresVerification) {
+    if (task.completedAt && task.requiresVerification) {
       throw new Error(
         "Task is already marked as completed by the owner. Ask the owner to unmark it as completed in order to unclaim it",
       );

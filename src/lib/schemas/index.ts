@@ -35,6 +35,19 @@ export type GroupRoleEnum = z.infer<typeof GroupRoleEnum>;
 export const SexEnum = z.enum(["Male", "Female", "Unspecified"]);
 export type SexEnum = z.infer<typeof SexEnum>;
 
+export const NotificationTypeEnum = z.enum([
+  "Overdue Task",
+  "Upcoming Unclaimed Task",
+  "Completed Task",
+  "Pet Birthday",
+  "Group Member Of Deleted",
+  "Pet Added To Group",
+  "Group Member Left",
+  "Group Membership Accepted",
+  "Group Membership Rejected",
+]);
+export type NotificationTypeEnum = z.infer<typeof NotificationTypeEnum>;
+
 // -----------------------------------------------------------------------------
 // API form schemas
 // -----------------------------------------------------------------------------
@@ -55,4 +68,3 @@ export const basicGetAPIFormSchema = z
   });
 
 export type BasicGetAPIFormSchema = z.infer<typeof basicGetAPIFormSchema>;
-

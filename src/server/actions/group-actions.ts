@@ -25,7 +25,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { addMilliseconds } from "date-fns";
 import { ratelimit } from "../ratelimit";
-import { GroupRoleEnum } from "~/lib/schemas";
+import { GroupRoleEnum, NotificationTypeEnum } from "~/lib/schemas";
 
 export const createGroupAction = authenticatedProcedure
   .createServerAction()
@@ -133,6 +133,7 @@ export const deleteGroupAction = ownsGroupProcedure
         .values({
           userId: member.userId,
           associatedGroup: input.groupId,
+          notificationType: NotificationTypeEnum.Values["Group Member Of Deleted"],
           message: `The group ${input.groupId} has been deleted`,
         })
         .execute();
@@ -173,6 +174,7 @@ export const addPetToGroupAction = ownsGroupProcedure
         .values({
           userId: member.userId,
           associatedGroup: input.groupId,
+          notificationType: NotificationTypeEnum.Values["Pet Added To Group"],
           message: `The pet ${pet?.name} has been added to the group`,
         })
         .execute();
@@ -217,6 +219,7 @@ export const addPetsToGroupAction = ownsGroupProcedure
         .values({
           userId: member.userId,
           associatedGroup: input.groupId,
+          notificationType: NotificationTypeEnum.Values["Pet Added To Group"],
           message: `Multiple pets have been added to ${group?.name}`,
         })
         .execute();
@@ -374,6 +377,7 @@ export const leaveGroupAction = authenticatedProcedure
         .values({
           userId: owner.userId,
           associatedGroup: input.groupId,
+          notificationType: NotificationTypeEnum.Values["Group Member Left"],
           message: `${leavingUser?.name} has left ${group?.name}`,
         })
         .execute();
@@ -486,6 +490,8 @@ export const acceptPendingUserAction = ownsGroupProcedure
         .values({
           userId: userId,
           associatedGroup: groupId,
+          notificationType:
+            NotificationTypeEnum.Values["Group Membership Accepted"],
           message: `You have been accepted into ${group?.name}`,
         })
         .execute();
@@ -536,6 +542,8 @@ export const rejectPendingUserAction = ownsGroupProcedure
         .values({
           userId: userId,
           associatedGroup: groupId,
+          notificationType:
+            NotificationTypeEnum.Values["Group Membership Rejected"],
           message: `You have been rejected from ${group?.name}`,
         })
         .execute();

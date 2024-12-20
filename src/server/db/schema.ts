@@ -11,7 +11,7 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
-import { GroupRoleEnum, SexEnum } from "~/lib/schemas";
+import { GroupRoleEnum, SexEnum, NotificationTypeEnum } from "~/lib/schemas";
 
 /**
  * Multi-project schema feature of Drizzle ORM.
@@ -22,6 +22,10 @@ export const createTable = pgTableCreator((name) => `sittr_${name}`);
 
 export const groupRoleEnum = pgEnum("role", GroupRoleEnum.options);
 export const sexEnum = pgEnum("sex", SexEnum.options);
+export const notificationTypeEnum = pgEnum(
+  "notification_type",
+  NotificationTypeEnum.options,
+);
 
 export const users = createTable("user", {
   id: text("id")
@@ -393,6 +397,7 @@ export const notifications = createTable("notification", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  notificationType: notificationTypeEnum("notification_type").notNull(),
   associatedTask: text("associated_task").references(() => tasks.id, {
     onDelete: "set null",
   }),
