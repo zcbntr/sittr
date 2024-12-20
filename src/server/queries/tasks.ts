@@ -450,7 +450,6 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
   const groupsUserIsInIds = groupsUserIsInRows.map((row) => row.groupId);
 
-  // Check user is in the group!
   const tasksVisibleViaGroupsUserIn = await db.query.tasks.findMany({
     with: {
       owner: true,

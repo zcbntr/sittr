@@ -224,7 +224,7 @@ export default function CreateTaskDialog({
                       <FormLabel className="text-left">
                         Due Date/Time *
                       </FormLabel>
-                      <Popover>
+                      <Popover modal={true}>
                         <FormControl>
                           <PopoverTrigger asChild>
                             <Button
@@ -280,7 +280,7 @@ export default function CreateTaskDialog({
                       <FormLabel className="text-left">
                         Start Date/Time *
                       </FormLabel>
-                      <Popover>
+                      <Popover modal={true}>
                         <FormControl>
                           <PopoverTrigger asChild>
                             <Button
@@ -332,7 +332,7 @@ export default function CreateTaskDialog({
                       <FormLabel className="text-left">
                         End Date/Time *
                       </FormLabel>
-                      <Popover>
+                      <Popover modal={true}>
                         <FormControl>
                           <PopoverTrigger asChild>
                             <Button
@@ -404,10 +404,7 @@ export default function CreateTaskDialog({
                     </FormControl>
                     <SelectContent>
                       {groups.map((group) => (
-                        <SelectItem
-                          key={group.id}
-                          value={group.id.toString()}
-                        >
+                        <SelectItem key={group.id} value={group.id.toString()}>
                           {group.name}
                         </SelectItem>
                       ))}

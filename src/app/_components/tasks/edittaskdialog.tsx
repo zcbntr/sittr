@@ -271,7 +271,7 @@ export default function EditTaskDialog({
                       <FormLabel className="text-left">
                         Due Date/Time *
                       </FormLabel>
-                      <Popover>
+                      <Popover modal={true}>
                         <FormControl>
                           <PopoverTrigger asChild>
                             <Button
@@ -327,7 +327,7 @@ export default function EditTaskDialog({
                       <FormLabel className="text-left">
                         Start Date/Time *
                       </FormLabel>
-                      <Popover>
+                      <Popover modal={true}>
                         <FormControl>
                           <PopoverTrigger asChild>
                             <Button
@@ -379,7 +379,7 @@ export default function EditTaskDialog({
                       <FormLabel className="text-left">
                         End Date/Time *
                       </FormLabel>
-                      <Popover>
+                      <Popover modal={true}>
                         <FormControl>
                           <PopoverTrigger asChild>
                             <Button
