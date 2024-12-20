@@ -1,25 +1,20 @@
 "use client";
 
-import {
-  type GroupMember,
-  type Group,
-} from "~/lib/schemas/groups";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { type GroupMember, type Group } from "~/lib/schemas/groups";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import React from "react";
 import GroupPetsTable from "./group-pets-table";
 import GroupMembersTable from "./group-members-table";
 import { type Pet } from "~/lib/schemas/pets";
+import { type User } from "~/lib/schemas/users";
 
 export function GroupMemberPage({
+  user,
   group,
   groupPets,
   groupMembers,
 }: {
+  user: User;
   group: Group;
   groupPets: Pet[];
   groupMembers: GroupMember[];
@@ -43,6 +38,7 @@ export function GroupMemberPage({
             <div className="flex flex-col">
               <div className="text-lg">Members</div>
               <GroupMembersTable
+                user={user}
                 groupId={group.id}
                 groupMembers={groupMembers}
               />
@@ -50,7 +46,11 @@ export function GroupMemberPage({
 
             <div className="flex flex-col">
               <div className="text-lg">Pets</div>
-              <GroupPetsTable groupId={group.id} groupPets={groupPets} />
+              <GroupPetsTable
+                user={user}
+                groupId={group.id}
+                groupPets={groupPets}
+              />
             </div>
           </div>
         </CardContent>

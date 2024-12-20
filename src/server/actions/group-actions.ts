@@ -31,7 +31,27 @@ export const createGroupAction = authenticatedProcedure
   .createServerAction()
   .input(createGroupInputSchema)
   .handler(async ({ input, ctx }) => {
-    const userId = ctx.user.id;
+    const user = ctx.user;
+
+    // Check if the user already has maximum groups for their plan
+    const userGroups = await db.query.usersToGroups.findMany({
+      where: (model, { eq, and }) =>
+        and(
+          eq(model.role, GroupRoleEnum.Values.Owner),
+          eq(model.userId, user.id),
+        ),
+    });
+
+    if (!userGroups) {
+      throw new Error("Could not fetch user's group");
+    }
+
+    if (
+      (user.plusMembership && userGroups.length >= 100) ||
+      (!user.plusMembership && userGroups.length >= 5)
+    ) {
+      throw new Error("Reached maximum groups for your plan");
+    }
 
     // Create group, add user to groupMembers, add pets to group, all in a transaction
     await db.transaction(async (db) => {
@@ -39,7 +59,7 @@ export const createGroupAction = authenticatedProcedure
       const newGroup = await db
         .insert(groups)
         .values({
-          creatorId: userId,
+          creatorId: user.id,
           name: input.name,
           description: input.description,
         })
@@ -56,7 +76,7 @@ export const createGroupAction = authenticatedProcedure
         .insert(usersToGroups)
         .values({
           groupId: newGroup[0].id,
-          userId: userId,
+          userId: user.id,
           role: GroupRoleEnum.Values.Owner,
         })
         .returning()

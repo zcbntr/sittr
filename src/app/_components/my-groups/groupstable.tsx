@@ -28,11 +28,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "~/components/ui/tooltip";
 import { useState } from "react";
 import { leaveGroupAction } from "~/server/actions/group-actions";
 import { GroupRoleEnum } from "~/lib/schemas";
+import { type User } from "~/lib/schemas/users";
 
-export default function GroupsTable({ groups, userId }: { groups: Group[], userId: string }) {
+export default function GroupsTable({
+  groups,
+  user,
+}: {
+  groups: Group[];
+  user: User;
+}) {
   const [alertState, setAlertState] = useState("");
 
   const columns: ColumnDef<Group>[] = [
@@ -183,8 +196,8 @@ export default function GroupsTable({ groups, userId }: { groups: Group[], userI
                     Copy
                   </DropdownMenuItem>
                   {/* Show only if not group owner */}
-                  {group.members?.find((x) => x.user.id === userId)
-                    ?.role === GroupRoleEnum.Values.Owner ? null : (
+                  {group.members?.find((x) => x.user.id === user.id)?.role ===
+                  GroupRoleEnum.Values.Owner ? null : (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -245,9 +258,43 @@ export default function GroupsTable({ groups, userId }: { groups: Group[], userI
         searchable={true}
         filterable={false}
       >
-        <CreateGroupDialog>
-          <Button>New Group</Button>
-        </CreateGroupDialog>
+        {((user.plusMembership && groups.length < 101) ||
+          (!user.plusMembership && groups.length < 6)) && (
+          <CreateGroupDialog>
+            <Button className="max-w-80">New Group</Button>
+          </CreateGroupDialog>
+        )}
+        {user.plusMembership && groups.length >= 101 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="pointer-events-none inline-flex h-9 max-w-80 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
+                  Create Group
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>You have reached the limit of groups you can have.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        {!user.plusMembership && groups.length >= 6 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="pointer-events-none inline-flex h-9 max-w-80 cursor-default items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
+                  Create Group
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  You have reached the limit of groups you can have without a
+                  Plus membership.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
 
         <JoinGroupDialog>
           <Button variant="outline">Join Group</Button>

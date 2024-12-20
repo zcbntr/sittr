@@ -60,6 +60,7 @@ export default async function Page({
     } else {
       return (
         <GroupMemberPage
+          user={user}
           group={group}
           groupPets={groupPets}
           groupMembers={groupMembers}

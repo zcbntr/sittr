@@ -4,6 +4,7 @@ import { type Group } from "~/lib/schemas/groups";
 import GroupsTable from "../_components/my-groups/groupstable";
 import { getLoggedInUser } from "~/server/queries/users";
 import { redirect } from "next/navigation";
+import { type User } from "~/lib/schemas/users";
 
 export default async function Page() {
   const [user, groups] = await Promise.all([
@@ -15,10 +16,10 @@ export default async function Page() {
     redirect("/");
   }
 
-  return <MyGroupsPage groups={groups} userId={user.id} />;
+  return <MyGroupsPage groups={groups} user={user} />;
 }
 
-function MyGroupsPage({ groups, userId }: { groups: Group[]; userId: string }) {
+function MyGroupsPage({ groups, user }: { groups: Group[]; user: User }) {
   return (
     <>
       <section className="container mx-auto py-4">
@@ -27,7 +28,7 @@ function MyGroupsPage({ groups, userId }: { groups: Group[]; userId: string }) {
       <section>
         <Suspense fallback={<div>Loading...</div>}>
           <div className="container mx-auto">
-            <GroupsTable groups={groups} userId={userId} />
+            <GroupsTable groups={groups} user={user} />
           </div>
         </Suspense>
       </section>
