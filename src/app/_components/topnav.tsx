@@ -60,8 +60,8 @@ export async function TopNav() {
               </span>
             </Link>
           )}
-          <nav className="items-center space-x-5 md:flex">
-            <div className="flex place-content-center">
+          <nav className="flex flex-row items-center space-x-3">
+            <div className="flex flex-col place-content-center">
               <DropdownMenu>
                 <DropdownMenuTrigger>
                   <div className="flex flex-col place-content-center">
@@ -73,7 +73,7 @@ export async function TopNav() {
                     )}
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="min-w-[260px]">
+                <DropdownMenuContent className="mx-2 min-w-[260px] max-w-full md:max-w-96">
                   <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {notifications.map((notification) => (
@@ -105,10 +105,10 @@ export async function TopNav() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <div className="flex place-content-center">
+            <div className="flex flex-col place-content-center">
               <DropdownMenu>
                 <DropdownMenuTrigger>
-                  <Avatar>
+                  <Avatar className="border-2 border-opacity-50">
                     <AvatarImage
                       src={user.image ? user.image : undefined}
                       alt={`${user.name}'s avatar`}
@@ -119,7 +119,7 @@ export async function TopNav() {
                     </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="min-w-[200px]">
+                <DropdownMenuContent className="mx-2 min-w-[200px] max-w-full md:max-w-96">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
