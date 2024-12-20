@@ -6,23 +6,23 @@
         },
         {
             "path": "/api/cron/delete-expired-invites",
-            "schedule": "0 6 * * *"
+            "schedule": "0 6,18 * * *"
         },
         {
-            "path": "/api/cron/send-birthday-notifications",
+            "path": "/api/cron/notify-pet-birthdays",
             "schedule": "0 6 * * *"
         },
         {
             "path": "/api/cron/delete-old-notifications",
-            "schedule": "0 6 * * *"
+            "schedule": "0 6,18 * * *"
         },
         {
             "path": "/api/cron/notify-overdue-tasks",
-            "schedule": "0 6 * * *"
+            "schedule": "0 * * * *"
         },
         {
             "path": "/api/cron/notify-upcoming-unclaimed-tasks",
-            "schedule": "0 6 * * *"
+            "schedule": "0 * * * *"
         }
     ]
 }
