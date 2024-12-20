@@ -14,7 +14,7 @@ import {
   canMarkTaskAsDoneProcedure,
   ownsTaskProcedure,
 } from "./zsa-procedures";
-import { and, eq, not } from "drizzle-orm";
+import { and, eq, not, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { ratelimit } from "../ratelimit";
 import { getVisibleTaskById } from "../queries/tasks";
@@ -26,7 +26,7 @@ export const createTaskAction = authenticatedProcedure
   .handler(async ({ input, ctx }) => {
     const userId = ctx.user.id;
 
-    await db
+    const taskRow = await db
       .insert(tasks)
       .values({
         name: input.name,
@@ -40,7 +40,47 @@ export const createTaskAction = authenticatedProcedure
         pet: input.petId,
         group: input.groupId,
       })
+      .returning()
       .execute();
+
+    if (!taskRow[0]) {
+      throw new Error("Failed to create task");
+    }
+
+    // If less than 6 hours before the task needs to be completed notify all group members
+    const task = await db.query.tasks.findFirst({
+      where: and(
+        eq(tasks.id, taskRow[0].id),
+        or(
+          and(
+            eq(tasks.dueMode, false),
+            eq(tasks.dateRangeFrom, new Date(Date.now())),
+            eq(tasks.dateRangeTo, new Date(Date.now() + 6 * 60 * 60 * 1000)),
+          ),
+          and(
+            eq(tasks.dueMode, true),
+            eq(tasks.dueDate, new Date(Date.now() + 6 * 60 * 60 * 1000)),
+          ),
+        ),
+      ),
+      with: { group: { with: { usersToGroups: true } } },
+    });
+
+    if (task) {
+      for (const member of task.group?.usersToGroups ?? []) {
+        await db
+          .insert(notifications)
+          .values({
+            userId: member.userId,
+            associatedTask: task.id,
+            notificationType:
+              NotificationTypeEnum.Values["Upcoming Unclaimed Task"],
+            message: `New upcoming task "${task.name}" is due soon!`,
+          })
+          .returning()
+          .execute();
+      }
+    }
 
     revalidatePath("/tasks");
   });
@@ -120,6 +160,26 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
         .where(eq(tasks.id, input.taskId))
         .execute();
 
+      // Remove any notifications about task being unclaimed or overdue
+      await db
+        .delete(notifications)
+        .where(
+          and(
+            eq(notifications.associatedTask, input.taskId),
+            or(
+              eq(
+                notifications.notificationType,
+                NotificationTypeEnum.Values["Upcoming Unclaimed Task"],
+              ),
+              eq(
+                notifications.notificationType,
+                NotificationTypeEnum.Values["Overdue Task"],
+              ),
+            ),
+          ),
+        )
+        .execute();
+
       // Notify the owner of the task that the task has been marked as done
       const owner = await db.query.users.findFirst({
         where: eq(users.id, task.ownerId),
@@ -166,6 +226,12 @@ export const deleteTaskAction = ownsTaskProcedure
       .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, userId)))
       .execute();
 
+    // Delete all notifications associated with the task
+    await db
+      .delete(notifications)
+      .where(eq(notifications.associatedTask, input.taskId))
+      .execute();
+
     revalidatePath("/tasks");
     revalidatePath("/");
   });
@@ -198,7 +264,39 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
           markedAsDoneAt: null,
         })
         .where(and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, userId))))
+        .returning()
         .execute();
+
+      // If task is due within 6 hours, notify all group members
+      if (
+        (task.dueDate &&
+          task.dueDate < new Date(Date.now() + 6 * 60 * 60 * 1000)) ||
+        (task.dateRangeFrom &&
+          task.dateRangeFrom < new Date(Date.now() + 6 * 60 * 60 * 1000))
+      ) {
+        const taskWithGroup = await db.query.tasks.findFirst({
+          where: eq(tasks.id, input.taskId),
+          with: { group: { with: { usersToGroups: true } } },
+        });
+
+        if (!taskWithGroup) {
+          throw new Error("Task not found");
+        }
+
+        for (const member of taskWithGroup.group?.usersToGroups ?? []) {
+          await db
+            .insert(notifications)
+            .values({
+              userId: member.userId,
+              associatedTask: task.id,
+              notificationType:
+                NotificationTypeEnum.Values["Upcoming Unclaimed Task"],
+              message: `Task "${task.name}" is due soon!`,
+            })
+            .returning()
+            .execute();
+        }
+      }
 
       revalidatePath("/");
       revalidatePath(`/tasks/${task.id}`);
@@ -230,6 +328,20 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
           "Failed to claim task. This may be due to poor network conditions, or you may be trying to claim a task you own.",
         );
       }
+
+      // Remove any notifications about task being unclaimed
+      await db
+        .delete(notifications)
+        .where(
+          and(
+            eq(notifications.associatedTask, input.taskId),
+            eq(
+              notifications.notificationType,
+              NotificationTypeEnum.Values["Upcoming Unclaimed Task"],
+            ),
+          ),
+        )
+        .execute();
 
       revalidatePath("/");
       revalidatePath(`/tasks/${task.id}`);
