@@ -17,11 +17,6 @@ export async function getUserNotifications(): Promise<Notification[]> {
   const userId = user.id;
 
   const notificationRows = await db.query.notifications.findMany({
-    with: {
-      associatedTask: true,
-      associatedGroup: true,
-      associatedPet: true,
-    },
     where: (model, { eq }) => eq(model.userId, userId),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
@@ -31,6 +26,17 @@ export async function getUserNotifications(): Promise<Notification[]> {
   }
 
   return notificationRows.map((notificationRow) =>
-    notificationSchema.parse(notificationRow),
+    notificationSchema.parse({
+      id: notificationRow.id,
+      userId: notificationRow.userId,
+      notificationType: notificationRow.notificationType,
+      associatedTask: notificationRow.associatedTask,
+      associatedGroup: notificationRow.associatedGroup,
+      associatedPet: notificationRow.associatedPet,
+      message: notificationRow.message,
+      read: notificationRow.read,
+      createdAt: notificationRow.createdAt,
+      updatedAt: notificationRow.updatedAt,
+    }),
   );
 }

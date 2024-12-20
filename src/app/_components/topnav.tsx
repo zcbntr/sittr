@@ -81,11 +81,11 @@ export async function TopNav() {
                       <Link
                         href={
                           notification.associatedGroup
-                            ? `/groups/${notification.associatedGroup.id}`
+                            ? `/groups/${notification.associatedGroup}`
                             : notification.associatedPet
-                              ? `/pets/${notification.associatedPet.id}`
+                              ? `/pets/${notification.associatedPet}`
                               : notification.associatedTask
-                                ? `/tasks/${notification.associatedTask.taskId}`
+                                ? `/tasks/${notification.associatedTask}`
                                 : "/"
                         }
                         className="flex flex-row place-content-start gap-2"
