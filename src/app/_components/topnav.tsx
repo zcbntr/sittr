@@ -27,7 +27,7 @@ export async function TopNav() {
 
   if (!user) {
     return (
-      <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
+      <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-3 md:px-6">
         <div className="container mx-auto flex items-center justify-between">
           <Link href="/" className="text-4xl font-bold">
             sittr
@@ -45,7 +45,7 @@ export async function TopNav() {
     const hasUnreadNotifications = notifications.some((n) => !n.read);
 
     return (
-      <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-2 md:px-6">
+      <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-3 md:px-6">
         <div className="container mx-auto flex items-center justify-between">
           {!user.plusMembership && (
             <Link href="/" className="text-4xl font-bold">

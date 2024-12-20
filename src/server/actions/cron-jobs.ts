@@ -50,6 +50,23 @@ export async function notifyOfPetBirthdays() {
 
   // Give the pets owners a notification
   for (const pet of petsWithBirthdayToday) {
+    // Check for existing notification
+
+    const existingNotification = await db.query.notifications.findFirst({
+      where: (model, { and, eq }) =>
+        and(
+          eq(model.associatedPet, pet.id),
+          eq(
+            model.notificationType,
+            NotificationTypeEnum.Values["Pet Birthday"],
+          ),
+        ),
+    });
+
+    if (existingNotification) {
+      continue;
+    }
+
     const row = await db
       .insert(notifications)
       .values({
@@ -113,7 +130,24 @@ export async function notifyOverdueTasks() {
 
   let count = 0;
   for (const task of rows) {
+    // Please compiler, we already know this to be not null/undefined
     if (!task.claimedBy) continue;
+
+    // Check no notification has already been sent for this task
+    const existingNotification = await db.query.notifications.findFirst({
+      where: (model, { eq }) =>
+        and(
+          eq(model.associatedTask, task.id),
+          eq(
+            model.notificationType,
+            NotificationTypeEnum.Values["Overdue Task"],
+          ),
+        ),
+    });
+
+    if (existingNotification) {
+      continue;
+    }
 
     const row = await db
       .insert(notifications)
@@ -155,6 +189,22 @@ export async function notifyUpcomingUnclaimedTasks() {
 
   let count = 0;
   for (const task of rows) {
+    // Check no notification has already been sent for this task
+    const existingNotification = await db.query.notifications.findFirst({
+      where: (model, { eq }) =>
+        and(
+          eq(model.associatedTask, task.id),
+          eq(
+            model.notificationType,
+            NotificationTypeEnum.Values["Upcoming Unclaimed Task"],
+          ),
+        ),
+    });
+
+    if (existingNotification) {
+      continue;
+    }
+
     for (const user of task.group?.usersToGroups ?? []) {
       const row = await db
         .insert(notifications)
