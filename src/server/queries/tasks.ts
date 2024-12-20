@@ -1,7 +1,7 @@
 "use server";
 
 import { type Task, taskSchema } from "~/lib/schemas/tasks";
-import { or, not, isNull } from "drizzle-orm";
+import { or, not, isNull, inArray } from "drizzle-orm";
 import { db } from "../db";
 import { tasks } from "../db/schema";
 import { userSchema } from "~/lib/schemas/users";
@@ -442,6 +442,15 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
   const userId = user.id;
 
+  const groupsUserIsInRows = await db.query.usersToGroups
+    .findMany({
+      where: (model, { eq }) => eq(model.userId, userId),
+    })
+    .execute();
+
+  const groupsUserIsInIds = groupsUserIsInRows.map((row) => row.groupId);
+
+  // Check user is in the group!
   const tasksVisibleViaGroupsUserIn = await db.query.tasks.findMany({
     with: {
       owner: true,
@@ -457,6 +466,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
           and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
           and(gte(model.dueDate, from), lte(model.dueDate, to)),
         ),
+        inArray(model.group, groupsUserIsInIds),
         not(eq(model.ownerId, userId)),
       ),
     orderBy: (model, { desc }) => desc(model.createdAt),
