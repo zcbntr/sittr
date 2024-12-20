@@ -89,6 +89,7 @@ export const ownsGroupProcedure = createServerActionProcedure(
 )
   .input(z.object({ groupId: z.string() }))
   .handler(async ({ ctx, input }) => {
+    const user = ctx.user;
     const userId = ctx.user.id;
 
     // Check if the user is the owner of the group by left joining group members
@@ -112,5 +113,5 @@ export const ownsGroupProcedure = createServerActionProcedure(
 
     const group = groupRow.groups;
 
-    return { userId, group };
+    return { user, group };
   });

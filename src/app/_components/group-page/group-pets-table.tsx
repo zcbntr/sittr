@@ -29,13 +29,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
+import { type User } from "~/lib/schemas/users";
 
 export default function GroupPetsTable({
+  user,
   groupId,
   groupPets,
   petsNotInGroup,
   isOwner,
 }: {
+  user: User;
   groupId: string;
   groupPets: Pet[];
   petsNotInGroup?: Pet[];

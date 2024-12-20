@@ -50,6 +50,7 @@ export default async function Page({
 
       return (
         <GroupOwnerPage
+          user={user}
           group={group}
           groupPets={groupPets}
           petsNotInGroup={petsNotInGroup}

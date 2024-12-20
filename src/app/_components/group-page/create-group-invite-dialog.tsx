@@ -196,7 +196,7 @@ export default function CreateGroupInviteDialog({
                     <FormLabel>Requires Approval *</FormLabel>
                     <FormDescription>
                       You will need to manually approve each user who requests
-                      to join via the link. (Coming soon)
+                      to join via the link.
                     </FormDescription>
                   </div>
                 </FormItem>

@@ -24,13 +24,16 @@ import { useServerAction } from "zsa-react";
 import { deleteGroupAction } from "~/server/actions/group-actions";
 import { toast } from "sonner";
 import { type Pet } from "~/lib/schemas/pets";
+import { type User } from "~/lib/schemas/users";
 
 export function GroupOwnerPage({
+  user,
   group,
   groupPets,
   petsNotInGroup,
   groupMembers,
 }: {
+  user: User;
   group: Group;
   groupPets: Pet[];
   petsNotInGroup: Pet[];
@@ -117,6 +120,7 @@ export function GroupOwnerPage({
               <div className="flex flex-col">
                 <div className="text-lg">Members</div>
                 <GroupMembersTable
+                  user={user}
                   groupId={group.id}
                   groupMembers={groupMembers}
                   isOwner
@@ -126,6 +130,7 @@ export function GroupOwnerPage({
               <div className="flex flex-col">
                 <div className="text-lg">Pets</div>
                 <GroupPetsTable
+                  user={user}
                   groupId={group.id}
                   groupPets={groupPets}
                   petsNotInGroup={petsNotInGroup}

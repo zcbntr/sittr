@@ -33,12 +33,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "~/components/ui/tooltip";
+import { type User } from "~/lib/schemas/users";
 
 export default function GroupMembersTable({
+  user,
   groupId,
   groupMembers,
   isOwner,
 }: {
+  user: User;
   groupId: string;
   groupMembers: GroupMember[];
   isOwner?: boolean;
@@ -238,9 +247,43 @@ export default function GroupMembersTable({
       searchable={true}
       filterable={false}
     >
-      <CreateGroupInviteDialog groupId={groupId}>
-        <Button className="max-w-80">Create Invite</Button>
-      </CreateGroupInviteDialog>
+      {((user.plusMembership && groupMembers.length < 101) ||
+        (!user.plusMembership && groupMembers.length < 6)) && (
+        <CreateGroupInviteDialog groupId={groupId}>
+          <Button className="max-w-80">Create Invite</Button>
+        </CreateGroupInviteDialog>
+      )}
+      {user.plusMembership && groupMembers.length >= 101 && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <div className="pointer-events-none inline-flex h-9 max-w-80 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
+                Create Invite
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>You have reached the limit of group members you can have.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+      {!user.plusMembership && groupMembers.length >= 6 && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <div className="pointer-events-none inline-flex h-9 max-w-80 cursor-default items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
+                Create Invite
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                You have reached the limit of group members you can have without
+                a Plus membership.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
     </DataTable>
   ) : (
     <DataTable

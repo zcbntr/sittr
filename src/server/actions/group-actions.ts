@@ -108,8 +108,8 @@ export const deleteGroupAction = ownsGroupProcedure
   .createServerAction()
   .input(z.object({ groupId: z.string() }))
   .handler(async ({ ctx, input }) => {
-    const { userId } = ctx;
-    const { success } = await ratelimit.limit(userId);
+    const user = ctx.user;
+    const { success } = await ratelimit.limit(user.id);
 
     if (!success) {
       throw new Error("You are deleting groups too fast");
@@ -133,7 +133,8 @@ export const deleteGroupAction = ownsGroupProcedure
         .values({
           userId: member.userId,
           associatedGroup: input.groupId,
-          notificationType: NotificationTypeEnum.Values["Group Member Of Deleted"],
+          notificationType:
+            NotificationTypeEnum.Values["Group Member Of Deleted"],
           message: `The group ${input.groupId} has been deleted`,
         })
         .execute();
@@ -248,7 +249,21 @@ export const removePetFromGroupAction = ownsGroupProcedure
 export const addUserToGroupAction = ownsGroupProcedure
   .createServerAction()
   .input(userGroupPairSchema)
-  .handler(async ({ input }) => {
+  .handler(async ({ input, ctx }) => {
+    const owner = ctx.user;
+
+    // Check if the group is full (5 members for free tier, 101 for plus tier)
+    const groupMembers = await db.query.usersToGroups.findMany({
+      where: (model, { eq }) => eq(model.groupId, input.groupId),
+    });
+
+    if (
+      (owner.plusMembership && groupMembers.length >= 101) ||
+      (!owner.plusMembership && groupMembers.length >= 6)
+    ) {
+      throw new Error("Max group size reached");
+    }
+
     const { success } = await ratelimit.limit(input.userId);
 
     if (!success) {
@@ -390,7 +405,7 @@ export const joinGroupAction = authenticatedProcedure
   .createServerAction()
   .input(joinGroupFormSchema)
   .handler(async ({ input, ctx }) => {
-    const userId = ctx.user.id;
+    const user = ctx.user;
 
     // This needs to be a find many if there becomes lots of groups
     const inviteCodeRow = await db.query.groupInviteCodes.findFirst({
@@ -423,12 +438,44 @@ export const joinGroupAction = authenticatedProcedure
       throw new Error("Invite code has reached its max uses");
     }
 
+    // Check adding the user wouldnt exceed group member limits
+    const groupOwnerRow = await db.query.usersToGroups
+      .findFirst({
+        where: (model, { eq, and }) =>
+          and(
+            eq(model.groupId, inviteCodeRow.groupId),
+            eq(model.role, GroupRoleEnum.Values.Owner),
+          ),
+        with: { user: true },
+      })
+      .execute();
+
+    const groupOwner = groupOwnerRow?.user;
+
+    if (!groupOwner) {
+      throw new Error("Could not find group owner");
+    }
+
+    const groupMembers = await db.query.usersToGroups
+      .findMany({
+        where: (model, { eq }) => eq(model.groupId, inviteCodeRow.groupId),
+      })
+      .execute();
+
+    if (
+      (groupOwner.plusMembership && groupMembers.length >= 101) ||
+      (!groupOwner.plusMembership && groupMembers.length >= 6)
+    ) {
+      // Check if the group is full (3 members for free tier, 101 for plus tier)
+      throw new Error("Max group size reached");
+    }
+
     // Add the user to the group
     const newGroupMember = await db
       .insert(usersToGroups)
       .values({
         groupId: inviteCodeRow.groupId,
-        userId: userId,
+        userId: user.id,
         role: inviteCodeRow.requiresApproval
           ? GroupRoleEnum.Values.Pending
           : GroupRoleEnum.Values.Member,
@@ -462,8 +509,21 @@ export const joinGroupAction = authenticatedProcedure
 export const acceptPendingUserAction = ownsGroupProcedure
   .createServerAction()
   .input(acceptPendingMemberSchema)
-  .handler(async ({ input }) => {
-    const { groupId, userId } = input;
+  .handler(async ({ input, ctx }) => {
+    const user = ctx.user;
+    const { groupId } = input;
+
+    // Check if the group is full (3 members for free tier, 101 for plus tier)
+    const groupMembers = await db.query.usersToGroups.findMany({
+      where: (model, { eq }) => eq(model.groupId, input.groupId),
+    });
+
+    if (
+      (user.plusMembership && groupMembers.length >= 101) ||
+      (!user.plusMembership && groupMembers.length >= 6)
+    ) {
+      throw new Error("Max group size reached");
+    }
 
     // Change the role of the user to member from pending
     const member = await db
@@ -471,7 +531,7 @@ export const acceptPendingUserAction = ownsGroupProcedure
       .set({ role: GroupRoleEnum.Values.Member })
       .where(
         and(
-          eq(usersToGroups.userId, userId),
+          eq(usersToGroups.userId, user.id),
           eq(usersToGroups.groupId, groupId),
           eq(usersToGroups.role, GroupRoleEnum.Values.Pending),
         ),
@@ -488,7 +548,7 @@ export const acceptPendingUserAction = ownsGroupProcedure
       await db
         .insert(notifications)
         .values({
-          userId: userId,
+          userId: user.id,
           associatedGroup: groupId,
           notificationType:
             NotificationTypeEnum.Values["Group Membership Accepted"],
@@ -502,7 +562,7 @@ export const acceptPendingUserAction = ownsGroupProcedure
 
     // Check if the user exists
     const pending = await db.query.usersToGroups.findFirst({
-      where: (model, { eq }) => eq(model.userId, userId),
+      where: (model, { eq }) => eq(model.userId, user.id),
     });
 
     if (pending)
@@ -568,7 +628,19 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
   .createServerAction()
   .input(requestGroupInviteCodeFormInputSchema)
   .handler(async ({ input, ctx }) => {
-    const { userId } = ctx;
+    const user = ctx.user;
+
+    // Check if the group is full (3 members for free tier, 101 for plus tier)
+    const groupMembers = await db.query.usersToGroups.findMany({
+      where: (model, { eq }) => eq(model.groupId, input.groupId),
+    });
+
+    if (
+      (user.plusMembership && groupMembers.length >= 101) ||
+      (!user.plusMembership && groupMembers.length >= 6)
+    ) {
+      throw new Error("Max group size reached");
+    }
 
     // Create a new invite code based on the group id and random number
     function getRandomUint32() {
@@ -606,7 +678,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
     const newInviteCodeRow = await db
       .insert(groupInviteCodes)
       .values({
-        creatorId: userId,
+        creatorId: user.id,
         groupId: input.groupId,
         code: inviteCode,
         maxUses: input.maxUses,
