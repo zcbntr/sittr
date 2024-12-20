@@ -239,7 +239,7 @@ export default function GroupPetsTable({
       filterable={false}
     >
       <AddPetToGroupDialog groupId={groupId} petsNotInGroup={petsNotInGroup}>
-        <Button>Add Pet</Button>
+        <Button className="max-w-80">Add Pet</Button>
       </AddPetToGroupDialog>
     </DataTable>
   ) : (

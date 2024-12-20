@@ -239,7 +239,7 @@ export default function GroupMembersTable({
       filterable={false}
     >
       <CreateGroupInviteDialog groupId={groupId}>
-        <Button>Create Invite</Button>
+        <Button className="max-w-80">Create Invite</Button>
       </CreateGroupInviteDialog>
     </DataTable>
   ) : (

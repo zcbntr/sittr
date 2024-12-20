@@ -75,7 +75,7 @@ export function DataTable<TData, TValue>({
   return (
     <div>
       {(searchable || filterable || children) && (
-        <div className="flex grow flex-row flex-wrap place-content-end gap-2 py-4">
+        <div className="grid grow grid-cols-auto gap-2 py-4 sm:flex sm:flex-row sm:flex-wrap sm:place-content-end">
           {/* Make this a variable via a prop - there are extensive docs https://tanstack.com/table/v8/docs/guide/filters */}
           {searchable && (
             <Search
@@ -86,7 +86,7 @@ export function DataTable<TData, TValue>({
               onChange={(event) =>
                 table.getColumn("name")?.setFilterValue(event.target.value)
               }
-              className="mr-auto max-w-sm"
+              className="w-full max-w-80 sm:mr-auto"
             />
           )}
 
@@ -122,11 +122,7 @@ export function DataTable<TData, TValue>({
             </DropdownMenu>
           )}
 
-          {children && (
-            <div className="flex h-full flex-row flex-wrap place-content-end gap-2 place-self-end">
-              {children}
-            </div>
-          )}
+          {children && children}
         </div>
       )}
       <div className="rounded-md border p-0">
