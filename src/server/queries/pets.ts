@@ -4,7 +4,7 @@ import { db } from "~/server/db";
 import { petSchema, type Pet } from "~/lib/schemas/pets";
 import { getLoggedInUser } from "./users";
 
-export async function getPetById(petId: string): Promise<Pet> {
+export async function getOwnedPetById(petId: string): Promise<Pet> {
   const user = await getLoggedInUser();
   const userId = user?.id;
 
@@ -12,46 +12,90 @@ export async function getPetById(petId: string): Promise<Pet> {
     throw new Error("Unauthorized");
   }
 
-  throw new Error("Not implemented");
+  const pet = await db.query.pets.findFirst({
+    where: (model, { eq }) => eq(model.id, petId),
+    with: {
+      petImages: true,
+      owner: true,
+      creator: true,
+    },
+  });
 
-  // THis will fail due to the join on usersToGroups not giving enough data to parse owner and creator
+  if (!pet) {
+    throw new Error("Pet not found");
+  }
 
-  // Allow users who are members of a group which sits for the pet to view the pet
-  // This will give two rows of each pet if the owner is also a member of a group which sits for the pet
-  // Not a big issue as we limit to 1, but could be optimized
+  return petSchema.parse({
+    id: pet.id,
+    ownerId: pet.ownerId,
+    creatorId: pet.creatorId,
+    owner: pet.owner,
+    creator: pet.creator,
+    name: pet.name,
+    species: pet.species,
+    breed: pet.breed ? pet.breed : undefined,
+    dob: pet.dob ? pet.dob : undefined,
+    sex: pet.sex,
+    image: pet.petImages?.url ? pet.petImages.url : undefined,
+    note: pet.note ? pet.note : undefined,
+  });
+}
 
-  // const petRows = await db
-  //   .select()
-  //   .from(pets)
-  //   .leftJoin(petsToGroups, eq(petsToGroups.petId, pets.id))
-  //   .leftJoin(usersToGroups, eq(usersToGroups.groupId, petsToGroups.groupId))
-  //   .leftJoin(petImages, eq(petImages.petId, pets.id))
-  //   .where(
-  //     and(
-  //       eq(pets.id, petId),
-  //       or(eq(usersToGroups.userId, userId), eq(pets.ownerId, userId)),
-  //     ),
-  //   )
-  //   .limit(1);
+export async function getPetVisibleViaCommonGroup(petId: string): Promise<Pet> {
+  const user = await getLoggedInUser();
+  const userId = user?.id;
 
-  // if (!petRows || petRows.length === 0 || petRows[0] === undefined) {
-  //   throw new Error("Pet not found");
-  // }
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
 
-  // const petRow = petRows[0];
+  const pet = await db.query.pets.findFirst({
+    where: (model, { eq }) => eq(model.id, petId),
+    with: {
+      petImages: true,
+      owner: true,
+      creator: true,
+      petsToGroups: {
+        with: { group: { with: { usersToGroups: true } } },
+      },
+    },
+  });
 
-  // return petSchema.parse({
-  //   id: petRow.pets.id,
-  //   ownerId: petRow.pets.ownerId,
-  //   createdBy: petRow.pets.createdBy,
-  //   name: petRow.pets.name,
-  //   species: petRow.pets.species,
-  //   breed: petRow.pets.breed ? petRow.pets.breed : undefined,
-  //   dob: petRow.pets.dob ? petRow.pets.dob : undefined,
-  //   sex: petRow.pets.sex ? petRow.pets.sex : undefined,
-  //   image: petRow.pet_images?.url ? petRow.pet_images.url : undefined,
-  //   note: petRow.pets.note ? petRow.pets.note : undefined,
-  // });
+  if (!pet) {
+    throw new Error("Pet not found");
+  }
+
+  if (!pet.petsToGroups) {
+    throw new Error("Pet not visible");
+  }
+
+  // Iterate through the groups and check if the user is in any of them
+  const userGroups = pet.petsToGroups.map((petToGroup) => {
+    return petToGroup.group.usersToGroups.map((userToGroup) => {
+      return userToGroup.userId;
+    });
+  });
+
+  const userGroupIds = userGroups.flat();
+
+  if (!userGroupIds.includes(userId)) {
+    throw new Error("Pet not visible");
+  }
+
+  return petSchema.parse({
+    id: pet.id,
+    ownerId: pet.ownerId,
+    creatorId: pet.creatorId,
+    owner: pet.owner,
+    creator: pet.creator,
+    name: pet.name,
+    species: pet.species,
+    breed: pet.breed ? pet.breed : undefined,
+    dob: pet.dob ? pet.dob : undefined,
+    sex: pet.sex,
+    image: pet.petImages?.url ? pet.petImages.url : undefined,
+    note: pet.note ? pet.note : undefined,
+  });
 }
 
 export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {

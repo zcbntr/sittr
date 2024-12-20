@@ -1,8 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { PetOwnerPage } from "~/app/_components/pet-page/pet-owner-page";
 import { PetNonOwnerPage } from "~/app/_components/pet-page/pet-non-owner-page";
-import { getPetById } from "~/server/queries/pets";
 import { getLoggedInUser } from "~/server/queries/users";
+import {
+  getOwnedPetById,
+  getPetVisibleViaCommonGroup,
+} from "~/server/queries/pets";
+import { type Pet } from "~/lib/schemas/pets";
 
 export default async function Page({
   params,
@@ -11,7 +15,13 @@ export default async function Page({
 }) {
   // Get the data for the pet from the slug
   const slug = (await params).slug;
-  const pet = await getPetById(slug);
+  let pet: Pet | null = await getOwnedPetById(slug);
+  if (!pet) {
+    pet = await getPetVisibleViaCommonGroup(slug);
+    if (!pet) {
+      pet = null;
+    }
+  }
 
   if (pet == null) {
     // No such pet exists, return pet does not exist page

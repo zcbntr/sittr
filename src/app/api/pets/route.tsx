@@ -1,6 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { basicGetAPIFormSchema } from "~/lib/schemas";
-import { getOwnedPets, getPetById } from "~/server/queries/pets";
+import {
+  getOwnedPetById,
+  getOwnedPets,
+  getPetVisibleViaCommonGroup,
+} from "~/server/queries/pets";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
   try {
@@ -26,15 +30,30 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
 
       return NextResponse.json(pets);
     } else if (requestParams.data.id) {
-      const pet = await getPetById(requestParams.data.id);
+      const ownedPet = await getOwnedPetById(requestParams.data.id);
 
-      return NextResponse.json(pet);
+      if (!ownedPet) {
+        const visibleViaGroupPet = await getPetVisibleViaCommonGroup(
+          requestParams.data.id,
+        );
+
+        if (!visibleViaGroupPet) {
+          return NextResponse.json({
+            status: "error",
+            error: "Pet not found",
+          });
+        }
+
+        return NextResponse.json(visibleViaGroupPet);
+      } else {
+        return NextResponse.json(ownedPet);
+      }
+    } else {
+      return NextResponse.json({
+        status: "error",
+        error: "Invalid request params",
+      });
     }
-
-    return NextResponse.json({
-      status: "error",
-      error: "Invalid request params",
-    });
   } catch (error) {
     console.log(error);
 
