@@ -48,7 +48,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
         <div className="flex flex-row place-content-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-[5rem]">
+          <h1 className="text-center text-4xl font-extrabold tracking-tight text-white sm:text-[5rem]">
             Pet sitting made easy
           </h1>
         </div>
@@ -65,7 +65,7 @@ export default function Home() {
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="w-2/3 space-y-6"
+                className="px-2 max-w-96 space-y-6"
               >
                 <FormField
                   control={form.control}
@@ -73,12 +73,14 @@ export default function Home() {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <div className="flex w-full max-w-sm items-center space-x-2">
+                        <div className="grid w-full max-w-sm grid-cols-3 gap-3">
                           <Input
                             type="text"
                             placeholder="Invite code"
+                            className="col-span-2"
                             {...field}
                           />
+
                           <Button type="submit" className="h-[40px] border">
                             Join Group
                           </Button>
