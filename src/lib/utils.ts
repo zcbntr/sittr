@@ -24,7 +24,7 @@ export function getDominantMonth(startDate: Date, endDate: Date): string {
   const monthCounts: MonthCounts = {};
 
   allDates.forEach((date) => {
-    const month: string = format(date, "MMMM yyyy"); // Get the month name with year (e.g., "November 2024")
+    const month: string = format(date, "MMM yyyy"); // Get the month name with year (e.g., "November 2024")
     monthCounts[month] = (monthCounts[month] ?? 0) + 1;
   });
 

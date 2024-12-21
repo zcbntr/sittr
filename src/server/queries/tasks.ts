@@ -316,7 +316,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
     const parse = taskSchema.safeParse({
       taskId: task.id,
       owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.creatorId),
+      createdBy: userSchema.parse(task.creator),
       name: task.name,
       description: task.description,
       dueMode: task.dueMode,

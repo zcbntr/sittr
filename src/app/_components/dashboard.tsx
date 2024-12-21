@@ -35,13 +35,18 @@ export default async function Dashboard({
   }
 
   return (
-    <div className="flex flex-col gap-3 p-5">
+    <div className="flex flex-col gap-3 p-3">
       <section>
         <div className="flex flex-row flex-wrap place-content-center gap-2 sm:place-content-end">
           <div className="flex flex-col place-content-center">
             <CreateTaskDialog groups={groups}>
               <Button variant="outline">
-                <MdAddTask className="h-4 w-4" />
+                <div className="flex flex-row gap-2">
+                  <div className="flex flex-col place-content-center">
+                    <MdAddTask className="h-4 w-4" />
+                  </div>
+                  <div className="hidden sm:block">Create Task</div>
+                </div>
               </Button>
             </CreateTaskDialog>
           </div>
