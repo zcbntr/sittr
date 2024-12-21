@@ -8,7 +8,7 @@ export function Footer() {
           &copy; 2024 sittr. All rights reserved. Favicon &copy; 2023{" "}
           <a href="https://x.com/home">Twemoji</a>.
         </p>
-        <nav className="mt-4 flex items-center space-x-6 md:mt-0">
+        <nav className="md:text-md mt-4 flex w-fit items-center gap-5 space-x-2 text-sm md:mt-0">
           <Link
             href="/privacy-policy"
             className="hover:underline"
