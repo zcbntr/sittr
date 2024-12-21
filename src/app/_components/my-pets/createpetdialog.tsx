@@ -45,6 +45,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { SexEnum } from "~/lib/schemas";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
 export default function CreatePetDialog({
   children,
@@ -54,6 +55,8 @@ export default function CreatePetDialog({
   const [open, setOpen] = React.useState(false);
 
   const [dob, setDOB] = React.useState<Date | undefined>();
+
+  const [image, setImage] = React.useState<string | undefined>(undefined);
 
   const form = useForm<z.infer<typeof createPetInputSchema>>({
     mode: "onBlur",
@@ -88,22 +91,32 @@ export default function CreatePetDialog({
         <div className="h-full w-full space-y-2 px-1">
           <div>
             <div className="font-medium">Avatar</div>
-            {/* Change UI depending on whether user has premium or not */}
-            <UploadButton
-              endpoint="createPetImageUploader"
-              onClientUploadComplete={(res) => {
-                // Do something with the response
-                if (res[0]?.serverData.imageId)
-                  form.setValue("image", res[0].serverData.imageId);
-                else {
-                  toast.error("Image upload error");
-                }
-              }}
-              onUploadError={(error: Error) => {
-                // Do something with the error.
-                toast.error(`Image Upload Error! ${error.message}`);
-              }}
-            />
+            <div className="flex flex-col place-content-center gap-4">
+              {image && (
+                <div className="flex flex-row place-content-center">
+                  <Avatar className="h-32 w-32">
+                    <AvatarImage src={image} alt={`Your pet's avatar`} />
+                    <AvatarFallback delayMs={600}>🐶</AvatarFallback>
+                  </Avatar>
+                </div>
+              )}
+              <UploadButton
+                endpoint="createPetImageUploader"
+                onClientUploadComplete={(res) => {
+                  // Do something with the response
+                  if (res[0]?.serverData.imageId) {
+                    form.setValue("image", res[0].serverData.imageId);
+                    setImage(res[0].serverData.url);
+                  } else {
+                    toast.error("Image upload error");
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  // Do something with the error.
+                  toast.error(`Image Upload Error! ${error.message}`);
+                }}
+              />
+            </div>
           </div>
           <Form {...form}>
             <form
