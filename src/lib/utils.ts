@@ -58,3 +58,39 @@ export function getPetAgeString(dob: Date): string {
   const years = differenceInYears(today, dob);
   return `${years} year${years !== 1 ? "s" : ""}`;
 }
+
+export function getTimeSinceDateAsString(date: Date) {
+  const now = new Date();
+  const diff = differenceInDays(now, date);
+
+  if (diff < 1) {
+    // Calculate hours
+    const hours = Math.floor((now.getTime() - date.getTime()) / 1000 / 60 / 60);
+    if (hours < 1) {
+      // Calculate minutes
+      const minutes = Math.floor((now.getTime() - date.getTime()) / 1000 / 60);
+      if (minutes < 1) {
+        return "Now";
+      }
+
+      // Minutes ago
+      return `${minutes} min${minutes !== 1 ? "s" : ""} ago`;
+    }
+
+    // Hours ago
+    return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+  }
+
+  // Yesterday and time
+  if (diff < 2) {
+    return `Yesterday ${format(date, "h:mm a")}`;
+  }
+
+  // Day and time
+  if (diff < 7) {
+    return `${format(date, "EEEE h:mm a")}`;
+  }
+
+  // Days ago
+  return `${diff} days ago`;
+}

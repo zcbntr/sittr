@@ -21,6 +21,7 @@ import {
   MdOutlineSettings,
 } from "react-icons/md";
 import { getUserNotifications } from "~/server/queries/notifications";
+import { getTimeSinceDateAsString } from "~/lib/utils";
 
 export async function TopNav() {
   const user = await getLoggedInUser();
@@ -73,34 +74,55 @@ export async function TopNav() {
                     )}
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="mx-2 min-w-[260px] max-w-full md:max-w-96">
+                <DropdownMenuContent className="ml-1 mr-auto w-4/5 min-w-[260px] md:max-w-96">
                   <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+
                   {notifications.map((notification) => (
-                    <DropdownMenuItem key={notification.id}>
-                      <Link
-                        href={
-                          notification.associatedGroup
-                            ? `/groups/${notification.associatedGroup}`
-                            : notification.associatedPet
-                              ? `/pets/${notification.associatedPet}`
-                              : notification.associatedTask
-                                ? `/tasks/${notification.associatedTask}`
-                                : "/"
-                        }
-                        className="flex flex-row place-content-start gap-2"
-                      >
-                        {notification.read && (
-                          <div className="flex flex-col place-content-center">
-                            <MdNotificationImportant />
+                    <>
+                      {" "}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem key={notification.id}>
+                        <Link
+                          href={
+                            notification.associatedGroup
+                              ? `/groups/${notification.associatedGroup}`
+                              : notification.associatedPet
+                                ? `/pets/${notification.associatedPet}`
+                                : notification.associatedTask
+                                  ? `/tasks/${notification.associatedTask}`
+                                  : "/"
+                          }
+                          className="flex flex-row place-content-start gap-2"
+                        >
+                          <div className="flex flex-row place-content-start gap-1">
+                            {!notification.read && (
+                              <div className="flex flex-col place-content-center">
+                                <MdNotificationImportant size={"1.2rem"} />
+                              </div>
+                            )}
+                            <div className="flex flex-row flex-wrap place-content-start gap-1">
+                              <div className="underline">
+                                {notification.message.substring(0, 40)}
+                              </div>
+                              {/* Show how long since notification created */}
+                              {notification.updatedAt && (
+                                <div className="text-xs text-gray-500">
+                                  {getTimeSinceDateAsString(
+                                    notification.updatedAt,
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )}
-                        {notification.message.substring(0, 40)}
-                      </Link>
-                    </DropdownMenuItem>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
                   ))}
                   {notifications.length === 0 && (
-                    <DropdownMenuItem>No notifications</DropdownMenuItem>
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>No notifications</DropdownMenuItem>
+                    </>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -119,7 +141,7 @@ export async function TopNav() {
                     </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="mx-2 min-w-[200px] max-w-full md:max-w-96">
+                <DropdownMenuContent className="mx-1.5 min-w-[200px] max-w-full md:max-w-96">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
