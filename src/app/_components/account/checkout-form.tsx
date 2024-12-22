@@ -8,7 +8,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { convertToSubCurrency } from "~/lib/utils";
 
-export default function CheckoutPage({ amount }: { amount: number }) {
+export default function CheckoutForm({ amount }: { amount: number }) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -59,7 +59,7 @@ export default function CheckoutPage({ amount }: { amount: number }) {
     const { error } = await stripe.confirmPayment({
       elements,
       clientSecret,
-      confirmParams: { return_url: window.location.href },
+      confirmParams: { return_url: "/plus-upgrade-success" },
     });
 
     if (error) {
@@ -85,7 +85,10 @@ export default function CheckoutPage({ amount }: { amount: number }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-md bg-white p-2">
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-[650px] rounded-md bg-white p-2"
+    >
       {clientSecret && <PaymentElement />}
 
       {errorMessage && <div>{errorMessage}</div>}
@@ -94,7 +97,7 @@ export default function CheckoutPage({ amount }: { amount: number }) {
         disabled={!stripe || loading}
         className="mt-2 w-full rounded-md bg-black p-5 font-bold text-white disabled:animate-pulse disabled:opacity-50"
       >
-        {!loading ? `Pay $${amount}` : "Processing..."}
+        {!loading ? `Pay £${amount}` : "Processing..."}
       </button>
     </form>
   );

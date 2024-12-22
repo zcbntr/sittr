@@ -3,7 +3,7 @@
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { convertToSubCurrency } from "~/lib/utils";
-import CheckoutPage from "./checkout-page";
+import CheckoutForm from "./checkout-form";
 
 if (process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY === undefined) {
   throw new Error("Stripe public key is not defined");
@@ -23,7 +23,7 @@ export default function PlusPurchaseForm() {
         currency: "gbp",
       }}
     >
-      <CheckoutPage amount={amount} />
+      <CheckoutForm amount={amount} />
     </Elements>
   );
 }
