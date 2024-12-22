@@ -16,7 +16,7 @@ export const GET = async (request: NextRequest, response: NextResponse) => {
 
   const stripeSessionId = searchParams.get("session_id");
 
-  if (!stripeSessionId?.length) return redirect("/get-plus");
+  if (!stripeSessionId?.length) return redirect("/plus/get-plus");
 
   const session = await stripe.checkout.sessions.retrieve(stripeSessionId);
 

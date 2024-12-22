@@ -10,9 +10,12 @@ export default function AccountPage({ user }: { user: User }) {
         <div>{user.name}</div>
         <div>{user.plusMembership && <div>Plus Member</div>}</div>
         {!user.plusMembership && (
-          <Link href="/get-plus" prefetch={true}>
-            Get Sittr Plus
-          </Link>
+          <div>
+            You are not a Plus member.
+            <Link href="/plus" prefetch={true}>
+              Learn More
+            </Link>
+          </div>
         )}
       </div>
     </div>

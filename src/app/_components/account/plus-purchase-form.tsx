@@ -1,6 +1,10 @@
 import CheckoutForm from "./checkout-form";
 
-const priceId = "price_1QYuMpDWqRuNJiCTSeCg1x2z";
+if (!process.env.STRIPE_PLUS_PRICEID) {
+  throw new Error("Missing Stripe price ID");
+}
+
+const priceId = process.env.STRIPE_PLUS_PRICEID;
 
 export default function PlusPurchaseForm() {
   return <CheckoutForm priceId={priceId} />;
