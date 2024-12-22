@@ -94,3 +94,7 @@ export function getTimeSinceDateAsString(date: Date) {
   // Days ago
   return `${diff} days ago`;
 }
+
+export function convertToSubCurrency(amount: number, factor = 100): number {
+  return Math.round(amount * factor);
+}

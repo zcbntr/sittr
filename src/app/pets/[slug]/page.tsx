@@ -7,11 +7,14 @@ import {
   getPetVisibleViaCommonGroup,
 } from "~/server/queries/pets";
 import { type Pet } from "~/lib/schemas/pets";
+import { markNotificationAsReadAction } from "~/server/actions/notification-actions";
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   // Get the data for the pet from the slug
   const slug = (await params).slug;
@@ -34,6 +37,16 @@ export default async function Page({
 
     if (!userId) {
       throw new Error("Unauthorized");
+    }
+
+    const notification = (await searchParams).notification;
+
+    if (notification) {
+      if (notification.length >= 0) {
+        throw new Error("Invalid notification");
+      }
+
+      await markNotificationAsReadAction(notification.toString());
     }
 
     if (pet.ownerId == userId) {

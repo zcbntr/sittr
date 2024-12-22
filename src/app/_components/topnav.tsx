@@ -76,53 +76,47 @@ export async function TopNav() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="ml-1 mr-auto w-4/5 min-w-[260px] md:max-w-96">
                   <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
 
                   {notifications.map((notification) => (
-                    <>
-                      {" "}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem key={notification.id}>
-                        <Link
-                          href={
-                            notification.associatedGroup
-                              ? `/groups/${notification.associatedGroup}`
-                              : notification.associatedPet
-                                ? `/pets/${notification.associatedPet}`
-                                : notification.associatedTask
-                                  ? `/tasks/${notification.associatedTask}`
-                                  : "/"
-                          }
-                          className="flex flex-row place-content-start gap-2"
-                        >
-                          <div className="flex flex-row place-content-start gap-1">
-                            {!notification.read && (
-                              <div className="flex flex-col place-content-center">
-                                <MdNotificationImportant size={"1.2rem"} />
+                    <DropdownMenuItem key={notification.id}>
+                      <Link
+                        href={
+                          notification.associatedGroup
+                            ? `/groups/${notification.associatedGroup}?notification=${notification.id}`
+                            : notification.associatedPet
+                              ? `/pets/${notification.associatedPet}?notification=${notification.id}`
+                              : notification.associatedTask
+                                ? `/tasks/${notification.associatedTask}?notification=${notification.id}`
+                                : "/"
+                        }
+                        className="flex flex-row place-content-start gap-2"
+                      >
+                        <div className="flex flex-row place-content-start gap-1">
+                          {!notification.read && (
+                            <div className="flex flex-col place-content-center">
+                              <MdNotificationImportant size={"1.2rem"} />
+                            </div>
+                          )}
+                          <div className="flex flex-row flex-wrap place-content-start gap-1">
+                            <div className="underline">
+                              {notification.message.substring(0, 40)}
+                            </div>
+                            {/* Show how long since notification created */}
+                            {notification.createdAt && (
+                              <div className="text-xs text-gray-500">
+                                {getTimeSinceDateAsString(
+                                  notification.createdAt,
+                                )}
                               </div>
                             )}
-                            <div className="flex flex-row flex-wrap place-content-start gap-1">
-                              <div className="underline">
-                                {notification.message.substring(0, 40)}
-                              </div>
-                              {/* Show how long since notification created */}
-                              {notification.updatedAt && (
-                                <div className="text-xs text-gray-500">
-                                  {getTimeSinceDateAsString(
-                                    notification.updatedAt,
-                                  )}
-                                </div>
-                              )}
-                            </div>
                           </div>
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
                   ))}
                   {notifications.length === 0 && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>No notifications</DropdownMenuItem>
-                    </>
+                    <DropdownMenuItem>No notifications</DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -12,11 +12,14 @@ import {
 import { type Pet } from "~/lib/schemas/pets";
 import { redirect } from "next/navigation";
 import { getLoggedInUser } from "~/server/queries/users";
+import { markNotificationAsReadAction } from "~/server/actions/notification-actions";
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const user = await getLoggedInUser();
   if (!user) {
@@ -41,6 +44,16 @@ export default async function Page({
 
     if (typeof userIsOwnerOrError === "string") {
       return <GroupDoesNotExistPage />;
+    }
+
+    const notification = (await searchParams).notification;
+
+    if (notification) {
+      if (notification.length >= 0) {
+        throw new Error("Invalid notification");
+      }
+
+      await markNotificationAsReadAction(notification.toString());
     }
 
     const userIsOwner = userIsOwnerOrError;
