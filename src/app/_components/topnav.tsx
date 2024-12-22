@@ -56,9 +56,7 @@ export async function TopNav() {
           {user.plusMembership && (
             <Link href="/" className="text-4xl font-bold">
               sittr
-              <span className="mb-0.5 ml-0.5 align-top text-2xl text-violet-600">
-                +
-              </span>
+              <sup className="font-bold text-violet-600">+</sup>
             </Link>
           )}
           <nav className="flex flex-row items-center space-x-3">

@@ -11,14 +11,18 @@ export default async function PlusUpgradeSuccess({}) {
   }
 
   return (
-    <main className="m-10 mx-auto w-full max-w-lg p-10 text-center">
+    <main className="m-5 mx-auto w-full max-w-xl p-5 text-center">
       <div className="mb-10">
         <h1 className="mb-2 text-5xl font-extrabold">Thank you!</h1>
-        <h3 className="text-2xl">
-          You can now access all the features of Sittr<span>+</span>.
+        <h3 className="text-2xl font-medium">
+          You can now access all the features of{" "}
+          <span className="font-bold">
+            sittr
+            <sup className="text-violet-600">+</sup>
+          </span>
         </h3>
-        <div className="mx-auto my-4 text-left">
-          <ul className="list-disc text-xl">
+        <div className="mx-auto mb-6 mt-4 flex flex-row place-content-center text-pretty pl-12 pr-6 text-left sm:pl-16">
+          <ul className="list-disc space-y-1 text-xl tracking-wide text-zinc-500">
             <li>Create unlimited pets</li>
             <li>Create unlimited groups</li>
             <li>Create unlimited tasks per week</li>
@@ -29,7 +33,7 @@ export default async function PlusUpgradeSuccess({}) {
           </ul>
         </div>
         <Link href="/" className={buttonVariants({ variant: "default" })}>
-          Try it out
+          <span className="text-lg">Try it out</span>
         </Link>
       </div>
     </main>
