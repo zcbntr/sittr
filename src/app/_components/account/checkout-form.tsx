@@ -1,104 +1,33 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback } from "react";
 import {
-  useStripe,
-  useElements,
-  PaymentElement,
+  EmbeddedCheckoutProvider,
+  EmbeddedCheckout,
 } from "@stripe/react-stripe-js";
-import { convertToSubCurrency } from "~/lib/utils";
 
-export default function CheckoutForm({ amount }: { amount: number }) {
-  const stripe = useStripe();
-  const elements = useElements();
+import { postStripeSession } from "~/server/actions/stripe-actions";
+import { loadStripe } from "@stripe/stripe-js";
 
-  const [errorMessage, setErrorMessage] = useState<string | undefined>(
-    undefined,
-  );
-  const [clientSecret, setClientSecret] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+if (!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY) {
+  throw new Error("Stripe key is not defined");
+}
 
-  useEffect(() => {
-    const fetchClientSecret = async () => {
-      const response = await fetch("/api/create-payment-intent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ amount: convertToSubCurrency(amount) }),
-      });
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
-      const data = await response.json();
+export default function CheckoutForm({ priceId }: { priceId: string }) {
+  const fetchClientSecret = useCallback(async () => {
+    const stripeResponse = await postStripeSession({ priceId });
+    return stripeResponse.clientSecret;
+  }, [priceId]);
 
-      if (data.error) {
-        setErrorMessage(data.error.message);
-      } else {
-        setClientSecret(data.clientSecret);
-      }
-    };
-
-    fetchClientSecret();
-  }, [amount]);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-
-    if (!stripe || !elements) {
-      return;
-    }
-
-    const { error: submitError } = await elements.submit();
-
-    if (submitError) {
-      setErrorMessage(submitError.message);
-      setLoading(false);
-      return;
-    }
-
-    const { error } = await stripe.confirmPayment({
-      elements,
-      clientSecret,
-      confirmParams: { return_url: "/plus-upgrade-success" },
-    });
-
-    if (error) {
-      setErrorMessage(error.message);
-    }
-
-    setLoading(false);
-  };
-
-  if (!clientSecret || !stripe || !elements) {
-    return (
-      <div className="flex items-center justify-center">
-        <div
-          className="text-surface inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
-          role="status"
-        >
-          <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
-            Loading...
-          </span>
-        </div>
-      </div>
-    );
-  }
+  const options = { fetchClientSecret };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="w-full max-w-[650px] rounded-md bg-white p-2"
-    >
-      {clientSecret && <PaymentElement />}
-
-      {errorMessage && <div>{errorMessage}</div>}
-
-      <button
-        disabled={!stripe || loading}
-        className="mt-2 w-full rounded-md bg-black p-5 font-bold text-white disabled:animate-pulse disabled:opacity-50"
-      >
-        {!loading ? `Pay £${amount}` : "Processing..."}
-      </button>
-    </form>
+    <div id="checkout">
+      <EmbeddedCheckoutProvider stripe={stripePromise} options={options}>
+        <EmbeddedCheckout />
+      </EmbeddedCheckoutProvider>
+    </div>
   );
 }
