@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createServerActionProcedure } from "zsa";
 import { db } from "../db";
-import { groups, tasks, usersToGroups } from "../db/schema";
+import { groups, tasks, groupMembers } from "../db/schema";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getLoggedInUser } from "../queries/users";
@@ -67,10 +67,10 @@ export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
       await db
         .select()
         .from(tasks)
-        .leftJoin(groups, eq(tasks.group, groups.id))
-        .leftJoin(usersToGroups, eq(groups.id, usersToGroups.groupId))
+        .leftJoin(groups, eq(tasks.groupId, groups.id))
+        .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
         .where(
-          and(eq(tasks.id, input.taskId), eq(usersToGroups.userId, userId)),
+          and(eq(tasks.id, input.taskId), eq(groupMembers.userId, userId)),
         )
     )[0];
 
@@ -97,12 +97,12 @@ export const ownsGroupProcedure = createServerActionProcedure(
       await db
         .select()
         .from(groups)
-        .leftJoin(usersToGroups, eq(groups.id, usersToGroups.groupId))
+        .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
         .where(
           and(
             eq(groups.id, input.groupId),
-            eq(usersToGroups.userId, userId),
-            eq(usersToGroups.role, "Owner"),
+            eq(groupMembers.userId, userId),
+            eq(groupMembers.role, "Owner"),
           ),
         )
     )[0];

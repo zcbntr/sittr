@@ -5,13 +5,13 @@ import { eq, inArray } from "drizzle-orm";
 import { groups, petsToGroups } from "../db/schema";
 import {
   type Group,
-  type GroupMember,
+  type SelectBasicGroupMember,
   groupMemberSchema,
   groupSchema,
 } from "~/lib/schemas/groups";
-import { type Pet, petSchema } from "~/lib/schemas/pets";
+import { type SelectBasicPet, selectPetSchema } from "~/lib/schemas/pets";
 import { getLoggedInUser } from "./users";
-import { userSchema } from "~/lib/schemas/users";
+import { selectUserSchema } from "~/lib/schemas/users";
 
 export async function getGroupById(id: string): Promise<Group | null> {
   const user = await getLoggedInUser();
@@ -50,7 +50,7 @@ export async function getGroupById(id: string): Promise<Group | null> {
     name: group.name,
     description: group.description,
     pets: group.petsToGroups.map((petToGroup) =>
-      petSchema.parse({
+      selectPetSchema.parse({
         id: petToGroup.pet.id,
         ownerId: petToGroup.pet.ownerId,
         owner: petToGroup.pet.owner,
@@ -114,7 +114,7 @@ export async function getIsUserGroupOwner(groupId: string): Promise<boolean> {
   return !!groupMember;
 }
 
-export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
+export async function getGroupMembers(groupId: string): Promise<SelectBasicGroupMember[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -135,7 +135,7 @@ export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
   });
 }
 
-export async function getGroupPets(groupId: string): Promise<Pet[]> {
+export async function getGroupPets(groupId: string): Promise<SelectBasicPet[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -158,12 +158,12 @@ export async function getGroupPets(groupId: string): Promise<Pet[]> {
   }
 
   return groupPets.petsToGroups.map((groupPet) => {
-    return petSchema.parse({
+    return selectPetSchema.parse({
       id: groupPet.pet.id,
       ownerId: groupPet.pet.ownerId,
-      owner: userSchema.parse(groupPet.pet.owner),
+      owner: selectUserSchema.parse(groupPet.pet.owner),
       creatorId: groupPet.pet.creatorId,
-      creator: userSchema.parse(groupPet.pet.creator),
+      creator: selectUserSchema.parse(groupPet.pet.creator),
       name: groupPet.pet.name,
       species: groupPet.pet.species,
       breed: groupPet.pet.breed,
@@ -175,7 +175,7 @@ export async function getGroupPets(groupId: string): Promise<Pet[]> {
   });
 }
 
-export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
+export async function getUsersPetsNotInGroup(groupId: string): Promise<SelectBasicPet[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -210,7 +210,7 @@ export async function getUsersPetsNotInGroup(groupId: string): Promise<Pet[]> {
   }
 
   return petsNotInGroup.map((pet) => {
-    return petSchema.parse({
+    return selectPetSchema.parse({
       id: pet.id,
       ownerId: pet.ownerId,
       owner: pet.owner,
@@ -265,7 +265,7 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
       name: groupMember.group.name,
       description: groupMember.group.description,
       pets: groupMember.group.petsToGroups.map((petToGroup) =>
-        petSchema.parse({
+        selectPetSchema.parse({
           id: petToGroup.pet.id,
           name: petToGroup.pet.name,
           ownerId: petToGroup.pet.ownerId,
@@ -282,7 +282,7 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
       members: groupMember.group.usersToGroups.map((userToGroup) =>
         groupMemberSchema.parse({
           groupId: userToGroup.groupId,
-          user: userSchema.parse(userToGroup.user),
+          user: selectUserSchema.parse(userToGroup.user),
           role: userToGroup.role,
         }),
       ),

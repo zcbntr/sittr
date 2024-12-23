@@ -4,7 +4,7 @@ import { DataTable } from "~/components/ui/data-table";
 import React, { useState } from "react";
 import { Button } from "~/components/ui/button";
 import AddPetToGroupDialog from "./add-pet-to-group-dialog";
-import { type Pet } from "~/lib/schemas/pets";
+import { type SelectBasicPet } from "~/lib/schemas/pets";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { MoreHorizontal } from "lucide-react";
@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import { type User } from "~/lib/schemas/users";
+import { type SelectUser } from "~/lib/schemas/users";
 
 export default function GroupPetsTable({
   user,
@@ -38,10 +38,10 @@ export default function GroupPetsTable({
   petsNotInGroup,
   isOwner,
 }: {
-  user: User;
+  user: SelectUser;
   groupId: string;
-  groupPets: Pet[];
-  petsNotInGroup?: Pet[];
+  groupPets: SelectBasicPet[];
+  petsNotInGroup?: SelectBasicPet[];
   isOwner?: boolean;
 }) {
   const [alertState, setAlertState] = useState("");
@@ -50,7 +50,7 @@ export default function GroupPetsTable({
     return null;
   }
 
-  const memberColumns: ColumnDef<Pet>[] = [
+  const memberColumns: ColumnDef<SelectBasicPet>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -113,7 +113,7 @@ export default function GroupPetsTable({
     },
   ];
 
-  const ownerColumns: ColumnDef<Pet>[] = [
+  const ownerColumns: ColumnDef<SelectBasicPet>[] = [
     {
       accessorKey: "avatar",
       header: "",

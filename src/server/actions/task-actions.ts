@@ -4,7 +4,7 @@ import {
   createTaskInputSchema,
   setClaimTaskFormProps,
   setMarkedAsCompleteFormProps,
-  taskSchema,
+  selectBasicTaskSchema,
   updateTaskInputSchema,
 } from "~/lib/schemas/tasks";
 import { db } from "~/server/db";
@@ -212,7 +212,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
 
 export const deleteTaskAction = ownsTaskProcedure
   .createServerAction()
-  .input(taskSchema.pick({ taskId: true }))
+  .input(selectBasicTaskSchema.pick({ taskId: true }))
   .handler(async ({ input, ctx }) => {
     const { userId } = ctx;
     const { success } = await ratelimit.limit(userId);

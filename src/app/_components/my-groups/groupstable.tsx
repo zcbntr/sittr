@@ -37,14 +37,14 @@ import {
 import { useState } from "react";
 import { leaveGroupAction } from "~/server/actions/group-actions";
 import { GroupRoleEnum } from "~/lib/schemas";
-import { type User } from "~/lib/schemas/users";
+import { type SelectUser } from "~/lib/schemas/users";
 
 export default function GroupsTable({
   groups,
   user,
 }: {
   groups: Group[];
-  user: User;
+  user: SelectUser;
 }) {
   const [alertState, setAlertState] = useState("");
 

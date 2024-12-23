@@ -48,7 +48,7 @@ export const userRelations = relations(users, ({ many }) => ({
   petImages: many(petImages, { relationName: "uploader" }),
   groups: many(groups),
   groupInviteCodes: many(groupInviteCodes),
-  usersToGroups: many(usersToGroups),
+  usersToGroups: many(groupMembers),
 }));
 
 export const accounts = createTable(
@@ -68,11 +68,15 @@ export const accounts = createTable(
     id_token: text("id_token"),
     session_state: text("session_state"),
   },
-  (account) => ({
-    compoundKey: primaryKey({
-      columns: [account.provider, account.providerAccountId],
-    }),
-  }),
+  (account) => {
+    return [
+      {
+        pk: primaryKey({
+          columns: [account.provider, account.providerAccountId],
+        }),
+      },
+    ];
+  },
 );
 
 export const sessions = createTable("session", {
@@ -116,17 +120,17 @@ export const tasks = createTable("tasks", {
   dueDate: timestamp("due_date", { withTimezone: true }),
   dateRangeFrom: timestamp("date_range_from", { withTimezone: true }),
   dateRangeTo: timestamp("date_range_to", { withTimezone: true }),
-  pet: text("pet").references(() => pets.id, { onDelete: "cascade" }),
-  group: text("group").references(() => groups.id, {
+  petId: text("pet_id").references(() => pets.id, { onDelete: "cascade" }),
+  groupId: text("group_id").references(() => groups.id, {
     onDelete: "cascade",
   }),
   // The user who is planning to complete the task
-  claimedBy: text("claimed_by").references(() => users.id, {
+  claimedById: text("claimed_by_id").references(() => users.id, {
     onDelete: "set null",
   }),
   claimedAt: timestamp("claimed_at", { withTimezone: true }),
   // If the task is marked as done, the user who marked it as done
-  markedAsDoneBy: text("marked_as_done_by").references(() => users.id, {
+  markedAsDoneById: text("marked_as_done_by_id").references(() => users.id, {
     onDelete: "set null",
   }),
   markedAsDoneAt: timestamp("marked_as_done_at", { withTimezone: true }),
@@ -153,21 +157,21 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
     relationName: "creator",
   }),
   claimedBy: one(users, {
-    fields: [tasks.claimedBy],
+    fields: [tasks.claimedById],
     references: [users.id],
     relationName: "claimedBy",
   }),
   markedAsDoneBy: one(users, {
-    fields: [tasks.markedAsDoneBy],
+    fields: [tasks.markedAsDoneById],
     references: [users.id],
     relationName: "markedAsDoneBy",
   }),
   pet: one(pets, {
-    fields: [tasks.pet],
+    fields: [tasks.petId],
     references: [pets.id],
   }),
   group: one(groups, {
-    fields: [tasks.group],
+    fields: [tasks.groupId],
     references: [groups.id],
   }),
   notifications: many(notifications),
@@ -189,12 +193,16 @@ export const petsToGroups = createTable(
       () => new Date(),
     ),
   },
-  (t) => ({
-    unique: unique().on(t.groupId, t.petId),
-    compoundKey: primaryKey({
-      columns: [t.groupId, t.petId],
-    }),
-  }),
+  (petToGroup) => {
+    return [
+      {
+        unique: unique().on(petToGroup.groupId, petToGroup.petId),
+        pk: primaryKey({
+          columns: [petToGroup.groupId, petToGroup.petId],
+        }),
+      },
+    ];
+  },
 );
 
 export const petsToGroupsRelations = relations(petsToGroups, ({ one }) => ({
@@ -246,7 +254,7 @@ export const petRelations = relations(pets, ({ one, many }) => ({
   }),
   tasks: one(tasks, {
     fields: [pets.id],
-    references: [tasks.pet],
+    references: [tasks.petId],
   }),
   petImages: one(petImages, {
     fields: [pets.id],
@@ -281,13 +289,13 @@ export const groupsRelations = relations(groups, ({ one, many }) => ({
   }),
   tasks: many(tasks),
   groupInviteCodes: many(groupInviteCodes),
-  usersToGroups: many(usersToGroups),
+  usersToGroups: many(groupMembers),
   petsToGroups: many(petsToGroups),
   notifications: many(notifications),
 }));
 
-export const usersToGroups = createTable(
-  "users_to_groups",
+export const groupMembers = createTable(
+  "group_members",
   {
     groupId: text("group_id")
       .references(() => groups.id, { onDelete: "cascade" })
@@ -303,21 +311,25 @@ export const usersToGroups = createTable(
       () => new Date(),
     ),
   },
-  (t) => ({
-    unique: unique().on(t.groupId, t.userId),
-    compoundKey: primaryKey({
-      columns: [t.userId, t.groupId],
-    }),
-  }),
+  (groupMember) => {
+    return [
+      {
+        unique: unique().on(groupMember.groupId, groupMember.userId),
+        pk: primaryKey({
+          columns: [groupMember.userId, groupMember.groupId],
+        }),
+      },
+    ];
+  },
 );
 
-export const usersToGroupsRelations = relations(usersToGroups, ({ one }) => ({
+export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
   user: one(users, {
-    fields: [usersToGroups.userId],
+    fields: [groupMembers.userId],
     references: [users.id],
   }),
   group: one(groups, {
-    fields: [usersToGroups.groupId],
+    fields: [groupMembers.groupId],
     references: [groups.id],
   }),
 }));
@@ -398,13 +410,13 @@ export const notifications = createTable("notification", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   notificationType: notificationTypeEnum("notification_type").notNull(),
-  associatedTask: text("associated_task").references(() => tasks.id, {
+  associatedTaskId: text("associated_task_id").references(() => tasks.id, {
     onDelete: "set null",
   }),
-  associatedGroup: text("associated_group").references(() => groups.id, {
+  associatedGroupId: text("associated_group_id").references(() => groups.id, {
     onDelete: "set null",
   }),
-  associatedPet: text("associated_pet").references(() => pets.id, {
+  associatedPetId: text("associated_pet_id").references(() => pets.id, {
     onDelete: "set null",
   }),
   message: text("message").notNull(),
@@ -419,15 +431,15 @@ export const notifications = createTable("notification", {
 
 export const notificationRelations = relations(notifications, ({ one }) => ({
   associatedTask: one(tasks, {
-    fields: [notifications.associatedTask],
+    fields: [notifications.associatedTaskId],
     references: [tasks.id],
   }),
   associatedGroup: one(groups, {
-    fields: [notifications.associatedGroup],
+    fields: [notifications.associatedGroupId],
     references: [groups.id],
   }),
   associatedPet: one(pets, {
-    fields: [notifications.associatedPet],
+    fields: [notifications.associatedPetId],
     references: [pets.id],
   }),
 }));

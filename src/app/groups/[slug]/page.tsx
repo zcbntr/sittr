@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { GroupMemberPage } from "~/app/_components/group-page/group-member-page";
 import { GroupOwnerPage } from "~/app/_components/group-page/group-owner-page";
-import type { GroupMember } from "~/lib/schemas/groups";
+import type { SelectBasicGroupMember } from "~/lib/schemas/groups";
 import {
   getGroupById,
   getGroupMembers,
@@ -9,7 +9,7 @@ import {
   getIsUserGroupOwner,
   getUsersPetsNotInGroup,
 } from "~/server/queries/groups";
-import { type Pet } from "~/lib/schemas/pets";
+import { type SelectBasicPet } from "~/lib/schemas/pets";
 import { redirect } from "next/navigation";
 import { getLoggedInUser } from "~/server/queries/users";
 import { markNotificationAsReadAction } from "~/server/actions/notification-actions";
@@ -36,8 +36,8 @@ export default async function Page({
 
     return <GroupDoesNotExistPage />;
   } else {
-    const groupPets: Pet[] = await getGroupPets(group.id);
-    const groupMembers: GroupMember[] = await getGroupMembers(group.id);
+    const groupPets: SelectBasicPet[] = await getGroupPets(group.id);
+    const groupMembers: SelectBasicGroupMember[] = await getGroupMembers(group.id);
 
     // Check if user is the owner of the group
     const userIsOwnerOrError = await getIsUserGroupOwner(group.id);
@@ -59,7 +59,7 @@ export default async function Page({
     const userIsOwner = userIsOwnerOrError;
 
     if (userIsOwner) {
-      const petsNotInGroup: Pet[] = await getUsersPetsNotInGroup(group.id);
+      const petsNotInGroup: SelectBasicPet[] = await getUsersPetsNotInGroup(group.id);
 
       return (
         <GroupOwnerPage

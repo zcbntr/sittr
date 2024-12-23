@@ -1,38 +1,23 @@
 import { z } from "zod";
-import { SexEnum } from ".";
-import { userSchema } from "./users";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { pets } from "~/server/db/schema";
+import { selectUserSchema } from "./users";
 
-export const petSchema = z.object({
-  id: z.string(),
-  ownerId: z.string(),
-  creatorId: z.string(),
-  owner: userSchema.optional(),
-  creator: userSchema.optional(),
-  name: z.string(),
-  species: z.string(),
-  breed: z.string().optional(),
-  dob: z.coerce.date().optional(),
-  sex: SexEnum.optional(),
-  image: z.string().optional(),
-  note: z.string().optional().nullable(),
-});
+export const selectBasicPetSchema = createSelectSchema(pets);
 
-export type Pet = z.infer<typeof petSchema>;
+export type SelectBasicPet = z.infer<typeof selectPetSchema>;
 
-export const petListSchema = z.array(petSchema);
+export const selectPetSchema = selectBasicPetSchema.merge(
+  z.object({
+    owner: selectUserSchema.optional(),
+  }),
+);
+
+export const petListSchema = z.array(selectPetSchema);
 
 export type PetList = z.infer<typeof petListSchema>;
 
-export const createPetInputSchema = z
-  .object({
-    name: z.string().min(2).max(50),
-    species: z.string().min(2).max(50),
-    breed: z.string().min(3).max(50).optional(),
-    dob: z.coerce.date().optional(),
-    sex: SexEnum.optional(),
-    image: z.string().optional(),
-    note: z.string().max(1500).optional(),
-  })
+export const insertPetSchema = createInsertSchema(pets)
   .refine((data) => data.dob && data.dob < new Date(), {
     message: "Birthdate must be in the past",
   })
@@ -40,16 +25,15 @@ export const createPetInputSchema = z
     message: "Birthdate must be after 1900-01-01",
   });
 
-export type CreatePetFormInput = z.infer<typeof createPetInputSchema>;
+export type NewPet = z.infer<typeof insertPetSchema>;
 
-export const updatePetSchema = z.object({
-  petId: z.string(),
-  name: z.string().min(2).max(50),
-  species: z.string().min(2).max(50),
-  breed: z.string().min(3).max(50).optional(),
-  dob: z.coerce.date().optional(),
-  sex: SexEnum.optional(),
-  note: z.string().max(1500).optional(),
-});
+export const updatePetSchema = createSelectSchema(pets)
+  .optional()
+  .refine((data) => data?.dob && data.dob < new Date(), {
+    message: "Birthdate must be in the past",
+  })
+  .refine((data) => data?.dob && data.dob > new Date("1900-01-01"), {
+    message: "Birthdate must be after 1900-01-01",
+  });
 
-export type UpdatePetFormInput = z.infer<typeof updatePetSchema>;
+export type EditPet = z.infer<typeof updatePetSchema>;

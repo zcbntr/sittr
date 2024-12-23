@@ -1,36 +1,39 @@
 import { z } from "zod";
 import { dateRangeSchema, TaskTypeEnum } from ".";
-import { userSchema } from "./users";
-import { groupSchema } from "./groups";
-import { petSchema } from "./pets";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { tasks } from "~/server/db/schema";
+import { selectPetSchema } from "./pets";
+import { selectBasicGroupSchema } from "./groups";
+import { selectUserSchema } from "./users";
 
 // -----------------------------------------------------------------------------
 // Task Schemas
 // -----------------------------------------------------------------------------
 
-export const taskSchema = z.object({
-  taskId: z.string(),
-  owner: userSchema,
-  createdBy: userSchema,
-  name: z.string(),
-  description: z.string().optional(),
-  dueMode: z.boolean(),
-  dueDate: z.coerce.date().optional().nullable(),
-  dateRange: dateRangeSchema.optional().nullable(),
-  pet: petSchema,
-  group: groupSchema,
-  requiresVerification: z.boolean().default(false),
-  markedAsDoneBy: userSchema.nullable().optional(),
-  markedAsDoneAt: z.date().nullable().optional(),
-  claimedBy: userSchema.nullable().optional(),
-  claimedAt: z.date().nullable().optional(),
-});
+export const selectBasicTaskSchema = createSelectSchema(tasks);
 
-export type Task = z.infer<typeof taskSchema>;
+export type SelectBasicTask = z.infer<typeof selectBasicTaskSchema>;
 
-export const taskListSchema = z.array(taskSchema);
+export const selectTaskSchema = selectBasicTaskSchema.merge(
+  z.object({
+    creator: selectUserSchema.optional(),
+    owner: selectUserSchema.optional(),
+    pet: selectPetSchema.optional(),
+    group: selectBasicGroupSchema.optional(),
+    claimedBy: selectUserSchema.optional(),
+    markedAsDoneBy: selectUserSchema.optional(),
+  }),
+);
 
-export type TaskList = z.infer<typeof taskListSchema>;
+export type SelectTask = z.infer<typeof selectTaskSchema>;
+
+export const insertTaskSchema = createInsertSchema(tasks);
+
+export type InsertTask = z.infer<typeof insertTaskSchema>;
+
+export const updateTaskSchema = createSelectSchema(tasks).optional();
+
+export type EditTask = z.infer<typeof updateTaskSchema>;
 
 // -----------------------------------------------------------------------------
 // API form schemas
@@ -49,81 +52,6 @@ export const getTaskAPISchema = z
   });
 
 export type GetTaskAPI = z.infer<typeof getTaskAPISchema>;
-
-// Fix constraints - they have been removed so tasks can be created - for some reason the create task dialog was not working with the constraints
-export const createTaskInputSchema = z.object({
-  name: z.string().min(3).max(50),
-  description: z.string().min(3).max(500).optional(),
-  dueMode: z.boolean(),
-  dueDate: z.coerce.date().optional(),
-  dateRange: dateRangeSchema.optional(),
-  petId: z.string(),
-  groupId: z.string(),
-});
-// Must have either due date or start and end date
-// .refine(
-//   (data) =>
-//     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-//     (data.dueMode && data.dueDate) ||
-//     (!data.dueMode && data.dateRange !== undefined),
-//   {
-//     path: ["dueDate"],
-//     message: "dueDate is required if dateRange is not provided",
-//   },
-// )
-// // End date must be after start date
-// .refine(
-//   (data) =>
-//     !data.dueMode &&
-//     data.dateRange &&
-//     data.dateRange.to > data.dateRange.from,
-//   {
-//     path: ["dateRange"],
-//     message: "dateRange.to must be after dateRange.from",
-//   },
-// )
-// // Start date must be in the future
-// .refine(
-//   (data) =>
-//     !data.dueMode && data.dateRange && data.dateRange.from > new Date(),
-//   {
-//     path: ["dateRange"],
-//     message: "dateRange.from must be in the future",
-//   },
-// )
-// // To date must be in the future
-// .refine(
-//   (data) => !data.dueMode && data.dateRange && data.dateRange.to > new Date(),
-//   {
-//     path: ["dateRange"],
-//     message: "dateRange.to must be in the future",
-//   },
-// )
-// // Due date must be in the future
-// .refine(
-//   (data) =>
-//     !data.dueMode ||
-//     (data.dueMode && data.dueDate && data.dueDate > new Date()),
-//   {
-//     path: ["dueDate"],
-//     message: "dueDate must be in the future",
-//   },
-// );
-
-export type CreateTask = z.infer<typeof createTaskInputSchema>;
-
-export const updateTaskInputSchema = z.object({
-  taskId: z.string(),
-  name: z.string().min(3).max(50),
-  description: z.string().min(3).max(500).optional(),
-  dueMode: z.boolean(),
-  dueDate: z.coerce.date().optional(),
-  dateRange: dateRangeSchema.optional(),
-  petId: z.string(),
-  groupId: z.string(),
-});
-
-export type UpdateTask = z.infer<typeof updateTaskInputSchema>;
 
 export const toggleTaskMarkedAsDoneInputSchema = z.object({
   id: z.string(),
@@ -160,5 +88,3 @@ export const setClaimTaskFormProps = z.object({
   taskId: z.string(),
   claim: z.boolean(),
 });
-
-export type SetClaimTaskFormProps = z.infer<typeof setClaimTaskFormProps>;

@@ -1,12 +1,12 @@
 "use client";
 
-import { type GroupMember, type Group } from "~/lib/schemas/groups";
+import { type SelectBasicGroupMember, type Group } from "~/lib/schemas/groups";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import React from "react";
 import GroupPetsTable from "./group-pets-table";
 import GroupMembersTable from "./group-members-table";
-import { type Pet } from "~/lib/schemas/pets";
-import { type User } from "~/lib/schemas/users";
+import { type SelectBasicPet } from "~/lib/schemas/pets";
+import { type SelectUser } from "~/lib/schemas/users";
 
 export function GroupMemberPage({
   user,
@@ -14,10 +14,10 @@ export function GroupMemberPage({
   groupPets,
   groupMembers,
 }: {
-  user: User;
+  user: SelectUser;
   group: Group;
-  groupPets: Pet[];
-  groupMembers: GroupMember[];
+  groupPets: SelectBasicPet[];
+  groupMembers: SelectBasicGroupMember[];
 }) {
   return (
     <div className="container mx-auto space-y-6 p-4">

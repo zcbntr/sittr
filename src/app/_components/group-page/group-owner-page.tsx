@@ -1,7 +1,7 @@
 "use client";
 
 import { GroupNameDescriptionForm } from "~/app/_components/group-page/group-details-form";
-import type { GroupMember, Group } from "~/lib/schemas/groups";
+import type { SelectBasicGroupMember, Group } from "~/lib/schemas/groups";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -23,8 +23,8 @@ import {
 import { useServerAction } from "zsa-react";
 import { deleteGroupAction } from "~/server/actions/group-actions";
 import { toast } from "sonner";
-import { type Pet } from "~/lib/schemas/pets";
-import { type User } from "~/lib/schemas/users";
+import { type SelectBasicPet } from "~/lib/schemas/pets";
+import { type SelectUser } from "~/lib/schemas/users";
 
 export function GroupOwnerPage({
   user,
@@ -33,11 +33,11 @@ export function GroupOwnerPage({
   petsNotInGroup,
   groupMembers,
 }: {
-  user: User;
+  user: SelectUser;
   group: Group;
-  groupPets: Pet[];
-  petsNotInGroup: Pet[];
-  groupMembers: GroupMember[];
+  groupPets: SelectBasicPet[];
+  petsNotInGroup: SelectBasicPet[];
+  groupMembers: SelectBasicGroupMember[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();

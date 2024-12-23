@@ -31,7 +31,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { type Pet, petListSchema } from "~/lib/schemas/pets";
+import { type SelectBasicPet, petListSchema } from "~/lib/schemas/pets";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
 import { createGroupAction } from "~/server/actions/group-actions";
@@ -43,7 +43,7 @@ export default function CreateGroupDialog({
 }) {
   const [open, setOpen] = React.useState(false);
 
-  const [pets, setPets] = React.useState<Pet[]>([]);
+  const [pets, setPets] = React.useState<SelectBasicPet[]>([]);
   const [selectedPetIds, setSelectedPetIds] = React.useState<string[]>([]);
   const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 

@@ -17,7 +17,7 @@ import {
   groups,
   notifications,
   petsToGroups,
-  usersToGroups,
+  groupMembers,
 } from "../db/schema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -73,7 +73,7 @@ export const createGroupAction = authenticatedProcedure
 
       // Add current user to groupMembers table
       const groupMember = await db
-        .insert(usersToGroups)
+        .insert(groupMembers)
         .values({
           groupId: newGroup[0].id,
           userId: user.id,
@@ -296,7 +296,7 @@ export const addUserToGroupAction = ownsGroupProcedure
     }
 
     await db
-      .insert(usersToGroups)
+      .insert(groupMembers)
       .values({
         groupId: input.groupId,
         userId: input.userId,
@@ -325,11 +325,11 @@ export const removeUserFromGroupAction = ownsGroupProcedure
     // Check if user is the last owner of the group
     const ownerCount = await db
       .select()
-      .from(usersToGroups)
+      .from(groupMembers)
       .where(
         and(
-          eq(usersToGroups.groupId, input.groupId),
-          eq(usersToGroups.role, GroupRoleEnum.Values.Owner),
+          eq(groupMembers.groupId, input.groupId),
+          eq(groupMembers.role, GroupRoleEnum.Values.Owner),
         ),
       )
       .execute()
@@ -342,11 +342,11 @@ export const removeUserFromGroupAction = ownsGroupProcedure
     }
 
     await db
-      .delete(usersToGroups)
+      .delete(groupMembers)
       .where(
         and(
-          eq(usersToGroups.groupId, input.groupId),
-          eq(usersToGroups.userId, input.userId),
+          eq(groupMembers.groupId, input.groupId),
+          eq(groupMembers.userId, input.userId),
         ),
       )
       .execute();
@@ -363,11 +363,11 @@ export const leaveGroupAction = authenticatedProcedure
     // Check if user is the last owner of the group
     const ownerCount = await db
       .select()
-      .from(usersToGroups)
+      .from(groupMembers)
       .where(
         and(
-          eq(usersToGroups.groupId, input.groupId),
-          eq(usersToGroups.role, GroupRoleEnum.Values.Owner),
+          eq(groupMembers.groupId, input.groupId),
+          eq(groupMembers.role, GroupRoleEnum.Values.Owner),
         ),
       )
       .execute()
@@ -380,11 +380,11 @@ export const leaveGroupAction = authenticatedProcedure
     }
 
     await db
-      .delete(usersToGroups)
+      .delete(groupMembers)
       .where(
         and(
-          eq(usersToGroups.groupId, input.groupId),
-          eq(usersToGroups.userId, userId),
+          eq(groupMembers.groupId, input.groupId),
+          eq(groupMembers.userId, userId),
         ),
       )
       .execute();
@@ -492,7 +492,7 @@ export const joinGroupAction = authenticatedProcedure
 
     // Add the user to the group
     const newGroupMember = await db
-      .insert(usersToGroups)
+      .insert(groupMembers)
       .values({
         groupId: inviteCodeRow.groupId,
         userId: user.id,
@@ -547,13 +547,13 @@ export const acceptPendingUserAction = ownsGroupProcedure
 
     // Change the role of the user to member from pending
     const member = await db
-      .update(usersToGroups)
+      .update(groupMembers)
       .set({ role: GroupRoleEnum.Values.Member })
       .where(
         and(
-          eq(usersToGroups.userId, user.id),
-          eq(usersToGroups.groupId, groupId),
-          eq(usersToGroups.role, GroupRoleEnum.Values.Pending),
+          eq(groupMembers.userId, user.id),
+          eq(groupMembers.groupId, groupId),
+          eq(groupMembers.role, GroupRoleEnum.Values.Pending),
         ),
       )
       .returning()
@@ -600,12 +600,12 @@ export const rejectPendingUserAction = ownsGroupProcedure
 
     // Delete the user from members
     const member = await db
-      .delete(usersToGroups)
+      .delete(groupMembers)
       .where(
         and(
-          eq(usersToGroups.userId, userId),
-          eq(usersToGroups.groupId, groupId),
-          eq(usersToGroups.role, GroupRoleEnum.Values.Pending),
+          eq(groupMembers.userId, userId),
+          eq(groupMembers.groupId, groupId),
+          eq(groupMembers.role, GroupRoleEnum.Values.Pending),
         ),
       )
       .returning()

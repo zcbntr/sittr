@@ -51,7 +51,7 @@ import { useEffect, useState } from "react";
 import { createTaskAction } from "~/server/actions/task-actions";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
-import { type Pet, petListSchema } from "~/lib/schemas/pets";
+import { type SelectBasicPet, petListSchema } from "~/lib/schemas/pets";
 
 export default function CreateTaskDialog({
   groups,
@@ -64,7 +64,7 @@ export default function CreateTaskDialog({
 }) {
   const [open, setOpen] = React.useState<boolean>(false);
 
-  const [groupPets, setGroupPets] = useState<Pet[]>([]);
+  const [groupPets, setGroupPets] = useState<SelectBasicPet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();

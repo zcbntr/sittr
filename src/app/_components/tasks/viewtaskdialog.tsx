@@ -12,7 +12,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import {
   setClaimTaskFormProps,
   setMarkedAsCompleteFormProps,
-  type Task,
+  type SelectBasicTask,
 } from "~/lib/schemas/tasks";
 import {
   setClaimTaskAction,
@@ -34,19 +34,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type z } from "zod";
 import { Form } from "~/components/ui/form";
-import { type User } from "~/lib/schemas/users";
+import { type SelectUser } from "~/lib/schemas/users";
 
 export default function ViewTaskDialog({
   currentUser,
   initialTaskData,
   children,
 }: {
-  currentUser: User | null;
-  initialTaskData: Task | undefined;
+  currentUser: SelectUser | null;
+  initialTaskData: SelectBasicTask | undefined;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState<boolean>(false);
-  const [task, setTask] = useState<Task | undefined>(initialTaskData);
+  const [task, setTask] = useState<SelectBasicTask | undefined>(initialTaskData);
 
   const claimTaskForm = useForm<z.infer<typeof setClaimTaskFormProps>>({
     resolver: zodResolver(setClaimTaskFormProps),
@@ -163,20 +163,20 @@ export default function ViewTaskDialog({
           )}
 
           <div className="flex flex-row gap-2">
-            <Link href={`/pets/${task?.pet.id}`}>
+            <Link href={`/pets/${task?.petId.id}`}>
               <Avatar>
                 <AvatarImage
-                  src={task?.pet.image}
-                  alt={`${task?.pet.name}'s avatar`}
+                  src={task?.petId.image}
+                  alt={`${task?.petId.name}'s avatar`}
                 />
                 {/* Make this actually be the initials rather than first letter */}
                 <AvatarFallback>
-                  {task?.pet.name.substring(0, 1)}
+                  {task?.petId.name.substring(0, 1)}
                 </AvatarFallback>
               </Avatar>
             </Link>
             <div className="flex flex-col place-content-center">
-              {task?.pet.name} ({task?.group.name})
+              {task?.petId.name} ({task?.groupId.name})
             </div>
           </div>
 

@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { type SelectBasicPet, updatePetSchema } from "~/lib/schemas/pets";
+import { type SelectBasicTask, updateTaskSchema } from "~/lib/schemas/tasks";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Popover,
@@ -26,10 +26,6 @@ import { Calendar } from "~/components/ui/calendar";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
-import {
-  deletePetImageAction,
-  updatePetAction,
-} from "~/server/actions/pet-actions";
 import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
 import {
@@ -44,8 +40,9 @@ import { UploadButton } from "~/lib/uploadthing";
 import { Card, CardContent } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
 import { SexEnum } from "~/lib/schemas";
+import { updateTaskAction } from "~/server/actions/task-actions";
 
-export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
+export function TaskEditForm({ task }: { task: SelectBasicTask }) {
   const [dob, setDOB] = React.useState<Date | undefined>();
   const [recentUploadUrl, setRecentUploadUrl] = React.useState<
     string | undefined
@@ -63,34 +60,28 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
     router.refresh();
   }
 
-  const updateForm = useForm<z.infer<typeof updatePetSchema>>({
-    resolver: zodResolver(updatePetSchema),
+  const updateForm = useForm<z.infer<typeof updateTaskSchema>>({
+    resolver: zodResolver(updateTaskSchema),
     defaultValues: {
-      petId: pet.id,
-      name: pet.name,
-      species: pet.species,
-      dob: pet.dob,
-      breed: pet.breed,
-      sex: pet.sex,
-      note: pet.note ? pet.note : undefined,
+      ...task,
     },
   });
 
   const { isPending: updatePending, execute: executeUpdate } = useServerAction(
-    updatePetAction,
+    updateTaskAction,
     {
       onError: ({ err }) => {
         toast.error(err.message);
       },
       onSuccess: () => {
-        toast.success("Pet details updated!");
+        toast.success("Task details updated!");
         exitEditMode();
       },
     },
   );
 
   const { isPending: imageDeletePending, execute: executeDeleteImage } =
-    useServerAction(deletePetImageAction, {
+    useServerAction(deleteTaskImageAction, {
       onError: ({ err }) => {
         toast.error(err.message);
       },

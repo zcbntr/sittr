@@ -1,16 +1,16 @@
 "use server";
 
-import { type Task, taskSchema } from "~/lib/schemas/tasks";
+import { type SelectTask, selectTaskSchema } from "~/lib/schemas/tasks";
 import { or, not, isNull, inArray } from "drizzle-orm";
 import { db } from "../db";
 import { tasks } from "../db/schema";
-import { userSchema } from "~/lib/schemas/users";
-import { petSchema } from "~/lib/schemas/pets";
-import { groupSchema } from "~/lib/schemas/groups";
+import { selectUserSchema } from "~/lib/schemas/users";
+import { selectPetSchema } from "~/lib/schemas/pets";
+import { selectGroupSchema } from "~/lib/schemas/groups";
 import { TaskTypeEnum } from "~/lib/schemas";
 import { getLoggedInUser } from "./users";
 
-export async function getAllOwnedTasks(): Promise<Task[]> {
+export async function getAllOwnedTasks(): Promise<SelectTask[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -33,57 +33,16 @@ export async function getAllOwnedTasks(): Promise<Task[]> {
   });
 
   // Turn into task schema
-  const tasksList: Task[] = userTasks.map((task) => {
-    return taskSchema.parse({
-      taskId: task.id,
-      owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.creatorId),
-      name: task.name,
-      description: task.description,
-      dueMode: task.dueMode,
-      dueDate: task.dueMode ? task.dueDate : undefined,
-      dateRange:
-        !task.dueMode && task.dateRangeFrom && task.dateRangeTo
-          ? {
-              from: task.dateRangeFrom,
-              to: task.dateRangeTo,
-            }
-          : undefined,
-      pet: task.pet
-        ? petSchema.parse({
-            id: task.pet,
-            name: task.pet.name,
-            ownerId: task.pet.ownerId,
-            createdBy: task.pet.creatorId,
-            species: task.pet.species,
-            breed: task.pet.breed,
-            dob: task.pet.dob,
-            sex: task.pet.sex,
-            image: task.pet.petImages ? task.pet.petImages.url : undefined,
-          })
-        : null,
-      group: task.group
-        ? groupSchema.parse({
-            groupId: task.group.id,
-            name: task.group.name,
-            description: task.group.description,
-            createdBy: task.group.creatorId,
-          })
-        : null,
-      markedAsDoneBy: task.markedAsDoneBy
-        ? userSchema.parse(task.markedAsDoneBy)
-        : null,
-      markedAsDoneAt: task.markedAsDoneAt,
-      claimed: task.claimedBy !== null,
-      claimedBy: task.claimedBy ? userSchema.parse(task.claimedBy) : null,
-      claimedAt: task.claimedAt,
-    });
+  const tasksList: SelectTask[] = userTasks.map((task) => {
+    return selectTaskSchema.parse({ ...task });
   });
 
   return tasksList;
 }
 
-export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
+export async function getOwnedTasksByIds(
+  taskIds: string[],
+): Promise<SelectTask[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -115,35 +74,13 @@ export async function getOwnedTasksByIds(taskIds: string[]): Promise<Task[]> {
 
   // Turn into task schema
   return userWithTasks.tasksOwned.map((task) => {
-    return taskSchema.parse({
-      taskId: task.id,
-      owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.creator),
-      name: task.name,
-      description: task.description,
-      dueMode: task.dueMode,
-      dueDate: task.dueMode ? task.dueDate : undefined,
-      dateRange:
-        !task.dueMode && task.dateRangeFrom && task.dateRangeTo
-          ? {
-              from: task.dateRangeFrom,
-              to: task.dateRangeTo,
-            }
-          : undefined,
-      pet: task.pet ? petSchema.parse(task.pet) : null,
-      group: task.group ? groupSchema.parse(task.group) : null,
-      markedAsDoneBy: task.markedAsDoneBy
-        ? userSchema.parse(task.markedAsDoneBy)
-        : null,
-      markedAsDoneAt: task.markedAsDoneAt,
-      claimed: task.claimedBy !== null,
-      claimedBy: task.claimedBy ? userSchema.parse(task.claimedBy) : null,
-      claimedAt: task.claimedAt,
+    return selectTaskSchema.parse({
+      ...task,
     });
   });
 }
 
-export async function getOwnedTaskById(taskId: string): Promise<Task> {
+export async function getOwnedTaskById(taskId: string): Promise<SelectTask> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -169,31 +106,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
     throw new Error("Task not found");
   }
 
-  const parse = taskSchema.safeParse({
-    taskId: task.id,
-    owner: userSchema.parse(task.owner),
-    createdBy: userSchema.parse(task.creatorId),
-    name: task.name,
-    description: task.description,
-    dueMode: task.dueMode,
-    dueDate: task.dueMode ? task.dueDate : undefined,
-    dateRange:
-      !task.dueMode && task.dateRangeFrom && task.dateRangeTo
-        ? {
-            from: task.dateRangeFrom,
-            to: task.dateRangeTo,
-          }
-        : undefined,
-    pet: task.pet ? petSchema.parse(task.pet) : null,
-    group: task.group ? groupSchema.parse(task.group) : null,
-    markedAsDoneBy: task.markedAsDoneBy
-      ? userSchema.parse(task.markedAsDoneBy)
-      : null,
-    markedAsDoneAt: task.markedAsDoneAt,
-    claimed: task.claimedBy !== null,
-    claimedBy: task.claimedBy ? userSchema.parse(task.claimedBy) : null,
-    claimedAt: task.claimedAt,
-  });
+  const parse = selectTaskSchema.safeParse({ ...task });
 
   if (!parse.success) {
     console.log(parse.error);
@@ -203,7 +116,7 @@ export async function getOwnedTaskById(taskId: string): Promise<Task> {
   return parse.data;
 }
 
-export async function getVisibleTaskById(taskId: string): Promise<Task> {
+export async function getVisibleTaskById(taskId: string): Promise<SelectTask> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -229,31 +142,7 @@ export async function getVisibleTaskById(taskId: string): Promise<Task> {
     throw new Error("Task not found");
   }
 
-  const parse = taskSchema.safeParse({
-    taskId: task.id,
-    owner: userSchema.parse(task.owner),
-    createdBy: userSchema.parse(task.creatorId),
-    name: task.name,
-    description: task.description,
-    dueMode: task.dueMode,
-    dueDate: task.dueMode ? task.dueDate : undefined,
-    dateRange:
-      !task.dueMode && task.dateRangeFrom && task.dateRangeTo
-        ? {
-            from: task.dateRangeFrom,
-            to: task.dateRangeTo,
-          }
-        : undefined,
-    pet: task.pet ? petSchema.parse(task.pet) : null,
-    group: task.group ? groupSchema.parse(task.group) : null,
-    markedAsDoneBy: task.markedAsDoneBy
-      ? userSchema.parse(task.markedAsDoneBy)
-      : null,
-    markedAsDoneAt: task.markedAsDoneAt,
-    claimed: task.claimedBy !== null,
-    claimedBy: task.claimedBy ? userSchema.parse(task.claimedBy) : null,
-    claimedAt: task.claimedAt,
-  });
+  const parse = selectTaskSchema.safeParse({ ...task });
 
   if (!parse.success) {
     console.log(parse.error);
@@ -267,7 +156,7 @@ export async function getTasksInRange(
   from: Date,
   to: Date,
   type: TaskTypeEnum,
-): Promise<Task[]> {
+): Promise<SelectTask[]> {
   if (type === TaskTypeEnum.Values.Owned) {
     return getTasksOwnedInRange(from, to);
   } else if (type === TaskTypeEnum.Values["Sitting For"]) {
@@ -281,7 +170,10 @@ export async function getTasksInRange(
   }
 }
 
-async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
+async function getTasksOwnedInRange(
+  from: Date,
+  to: Date,
+): Promise<SelectTask[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -310,34 +202,10 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
-  // Get user details for createdBy, owner, claimedBy, markedAsDoneBy
+  // Get user details for creatorId, owner, claimedBy, markedAsDoneBy
   // Turn into task schema
-  const tasksList: Task[] = tasksInRange.map((task) => {
-    const parse = taskSchema.safeParse({
-      taskId: task.id,
-      owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.creator),
-      name: task.name,
-      description: task.description,
-      dueMode: task.dueMode,
-      dueDate: task.dueMode ? task.dueDate : undefined,
-      dateRange:
-        !task.dueMode && task.dateRangeFrom && task.dateRangeTo
-          ? {
-              from: task.dateRangeFrom,
-              to: task.dateRangeTo,
-            }
-          : undefined,
-      pet: task.pet ? petSchema.parse(task.pet) : null,
-      group: task.group ? groupSchema.parse(task.group) : null,
-      markedAsDoneBy: task.markedAsDoneBy
-        ? userSchema.parse(task.markedAsDoneBy)
-        : null,
-      markedAsDoneAt: task.markedAsDoneAt,
-      claimed: task.claimedBy !== null,
-      claimedBy: task.claimedBy ? userSchema.parse(task.claimedBy) : null,
-      claimedAt: task.claimedAt,
-    });
+  const tasksList: SelectTask[] = tasksInRange.map((task) => {
+    const parse = selectTaskSchema.safeParse({ ...task });
 
     if (!parse.success) {
       console.log(parse.error);
@@ -353,7 +221,7 @@ async function getTasksOwnedInRange(from: Date, to: Date): Promise<Task[]> {
 async function getTasksSittingForInRange(
   from: Date,
   to: Date,
-): Promise<Task[]> {
+): Promise<SelectTask[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -373,7 +241,7 @@ async function getTasksSittingForInRange(
     },
     where: (model, { and, or, eq, gte, lte }) =>
       and(
-        eq(model.claimedBy, userId),
+        eq(model.claimedById, userId),
         or(
           and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
           and(gte(model.dueDate, from), lte(model.dueDate, to)),
@@ -384,44 +252,8 @@ async function getTasksSittingForInRange(
   });
 
   // Turn into task schema
-  const tasksList: Task[] = tasksSittingForInRange.map((task) => {
-    const parse = taskSchema.safeParse({
-      taskId: task.id,
-      owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.creatorId),
-      name: task.name,
-      description: task.description,
-      dueMode: task.dueMode,
-      dueDate: task.dueMode ? task.dueDate : undefined,
-      dateRange:
-        !task.dueMode && task.dateRangeFrom && task.dateRangeTo
-          ? {
-              from: task.dateRangeFrom,
-              to: task.dateRangeTo,
-            }
-          : undefined,
-      pet: task.pet
-        ? petSchema.parse({
-            id: task.pet.id,
-            name: task.pet.name,
-            ownerId: task.pet.ownerId,
-            creatorId: task.pet.creatorId,
-            species: task.pet.species,
-            breed: task.pet.breed,
-            sex: task.pet.sex,
-            dob: task.pet.dob,
-            image: task.pet.petImages ? task.pet.petImages.url : undefined,
-          })
-        : null,
-      group: task.group ? groupSchema.parse(task.group) : null,
-      markedAsDoneBy: task.markedAsDoneBy
-        ? userSchema.parse(task.markedAsDoneBy)
-        : null,
-      markedAsDoneAt: task.markedAsDoneAt,
-      claimed: task.claimedBy !== null,
-      claimedBy: task.claimedBy ? userSchema.parse(task.claimedBy) : null,
-      claimedAt: task.claimedAt,
-    });
+  const tasksList: SelectTask[] = tasksSittingForInRange.map((task) => {
+    const parse = selectTaskSchema.safeParse({ ...task });
 
     if (!parse.success) {
       throw new Error("Failed to parse task");
@@ -433,7 +265,10 @@ async function getTasksSittingForInRange(
   return tasksList;
 }
 
-async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
+async function getTasksVisibileInRange(
+  from: Date,
+  to: Date,
+): Promise<SelectTask[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -442,7 +277,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
 
   const userId = user.id;
 
-  const groupsUserIsInRows = await db.query.usersToGroups
+  const groupsUserIsInRows = await db.query.groupMembers
     .findMany({
       where: (model, { eq }) => eq(model.userId, userId),
     })
@@ -465,7 +300,7 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
           and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
           and(gte(model.dueDate, from), lte(model.dueDate, to)),
         ),
-        inArray(model.group, groupsUserIsInIds),
+        inArray(model.groupId, groupsUserIsInIds),
         not(eq(model.ownerId, userId)),
       ),
     orderBy: (model, { desc }) => desc(model.createdAt),
@@ -494,44 +329,8 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
   const allTasksVisible = [...tasksVisibleViaGroupsUserIn, ...ownedTasks];
 
   // Then Turn into task schema
-  const tasksList: Task[] = allTasksVisible.map((task) => {
-    const parse = taskSchema.safeParse({
-      taskId: task.id,
-      owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.creator),
-      name: task.name,
-      description: task.description,
-      dueMode: task.dueMode,
-      dueDate: task.dueMode ? task.dueDate : undefined,
-      dateRange:
-        !task.dueMode && task.dateRangeFrom && task.dateRangeTo
-          ? {
-              from: task.dateRangeFrom,
-              to: task.dateRangeTo,
-            }
-          : undefined,
-      pet: task.pet
-        ? petSchema.parse({
-            id: task.pet.id,
-            name: task.pet.name,
-            ownerId: task.pet.ownerId,
-            creatorId: task.pet.creatorId,
-            species: task.pet.species,
-            breed: task.pet.breed,
-            sex: task.pet.sex,
-            dob: task.pet.dob,
-            image: task.pet.petImages ? task.pet.petImages.url : undefined,
-          })
-        : undefined,
-      group: task.group ? groupSchema.parse(task.group) : undefined,
-      markedAsDoneBy: task.markedAsDoneBy
-        ? userSchema.parse(task.markedAsDoneBy)
-        : null,
-      markedAsDoneAt: task.markedAsDoneAt,
-      claimed: task.claimedBy !== null,
-      claimedBy: task.claimedBy ? userSchema.parse(task.claimedBy) : null,
-      claimedAt: task.claimedAt,
-    });
+  const tasksList: SelectTask[] = allTasksVisible.map((task) => {
+    const parse = selectTaskSchema.safeParse({ ...task });
 
     if (!parse.success) {
       console.log(parse.error);
@@ -544,7 +343,10 @@ async function getTasksVisibileInRange(from: Date, to: Date): Promise<Task[]> {
   return tasksList;
 }
 
-async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
+async function getTasksUnclaimedInRange(
+  from: Date,
+  to: Date,
+): Promise<SelectTask[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -568,58 +370,25 @@ async function getTasksUnclaimedInRange(from: Date, to: Date): Promise<Task[]> {
           and(gte(model.dateRangeFrom, from), lte(model.dateRangeFrom, to)),
           and(gte(model.dueDate, from), lte(model.dueDate, to)),
         ),
-        isNull(model.claimedBy),
+        isNull(model.claimedById),
         not(eq(model.ownerId, userId)),
       ),
     orderBy: (model, { desc }) => desc(model.createdAt),
   });
 
   // Turn into task schema
-  const tasksList: Task[] = unclaimedTasksVisibleViaGroupsUserIn.map((task) => {
-    const parse = taskSchema.safeParse({
-      taskId: task.id,
-      owner: userSchema.parse(task.owner),
-      createdBy: userSchema.parse(task.creatorId),
-      name: task.name,
-      description: task.description,
-      dueMode: task.dueMode,
-      dueDate: task.dueMode ? task.dueDate : undefined,
-      dateRange:
-        !task.dueMode && task.dateRangeFrom && task.dateRangeTo
-          ? {
-              from: task.dateRangeFrom,
-              to: task.dateRangeTo,
-            }
-          : undefined,
-      pet: task.pet
-        ? petSchema.parse({
-            id: task.pet.id,
-            name: task.pet.name,
-            ownerId: task.pet.ownerId,
-            creatorId: task.pet.creatorId,
-            species: task.pet.species,
-            breed: task.pet.breed,
-            sex: task.pet.sex,
-            dob: task.pet.dob,
-            image: task.pet.petImages ? task.pet.petImages.url : undefined,
-          })
-        : null,
-      group: task.group ? groupSchema.parse(task.group) : null,
-      markedAsDoneBy: task.markedAsDoneBy
-        ? userSchema.parse(task.markedAsDoneBy)
-        : null,
-      markedAsDoneAt: task.markedAsDoneAt,
-      claimedBy: task.claimedBy ? userSchema.parse(task.claimedBy) : null,
-      claimedAt: task.claimedAt,
-    });
+  const tasksList: SelectTask[] = unclaimedTasksVisibleViaGroupsUserIn.map(
+    (task) => {
+      const parse = selectTaskSchema.safeParse({ ...task });
 
-    if (!parse.success) {
-      console.log(parse.error);
-      throw new Error("Failed to parse task");
-    }
+      if (!parse.success) {
+        console.log(parse.error);
+        throw new Error("Failed to parse task");
+      }
 
-    return parse.data;
-  });
+      return parse.data;
+    },
+  );
 
   return tasksList;
 }

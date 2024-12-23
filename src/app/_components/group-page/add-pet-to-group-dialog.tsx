@@ -21,7 +21,7 @@ import {
   FormItem,
   FormMessage,
 } from "~/components/ui/form";
-import { type Pet } from "~/lib/schemas/pets";
+import { type SelectBasicPet } from "~/lib/schemas/pets";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -39,7 +39,7 @@ export default function AddPetToGroupDialog({
   children,
 }: {
   groupId: string;
-  petsNotInGroup: Pet[];
+  petsNotInGroup: SelectBasicPet[];
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);

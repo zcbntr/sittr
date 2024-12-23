@@ -1,12 +1,12 @@
 "use client";
 
-import { type Pet } from "~/lib/schemas/pets";
+import { type SelectBasicPet } from "~/lib/schemas/pets";
 import { Card, CardContent } from "~/components/ui/card";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getPetAgeString } from "~/lib/utils";
 
-export function PetNonOwnerPage({ pet }: { pet: Pet }) {
+export function PetNonOwnerPage({ pet }: { pet: SelectBasicPet }) {
   const petAgeString = pet.dob ? getPetAgeString(pet.dob) : null;
   return (
     <div className="container mx-auto space-y-6 p-4">

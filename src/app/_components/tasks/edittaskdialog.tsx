@@ -42,7 +42,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
-import { type Task, updateTaskInputSchema } from "~/lib/schemas/tasks";
+import { type SelectBasicTask, updateTaskInputSchema } from "~/lib/schemas/tasks";
 import {
   deleteTaskAction,
   updateTaskAction,
@@ -62,7 +62,7 @@ import {
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
-import { petListSchema, type Pet } from "~/lib/schemas/pets";
+import { petListSchema, type SelectBasicPet } from "~/lib/schemas/pets";
 
 export default function EditTaskDialog({
   groups,
@@ -70,12 +70,12 @@ export default function EditTaskDialog({
   children,
 }: {
   groups: Group[];
-  task: Task | undefined;
+  task: SelectBasicTask | undefined;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState<boolean>(false);
 
-  const [groupPets, setGroupPets] = useState<Pet[]>([]);
+  const [groupPets, setGroupPets] = useState<SelectBasicPet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
@@ -92,8 +92,8 @@ export default function EditTaskDialog({
       dueMode: task?.dueMode ? task.dueMode : true,
       dueDate: task?.dueDate ? task.dueDate : undefined,
       dateRange: task?.dateRange ? task.dateRange : undefined,
-      petId: task?.pet.id ? task.pet.id : "",
-      groupId: task?.group.id ? task.group.id : "",
+      petId: task?.petId.id ? task.petId.id : "",
+      groupId: task?.groupId.id ? task.groupId.id : "",
     },
   });
 
@@ -155,9 +155,9 @@ export default function EditTaskDialog({
     form.setValue("dueMode", task?.dueMode ? task.dueMode : true);
     form.setValue("dueDate", task?.dueDate ? task.dueDate : undefined);
     form.setValue("dateRange", task?.dateRange ? task.dateRange : undefined);
-    form.setValue("petId", task?.pet.id ? task.pet.id : "");
-    form.setValue("groupId", task?.group.id ? task.group.id : "");
-    setSelectedGroupId(task?.group.id ? task.group.id : "");
+    form.setValue("petId", task?.petId.id ? task.petId.id : "");
+    form.setValue("groupId", task?.groupId.id ? task.groupId.id : "");
+    setSelectedGroupId(task?.groupId.id ? task.groupId.id : "");
 
     async function fetchGroupPets() {
       await fetch("../api/group-pets?id=" + form.getValues("groupId"), {
@@ -470,7 +470,7 @@ export default function EditTaskDialog({
                 <FormItem>
                   <FormLabel>Pet *</FormLabel>
                   <Select
-                    defaultValue={task?.pet.id ? task.pet.id.toString() : ""}
+                    defaultValue={task?.petId.id ? task.petId.id.toString() : ""}
                     value={field.value?.toString()}
                     onValueChange={(value) => {
                       form.setValue("petId", value);

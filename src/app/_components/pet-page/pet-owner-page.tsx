@@ -2,7 +2,7 @@
 
 import { Button } from "~/components/ui/button";
 import { PetEditForm } from "~/app/_components/pet-page/pet-edit-form";
-import { type Pet } from "~/lib/schemas/pets";
+import { type SelectBasicPet } from "~/lib/schemas/pets";
 import { Card, CardContent } from "~/components/ui/card";
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getPetAgeString } from "~/lib/utils";
 
-export function PetOwnerPage({ pet }: { pet: Pet }) {
+export function PetOwnerPage({ pet }: { pet: SelectBasicPet }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("editing");

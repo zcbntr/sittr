@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "~/components/ui/data-table";
-import { type Pet } from "~/lib/schemas/pets";
+import { type SelectBasicPet } from "~/lib/schemas/pets";
 import CreatePetDialog from "./createpetdialog";
 import { Button } from "~/components/ui/button";
 import { type ColumnDef } from "@tanstack/react-table";
@@ -36,12 +36,12 @@ import {
 } from "~/components/ui/tooltip";
 
 import { useState } from "react";
-import { type User } from "~/lib/schemas/users";
+import { type SelectUser } from "~/lib/schemas/users";
 
-export default function PetsTable({ user, pets }: { user: User; pets: Pet[] }) {
+export default function PetsTable({ user, pets }: { user: SelectUser; pets: SelectBasicPet[] }) {
   const [alertState, setAlertState] = useState("");
 
-  const columns: ColumnDef<Pet>[] = [
+  const columns: ColumnDef<SelectBasicPet>[] = [
     {
       accessorKey: "avatar",
       header: "",

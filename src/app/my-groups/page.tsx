@@ -4,7 +4,7 @@ import { type Group } from "~/lib/schemas/groups";
 import GroupsTable from "../_components/my-groups/groupstable";
 import { getLoggedInUser } from "~/server/queries/users";
 import { redirect } from "next/navigation";
-import { type User } from "~/lib/schemas/users";
+import { type SelectUser } from "~/lib/schemas/users";
 
 export default async function Page() {
   const [user, groups] = await Promise.all([
@@ -19,7 +19,7 @@ export default async function Page() {
   return <MyGroupsPage groups={groups} user={user} />;
 }
 
-function MyGroupsPage({ groups, user }: { groups: Group[]; user: User }) {
+function MyGroupsPage({ groups, user }: { groups: Group[]; user: SelectUser }) {
   return (
     <>
       <section className="container mx-auto py-4">

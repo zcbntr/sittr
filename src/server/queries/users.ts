@@ -1,10 +1,10 @@
 "use server";
 
 import { auth } from "~/auth";
-import { type User, userSchema } from "~/lib/schemas/users";
+import { type SelectUser, selectUserSchema } from "~/lib/schemas/users";
 import { db } from "../db";
 
-export async function getLoggedInUser(): Promise<User | undefined> {
+export async function getLoggedInUser(): Promise<SelectUser | undefined> {
   const session = await auth();
 
   const userEmail = session?.user?.email;
@@ -23,10 +23,10 @@ export async function getLoggedInUser(): Promise<User | undefined> {
     return undefined;
   }
 
-  return userSchema.parse(userRow);
+  return selectUserSchema.parse(userRow);
 }
 
-export async function getUserByUserId(userId: string): Promise<User> {
+export async function getUserByUserId(userId: string): Promise<SelectUser> {
   const session = await auth();
 
   if (!session?.user) {
@@ -41,10 +41,10 @@ export async function getUserByUserId(userId: string): Promise<User> {
     throw new Error("User not found");
   }
 
-  return userSchema.parse(userRow);
+  return selectUserSchema.parse(userRow);
 }
 
-export async function getUserByEmail(email: string): Promise<User> {
+export async function getUserByEmail(email: string): Promise<SelectUser> {
   const session = await auth();
 
   if (!session?.user) {
@@ -59,5 +59,5 @@ export async function getUserByEmail(email: string): Promise<User> {
     throw new Error("User not found");
   }
 
-  return userSchema.parse(userRow);
+  return selectUserSchema.parse(userRow);
 }

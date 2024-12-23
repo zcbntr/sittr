@@ -1,13 +1,13 @@
 "use server";
 
 import {
-  notificationSchema,
-  type Notification,
+  selectNotificationSchema,
+  type SelectNotification,
 } from "~/lib/schemas/notifications";
 import { db } from "../db";
 import { getLoggedInUser } from "./users";
 
-export async function getUserNotifications(): Promise<Notification[]> {
+export async function getUserNotifications(): Promise<SelectNotification[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -26,7 +26,7 @@ export async function getUserNotifications(): Promise<Notification[]> {
   }
 
   return notificationRows.map((notificationRow) =>
-    notificationSchema.parse({
+    selectNotificationSchema.parse({
       id: notificationRow.id,
       userId: notificationRow.userId,
       notificationType: notificationRow.notificationType,

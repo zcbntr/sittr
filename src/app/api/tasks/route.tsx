@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getTaskAPISchema, type Task } from "~/lib/schemas/tasks";
+import { getTaskAPISchema, type SelectBasicTask } from "~/lib/schemas/tasks";
 import { getOwnedTaskById, getTasksInRange } from "~/server/queries/tasks";
 
 export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<unknown>> {
 
       return NextResponse.json(task);
     } else if (requestParams.data.dateRange) {
-      const tasksInRange: Task[] = await getTasksInRange(
+      const tasksInRange: SelectBasicTask[] = await getTasksInRange(
         requestParams.data.dateRange.from,
         requestParams.data.dateRange.to,
         requestParams.data.type,

@@ -1,10 +1,10 @@
 "use server";
 
 import { db } from "~/server/db";
-import { petSchema, type Pet } from "~/lib/schemas/pets";
+import { selectPetSchema, type SelectBasicPet } from "~/lib/schemas/pets";
 import { getLoggedInUser } from "./users";
 
-export async function getOwnedPetById(petId: string): Promise<Pet> {
+export async function getOwnedPetById(petId: string): Promise<SelectBasicPet> {
   const user = await getLoggedInUser();
   const userId = user?.id;
 
@@ -25,7 +25,7 @@ export async function getOwnedPetById(petId: string): Promise<Pet> {
     throw new Error("Pet not found");
   }
 
-  return petSchema.parse({
+  return selectPetSchema.parse({
     id: pet.id,
     ownerId: pet.ownerId,
     creatorId: pet.creatorId,
@@ -41,7 +41,7 @@ export async function getOwnedPetById(petId: string): Promise<Pet> {
   });
 }
 
-export async function getPetVisibleViaCommonGroup(petId: string): Promise<Pet> {
+export async function getPetVisibleViaCommonGroup(petId: string): Promise<SelectBasicPet> {
   const user = await getLoggedInUser();
   const userId = user?.id;
 
@@ -82,7 +82,7 @@ export async function getPetVisibleViaCommonGroup(petId: string): Promise<Pet> {
     throw new Error("Pet not visible");
   }
 
-  return petSchema.parse({
+  return selectPetSchema.parse({
     id: pet.id,
     ownerId: pet.ownerId,
     creatorId: pet.creatorId,
@@ -98,7 +98,7 @@ export async function getPetVisibleViaCommonGroup(petId: string): Promise<Pet> {
   });
 }
 
-export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
+export async function getPetsByIds(petIds: string[]): Promise<SelectBasicPet[] | string> {
   const user = await getLoggedInUser();
   const userId = user?.id;
 
@@ -122,7 +122,7 @@ export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
 
   // Turn into zod pet type
   return petsList.map((pet) => {
-    return petSchema.parse({
+    return selectPetSchema.parse({
       id: pet.id,
       ownerId: pet.ownerId,
       creatorId: pet.creatorId,
@@ -139,7 +139,7 @@ export async function getPetsByIds(petIds: string[]): Promise<Pet[] | string> {
   });
 }
 
-export async function getOwnedPets(): Promise<Pet[]> {
+export async function getOwnedPets(): Promise<SelectBasicPet[]> {
   const user = await getLoggedInUser();
   const userId = user?.id;
 
@@ -157,8 +157,8 @@ export async function getOwnedPets(): Promise<Pet[]> {
   });
 
   // Turn into zod pet type
-  const petsList: Pet[] = ownedPets.map((pet) => {
-    return petSchema.parse({
+  const petsList: SelectBasicPet[] = ownedPets.map((pet) => {
+    return selectPetSchema.parse({
       id: pet.id,
       ownerId: pet.ownerId,
       creatorId: pet.creatorId,

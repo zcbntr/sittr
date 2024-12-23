@@ -6,7 +6,7 @@ import {
   getOwnedPetById,
   getPetVisibleViaCommonGroup,
 } from "~/server/queries/pets";
-import { type Pet } from "~/lib/schemas/pets";
+import { type SelectBasicPet } from "~/lib/schemas/pets";
 import { markNotificationAsReadAction } from "~/server/actions/notification-actions";
 
 export default async function Page({
@@ -18,7 +18,7 @@ export default async function Page({
 }) {
   // Get the data for the pet from the slug
   const slug = (await params).slug;
-  let pet: Pet | null = await getOwnedPetById(slug);
+  let pet: SelectBasicPet | null = await getOwnedPetById(slug);
   if (!pet) {
     pet = await getPetVisibleViaCommonGroup(slug);
     if (!pet) {

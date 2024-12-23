@@ -8,9 +8,9 @@ import moment from "moment";
 import { addDays, addHours, addMilliseconds } from "date-fns";
 import { Button } from "./ui/button";
 import {
-  taskSchema,
+  selectBasicTaskSchema,
   type CreateTaskFormProps,
-  type Task,
+  type SelectBasicTask,
 } from "~/lib/schemas/tasks";
 import EditTaskDialog from "~/app/_components/tasks/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/tasks/createtaskdialog";
@@ -18,8 +18,8 @@ import type { Group } from "~/lib/schemas/groups";
 import { type DateRange } from "~/lib/schemas";
 import ViewTaskDialog from "~/app/_components/tasks/viewtaskdialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { type User } from "~/lib/schemas/users";
-import { type Pet } from "~/lib/schemas/pets";
+import { type SelectUser } from "~/lib/schemas/users";
+import { type SelectBasicPet } from "~/lib/schemas/pets";
 
 const coloursList: string[] = [
   "#f54290",
@@ -46,8 +46,8 @@ const localizer = momentLocalizer(moment);
 
 class CalendarEvent {
   id: string;
-  owner: User;
-  createdBy: User;
+  owner: SelectUser;
+  createdBy: SelectUser;
   title: string;
   allDay: boolean;
   dueMode: boolean;
@@ -55,17 +55,17 @@ class CalendarEvent {
   dateRange: DateRange | null;
   start: Date;
   end: Date;
-  pet: Pet;
+  pet: SelectBasicPet;
   group: Group;
-  markedAsDoneBy: User | null;
+  markedAsDoneBy: SelectUser | null;
   markedAsDoneAt: Date | null;
-  claimedBy: User | null;
+  claimedBy: SelectUser | null;
   claimedAt: Date | null;
   desc: string;
   resourceId?: string;
   tooltip?: string;
 
-  constructor(_task: Task) {
+  constructor(_task: SelectBasicTask) {
     this.id = _task.taskId;
     this.owner = _task.owner;
     this.createdBy = _task.createdBy;
@@ -89,10 +89,10 @@ class CalendarEvent {
     this.markedAsDoneAt = _task.markedAsDoneAt ? _task.markedAsDoneAt : null;
     this.claimedBy = _task.claimedBy ? _task.claimedBy : null;
     this.claimedAt = _task.claimedAt ? _task.claimedAt : null;
-    this.pet = _task.pet;
-    this.group = _task.group;
+    this.pet = _task.petId;
+    this.group = _task.groupId;
     this.desc = _task.description ? _task.description : "";
-    this.resourceId = _task.pet.id;
+    this.resourceId = _task.petId.id;
   }
 }
 
@@ -101,8 +101,8 @@ export default function CalendarComponent({
   currentUser,
   groups,
 }: {
-  tasks: Task[];
-  currentUser: User;
+  tasks: SelectBasicTask[];
+  currentUser: SelectUser;
   groups: Group[];
 }) {
   const router = useRouter();
@@ -116,7 +116,7 @@ export default function CalendarComponent({
   });
   const [createTaskDialogProps, setCreateTaskDialogProps] =
     useState<CreateTaskFormProps>();
-  const [selectedTask, setSelectedTask] = useState<Task>();
+  const [selectedTask, setSelectedTask] = useState<SelectBasicTask>();
 
   const handleDateSelect = ({ start, end }: { start: Date; end: Date }) => {
     // Find the openCreateTaskDialogHiddenButton and click it - workaround for avoiding putting the dialog in each calendar day
@@ -157,7 +157,7 @@ export default function CalendarComponent({
       const button = document.getElementById("openViewTaskDialogHiddenButton");
       if (button) {
         setSelectedTask(
-          taskSchema.parse({
+          selectBasicTaskSchema.parse({
             taskId: event.id,
             owner: event.owner,
             createdBy: event.createdBy,
@@ -181,7 +181,7 @@ export default function CalendarComponent({
       const button = document.getElementById("openEditTaskDialogHiddenButton");
       if (button) {
         setSelectedTask(
-          taskSchema.parse({
+          selectBasicTaskSchema.parse({
             taskId: event.id,
             owner: event.owner,
             createdBy: event.createdBy,

@@ -1,0 +1,81 @@
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { markNotificationAsReadAction } from "~/server/actions/notification-actions";
+import { getOwnedTaskById, getVisibleTaskById } from "~/server/queries/tasks";
+import type { SelectBasicTask } from "~/lib/schemas/tasks";
+import { redirect } from "next/navigation";
+import { TaskOwnerPage } from "~/app/_components/tasks/task-owner-page";
+import { getLoggedInUser } from "~/server/queries/users";
+
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  // Get the data for the pet from the slug
+  const slug = (await params).slug;
+  let ownsTask = false;
+  let task: SelectBasicTask | null = await getOwnedTaskById(slug);
+  ownsTask = true;
+  if (!task) {
+    task = await getVisibleTaskById(slug);
+    if (!task) {
+      task = null;
+    }
+  }
+
+  if (task == null) {
+    // No such task exists, return task does not exist page
+
+    return <TaskDoesNotExistPage />;
+  } else {
+    // Clear the notification about task that possibly refered the user to this page
+    const notification = (await searchParams).notification;
+
+    if (notification) {
+      if (notification.length >= 0) {
+        // Mark each notification as read
+        for (const n of notification) {
+          await markNotificationAsReadAction(n);
+        }
+      }
+
+      // Redirect to the same page without the notification query
+      redirect(`/tasks/${slug}`);
+    }
+
+    const user = await getLoggedInUser();
+
+    if (!user) {
+      throw new Error("User not found. Contact support.");
+    }
+
+    if (ownsTask) {
+      return <TaskOwnerPage task={task} user={user} />;
+    } else {
+      return <TaskNonOwnerPage task={task} user={user} />;
+    }
+  }
+}
+
+function TaskDoesNotExistPage() {
+  return (
+    <div className="container mx-auto space-y-6 p-4">
+      <div className="flex h-full w-full grow flex-row place-content-center">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h3 className="text-lg font-semibold">Task Not Found</h3>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              The task you are looking for does not exist.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
