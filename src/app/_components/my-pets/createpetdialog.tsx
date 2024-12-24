@@ -32,7 +32,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createPetInputSchema } from "~/lib/schemas/pets";
+import { insertPetSchema } from "~/lib/schemas/pets";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
 import { createPetAction } from "~/server/actions/pet-actions";
@@ -58,17 +58,10 @@ export default function CreatePetDialog({
 
   const [image, setImage] = React.useState<string | undefined>(undefined);
 
-  const form = useForm<z.infer<typeof createPetInputSchema>>({
+  const form = useForm<z.infer<typeof insertPetSchema>>({
     mode: "onBlur",
-    resolver: zodResolver(createPetInputSchema),
-    defaultValues: {
-      name: "",
-      species: "",
-      breed: "",
-      sex: undefined,
-      dob: undefined,
-      image: "",
-    },
+    resolver: zodResolver(insertPetSchema),
+    defaultValues: {},
   });
 
   const { isPending, execute } = useServerAction(createPetAction, {

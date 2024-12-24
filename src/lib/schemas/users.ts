@@ -6,6 +6,6 @@ export const selectUserSchema = createSelectSchema(users);
 
 export type SelectUser = z.infer<typeof selectUserSchema>;
 
-export const updateUserSchema = createSelectSchema(users).optional();
+export const updateUserSchema = createSelectSchema(users).partial();
 
 export type EditUser = z.infer<typeof updateUserSchema>;

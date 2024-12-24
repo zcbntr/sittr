@@ -2,12 +2,13 @@
 
 import {
   acceptPendingMemberSchema,
-  createGroupInputSchema,
-  groupDetailsSchema,
+  insertGroupWithPetsSchema,
   joinGroupFormSchema,
   petsToGroupFormInputSchema,
   petToGroupFormInputSchema,
   requestGroupInviteCodeFormInputSchema,
+  selectGroupSchema,
+  updateGroupSchema,
   userGroupPairSchema,
 } from "~/lib/schemas/groups";
 import { db } from "../db";
@@ -29,12 +30,12 @@ import { GroupRoleEnum, NotificationTypeEnum } from "~/lib/schemas";
 
 export const createGroupAction = authenticatedProcedure
   .createServerAction()
-  .input(createGroupInputSchema)
+  .input(insertGroupWithPetsSchema)
   .handler(async ({ input, ctx }) => {
     const user = ctx.user;
 
     // Check if the user already has maximum groups for their plan
-    const userGroups = await db.query.usersToGroups.findMany({
+    const userGroups = await db.query.groupMembers.findMany({
       where: (model, { eq, and }) =>
         and(
           eq(model.role, GroupRoleEnum.Values.Owner),
@@ -53,16 +54,15 @@ export const createGroupAction = authenticatedProcedure
       throw new Error("Reached maximum groups for your plan");
     }
 
+    const petIds = input.petIds;
+    delete input.petIds;
+
     // Create group, add user to groupMembers, add pets to group, all in a transaction
     await db.transaction(async (db) => {
       // Create group
       const newGroup = await db
         .insert(groups)
-        .values({
-          creatorId: user.id,
-          name: input.name,
-          description: input.description,
-        })
+        .values({ ...input, creatorId: user.id })
         .returning()
         .execute();
 
@@ -88,7 +88,11 @@ export const createGroupAction = authenticatedProcedure
       }
 
       // Add pets to group
-      for (const petId of input.petIds) {
+      if (!petIds) {
+        return;
+      }
+
+      for (const petId of petIds) {
         const petToGroupRow = await db
           .insert(petsToGroups)
           .values({
@@ -108,25 +112,26 @@ export const createGroupAction = authenticatedProcedure
     revalidatePath("/my-groups");
   });
 
-export const updateGroupDetailsAction = ownsGroupProcedure
+export const updateGroupAction = ownsGroupProcedure
   .createServerAction()
-  .input(groupDetailsSchema)
-  .handler(async ({ input }) => {
+  .input(updateGroupSchema)
+  .handler(async ({ input, ctx }) => {
+    const { group } = ctx;
+
+    if (input?.id) delete input.id;
+
     await db
       .update(groups)
-      .set({
-        name: input.name,
-        description: input.description,
-      })
-      .where(eq(groups.id, input.groupId))
+      .set({ ...input })
+      .where(eq(groups.id, group.id))
       .execute();
 
-    revalidatePath(`/group/${input.groupId}`);
+    revalidatePath(`/group/${group.id}`);
   });
 
 export const deleteGroupAction = ownsGroupProcedure
   .createServerAction()
-  .input(z.object({ groupId: z.string() }))
+  .input(selectGroupSchema.pick({ id: true }))
   .handler(async ({ ctx, input }) => {
     const user = ctx.user;
     const { success } = await ratelimit.limit(user.id);
@@ -135,11 +140,11 @@ export const deleteGroupAction = ownsGroupProcedure
       throw new Error("You are deleting groups too fast");
     }
 
-    await db.delete(groups).where(eq(groups.id, input.groupId)).execute();
+    await db.delete(groups).where(eq(groups.id, input.id)).execute();
 
     // Notify all users in the group of the deletion
-    const groupMembers = await db.query.usersToGroups.findMany({
-      where: (model, { eq }) => eq(model.groupId, input.groupId),
+    const groupMembers = await db.query.groupMembers.findMany({
+      where: (model, { eq }) => eq(model.groupId, input.id),
     });
 
     for (const member of groupMembers) {
@@ -152,10 +157,10 @@ export const deleteGroupAction = ownsGroupProcedure
         .insert(notifications)
         .values({
           userId: member.userId,
-          associatedGroup: input.groupId,
+          associatedGroupId: input.id,
           notificationType:
             NotificationTypeEnum.Values["Group Member Of Deleted"],
-          message: `The group ${input.groupId} has been deleted`,
+          message: `The group ${input.id} has been deleted`,
         })
         .execute();
     }
@@ -176,7 +181,7 @@ export const addPetToGroupAction = ownsGroupProcedure
       .execute();
 
     // Notify all users in the group of the addition
-    const groupMembers = await db.query.usersToGroups.findMany({
+    const groupMembers = await db.query.groupMembers.findMany({
       where: (model, { eq }) => eq(model.groupId, input.groupId),
     });
 
@@ -194,7 +199,7 @@ export const addPetToGroupAction = ownsGroupProcedure
         .insert(notifications)
         .values({
           userId: member.userId,
-          associatedGroup: input.groupId,
+          associatedGroupId: input.groupId,
           notificationType: NotificationTypeEnum.Values["Pet Added To Group"],
           message: `The pet ${pet?.name} has been added to the group`,
         })
@@ -221,15 +226,15 @@ export const addPetsToGroupAction = ownsGroupProcedure
     });
 
     // Notify all users in the group of the addition
-    const groupMembers = await db.query.usersToGroups.findMany({
+    const groupMembersRows = await db.query.groupMembers.findMany({
       where: (model, { eq }) => eq(model.groupId, input.groupId),
     });
 
-    const group = await db.query.groups.findFirst({
+    const groupRow = await db.query.groups.findFirst({
       where: (model, { eq }) => eq(model.id, input.groupId),
     });
 
-    for (const member of groupMembers) {
+    for (const member of groupMembersRows) {
       // Ignore the user who added the pet (owner)
       if (member.role === GroupRoleEnum.Values.Owner) {
         continue;
@@ -239,9 +244,9 @@ export const addPetsToGroupAction = ownsGroupProcedure
         .insert(notifications)
         .values({
           userId: member.userId,
-          associatedGroup: input.groupId,
+          associatedGroupId: input.groupId,
           notificationType: NotificationTypeEnum.Values["Pet Added To Group"],
-          message: `Multiple pets have been added to ${group?.name}`,
+          message: `Multiple pets have been added to ${groupRow?.name}`,
         })
         .execute();
     }
@@ -273,13 +278,13 @@ export const addUserToGroupAction = ownsGroupProcedure
     const owner = ctx.user;
 
     // Check if the group is full (5 members for free tier, 101 for plus tier)
-    const groupMembers = await db.query.usersToGroups.findMany({
+    const groupMemberRows = await db.query.groupMembers.findMany({
       where: (model, { eq }) => eq(model.groupId, input.groupId),
     });
 
     if (
-      (owner.plusMembership && groupMembers.length >= 101) ||
-      (!owner.plusMembership && groupMembers.length >= 6)
+      (owner.plusMembership && groupMemberRows.length >= 101) ||
+      (!owner.plusMembership && groupMemberRows.length >= 6)
     ) {
       throw new Error("Max group size reached");
     }
@@ -394,7 +399,7 @@ export const leaveGroupAction = authenticatedProcedure
       where: (model, { eq }) => eq(model.id, input.groupId),
     });
 
-    const owner = await db.query.usersToGroups.findFirst({
+    const owner = await db.query.groupMembers.findFirst({
       where: (model, { eq }) =>
         and(
           eq(model.groupId, input.groupId),
@@ -411,7 +416,7 @@ export const leaveGroupAction = authenticatedProcedure
         .insert(notifications)
         .values({
           userId: owner.userId,
-          associatedGroup: input.groupId,
+          associatedGroupId: input.groupId,
           notificationType: NotificationTypeEnum.Values["Group Member Left"],
           message: `${leavingUser?.name} has left ${group?.name}`,
         })
@@ -459,7 +464,7 @@ export const joinGroupAction = authenticatedProcedure
     }
 
     // Check adding the user wouldnt exceed group member limits
-    const groupOwnerRow = await db.query.usersToGroups
+    const groupOwnerRow = await db.query.groupMembers
       .findFirst({
         where: (model, { eq, and }) =>
           and(
@@ -476,15 +481,15 @@ export const joinGroupAction = authenticatedProcedure
       throw new Error("Could not find group owner");
     }
 
-    const groupMembers = await db.query.usersToGroups
+    const groupMemberRows = await db.query.groupMembers
       .findMany({
         where: (model, { eq }) => eq(model.groupId, inviteCodeRow.groupId),
       })
       .execute();
 
     if (
-      (groupOwner.plusMembership && groupMembers.length >= 101) ||
-      (!groupOwner.plusMembership && groupMembers.length >= 6)
+      (groupOwner.plusMembership && groupMemberRows.length >= 101) ||
+      (!groupOwner.plusMembership && groupMemberRows.length >= 6)
     ) {
       // Check if the group is full (3 members for free tier, 101 for plus tier)
       throw new Error("Max group size reached");
@@ -534,13 +539,13 @@ export const acceptPendingUserAction = ownsGroupProcedure
     const { groupId } = input;
 
     // Check if the group is full (3 members for free tier, 101 for plus tier)
-    const groupMembers = await db.query.usersToGroups.findMany({
+    const groupMemberRows = await db.query.groupMembers.findMany({
       where: (model, { eq }) => eq(model.groupId, input.groupId),
     });
 
     if (
-      (user.plusMembership && groupMembers.length >= 101) ||
-      (!user.plusMembership && groupMembers.length >= 6)
+      (user.plusMembership && groupMemberRows.length >= 101) ||
+      (!user.plusMembership && groupMemberRows.length >= 6)
     ) {
       throw new Error("Max group size reached");
     }
@@ -569,7 +574,7 @@ export const acceptPendingUserAction = ownsGroupProcedure
         .insert(notifications)
         .values({
           userId: user.id,
-          associatedGroup: groupId,
+          associatedGroupId: groupId,
           notificationType:
             NotificationTypeEnum.Values["Group Membership Accepted"],
           message: `You have been accepted into ${group?.name}`,
@@ -581,7 +586,7 @@ export const acceptPendingUserAction = ownsGroupProcedure
     }
 
     // Check if the user exists
-    const pending = await db.query.usersToGroups.findFirst({
+    const pending = await db.query.groupMembers.findFirst({
       where: (model, { eq }) => eq(model.userId, user.id),
     });
 
@@ -599,7 +604,7 @@ export const rejectPendingUserAction = ownsGroupProcedure
     const { groupId, userId } = input;
 
     // Delete the user from members
-    const member = await db
+    const memberRow = await db
       .delete(groupMembers)
       .where(
         and(
@@ -611,7 +616,7 @@ export const rejectPendingUserAction = ownsGroupProcedure
       .returning()
       .execute();
 
-    if (member) {
+    if (memberRow) {
       // Notify the user that they have been rejected
       const group = await db.query.groups.findFirst({
         where: (model, { eq }) => eq(model.id, groupId),
@@ -621,7 +626,7 @@ export const rejectPendingUserAction = ownsGroupProcedure
         .insert(notifications)
         .values({
           userId: userId,
-          associatedGroup: groupId,
+          associatedGroupId: groupId,
           notificationType:
             NotificationTypeEnum.Values["Group Membership Rejected"],
           message: `You have been rejected from ${group?.name}`,
@@ -633,13 +638,13 @@ export const rejectPendingUserAction = ownsGroupProcedure
     }
 
     // Check if the user exists
-    const pending = await db.query.usersToGroups.findFirst({
+    const pendingMemberRow = await db.query.groupMembers.findFirst({
       where: (model, { eq }) => eq(model.userId, userId),
     });
 
-    if (pending)
+    if (pendingMemberRow)
       throw new Error(
-        `Error: User ${pending.userId} has role ${pending.role.toString()}`,
+        `Error: User ${pendingMemberRow.userId} has role ${pendingMemberRow.role.toString()}`,
       );
     else throw new Error("User does not exist");
   });
@@ -651,13 +656,13 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
     const user = ctx.user;
 
     // Check if the group is full (3 members for free tier, 101 for plus tier)
-    const groupMembers = await db.query.usersToGroups.findMany({
+    const groupMemberRows = await db.query.groupMembers.findMany({
       where: (model, { eq }) => eq(model.groupId, input.groupId),
     });
 
     if (
-      (user.plusMembership && groupMembers.length >= 101) ||
-      (!user.plusMembership && groupMembers.length >= 6)
+      (user.plusMembership && groupMemberRows.length >= 101) ||
+      (!user.plusMembership && groupMemberRows.length >= 6)
     ) {
       throw new Error("Max group size reached");
     }
@@ -712,7 +717,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
       throw new Error("Failed to create invite code");
     }
 
-    const code = `https://sittr.uk/join-group/${newInviteCodeRow[0].code}`;
+    const code = `https://${process.env.URL ? process.env.URL : "sittr.pet"}/join-group/${newInviteCodeRow[0].code}`;
 
     return { code };
   });

@@ -18,7 +18,7 @@ import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { type Group, groupDetailsSchema } from "~/lib/schemas/groups";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { updateGroupDetailsAction } from "~/server/actions/group-actions";
+import { updateGroupAction } from "~/server/actions/group-actions";
 import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
 
@@ -43,7 +43,7 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
     },
   });
 
-  const { isPending, execute } = useServerAction(updateGroupDetailsAction, {
+  const { isPending, execute } = useServerAction(updateGroupAction, {
     onError: ({ err }) => {
       toast.error(err.message);
     },

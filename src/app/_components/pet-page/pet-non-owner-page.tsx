@@ -18,7 +18,7 @@ export function PetNonOwnerPage({ pet }: { pet: SelectBasicPet }) {
                 <div className="flex flex-col gap-2">
                   <Avatar className="h-56 w-56">
                     <AvatarImage
-                      src={pet.image}
+                      src={pet.image ? pet.image : ""}
                       alt={`${pet.name}'s avatar`}
                       className="h-18"
                     />

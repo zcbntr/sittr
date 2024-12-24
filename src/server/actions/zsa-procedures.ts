@@ -6,8 +6,16 @@ import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getLoggedInUser } from "../queries/users";
 import { type SelectUser } from "~/lib/schemas/users";
-import { type SelectTask, selectTaskSchema } from "~/lib/schemas/tasks";
-import { type SelectGroup, selectGroupSchema } from "~/lib/schemas/groups";
+import {
+  selectBasicTaskSchema,
+  type SelectTask,
+  selectTaskSchema,
+} from "~/lib/schemas/tasks";
+import {
+  selectBasicGroupSchema,
+  type SelectGroup,
+  selectGroupSchema,
+} from "~/lib/schemas/groups";
 
 export const authenticatedProcedure = createServerActionProcedure().handler(
   async () => {
@@ -25,13 +33,13 @@ export const authenticatedProcedure = createServerActionProcedure().handler(
 export const ownsPetProcedure = createServerActionProcedure(
   authenticatedProcedure,
 )
-  .input(z.object({ petId: z.string() }))
+  .input(selectBasicTaskSchema.pick({ id: true }))
   .handler(async ({ ctx, input }) => {
     const userId = ctx.user.id;
 
     const pet = await db.query.pets.findFirst({
       where: (model, { and, eq }) =>
-        and(eq(model.id, input.petId), eq(model.ownerId, userId)),
+        and(eq(model.id, input.id), eq(model.ownerId, userId)),
     });
 
     if (!pet) {
@@ -44,12 +52,12 @@ export const ownsPetProcedure = createServerActionProcedure(
 export const ownsTaskProcedure = createServerActionProcedure(
   authenticatedProcedure,
 )
-  .input(z.object({ taskId: z.string() }))
+  .input(selectBasicTaskSchema.pick({ id: true }))
   .handler(async ({ ctx, input }) => {
     const userId = ctx.user.id;
     const taskRow = await db.query.tasks.findFirst({
       where: (model, { and, eq }) =>
-        and(eq(model.id, input.taskId), eq(model.creatorId, userId)),
+        and(eq(model.id, input.id), eq(model.creatorId, userId)),
     });
 
     if (!taskRow) {
@@ -64,7 +72,7 @@ export const ownsTaskProcedure = createServerActionProcedure(
 export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
   authenticatedProcedure,
 )
-  .input(z.object({ taskId: z.string() }))
+  .input(selectBasicTaskSchema.pick({ id: true }))
   // Check if the user is in the group the task is assigned to
   .handler(async ({ ctx, input }) => {
     const userId = ctx.user.id;
@@ -74,7 +82,7 @@ export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
         .from(tasks)
         .leftJoin(groups, eq(tasks.groupId, groups.id))
         .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
-        .where(and(eq(tasks.id, input.taskId), eq(groupMembers.userId, userId)))
+        .where(and(eq(tasks.id, input.id), eq(groupMembers.userId, userId)))
     )[0];
 
     if (!taskRow) {
@@ -90,7 +98,7 @@ export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
 export const ownsGroupProcedure = createServerActionProcedure(
   authenticatedProcedure,
 )
-  .input(z.object({ groupId: z.string() }))
+  .input(selectBasicGroupSchema.pick({ id: true }))
   .handler(async ({ ctx, input }) => {
     const user = ctx.user;
     const userId = ctx.user.id;
@@ -103,7 +111,7 @@ export const ownsGroupProcedure = createServerActionProcedure(
         .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
         .where(
           and(
-            eq(groups.id, input.groupId),
+            eq(groups.id, input.id),
             eq(groupMembers.userId, userId),
             eq(groupMembers.role, "Owner"),
           ),

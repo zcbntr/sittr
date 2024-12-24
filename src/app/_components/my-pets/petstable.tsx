@@ -38,7 +38,13 @@ import {
 import { useState } from "react";
 import { type SelectUser } from "~/lib/schemas/users";
 
-export default function PetsTable({ user, pets }: { user: SelectUser; pets: SelectBasicPet[] }) {
+export default function PetsTable({
+  user,
+  pets,
+}: {
+  user: SelectUser;
+  pets: SelectBasicPet[];
+}) {
   const [alertState, setAlertState] = useState("");
 
   const columns: ColumnDef<SelectBasicPet>[] = [
@@ -51,7 +57,10 @@ export default function PetsTable({ user, pets }: { user: SelectUser; pets: Sele
         return (
           <Link href={`/pets/${pet.id}`}>
             <Avatar>
-              <AvatarImage src={pet.image} alt={`${pet.name}'s avatar`} />
+              <AvatarImage
+                src={pet.image ? pet.image : ""}
+                alt={`${pet.name}'s avatar`}
+              />
               {/* Make this actually be the initials rather than first letter */}
               <AvatarFallback>{pet.name.substring(0, 1)}</AvatarFallback>
             </Avatar>

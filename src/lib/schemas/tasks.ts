@@ -27,11 +27,14 @@ export const selectTaskSchema = selectBasicTaskSchema.merge(
 
 export type SelectTask = z.infer<typeof selectTaskSchema>;
 
-export const insertTaskSchema = createInsertSchema(tasks);
+export const insertTaskSchema = createInsertSchema(tasks).omit({
+  createdAt: true,
+  updatedAt: true,
+});
 
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 
-export const updateTaskSchema = selectBasicTaskSchema.optional();
+export const updateTaskSchema = selectBasicTaskSchema.partial();
 
 export type EditTask = z.infer<typeof updateTaskSchema>;
 

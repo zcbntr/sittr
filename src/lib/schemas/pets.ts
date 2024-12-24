@@ -13,9 +13,9 @@ export const selectPetSchema = selectBasicPetSchema.merge(
   }),
 );
 
-export const petListSchema = z.array(selectPetSchema);
+export const selectPetListSchema = z.array(selectPetSchema);
 
-export type PetList = z.infer<typeof petListSchema>;
+export type SelectPetList = z.infer<typeof selectPetListSchema>;
 
 export const insertPetSchema = createInsertSchema(pets)
   .refine((data) => data.dob && data.dob < new Date(), {
@@ -28,7 +28,7 @@ export const insertPetSchema = createInsertSchema(pets)
 export type NewPet = z.infer<typeof insertPetSchema>;
 
 export const updatePetSchema = createSelectSchema(pets)
-  .optional()
+  .partial()
   .refine((data) => data?.dob && data.dob < new Date(), {
     message: "Birthdate must be in the past",
   })

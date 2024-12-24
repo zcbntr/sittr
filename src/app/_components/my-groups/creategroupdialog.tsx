@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { createGroupInputSchema } from "~/lib/schemas/groups";
+import { insertGroupWithPetsSchema } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import {
   DropdownMenu,
@@ -31,7 +31,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { type SelectBasicPet, petListSchema } from "~/lib/schemas/pets";
+import { type SelectBasicPet, selectPetListSchema } from "~/lib/schemas/pets";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
 import { createGroupAction } from "~/server/actions/group-actions";
@@ -47,14 +47,10 @@ export default function CreateGroupDialog({
   const [selectedPetIds, setSelectedPetIds] = React.useState<string[]>([]);
   const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 
-  const form = useForm<z.infer<typeof createGroupInputSchema>>({
+  const form = useForm<z.infer<typeof insertGroupWithPetsSchema>>({
     mode: "onBlur",
-    resolver: zodResolver(createGroupInputSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      petIds: [],
-    },
+    resolver: zodResolver(insertGroupWithPetsSchema),
+    defaultValues: {},
   });
 
   const { isPending, execute } = useServerAction(createGroupAction, {
@@ -71,7 +67,7 @@ export default function CreateGroupDialog({
     async function fetchPets() {
       await fetch("/api/owned-pets?all=true")
         .then((res) => res.json())
-        .then((data) => petListSchema.safeParse(data))
+        .then((data) => selectPetListSchema.safeParse(data))
         .then((validatedPetListObject) => {
           if (!validatedPetListObject.success) {
             console.log(validatedPetListObject.error.message);

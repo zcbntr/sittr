@@ -1,6 +1,6 @@
 "use server";
 
-import { createPetInputSchema, updatePetSchema } from "~/lib/schemas/pets";
+import { insertPetSchema, updatePetSchema } from "~/lib/schemas/pets";
 import { db } from "../db";
 import { petImages, pets } from "../db/schema";
 import { authenticatedProcedure, ownsPetProcedure } from "./zsa-procedures";
@@ -13,7 +13,7 @@ import { utapi } from "../uploadthing";
 
 export const createPetAction = authenticatedProcedure
   .createServerAction()
-  .input(createPetInputSchema)
+  .input(insertPetSchema)
   .handler(async ({ input, ctx }) => {
     const user = ctx.user;
 
@@ -73,17 +73,12 @@ export const updatePetAction = ownsPetProcedure
   .handler(async ({ input, ctx }) => {
     const { userId, pet } = ctx;
 
+    if (input?.id) delete input?.id;
+
     await db
       .update(pets)
-      .set({
-        name: input.name,
-        species: input.species,
-        breed: input.breed,
-        dob: input.dob,
-        sex: input.sex,
-        note: input.note,
-      })
-      .where(and(eq(pets.id, input.petId), eq(pets.ownerId, userId)))
+      .set({ ...input })
+      .where(and(eq(pets.id, pet.id), eq(pets.ownerId, userId)))
       .execute();
 
     revalidatePath(`/pets/${pet.id}`);

@@ -7,6 +7,7 @@ import {
 } from "~/server/db/schema";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { selectUserSchema } from "./users";
+import { selectBasicPetSchema } from "./pets";
 
 // -----------------------------------------------------------------------------
 // Group Schemas
@@ -40,6 +41,7 @@ export const selectGroupMemberSchema = selectBasicGroupMemberSchema.merge(
 export const selectGroupSchema = selectBasicGroupSchema.merge(
   z.object({
     members: z.array(selectGroupMemberSchema).optional(),
+    pets: z.array(selectBasicPetSchema).optional(),
   }),
 );
 
@@ -49,7 +51,15 @@ export const insertGroupSchema = createInsertSchema(groups);
 
 export type NewGroup = z.infer<typeof insertGroupSchema>;
 
-export const updateGroupSchema = createSelectSchema(groups).optional();
+export const insertGroupWithPetsSchema = insertGroupSchema.merge(
+  z.object({
+    petIds: z.array(z.string()).optional(),
+  }),
+);
+
+export type NewGroupWithPets = z.infer<typeof insertGroupWithPetsSchema>;
+
+export const updateGroupSchema = createSelectSchema(groups).partial();
 
 export type EditGroup = z.infer<typeof updateGroupSchema>;
 
@@ -61,7 +71,8 @@ export const insertGroupInviteCodeSchema = createInsertSchema(groupInviteCodes);
 
 export type NewGroupInviteCode = z.infer<typeof insertGroupInviteCodeSchema>;
 
-export const updateGroupInviteCodeSchema = createSelectSchema(groupInviteCodes);
+export const updateGroupInviteCodeSchema =
+  createSelectSchema(groupInviteCodes).partial();
 
 export type EditGroupInviteCode = z.infer<typeof updateGroupInviteCodeSchema>;
 
@@ -74,7 +85,7 @@ export const insertPetToGroupSchema = createInsertSchema(petsToGroups);
 export type NewPetToGroup = z.infer<typeof insertPetToGroupSchema>;
 
 export const updatePetToGroupSchema =
-  createSelectSchema(petsToGroups).optional();
+  createSelectSchema(petsToGroups).partial();
 
 export type EditPetToGroup = z.infer<typeof updatePetToGroupSchema>;
 
@@ -131,14 +142,6 @@ export const groupInviteLinkOptionsSchema = z.object({
 export type GroupInviteLinkOptions = z.infer<
   typeof groupInviteLinkOptionsSchema
 >;
-
-export const groupDetailsSchema = z.object({
-  groupId: z.string(),
-  name: z.string(),
-  description: z.string().optional(),
-});
-
-export type GroupDetails = z.infer<typeof groupDetailsSchema>;
 
 export const acceptPendingMemberSchema = z.object({
   groupId: z.string(),

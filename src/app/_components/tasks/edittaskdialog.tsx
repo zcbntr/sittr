@@ -42,7 +42,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
-import { type SelectBasicTask, selectBasicTaskSchema, updateTaskSchema } from "~/lib/schemas/tasks";
+import { type SelectBasicTask, type selectBasicTaskSchema, type SelectTask, updateTaskSchema } from "~/lib/schemas/tasks";
 import {
   deleteTaskAction,
   updateTaskAction,
@@ -62,7 +62,7 @@ import {
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
-import { petListSchema, type SelectBasicPet } from "~/lib/schemas/pets";
+import { selectPetListSchema, type SelectBasicPet } from "~/lib/schemas/pets";
 
 export default function EditTaskDialog({
   groups,
@@ -70,7 +70,7 @@ export default function EditTaskDialog({
   children,
 }: {
   groups: SelectGroup[];
-  task: SelectBasicTask | undefined;
+  task: SelectTask | undefined;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState<boolean>(false);
@@ -162,7 +162,7 @@ export default function EditTaskDialog({
         },
       })
         .then((res) => res.json())
-        .then((json) => petListSchema.safeParse(json))
+        .then((json) => selectPetListSchema.safeParse(json))
         .then((validatedPetListObject) => {
           if (!validatedPetListObject.success) {
             throw new Error("Failed to get group's pets");
@@ -316,7 +316,7 @@ export default function EditTaskDialog({
               <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="dateRange.from"
+                  name="dateRangeFrom"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel className="text-left">
@@ -368,7 +368,7 @@ export default function EditTaskDialog({
 
                 <FormField
                   control={form.control}
-                  name="dateRange.to"
+                  name="dateRangeTo"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel className="text-left">

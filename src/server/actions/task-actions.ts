@@ -82,13 +82,15 @@ export const updateTaskAction = ownsTaskProcedure
   .createServerAction()
   // This needs to become a taskeditschema
   .input(updateTaskSchema)
-  .handler(async ({ ctx }) => {
+  .handler(async ({ input, ctx }) => {
     const { userId, task } = ctx;
+
+    if (input?.id) delete input?.id;
 
     await db
       .update(tasks)
       .set({
-        ...task,
+        ...input,
       })
       .where(and(eq(tasks.id, task.id), eq(tasks.ownerId, userId)))
       .execute();
@@ -209,13 +211,13 @@ export const deleteTaskAction = ownsTaskProcedure
 
     await db
       .delete(tasks)
-      .where(and(eq(tasks.id, input.taskId), eq(tasks.ownerId, userId)))
+      .where(and(eq(tasks.id, input.id), eq(tasks.ownerId, userId)))
       .execute();
 
     // Delete all notifications associated with the task
     await db
       .delete(notifications)
-      .where(eq(notifications.associatedTaskId, input.taskId))
+      .where(eq(notifications.associatedTaskId, input.id))
       .execute();
 
     revalidatePath("/tasks");

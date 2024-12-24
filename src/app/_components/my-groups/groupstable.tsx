@@ -3,7 +3,7 @@
 import { DataTable } from "~/components/ui/data-table";
 import CreateGroupDialog from "./creategroupdialog";
 import { Button } from "~/components/ui/button";
-import { type Group } from "~/lib/schemas/groups";
+import { type SelectGroup } from "~/lib/schemas/groups";
 import JoinGroupDialog from "./join-group-dialog";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
@@ -43,12 +43,12 @@ export default function GroupsTable({
   groups,
   user,
 }: {
-  groups: Group[];
+  groups: SelectGroup[];
   user: SelectUser;
 }) {
   const [alertState, setAlertState] = useState("");
 
-  const columns: ColumnDef<Group>[] = [
+  const columns: ColumnDef<SelectGroup>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -85,14 +85,14 @@ export default function GroupsTable({
           return (
             <div className="flex flex-row gap-2">
               {filteredMembers.map((member) => (
-                <Avatar key={member.groupId + member.user.id}>
+                <Avatar key={member.groupId + member.user?.id}>
                   <AvatarImage
-                    src={member.user.image ? member.user.image : undefined}
-                    alt={`${member.user.name}'s avatar`}
+                    src={member.user?.image ? member.user?.image : undefined}
+                    alt={`${member.user?.name}'s avatar`}
                   />
                   {/* Make this actually be the initials rather than first letter */}
                   <AvatarFallback>
-                    {member.user.name?.substring(0, 1)}
+                    {member.user?.name?.substring(0, 1)}
                   </AvatarFallback>
                 </Avatar>
               ))}
@@ -109,15 +109,15 @@ export default function GroupsTable({
               <Avatar>
                 <AvatarImage
                   src={
-                    filteredMembers[0].user.image
+                    filteredMembers[0].user?.image
                       ? filteredMembers[0].user.image
                       : undefined
                   }
-                  alt={`${filteredMembers[0].user.name}'s avatar`}
+                  alt={`${filteredMembers[0].user?.name}'s avatar`}
                 />
                 {/* Make this actually be the initials rather than first letter */}
                 <AvatarFallback>
-                  {filteredMembers[0].user.name?.substring(0, 1)}
+                  {filteredMembers[0].user?.name?.substring(0, 1)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col place-content-center">{`and ${filteredMembers.length - 1} more. `}</div>
@@ -139,7 +139,10 @@ export default function GroupsTable({
               {group.pets.map((pet) => (
                 <Link href={`/pets/${pet.id}`} key={pet.id}>
                   <Avatar>
-                    <AvatarImage src={pet.image} alt={`${pet.name}'s avatar`} />
+                    <AvatarImage
+                      src={pet.image ? pet.image : ""}
+                      alt={`${pet.name}'s avatar`}
+                    />
                     {/* Make this actually be the initials rather than first letter */}
                     <AvatarFallback>{pet.name.substring(0, 1)}</AvatarFallback>
                   </Avatar>
@@ -154,7 +157,7 @@ export default function GroupsTable({
               <Link href={`/pets/${group.pets[0].id}`}>
                 <Avatar>
                   <AvatarImage
-                    src={group.pets[0].image}
+                    src={group.pets[0].image ? group.pets[0].image : ""}
                     alt={`${group.pets[0].name}'s avatar`}
                   />
                   {/* Make this actually be the initials rather than first letter */}
@@ -187,16 +190,16 @@ export default function GroupsTable({
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                   <DropdownMenuItem
-                    onClick={async () =>
+                    onClick={async () => {
                       await navigator.clipboard.writeText(
-                        `${group.name} - Owned by ${group.members?.find((x) => x.role === GroupRoleEnum.Values.Owner)?.user.name} - ${group.description}`,
-                      )
-                    }
+                        `${group.name} - Owned by ${group.members?.find((x) => x.role === GroupRoleEnum.Values.Owner)?.user?.name} - ${group.description}`,
+                      );
+                    }}
                   >
                     Copy
                   </DropdownMenuItem>
                   {/* Show only if not group owner */}
-                  {group.members?.find((x) => x.user.id === user.id)?.role ===
+                  {group.members?.find((x) => x.user?.id === user.id)?.role ===
                   GroupRoleEnum.Values.Owner ? null : (
                     <>
                       <DropdownMenuSeparator />

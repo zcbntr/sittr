@@ -51,7 +51,7 @@ import { useEffect, useState } from "react";
 import { createTaskAction } from "~/server/actions/task-actions";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
-import { type SelectBasicPet, petListSchema } from "~/lib/schemas/pets";
+import { type SelectBasicPet, selectPetListSchema } from "~/lib/schemas/pets";
 
 export default function CreateTaskDialog({
   groups,
@@ -108,7 +108,7 @@ export default function CreateTaskDialog({
         },
       })
         .then((res) => res.json())
-        .then((json) => petListSchema.safeParse(json))
+        .then((json) => selectPetListSchema.safeParse(json))
         .then((validatedPetListObject) => {
           if (!validatedPetListObject.success) {
             throw new Error("Failed to get group's pets");
@@ -131,13 +131,7 @@ export default function CreateTaskDialog({
 
   useEffect(() => {
     if (props) {
-      form.reset({
-        name: props.name,
-        description: props.description,
-        dueMode: props.dueMode,
-        dueDate: props.dueDate,
-        dateRange: props.dateRange,
-      });
+      form.reset();
     }
   }, [props]);
 
@@ -276,7 +270,7 @@ export default function CreateTaskDialog({
               <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="dateRange.from"
+                  name="dateRangeFrom"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel className="text-left">
@@ -328,7 +322,7 @@ export default function CreateTaskDialog({
 
                 <FormField
                   control={form.control}
-                  name="dateRange.to"
+                  name="dateRangeTo"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel className="text-left">

@@ -52,10 +52,10 @@ export async function notifyOfPetBirthdays() {
   for (const pet of petsWithBirthdayToday) {
     // Check for existing notification
 
-    const existingNotification = await db.query.notifications.findFirst({
+    const existingNotificationRow = await db.query.notifications.findFirst({
       where: (model, { and, eq }) =>
         and(
-          eq(model.associatedPet, pet.id),
+          eq(model.associatedPetId, pet.id),
           eq(
             model.notificationType,
             NotificationTypeEnum.Values["Pet Birthday"],
@@ -63,7 +63,7 @@ export async function notifyOfPetBirthdays() {
         ),
     });
 
-    if (existingNotification) {
+    if (existingNotificationRow) {
       continue;
     }
 
@@ -71,7 +71,7 @@ export async function notifyOfPetBirthdays() {
       .insert(notifications)
       .values({
         userId: pet.ownerId,
-        associatedPet: pet.id,
+        associatedPetId: pet.id,
         notificationType: NotificationTypeEnum.Values["Pet Birthday"],
         message: `Happy birthday ${pet.name}!`,
       })
@@ -121,8 +121,8 @@ export async function notifyOverdueTasks() {
   const rows = await db.query.tasks.findMany({
     where: (model, { and, gte, isNull, lt }) =>
       and(
-        isNull(model.markedAsDoneBy),
-        isNotNull(model.claimedBy),
+        isNull(model.markedAsDoneById),
+        isNotNull(model.claimedById),
         gte(model.claimedAt, new Date(Date.now() - 60 * 60 * 1000)),
         lt(model.claimedAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
       ),
@@ -131,13 +131,13 @@ export async function notifyOverdueTasks() {
   let count = 0;
   for (const task of rows) {
     // Please compiler, we already know this to be not null/undefined
-    if (!task.claimedBy) continue;
+    if (!task.claimedById) continue;
 
     // Check no notification has already been sent for this task
-    const existingNotification = await db.query.notifications.findFirst({
+    const existingNotificationRow = await db.query.notifications.findFirst({
       where: (model, { eq }) =>
         and(
-          eq(model.associatedTask, task.id),
+          eq(model.associatedTaskId, task.id),
           eq(
             model.notificationType,
             NotificationTypeEnum.Values["Overdue Task"],
@@ -145,15 +145,15 @@ export async function notifyOverdueTasks() {
         ),
     });
 
-    if (existingNotification) {
+    if (existingNotificationRow) {
       continue;
     }
 
     const row = await db
       .insert(notifications)
       .values({
-        userId: task.claimedBy,
-        associatedTask: task.id,
+        userId: task.claimedById,
+        associatedTaskId: task.id,
         notificationType: NotificationTypeEnum.Values["Overdue Task"],
         message: `Task "${task.name}" is overdue!`,
       })
@@ -171,8 +171,8 @@ export async function notifyUpcomingUnclaimedTasks() {
   const rows = await db.query.tasks.findMany({
     where: (model, { and, gte, isNull, lt }) =>
       and(
-        isNull(model.markedAsDoneBy),
-        isNull(model.claimedBy),
+        isNull(model.markedAsDoneById),
+        isNull(model.claimedById),
         or(
           and(
             gte(model.dueDate, new Date(Date.now())),
@@ -193,7 +193,7 @@ export async function notifyUpcomingUnclaimedTasks() {
     const existingNotification = await db.query.notifications.findFirst({
       where: (model, { eq }) =>
         and(
-          eq(model.associatedTask, task.id),
+          eq(model.associatedTaskId, task.id),
           eq(
             model.notificationType,
             NotificationTypeEnum.Values["Upcoming Unclaimed Task"],
@@ -210,7 +210,7 @@ export async function notifyUpcomingUnclaimedTasks() {
         .insert(notifications)
         .values({
           userId: user.userId,
-          associatedTask: task.id,
+          associatedTaskId: task.id,
           notificationType:
             NotificationTypeEnum.Values["Upcoming Unclaimed Task"],
           message: `Task "${task.name}" is due soon!`,
