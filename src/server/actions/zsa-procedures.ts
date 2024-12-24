@@ -5,10 +5,13 @@ import { groups, tasks, groupMembers } from "../db/schema";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getLoggedInUser } from "../queries/users";
+import { type SelectUser } from "~/lib/schemas/users";
+import { type SelectTask, selectTaskSchema } from "~/lib/schemas/tasks";
+import { type SelectGroup, selectGroupSchema } from "~/lib/schemas/groups";
 
 export const authenticatedProcedure = createServerActionProcedure().handler(
   async () => {
-    const user = await getLoggedInUser();
+    const user: SelectUser | undefined = await getLoggedInUser();
 
     if (!user) {
       // Return to homepage
@@ -44,14 +47,16 @@ export const ownsTaskProcedure = createServerActionProcedure(
   .input(z.object({ taskId: z.string() }))
   .handler(async ({ ctx, input }) => {
     const userId = ctx.user.id;
-    const task = await db.query.tasks.findFirst({
+    const taskRow = await db.query.tasks.findFirst({
       where: (model, { and, eq }) =>
         and(eq(model.id, input.taskId), eq(model.creatorId, userId)),
     });
 
-    if (!task) {
+    if (!taskRow) {
       throw new Error("Task not found");
     }
+
+    const task = selectTaskSchema.parse({ ...taskRow });
 
     return { userId, task };
   });
@@ -69,9 +74,7 @@ export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
         .from(tasks)
         .leftJoin(groups, eq(tasks.groupId, groups.id))
         .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
-        .where(
-          and(eq(tasks.id, input.taskId), eq(groupMembers.userId, userId)),
-        )
+        .where(and(eq(tasks.id, input.taskId), eq(groupMembers.userId, userId)))
     )[0];
 
     if (!taskRow) {
@@ -79,7 +82,7 @@ export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
     }
 
     // Return just the task part of the row
-    const task = taskRow.tasks;
+    const task: SelectTask = selectTaskSchema.parse({ ...taskRow.tasks });
 
     return { userId, task };
   });
@@ -111,7 +114,7 @@ export const ownsGroupProcedure = createServerActionProcedure(
       throw new Error("Group not found");
     }
 
-    const group = groupRow.groups;
+    const group: SelectGroup = selectGroupSchema.parse({ ...groupRow.groups });
 
     return { user, group };
   });

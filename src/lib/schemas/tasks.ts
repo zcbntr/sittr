@@ -16,12 +16,12 @@ export type SelectBasicTask = z.infer<typeof selectBasicTaskSchema>;
 
 export const selectTaskSchema = selectBasicTaskSchema.merge(
   z.object({
-    creator: selectUserSchema.optional(),
-    owner: selectUserSchema.optional(),
-    pet: selectPetSchema.optional(),
-    group: selectBasicGroupSchema.optional(),
-    claimedBy: selectUserSchema.optional(),
-    markedAsDoneBy: selectUserSchema.optional(),
+    creator: selectUserSchema.optional().nullable(),
+    owner: selectUserSchema.optional().nullable(),
+    pet: selectPetSchema.optional().nullable(),
+    group: selectBasicGroupSchema.optional().nullable(),
+    claimedBy: selectUserSchema.optional().nullable(),
+    markedAsDoneBy: selectUserSchema.optional().nullable(),
   }),
 );
 

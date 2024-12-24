@@ -1,11 +1,11 @@
 "use server";
 
 import {
-  createTaskInputSchema,
+  insertTaskSchema,
   setClaimTaskFormProps,
   setMarkedAsCompleteFormProps,
   selectBasicTaskSchema,
-  updateTaskInputSchema,
+  updateTaskSchema,
 } from "~/lib/schemas/tasks";
 import { db } from "~/server/db";
 import { notifications, tasks, users } from "~/server/db/schema";
@@ -22,23 +22,16 @@ import { NotificationTypeEnum } from "~/lib/schemas";
 
 export const createTaskAction = authenticatedProcedure
   .createServerAction()
-  .input(createTaskInputSchema)
+  .input(insertTaskSchema)
   .handler(async ({ input, ctx }) => {
     const userId = ctx.user.id;
 
     const taskRow = await db
       .insert(tasks)
       .values({
-        name: input.name,
-        dueMode: input.dueMode,
-        creatorId: userId,
+        ...input,
         ownerId: userId,
-        dateRangeFrom: !input.dueMode ? input.dateRange?.from : null,
-        dateRangeTo: !input.dueMode ? input.dateRange?.to : null,
-        dueDate: input.dueMode ? input.dueDate : null,
-        description: input.description,
-        pet: input.petId,
-        group: input.groupId,
+        creatorId: userId,
       })
       .returning()
       .execute();
@@ -72,7 +65,7 @@ export const createTaskAction = authenticatedProcedure
           .insert(notifications)
           .values({
             userId: member.userId,
-            associatedTask: task.id,
+            associatedTaskId: task.id,
             notificationType:
               NotificationTypeEnum.Values["Upcoming Unclaimed Task"],
             message: `New upcoming task "${task.name}" is due soon!`,
@@ -88,21 +81,14 @@ export const createTaskAction = authenticatedProcedure
 export const updateTaskAction = ownsTaskProcedure
   .createServerAction()
   // This needs to become a taskeditschema
-  .input(updateTaskInputSchema)
-  .handler(async ({ input, ctx }) => {
+  .input(updateTaskSchema)
+  .handler(async ({ ctx }) => {
     const { userId, task } = ctx;
 
     await db
       .update(tasks)
       .set({
-        name: input.name,
-        dueMode: input.dueMode,
-        dateRangeFrom: !input.dueMode ? input.dateRange?.from : null,
-        dateRangeTo: !input.dueMode ? input.dateRange?.to : null,
-        dueDate: input.dueMode ? input.dueDate : null,
-        description: input.description,
-        pet: input.petId,
-        group: input.groupId,
+        ...task,
       })
       .where(and(eq(tasks.id, task.id), eq(tasks.ownerId, userId)))
       .execute();
@@ -122,7 +108,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
     }
 
     // Check if the task is marked as done by the user
-    if (task.markedAsDoneBy === userId) {
+    if (task.markedAsDoneById === userId) {
       if (input.markAsDone) {
         throw new Error("Task is already marked as done by you");
       }
@@ -130,7 +116,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
       await db
         .update(tasks)
         .set({
-          markedAsDoneBy: null,
+          markedAsDoneById: null,
           markedAsDoneAt: null,
         })
         .where(eq(tasks.id, input.taskId))
@@ -142,7 +128,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
       const updatedTask = await getVisibleTaskById(input.taskId);
 
       return updatedTask;
-    } else if (task.claimedBy !== userId) {
+    } else if (task.claimedById !== userId) {
       throw new Error("You can't mark a task as done if you didn't claim it");
     } else {
       if (!input.markAsDone) {
@@ -152,9 +138,9 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
       await db
         .update(tasks)
         .set({
-          markedAsDoneBy: userId,
+          markedAsDoneById: userId,
           markedAsDoneAt: new Date(),
-          claimedBy: userId,
+          claimedById: userId,
           claimedAt: new Date(),
         })
         .where(eq(tasks.id, input.taskId))
@@ -165,7 +151,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
         .delete(notifications)
         .where(
           and(
-            eq(notifications.associatedTask, input.taskId),
+            eq(notifications.associatedTaskId, input.taskId),
             or(
               eq(
                 notifications.notificationType,
@@ -196,7 +182,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
             userId: owner.id,
             message: `Your task "${task.name}" has been marked as done by ${markedAsDoneBy?.name}`,
             notificationType: NotificationTypeEnum.Values["Completed Task"],
-            associatedTask: task.id,
+            associatedTaskId: task.id,
           })
           .execute();
       }
@@ -212,7 +198,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
 
 export const deleteTaskAction = ownsTaskProcedure
   .createServerAction()
-  .input(selectBasicTaskSchema.pick({ taskId: true }))
+  .input(selectBasicTaskSchema.pick({ id: true }))
   .handler(async ({ input, ctx }) => {
     const { userId } = ctx;
     const { success } = await ratelimit.limit(userId);
@@ -229,7 +215,7 @@ export const deleteTaskAction = ownsTaskProcedure
     // Delete all notifications associated with the task
     await db
       .delete(notifications)
-      .where(eq(notifications.associatedTask, input.taskId))
+      .where(eq(notifications.associatedTaskId, input.taskId))
       .execute();
 
     revalidatePath("/tasks");
@@ -249,7 +235,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
     }
 
     // Check if the task has been claimed by the user
-    if (task?.claimedBy === userId) {
+    if (task?.claimedById === userId) {
       if (input.claim) {
         throw new Error("Task is already claimed by you");
       }
@@ -258,9 +244,9 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
       await db
         .update(tasks)
         .set({
-          claimedBy: null,
+          claimedById: null,
           claimedAt: null,
-          markedAsDoneBy: null,
+          markedAsDoneById: null,
           markedAsDoneAt: null,
         })
         .where(and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, userId))))
@@ -288,7 +274,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
             .insert(notifications)
             .values({
               userId: member.userId,
-              associatedTask: task.id,
+              associatedTaskId: task.id,
               notificationType:
                 NotificationTypeEnum.Values["Upcoming Unclaimed Task"],
               message: `Task "${task.name}" is due soon!`,
@@ -316,7 +302,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
       const updatedRow = await db
         .update(tasks)
         .set({
-          claimedBy: userId,
+          claimedById: userId,
           claimedAt: new Date(),
         })
         .where(and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, userId))))
@@ -334,7 +320,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         .delete(notifications)
         .where(
           and(
-            eq(notifications.associatedTask, input.taskId),
+            eq(notifications.associatedTaskId, input.taskId),
             eq(
               notifications.notificationType,
               NotificationTypeEnum.Values["Upcoming Unclaimed Task"],

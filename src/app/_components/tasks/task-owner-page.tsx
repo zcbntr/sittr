@@ -9,14 +9,20 @@ import { useServerAction } from "zsa-react";
 import { deleteTaskAction } from "~/server/actions/task-actions";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import type { SelectBasicTask } from "~/lib/schemas/tasks";
+import type { SelectTask } from "~/lib/schemas/tasks";
 import Link from "next/link";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import type { SelectUser } from "~/lib/schemas/users";
 import { TaskEditForm } from "./task-edit-form";
 
-export function TaskOwnerPage({ task, user }: { task: SelectBasicTask; user: SelectUser }) {
+export function TaskOwnerPage({
+  task,
+  user,
+}: {
+  task: SelectTask;
+  user: SelectUser;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("editing");
@@ -65,32 +71,32 @@ export function TaskOwnerPage({ task, user }: { task: SelectBasicTask; user: Sel
                             <CalendarIcon className="mr-2 h-4 w-4" />
                           </div>
                           <div>
-                            {task?.dateRange?.from
-                              ? format(task.dateRange.from, "MMM do HH:mm")
+                            {task?.dateRangeFrom
+                              ? format(task.dateRangeFrom, "MMM do HH:mm")
                               : ""}{" "}
                             -
-                            {task?.dateRange?.to
-                              ? format(task?.dateRange?.to, "MMM do HH:mm")
+                            {task?.dateRangeTo
+                              ? format(task?.dateRangeTo, "MMM do HH:mm")
                               : ""}
                           </div>
                         </div>
                       )}
 
                       <div className="flex flex-row gap-2">
-                        <Link href={`/pets/${task?.petId.id}`}>
+                        <Link href={`/pets/${task?.petId}`}>
                           <Avatar>
                             <AvatarImage
-                              src={task?.petId.image}
-                              alt={`${task?.petId.name}'s avatar`}
+                              src={task?.pet?.image ? task.pet.image : ""}
+                              alt={`${task?.pet?.name}'s avatar`}
                             />
                             {/* Make this actually be the initials rather than first letter */}
                             <AvatarFallback>
-                              {task?.petId.name.substring(0, 1)}
+                              {task?.pet?.name.substring(0, 1)}
                             </AvatarFallback>
                           </Avatar>
                         </Link>
                         <div className="flex flex-col place-content-center">
-                          {task?.petId.name} ({task?.groupId.name})
+                          {task?.pet?.name} ({task?.group?.name})
                         </div>
                       </div>
 

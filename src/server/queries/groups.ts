@@ -4,16 +4,17 @@ import { db } from "~/server/db";
 import { eq, inArray } from "drizzle-orm";
 import { groups, petsToGroups } from "../db/schema";
 import {
-  type Group,
+  type SelectGroup,
   type SelectBasicGroupMember,
-  groupMemberSchema,
-  groupSchema,
+  selectGroupMemberSchema,
+  selectGroupSchema,
+  selectBasicGroupSchema,
 } from "~/lib/schemas/groups";
 import { type SelectBasicPet, selectPetSchema } from "~/lib/schemas/pets";
 import { getLoggedInUser } from "./users";
 import { selectUserSchema } from "~/lib/schemas/users";
 
-export async function getGroupById(id: string): Promise<Group | null> {
+export async function getGroupById(id: string): Promise<SelectGroup | null> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -43,53 +44,27 @@ export async function getGroupById(id: string): Promise<Group | null> {
     return null;
   }
 
-  return groupSchema.parse({
-    id: group.id,
-    creatorId: group.creatorId,
-    creator: group.creator,
-    name: group.name,
-    description: group.description,
-    pets: group.petsToGroups.map((petToGroup) =>
-      selectPetSchema.parse({
-        id: petToGroup.pet.id,
-        ownerId: petToGroup.pet.ownerId,
-        owner: petToGroup.pet.owner,
-        creatorId: petToGroup.pet.creatorId,
-        creator: petToGroup.pet.creator,
-        name: petToGroup.pet.name,
-        species: petToGroup.pet.species,
-        breed: petToGroup.pet.breed,
-        dob: petToGroup.pet.dob,
-        sex: petToGroup.pet.sex,
-        image: petToGroup.pet.image,
-      }),
-    ),
-  });
+  return selectGroupSchema.parse({ ...group });
 }
 
-export async function getGroupsByIds(ids: string[]): Promise<Group[]> {
+export async function getGroupsByIds(ids: string[]): Promise<SelectGroup[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
   }
 
-  const groupsList = await db
+  const groupRows = await db
     .select()
     .from(groups)
     .where(inArray(groups.id, ids));
 
-  if (!groupsList) {
+  if (!groupRows) {
     throw new Error("Failed to get groups by ids");
   }
 
-  return groupsList.map((group) => {
-    return groupSchema.parse({
-      id: group.id,
-      createdBy: group.creatorId,
-      name: group.name,
-      description: group.description,
-    });
+  return groupRows.map((row) => {
+    return selectBasicGroupSchema.parse({ ...row });
   });
 }
 
@@ -102,7 +77,7 @@ export async function getIsUserGroupOwner(groupId: string): Promise<boolean> {
 
   const userId = user.id;
 
-  const groupMember = await db.query.usersToGroups.findFirst({
+  const groupMember = await db.query.groupMembers.findFirst({
     where: (model, { and, eq }) =>
       and(
         eq(model.groupId, groupId),
@@ -114,24 +89,22 @@ export async function getIsUserGroupOwner(groupId: string): Promise<boolean> {
   return !!groupMember;
 }
 
-export async function getGroupMembers(groupId: string): Promise<SelectBasicGroupMember[]> {
+export async function getGroupMembers(
+  groupId: string,
+): Promise<SelectBasicGroupMember[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
   }
 
-  const userToGroupRows = await db.query.usersToGroups.findMany({
+  const groupMemberRows = await db.query.groupMembers.findMany({
     where: (model, { eq }) => eq(model.groupId, groupId),
     with: { user: true },
   });
 
-  return userToGroupRows.map((row) => {
-    return groupMemberSchema.parse({
-      groupId: row.groupId,
-      user: row.user,
-      role: row.role,
-    });
+  return groupMemberRows.map((groupMemberRow) => {
+    return selectGroupMemberSchema.parse({ ...groupMemberRow });
   });
 }
 
@@ -142,7 +115,7 @@ export async function getGroupPets(groupId: string): Promise<SelectBasicPet[]> {
     throw new Error("Unauthorized");
   }
 
-  const groupPets = await db.query.groups.findFirst({
+  const groupPetRows = await db.query.groups.findFirst({
     where: (model, { eq }) => eq(model.id, groupId),
     with: {
       petsToGroups: {
@@ -153,29 +126,31 @@ export async function getGroupPets(groupId: string): Promise<SelectBasicPet[]> {
     },
   });
 
-  if (!groupPets) {
+  if (!groupPetRows) {
     throw new Error("Failed to get group pets");
   }
 
-  return groupPets.petsToGroups.map((groupPet) => {
+  return groupPetRows.petsToGroups.map((row) => {
     return selectPetSchema.parse({
-      id: groupPet.pet.id,
-      ownerId: groupPet.pet.ownerId,
-      owner: selectUserSchema.parse(groupPet.pet.owner),
-      creatorId: groupPet.pet.creatorId,
-      creator: selectUserSchema.parse(groupPet.pet.creator),
-      name: groupPet.pet.name,
-      species: groupPet.pet.species,
-      breed: groupPet.pet.breed,
-      dob: groupPet.pet.dob instanceof Date ? groupPet.pet.dob : new Date(),
-      sex: groupPet.pet.sex,
-      image: groupPet.pet.petImages?.url,
-      note: groupPet.pet.note,
+      id: row.pet.id,
+      ownerId: row.pet.ownerId,
+      owner: selectUserSchema.parse(row.pet.owner),
+      creatorId: row.pet.creatorId,
+      creator: selectUserSchema.parse(row.pet.creator),
+      name: row.pet.name,
+      species: row.pet.species,
+      breed: row.pet.breed,
+      dob: row.pet.dob instanceof Date ? row.pet.dob : new Date(),
+      sex: row.pet.sex,
+      image: row.pet.petImages?.url,
+      note: row.pet.note,
     });
   });
 }
 
-export async function getUsersPetsNotInGroup(groupId: string): Promise<SelectBasicPet[]> {
+export async function getUsersPetsNotInGroup(
+  groupId: string,
+): Promise<SelectBasicPet[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -210,24 +185,11 @@ export async function getUsersPetsNotInGroup(groupId: string): Promise<SelectBas
   }
 
   return petsNotInGroup.map((pet) => {
-    return selectPetSchema.parse({
-      id: pet.id,
-      ownerId: pet.ownerId,
-      owner: pet.owner,
-      creatorId: pet.creatorId,
-      creator: pet.creator,
-      name: pet.name,
-      species: pet.species,
-      breed: pet.breed ? pet.breed : undefined,
-      dob: pet.dob ? pet.dob : undefined,
-      sex: pet.sex ? pet.sex : undefined,
-      image: pet.petImages ? pet.petImages?.url : undefined,
-      note: pet.note ? pet.note : undefined,
-    });
+    return selectPetSchema.parse({ ...pet });
   });
 }
 
-export async function getGroupsUserIsIn(): Promise<Group[]> {
+export async function getGroupsUserIsIn(): Promise<SelectGroup[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -236,7 +198,7 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
 
   const userId = user.id;
 
-  const groupMemberList = await db.query.usersToGroups.findMany({
+  const groupMemberRows = await db.query.groupMembers.findMany({
     where: (model, { eq }) => eq(model.userId, userId),
     with: {
       group: {
@@ -253,39 +215,13 @@ export async function getGroupsUserIsIn(): Promise<Group[]> {
     },
   });
 
-  if (!groupMemberList) {
+  if (!groupMemberRows) {
     throw new Error("Failed to get groups user is in");
   }
 
-  return groupMemberList.map((groupMember) => {
-    return groupSchema.parse({
-      id: groupMember.groupId,
-      creatorId: groupMember.group.creatorId,
-      creator: groupMember.group.creator,
-      name: groupMember.group.name,
-      description: groupMember.group.description,
-      pets: groupMember.group.petsToGroups.map((petToGroup) =>
-        selectPetSchema.parse({
-          id: petToGroup.pet.id,
-          name: petToGroup.pet.name,
-          ownerId: petToGroup.pet.ownerId,
-          owner: petToGroup.pet.owner,
-          creatorId: petToGroup.pet.creatorId,
-          creator: petToGroup.pet.creator,
-          species: petToGroup.pet.species,
-          breed: petToGroup.pet.breed,
-          dob: petToGroup.pet.dob,
-          sex: petToGroup.pet.sex,
-          image: petToGroup.pet.petImages?.url,
-        }),
-      ),
-      members: groupMember.group.usersToGroups.map((userToGroup) =>
-        groupMemberSchema.parse({
-          groupId: userToGroup.groupId,
-          user: selectUserSchema.parse(userToGroup.user),
-          role: userToGroup.role,
-        }),
-      ),
+  return groupMemberRows.map((row) => {
+    return selectGroupSchema.parse({
+      ...row.group,
     });
   });
 }

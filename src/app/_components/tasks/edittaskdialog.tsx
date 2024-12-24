@@ -31,7 +31,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { type Group } from "~/lib/schemas/groups";
+import { type SelectGroup } from "~/lib/schemas/groups";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import {
   Select,
@@ -42,7 +42,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
-import { type SelectBasicTask, updateTaskInputSchema } from "~/lib/schemas/tasks";
+import { type SelectBasicTask, updateTaskSchema } from "~/lib/schemas/tasks";
 import {
   deleteTaskAction,
   updateTaskAction,
@@ -69,7 +69,7 @@ export default function EditTaskDialog({
   task,
   children,
 }: {
-  groups: Group[];
+  groups: SelectGroup[];
   task: SelectBasicTask | undefined;
   children: React.ReactNode;
 }) {
@@ -83,18 +83,9 @@ export default function EditTaskDialog({
   );
   const [dueMode, setDueMode] = useState<boolean>(true);
 
-  const form = useForm<z.infer<typeof updateTaskInputSchema>>({
-    resolver: zodResolver(updateTaskInputSchema),
-    defaultValues: {
-      taskId: task?.taskId ? task.taskId : "",
-      name: task?.name ? task.name : "",
-      description: task?.description ? task.description : "",
-      dueMode: task?.dueMode ? task.dueMode : true,
-      dueDate: task?.dueDate ? task.dueDate : undefined,
-      dateRange: task?.dateRange ? task.dateRange : undefined,
-      petId: task?.petId.id ? task.petId.id : "",
-      groupId: task?.groupId.id ? task.groupId.id : "",
-    },
+  const form = useForm<z.infer<typeof updateTaskSchema>>({
+    resolver: zodResolver(updateTaskSchema),
+    defaultValues: { ...task },
   });
 
   const {
@@ -135,7 +126,7 @@ export default function EditTaskDialog({
     },
   });
 
-  async function onSubmit(values: z.infer<typeof updateTaskInputSchema>) {
+  async function onSubmit(values: z.infer<typeof updateTaskSchema>) {
     const [data, err] = await executeUpdate(values);
 
     if (err) {
@@ -149,15 +140,19 @@ export default function EditTaskDialog({
 
   // Update state upon task change, Update form value upon task change
   useEffect(() => {
-    form.setValue("taskId", task?.taskId ? task.taskId : "");
+    form.setValue("id", task?.id ? task.id : "");
     form.setValue("name", task?.name ? task.name : "");
     form.setValue("description", task?.description ? task.description : "");
     form.setValue("dueMode", task?.dueMode ? task.dueMode : true);
-    form.setValue("dueDate", task?.dueDate ? task.dueDate : undefined);
-    form.setValue("dateRange", task?.dateRange ? task.dateRange : undefined);
-    form.setValue("petId", task?.petId.id ? task.petId.id : "");
-    form.setValue("groupId", task?.groupId.id ? task.groupId.id : "");
-    setSelectedGroupId(task?.groupId.id ? task.groupId.id : "");
+    form.setValue("dueDate", task?.dueDate ? task.dueDate : null);
+    form.setValue(
+      "dateRangeFrom",
+      task?.dateRangeFrom ? task.dateRangeFrom : null,
+    );
+    form.setValue("dateRangeTo", task?.dateRangeTo ? task.dateRangeTo : null);
+    form.setValue("petId", task?.petId ? task.petId : "");
+    form.setValue("groupId", task?.groupId ? task.groupId : "");
+    setSelectedGroupId(task?.groupId ? task.groupId : "");
 
     async function fetchGroupPets() {
       await fetch("../api/group-pets?id=" + form.getValues("groupId"), {
@@ -470,7 +465,7 @@ export default function EditTaskDialog({
                 <FormItem>
                   <FormLabel>Pet *</FormLabel>
                   <Select
-                    defaultValue={task?.petId.id ? task.petId.id.toString() : ""}
+                    defaultValue={task?.petId ? task.petId.toString() : ""}
                     value={field.value?.toString()}
                     onValueChange={(value) => {
                       form.setValue("petId", value);
@@ -530,7 +525,7 @@ export default function EditTaskDialog({
                           disabled={deletePending}
                           onClick={async () => {
                             await executeDelete({
-                              taskId: task?.taskId ? task.taskId : "",
+                              id: task?.id ? task.id : "",
                             });
                           }}
                         >

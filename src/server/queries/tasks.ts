@@ -4,9 +4,6 @@ import { type SelectTask, selectTaskSchema } from "~/lib/schemas/tasks";
 import { or, not, isNull, inArray } from "drizzle-orm";
 import { db } from "../db";
 import { tasks } from "../db/schema";
-import { selectUserSchema } from "~/lib/schemas/users";
-import { selectPetSchema } from "~/lib/schemas/pets";
-import { selectGroupSchema } from "~/lib/schemas/groups";
 import { TaskTypeEnum } from "~/lib/schemas";
 import { getLoggedInUser } from "./users";
 
