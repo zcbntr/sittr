@@ -31,7 +31,7 @@ export const insertTaskSchema = createInsertSchema(tasks);
 
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 
-export const updateTaskSchema = createSelectSchema(tasks).optional();
+export const updateTaskSchema = selectBasicTaskSchema.optional();
 
 export type EditTask = z.infer<typeof updateTaskSchema>;
 

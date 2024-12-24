@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { type Group } from "~/lib/schemas/groups";
+import { type SelectGroup } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import {
@@ -45,7 +45,7 @@ import {
 } from "~/components/ui/select";
 import {
   type CreateTaskFormProps,
-  createTaskInputSchema,
+  insertTaskSchema,
 } from "~/lib/schemas/tasks";
 import { useEffect, useState } from "react";
 import { createTaskAction } from "~/server/actions/task-actions";
@@ -58,7 +58,7 @@ export default function CreateTaskDialog({
   props,
   children,
 }: {
-  groups: Group[];
+  groups: SelectGroup[];
   props?: CreateTaskFormProps;
   children: React.ReactNode;
 }) {
@@ -71,14 +71,16 @@ export default function CreateTaskDialog({
 
   const [dueMode, setDueMode] = useState<boolean>(true);
 
-  const form = useForm<z.infer<typeof createTaskInputSchema>>({
-    resolver: zodResolver(createTaskInputSchema),
+  const form = useForm<z.infer<typeof insertTaskSchema>>({
+    resolver: zodResolver(insertTaskSchema),
     defaultValues: {
       name: "",
       description: "",
       dueMode: props?.dueMode ?? true,
       dueDate: props?.dueMode ? props.dueDate : undefined,
-      dateRange: props?.dueMode ? undefined : props?.dateRange,
+      // Fix this, shouldnt be an object anymore
+      dateRangeFrom: props?.dueMode ? undefined : props?.dateRange?.from,
+      dateRangeTo: props?.dueMode ? undefined : props?.dateRange?.to,
     },
   });
 

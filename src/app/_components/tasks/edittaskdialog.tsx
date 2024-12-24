@@ -42,7 +42,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
-import { type SelectBasicTask, updateTaskSchema } from "~/lib/schemas/tasks";
+import { type SelectBasicTask, selectBasicTaskSchema, updateTaskSchema } from "~/lib/schemas/tasks";
 import {
   deleteTaskAction,
   updateTaskAction,
@@ -83,7 +83,7 @@ export default function EditTaskDialog({
   );
   const [dueMode, setDueMode] = useState<boolean>(true);
 
-  const form = useForm<z.infer<typeof updateTaskSchema>>({
+  const form = useForm<z.infer<typeof selectBasicTaskSchema>>({
     resolver: zodResolver(updateTaskSchema),
     defaultValues: { ...task },
   });
