@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { type z } from "zod";
+import { z } from "zod";
 import { MdCancel, MdEdit } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import {
@@ -16,13 +16,13 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import { type Group, groupDetailsSchema } from "~/lib/schemas/groups";
+import { type SelectGroup } from "~/lib/schemas/groups";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { updateGroupAction } from "~/server/actions/group-actions";
 import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
 
-export function GroupNameDescriptionForm({ group }: { group: Group }) {
+export function GroupNameDescriptionForm({ group }: { group: SelectGroup }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -34,12 +34,18 @@ export function GroupNameDescriptionForm({ group }: { group: Group }) {
     router.replace(`${pathname}?${nextSearchParams}`);
   }
 
-  const form = useForm<z.infer<typeof groupDetailsSchema>>({
-    resolver: zodResolver(groupDetailsSchema),
+  const schema = z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string(),
+  });
+
+  const form = useForm<NonNullable<z.infer<typeof schema>>>({
+    resolver: zodResolver(schema),
     defaultValues: {
-      groupId: group.id,
+      id: group.id,
       name: group.name,
-      description: group.description,
+      description: group.description ? group.description : "",
     },
   });
 
