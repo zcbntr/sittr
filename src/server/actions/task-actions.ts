@@ -37,7 +37,7 @@ export const createTaskAction = authenticatedProcedure
       .execute();
 
     if (!taskRow[0]) {
-      throw "Failed to create task";
+      throw new Error("Failed to create task");
     }
 
     // If less than 6 hours before the task needs to be completed notify all group members
@@ -106,13 +106,13 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
 
     // Check if the task is already completed
     if (task.completedAt) {
-      throw "Task is already set as completed by the owner";
+      throw new Error("Task is already set as completed by the owner");
     }
 
     // Check if the task is marked as done by the user
     if (task.markedAsDoneById === userId) {
       if (input.markAsDone) {
-        throw "Task is already marked as done by you";
+        throw new Error("Task is already marked as done by you");
       }
 
       await db
@@ -131,10 +131,10 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
 
       return updatedTask;
     } else if (task.claimedById !== userId) {
-      throw "You can't mark a task as done if you didn't claim it";
+      throw new Error("You can't mark a task as done if you didn't claim it");
     } else {
       if (!input.markAsDone) {
-        throw "You cannot unmark a task not marked as done by you";
+        throw new Error("You cannot unmark a task not marked as done by you");
       }
 
       await db
@@ -206,7 +206,7 @@ export const deleteTaskAction = ownsTaskProcedure
     const { success } = await ratelimit.limit(userId);
 
     if (!success) {
-      throw "You are deleting tasks too fast";
+      throw new Error("You are deleting tasks too fast");
     }
 
     await db
@@ -231,13 +231,15 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
     const { userId, task } = ctx;
 
     if (task.completedAt && task.requiresVerification) {
-      throw "Task is already marked as completed by the owner. Ask the owner to unmark it as completed in order to unclaim it";
+      throw new Error(
+        "Task is already marked as completed by the owner. Ask the owner to unmark it as completed in order to unclaim it",
+      );
     }
 
     // Check if the task has been claimed by the user
     if (task?.claimedById === userId) {
       if (input.claim) {
-        throw "Task is already claimed by you";
+        throw new Error("Task is already claimed by you");
       }
 
       // Unclaim the task and unset marked as done
@@ -266,7 +268,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         });
 
         if (!taskWithGroup) {
-          throw "Task not found";
+          throw new Error("Task not found");
         }
 
         for (const member of taskWithGroup.group?.usersToGroups ?? []) {
@@ -292,11 +294,11 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
       return updatedTask;
       // If the task is claimed by another user, the user cannot claim it
     } else if (task?.claimedBy) {
-      throw "Task is already claimed by another user";
+      throw new Error("Task is already claimed by another user");
       // If the task is not completed and not claimed, the user can claim it
     } else {
       if (!input.claim) {
-        throw "You cannot unclaim a task not claimed by you";
+        throw new Error("You cannot unclaim a task not claimed by you");
       }
 
       const updatedRow = await db
@@ -310,7 +312,9 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         .execute();
 
       if (updatedRow.length === 0) {
-        throw "Failed to claim task. This may be due to poor network conditions, or you may be trying to claim a task you own.";
+        throw new Error(
+          "Failed to claim task. This may be due to poor network conditions, or you may be trying to claim a task you own.",
+        );
       }
 
       // Remove any notifications about task being unclaimed

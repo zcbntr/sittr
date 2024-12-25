@@ -21,7 +21,7 @@ export const createPetAction = authenticatedProcedure
     const { success } = await ratelimit.limit(user.id);
 
     if (!success) {
-      throw "You are creating pets too fast";
+      throw new Error("You are creating pets too fast");
     }
 
     // Check how many pets the user has
@@ -35,7 +35,9 @@ export const createPetAction = authenticatedProcedure
       (user.plusMembership && petCount >= 100) ||
       (!user.plusMembership && petCount >= 2)
     ) {
-      throw "You have reached the maximum number of pets for your plan type";
+      throw new Error(
+        "You have reached the maximum number of pets for your plan type",
+      );
     }
 
     const petRow = await db
@@ -114,7 +116,7 @@ export const deletePetImageAction = ownsPetProcedure
       deletedImageRow.length == 0 ||
       !deletedImageRow[0]
     ) {
-      throw "Failed to delete pet image";
+      throw new Error("Failed to delete pet image");
     }
 
     // Remove old image from uploadthing
