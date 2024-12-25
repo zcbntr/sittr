@@ -44,14 +44,14 @@ export const createGroupAction = authenticatedProcedure
     });
 
     if (!userGroups) {
-      throw new Error("Could not fetch user's group");
+      throw "Could not fetch user's group";
     }
 
     if (
       (user.plusMembership && userGroups.length >= 100) ||
       (!user.plusMembership && userGroups.length >= 5)
     ) {
-      throw new Error("Reached maximum groups for your plan");
+      throw "Reached maximum groups for your plan";
     }
 
     const petIds = input.petIds;
@@ -68,7 +68,7 @@ export const createGroupAction = authenticatedProcedure
 
       if (!newGroup?.[0]) {
         db.rollback();
-        throw new Error("Failed to create group");
+        throw "Failed to create group";
       }
 
       // Add current user to groupMembers table
@@ -84,7 +84,7 @@ export const createGroupAction = authenticatedProcedure
 
       if (!groupMember?.[0]) {
         db.rollback();
-        throw new Error("Failed to add user to group");
+        throw "Failed to add user to group";
       }
 
       // Add pets to group
@@ -104,7 +104,7 @@ export const createGroupAction = authenticatedProcedure
 
         if (!petToGroupRow?.[0]) {
           db.rollback();
-          throw new Error("Failed to add pet to group");
+          throw "Failed to add pet to group";
         }
       }
     });
@@ -137,7 +137,7 @@ export const deleteGroupAction = ownsGroupProcedure
     const { success } = await ratelimit.limit(user.id);
 
     if (!success) {
-      throw new Error("You are deleting groups too fast");
+      throw "You are deleting groups too fast";
     }
 
     await db.delete(groups).where(eq(groups.id, input.id)).execute();
@@ -286,18 +286,18 @@ export const addUserToGroupAction = ownsGroupProcedure
       (owner.plusMembership && groupMemberRows.length >= 101) ||
       (!owner.plusMembership && groupMemberRows.length >= 6)
     ) {
-      throw new Error("Max group size reached");
+      throw "Max group size reached";
     }
 
     const { success } = await ratelimit.limit(input.userId);
 
     if (!success) {
-      throw new Error("You are adding users to the group too fast");
+      throw "You are adding users to the group too fast";
     }
 
     // Check user is not trying to add themselves
     if (input.userId === input.groupId) {
-      throw new Error("Cannot add yourself to your own group");
+      throw "Cannot add yourself to your own group";
     }
 
     await db
@@ -319,12 +319,12 @@ export const removeUserFromGroupAction = ownsGroupProcedure
     const { success } = await ratelimit.limit(input.userId);
 
     if (!success) {
-      throw new Error("You are removing users too fast");
+      throw "You are removing users too fast";
     }
 
     // Check if user is trying to remove themselves
     if (input.userId === input.groupId) {
-      throw new Error("Cannot remove yourself from your own group");
+      throw "Cannot remove yourself from your own group";
     }
 
     // Check if user is the last owner of the group
@@ -341,9 +341,7 @@ export const removeUserFromGroupAction = ownsGroupProcedure
       .then((rows) => rows.length);
 
     if (ownerCount === 1) {
-      throw new Error(
-        "You cannot remove the last owner of a group. Delete the group instead.",
-      );
+      throw "You cannot remove the last owner of a group. Delete the group instead.";
     }
 
     await db
@@ -379,9 +377,7 @@ export const leaveGroupAction = authenticatedProcedure
       .then((rows) => rows.length);
 
     if (ownerCount === 1) {
-      throw new Error(
-        "You cannot leave as the last owner of a group. Delete the group instead.",
-      );
+      throw "You cannot leave as the last owner of a group. Delete the group instead.";
     }
 
     await db
@@ -438,7 +434,7 @@ export const joinGroupAction = authenticatedProcedure
     });
 
     if (!inviteCodeRow) {
-      throw new Error("Invite code not found");
+      throw "Invite code not found";
     }
 
     // Check if the invite code has expired
@@ -449,7 +445,7 @@ export const joinGroupAction = authenticatedProcedure
         .where(eq(groupInviteCodes.id, inviteCodeRow.id))
         .execute();
 
-      throw new Error("Invite code has expired");
+      throw "Invite code has expired";
     }
 
     // Check if the invite code has reached its max uses
@@ -460,7 +456,7 @@ export const joinGroupAction = authenticatedProcedure
         .where(eq(groupInviteCodes.id, inviteCodeRow.id))
         .execute();
 
-      throw new Error("Invite code has reached its max uses");
+      throw "Invite code has reached its max uses";
     }
 
     // Check adding the user wouldnt exceed group member limits
@@ -478,7 +474,7 @@ export const joinGroupAction = authenticatedProcedure
     const groupOwner = groupOwnerRow?.user;
 
     if (!groupOwner) {
-      throw new Error("Could not find group owner");
+      throw "Could not find group owner";
     }
 
     const groupMemberRows = await db.query.groupMembers
@@ -492,7 +488,7 @@ export const joinGroupAction = authenticatedProcedure
       (!groupOwner.plusMembership && groupMemberRows.length >= 6)
     ) {
       // Check if the group is full (3 members for free tier, 101 for plus tier)
-      throw new Error("Max group size reached");
+      throw "Max group size reached";
     }
 
     // Add the user to the group
@@ -509,7 +505,7 @@ export const joinGroupAction = authenticatedProcedure
       .execute();
 
     if (!newGroupMember?.[0]) {
-      throw new Error("Database insert failed");
+      throw "Database insert failed";
     }
 
     // Check if incrementing the invite code will cause it to reach its max uses
@@ -547,7 +543,7 @@ export const acceptPendingUserAction = ownsGroupProcedure
       (user.plusMembership && groupMemberRows.length >= 101) ||
       (!user.plusMembership && groupMemberRows.length >= 6)
     ) {
-      throw new Error("Max group size reached");
+      throw "Max group size reached";
     }
 
     // Change the role of the user to member from pending
@@ -586,15 +582,13 @@ export const acceptPendingUserAction = ownsGroupProcedure
     }
 
     // Check if the user exists
-    const pending = await db.query.groupMembers.findFirst({
+    const pendingRow = await db.query.groupMembers.findFirst({
       where: (model, { eq }) => eq(model.userId, user.id),
     });
 
-    if (pending)
-      throw new Error(
-        `Error: User ${pending.userId} has role ${pending.role.toString()}`,
-      );
-    else throw new Error("User does not exist");
+    if (pendingRow)
+      throw `Error: User ${pendingRow.userId} has role ${pendingRow.role.toString()}`;
+    else throw "User does not exist";
   });
 
 export const rejectPendingUserAction = ownsGroupProcedure
@@ -643,10 +637,8 @@ export const rejectPendingUserAction = ownsGroupProcedure
     });
 
     if (pendingMemberRow)
-      throw new Error(
-        `Error: User ${pendingMemberRow.userId} has role ${pendingMemberRow.role.toString()}`,
-      );
-    else throw new Error("User does not exist");
+      throw `Error: User ${pendingMemberRow.userId} has role ${pendingMemberRow.role.toString()}`;
+    else throw "User does not exist";
   });
 
 export const createGroupInviteCodeAction = ownsGroupProcedure
@@ -664,7 +656,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
       (user.plusMembership && groupMemberRows.length >= 101) ||
       (!user.plusMembership && groupMemberRows.length >= 6)
     ) {
-      throw new Error("Max group size reached");
+      throw "Max group size reached";
     }
 
     // Create a new invite code based on the group id and random number
@@ -677,7 +669,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
     const inviteCode = getRandomUint32()?.toString(16);
 
     if (!inviteCode) {
-      throw new Error("Failed to generate invite code");
+      throw "Failed to generate invite code";
     }
 
     let expiresIn = 0;
@@ -695,7 +687,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
         expiresIn = 30 * 24 * 60 * 60 * 1000;
         break;
       default:
-        throw new Error("Invalid expiry date");
+        throw "Invalid expiry date";
     }
 
     const expiresAt = addMilliseconds(new Date(), expiresIn);
@@ -714,7 +706,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
       .execute();
 
     if (!newInviteCodeRow?.[0]) {
-      throw new Error("Failed to create invite code");
+      throw "Failed to create invite code";
     }
 
     const code = `https://${process.env.URL ? process.env.URL : "sittr.pet"}/join-group/${newInviteCodeRow[0].code}`;

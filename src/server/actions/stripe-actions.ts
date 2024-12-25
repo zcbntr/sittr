@@ -15,8 +15,7 @@ interface NewSessionOptions {
 }
 
 export const postStripeSession = async ({ priceId }: NewSessionOptions) => {
-  const returnUrl =
-    `${process.env.URL}/checkout-return?session_id={CHECKOUT_SESSION_ID}`;
+  const returnUrl = `${process.env.URL}/checkout-return?session_id={CHECKOUT_SESSION_ID}`;
 
   const session = await stripe.checkout.sessions.create({
     ui_mode: "embedded",
@@ -30,8 +29,7 @@ export const postStripeSession = async ({ priceId }: NewSessionOptions) => {
     return_url: returnUrl,
   });
 
-  if (!session.client_secret)
-    throw new Error("Error initiating Stripe session");
+  if (!session.client_secret) throw "Error initiating Stripe session";
 
   return {
     clientSecret: session.client_secret,

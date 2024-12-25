@@ -43,7 +43,7 @@ export const ownsPetProcedure = createServerActionProcedure(
     });
 
     if (!pet) {
-      throw new Error("Pet not found");
+      throw "Pet not found";
     }
 
     return { userId, pet };
@@ -61,7 +61,7 @@ export const ownsTaskProcedure = createServerActionProcedure(
     });
 
     if (!taskRow) {
-      throw new Error("Task not found");
+      throw "Task not found";
     }
 
     const task = selectTaskSchema.parse({ ...taskRow });
@@ -86,7 +86,7 @@ export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
     )[0];
 
     if (!taskRow) {
-      throw new Error("Task not found");
+      throw "Task not found";
     }
 
     // Return just the task part of the row
@@ -119,7 +119,7 @@ export const ownsGroupProcedure = createServerActionProcedure(
     )[0];
 
     if (!groupRow) {
-      throw new Error("Group not found");
+      throw "Group not found";
     }
 
     const group: SelectGroup = selectGroupSchema.parse({ ...groupRow.groups });

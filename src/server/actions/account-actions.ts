@@ -13,6 +13,6 @@ export async function upgradeUserToPlus(userId: string): Promise<void> {
     .execute();
 
   if (!updatedUser) {
-    throw new Error("User not found");
+    throw "User not found";
   }
 }

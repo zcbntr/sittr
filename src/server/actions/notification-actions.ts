@@ -17,6 +17,6 @@ export const markNotificationAsReadAction = authenticatedProcedure
         .where(eq(notifications.id, input))
         .execute();
     } else {
-      throw new Error("No notification provided");
+      throw "No notification provided";
     }
   });
