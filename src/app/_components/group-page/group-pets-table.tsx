@@ -123,7 +123,10 @@ export default function GroupPetsTable({
         return (
           <Link href={`/pets/${pet.id}`}>
             <Avatar>
-              <AvatarImage src={pet.image} alt={`${pet.name}'s avatar`} />
+              <AvatarImage
+                src={pet.image ? pet.image : ""}
+                alt={`${pet.name}'s avatar`}
+              />
               {/* Make this actually be the initials rather than first letter */}
               <AvatarFallback>{pet.name.substring(0, 1)}</AvatarFallback>
             </Avatar>
@@ -217,6 +220,7 @@ export default function GroupPetsTable({
                   <AlertDialogAction
                     onClick={async () => {
                       await removePetFromGroupAction({
+                        id: groupId,
                         petId: pet.id,
                         groupId: groupId,
                       });

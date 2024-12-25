@@ -1,7 +1,7 @@
 "use client";
 
 import { GroupNameDescriptionForm } from "~/app/_components/group-page/group-details-form";
-import type { SelectBasicGroupMember, Group } from "~/lib/schemas/groups";
+import type { SelectBasicGroupMember, SelectGroup } from "~/lib/schemas/groups";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -34,7 +34,7 @@ export function GroupOwnerPage({
   groupMembers,
 }: {
   user: SelectUser;
-  group: Group;
+  group: SelectGroup;
   groupPets: SelectBasicPet[];
   petsNotInGroup: SelectBasicPet[];
   groupMembers: SelectBasicGroupMember[];
@@ -101,7 +101,7 @@ export function GroupOwnerPage({
                         <AlertDialogAction
                           disabled={isPending}
                           onClick={async () => {
-                            await execute({ groupId: group.id });
+                            await execute({ id: group.id });
                           }}
                         >
                           Confirm

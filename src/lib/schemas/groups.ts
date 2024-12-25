@@ -38,6 +38,8 @@ export const selectGroupMemberSchema = selectBasicGroupMemberSchema.merge(
   }),
 );
 
+export type SelectGroupMember = z.infer<typeof selectGroupMemberSchema>;
+
 export const selectGroupSchema = selectBasicGroupSchema.merge(
   z.object({
     members: z.array(selectGroupMemberSchema).optional(),

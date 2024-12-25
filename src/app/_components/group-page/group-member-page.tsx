@@ -1,6 +1,6 @@
 "use client";
 
-import { type SelectBasicGroupMember, type Group } from "~/lib/schemas/groups";
+import { type SelectBasicGroupMember, type SelectGroup } from "~/lib/schemas/groups";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import React from "react";
 import GroupPetsTable from "./group-pets-table";
@@ -15,7 +15,7 @@ export function GroupMemberPage({
   groupMembers,
 }: {
   user: SelectUser;
-  group: Group;
+  group: SelectGroup;
   groupPets: SelectBasicPet[];
   groupMembers: SelectBasicGroupMember[];
 }) {

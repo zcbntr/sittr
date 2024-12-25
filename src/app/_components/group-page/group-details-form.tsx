@@ -36,8 +36,8 @@ export function GroupNameDescriptionForm({ group }: { group: SelectGroup }) {
 
   const schema = z.object({
     id: z.string(),
-    name: z.string(),
-    description: z.string(),
+    name: z.string().max(100),
+    description: z.string().max(1500),
   });
 
   const form = useForm<NonNullable<z.infer<typeof schema>>>({
