@@ -105,24 +105,14 @@ export function TaskEditForm({ task }: { task: SelectBasicTask }) {
                 <div className="flex flex-col gap-2">
                   <div className="flex flex-col gap-2">
                     <div className="flex flex-row place-content-center">
-                      <Avatar className="h-36 w-36">
-                        <AvatarImage
-                          src={pet.image ?? recentUploadUrl}
-                          alt={`${pet.name}'s avatar`}
-                          className="h-18"
-                        />
-                        {/* Make this actually be the initials rather than first letter */}
-                        <AvatarFallback delayMs={600}>
-                          {pet.name.substring(0, 1)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="w-xl h-xl text-center">Image goes here</div>
                     </div>
 
-                    {(pet.image ?? recentUploadUrl) && (
+                    {(task.images ?? recentUploadUrl) && (
                       <div className="flex flex-row place-content-center gap-2">
                         <UploadButton
-                          endpoint="editPetImageUploader"
-                          input={{ petId: pet.id }}
+                          endpoint="editTaskImageUploader"
+                          input={{ taskId: task.id }}
                           onClientUploadComplete={(res) => {
                             // Do something with the response
                             if (res[0]?.serverData.url)
@@ -140,7 +130,7 @@ export function TaskEditForm({ task }: { task: SelectBasicTask }) {
                           size="icon"
                           disabled={imageDeletePending}
                           onClick={async () => {
-                            await executeDeleteImage({ petId: pet.id });
+                            await executeDeleteImage({ taskId: task.id, imageId: task.images[0].id });
                             setRecentUploadUrl(undefined);
                           }}
                         >
@@ -149,10 +139,10 @@ export function TaskEditForm({ task }: { task: SelectBasicTask }) {
                       </div>
                     )}
 
-                    {!pet.image && !recentUploadUrl && (
+                    {task.images.length === 0 && !recentUploadUrl && (
                       <UploadButton
                         endpoint="editPetImageUploader"
-                        input={{ petId: pet.id }}
+                        input={{ taskId: task.id, imageId: task.images[0].id }}
                         onClientUploadComplete={(res) => {
                           // Do something with the response
                           if (res[0]?.serverData.url)

@@ -4,7 +4,7 @@ import { DataTable } from "~/components/ui/data-table";
 import React, { useState } from "react";
 import CreateGroupInviteDialog from "./create-group-invite-dialog";
 import { Button } from "~/components/ui/button";
-import { SelectGroupMember } from "~/lib/schemas/groups";
+import type { SelectGroupMemberInput } from "~/lib/schemas/groups";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { MoreHorizontal } from "lucide-react";
@@ -49,12 +49,12 @@ export default function GroupMembersTable({
 }: {
   user: SelectUser;
   groupId: string;
-  groupMembers: SelectGroupMember[];
+  groupMembers: SelectGroupMemberInput[];
   isOwner?: boolean;
 }) {
   const [alertState, setAlertState] = useState("");
 
-  const columns: ColumnDef<SelectGroupMember>[] = [
+  const columns: ColumnDef<SelectGroupMemberInput>[] = [
     {
       accessorKey: "avatar",
       header: "",

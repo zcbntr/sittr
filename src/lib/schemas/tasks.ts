@@ -3,7 +3,7 @@ import { dateRangeSchema, TaskTypeEnum } from ".";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { tasks } from "~/server/db/schema";
 import { selectPetSchema } from "./pets";
-import { selectBasicGroupSchema } from "./groups";
+import { selectGroupSchema } from "./groups";
 import { selectUserSchema } from "./users";
 
 // -----------------------------------------------------------------------------
@@ -14,17 +14,34 @@ export const selectBasicTaskSchema = createSelectSchema(tasks);
 
 export type SelectBasicTask = z.infer<typeof selectBasicTaskSchema>;
 
-export const selectTaskSchema = selectBasicTaskSchema.merge(
-  z.object({
-    creator: selectUserSchema.optional().nullable(),
-    owner: selectUserSchema.optional().nullable(),
-    pet: selectPetSchema.optional().nullable(),
-    group: selectBasicGroupSchema.optional().nullable(),
-    claimedBy: selectUserSchema.optional().nullable(),
-    markedAsDoneBy: selectUserSchema.optional().nullable(),
-  }),
-);
+export const selectTaskSchema = selectBasicTaskSchema.extend({
+  creator: z
+    .lazy(() => selectUserSchema)
+    .optional()
+    .nullable(),
+  owner: z
+    .lazy(() => selectUserSchema)
+    .optional()
+    .nullable(),
+  pet: z
+    .lazy(() => selectPetSchema)
+    .optional()
+    .nullable(),
+  group: z
+    .lazy(() => selectGroupSchema)
+    .optional()
+    .nullable(),
+  claimedBy: z
+    .lazy(() => selectUserSchema)
+    .optional()
+    .nullable(),
+  markedAsDoneBy: z
+    .lazy(() => selectUserSchema)
+    .optional()
+    .nullable(),
+});
 
+// May need to be defined before the schema if anything breaks
 export type SelectTask = z.infer<typeof selectTaskSchema>;
 
 export const insertTaskSchema = createInsertSchema(tasks).omit({

@@ -256,10 +256,11 @@ export const petRelations = relations(pets, ({ one, many }) => ({
     fields: [pets.id],
     references: [tasks.petId],
   }),
-  petImages: one(petImages, {
+  profilePic: one(petProfilePics, {
     fields: [pets.id],
-    references: [petImages.petId],
+    references: [petProfilePics.petId],
   }),
+  petImages: many(petImages),
   notifications: many(notifications),
   petsToGroups: many(petsToGroups),
 }));
@@ -398,6 +399,37 @@ export const petImagesRelations = relations(petImages, ({ one }) => ({
   }),
   pet: one(pets, {
     fields: [petImages.petId],
+    references: [pets.id],
+  }),
+}));
+
+export const petProfilePics = createTable("pet_profile_pics", {
+  id: text("id")
+    .$defaultFn(() => crypto.randomUUID())
+    .primaryKey(),
+  // Do not use .notNull() here, as the pet may not have been created yet
+  petId: text("pet_id").references(() => pets.id, { onDelete: "cascade" }),
+  uploaderId: text("uploader_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "set null" }),
+  url: text("url").notNull(),
+  fileKey: text("file_key").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const petProfilePicRelations = relations(petProfilePics, ({ one }) => ({
+  uploader: one(users, {
+    fields: [petProfilePics.uploaderId],
+    references: [users.id],
+    relationName: "uploader",
+  }),
+  pet: one(pets, {
+    fields: [petProfilePics.petId],
     references: [pets.id],
   }),
 }));

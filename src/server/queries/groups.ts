@@ -4,7 +4,7 @@ import { db } from "~/server/db";
 import { eq, inArray } from "drizzle-orm";
 import { groups, petsToGroups } from "../db/schema";
 import {
-  type SelectGroup,
+  type SelectGroupInput,
   type SelectBasicGroupMember,
   selectGroupMemberSchema,
   selectGroupSchema,
@@ -14,7 +14,9 @@ import { type SelectBasicPet, selectPetSchema } from "~/lib/schemas/pets";
 import { getLoggedInUser } from "./users";
 import { selectUserSchema } from "~/lib/schemas/users";
 
-export async function getGroupById(id: string): Promise<SelectGroup | null> {
+export async function getGroupById(
+  id: string,
+): Promise<SelectGroupInput | null> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -47,7 +49,9 @@ export async function getGroupById(id: string): Promise<SelectGroup | null> {
   return selectGroupSchema.parse({ ...group });
 }
 
-export async function getGroupsByIds(ids: string[]): Promise<SelectGroup[]> {
+export async function getGroupsByIds(
+  ids: string[],
+): Promise<SelectGroupInput[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -132,18 +136,10 @@ export async function getGroupPets(groupId: string): Promise<SelectBasicPet[]> {
 
   return groupPetRows.petsToGroups.map((row) => {
     return selectPetSchema.parse({
-      id: row.pet.id,
-      ownerId: row.pet.ownerId,
+      ...row.pet,
       owner: selectUserSchema.parse(row.pet.owner),
-      creatorId: row.pet.creatorId,
       creator: selectUserSchema.parse(row.pet.creator),
-      name: row.pet.name,
-      species: row.pet.species,
-      breed: row.pet.breed,
-      dob: row.pet.dob instanceof Date ? row.pet.dob : new Date(),
-      sex: row.pet.sex,
-      image: row.pet.petImages?.url,
-      note: row.pet.note,
+      images: row.pet.petImages,
     });
   });
 }
@@ -189,7 +185,7 @@ export async function getUsersPetsNotInGroup(
   });
 }
 
-export async function getGroupsUserIsIn(): Promise<SelectGroup[]> {
+export async function getGroupsUserIsIn(): Promise<SelectGroupInput[]> {
   const user = await getLoggedInUser();
 
   if (!user) {

@@ -16,13 +16,13 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import { type SelectGroup } from "~/lib/schemas/groups";
+import { type SelectGroupInput } from "~/lib/schemas/groups";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { updateGroupAction } from "~/server/actions/group-actions";
 import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
 
-export function GroupNameDescriptionForm({ group }: { group: SelectGroup }) {
+export function GroupNameDescriptionForm({ group }: { group: SelectGroupInput }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

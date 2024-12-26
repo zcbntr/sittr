@@ -15,7 +15,7 @@ import {
 } from "~/lib/schemas/tasks";
 import EditTaskDialog from "~/app/_components/tasks/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/tasks/createtaskdialog";
-import type { SelectGroup } from "~/lib/schemas/groups";
+import type { SelectGroupInput } from "~/lib/schemas/groups";
 import ViewTaskDialog from "~/app/_components/tasks/viewtaskdialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { type SelectUser } from "~/lib/schemas/users";
@@ -82,7 +82,7 @@ export default function CalendarComponent({
 }: {
   tasks: SelectBasicTask[];
   currentUser: SelectUser;
-  groups: SelectGroup[];
+  groups: SelectGroupInput[];
 }) {
   const router = useRouter();
   const pathname = usePathname();

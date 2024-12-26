@@ -3,7 +3,7 @@
 import { DataTable } from "~/components/ui/data-table";
 import CreateGroupDialog from "./creategroupdialog";
 import { Button } from "~/components/ui/button";
-import { type SelectGroup } from "~/lib/schemas/groups";
+import { type SelectGroupInput } from "~/lib/schemas/groups";
 import JoinGroupDialog from "./join-group-dialog";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
@@ -43,12 +43,12 @@ export default function GroupsTable({
   groups,
   user,
 }: {
-  groups: SelectGroup[];
+  groups: SelectGroupInput[];
   user: SelectUser;
 }) {
   const [alertState, setAlertState] = useState("");
 
-  const columns: ColumnDef<SelectGroup>[] = [
+  const columns: ColumnDef<SelectGroupInput>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {

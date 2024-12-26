@@ -20,7 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { type z } from "zod";
+import { z } from "zod";
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -31,7 +31,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { type SelectGroup } from "~/lib/schemas/groups";
+import { type SelectGroupInput } from "~/lib/schemas/groups";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import {
   Select,
@@ -42,7 +42,11 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
-import { type SelectBasicTask, type selectBasicTaskSchema, type SelectTask, updateTaskSchema } from "~/lib/schemas/tasks";
+import {
+  type selectBasicTaskSchema,
+  type SelectTask,
+  updateTaskSchema,
+} from "~/lib/schemas/tasks";
 import {
   deleteTaskAction,
   updateTaskAction,
@@ -69,7 +73,7 @@ export default function EditTaskDialog({
   task,
   children,
 }: {
-  groups: SelectGroup[];
+  groups: SelectGroupInput[];
   task: SelectTask | undefined;
   children: React.ReactNode;
 }) {
@@ -83,9 +87,29 @@ export default function EditTaskDialog({
   );
   const [dueMode, setDueMode] = useState<boolean>(true);
 
-  const form = useForm<z.infer<typeof selectBasicTaskSchema>>({
-    resolver: zodResolver(updateTaskSchema),
-    defaultValues: { ...task },
+  const schema = z.object({
+    id: z.string(),
+    name: z.string().min(1).max(100),
+    description: z.string().max(500).optional(),
+    dueMode: z.boolean(),
+    dueDate: z.date().optional(),
+    dateRangeFrom: z.date().optional(),
+    dateRangeTo: z.date().optional(),
+    petId: z.string().min(1),
+    groupId: z.string().min(1),
+  });
+
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      id: task?.id,
+      name: task?.name,
+      description: task?.description ? task.description : undefined,
+      dueMode: task?.dueMode,
+      dueDate: task?.dueDate ? task.dueDate : undefined,
+      dateRangeFrom: task?.dateRangeFrom ? task.dateRangeFrom : undefined,
+      dateRangeTo: task?.dateRangeTo ? task.dateRangeTo : undefined,
+    },
   });
 
   const {
@@ -144,12 +168,15 @@ export default function EditTaskDialog({
     form.setValue("name", task?.name ? task.name : "");
     form.setValue("description", task?.description ? task.description : "");
     form.setValue("dueMode", task?.dueMode ? task.dueMode : true);
-    form.setValue("dueDate", task?.dueDate ? task.dueDate : null);
+    form.setValue("dueDate", task?.dueDate ? task.dueDate : undefined);
     form.setValue(
       "dateRangeFrom",
-      task?.dateRangeFrom ? task.dateRangeFrom : null,
+      task?.dateRangeFrom ? task.dateRangeFrom : undefined,
     );
-    form.setValue("dateRangeTo", task?.dateRangeTo ? task.dateRangeTo : null);
+    form.setValue(
+      "dateRangeTo",
+      task?.dateRangeTo ? task.dateRangeTo : undefined,
+    );
     form.setValue("petId", task?.petId ? task.petId : "");
     form.setValue("groupId", task?.groupId ? task.groupId : "");
     setSelectedGroupId(task?.groupId ? task.groupId : "");
@@ -165,6 +192,7 @@ export default function EditTaskDialog({
         .then((json) => selectPetListSchema.safeParse(json))
         .then((validatedPetListObject) => {
           if (!validatedPetListObject.success) {
+            console.log(validatedPetListObject.error);
             throw new Error("Failed to get group's pets");
           }
 

@@ -6,8 +6,16 @@ import {
   petsToGroups,
 } from "~/server/db/schema";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { selectUserSchema } from "./users";
-import { selectBasicPetSchema } from "./pets";
+import {
+  type SelectUserInput,
+  type SelectUserOutput,
+  selectUserSchema,
+} from "./users";
+import {
+  type SelectPetInput,
+  type SelectPetOutput,
+  selectPetSchema,
+} from "./pets";
 
 // -----------------------------------------------------------------------------
 // Group Schemas
@@ -31,21 +39,58 @@ export const selectBasicGroupSchema = createSelectSchema(groups);
 
 export type SelectBasicGroup = z.infer<typeof selectBasicGroupSchema>;
 
-export const selectGroupMemberSchema = selectBasicGroupMemberSchema.merge(
-  z.object({
-    user: selectUserSchema.optional(),
-    group: selectBasicGroupSchema.optional(),
-  }),
-);
+export type SelectGroupMemberInput = z.input<
+  typeof selectBasicGroupMemberSchema
+> & {
+  user?: SelectUserInput | undefined;
+  group?: SelectGroupInput | undefined;
+};
+
+export type SelectGroupMemberOutput = z.output<
+  typeof selectBasicGroupMemberSchema
+> & {
+  user?: SelectUserOutput | undefined;
+  group?: SelectGroupOutput | undefined;
+};
+
+export const selectGroupMemberSchema: z.ZodType<
+  SelectGroupMemberInput,
+  z.ZodTypeDef,
+  SelectGroupMemberOutput
+> = selectBasicGroupMemberSchema.extend({
+  user: z.lazy(() => selectUserSchema).optional(),
+  group: z.lazy(() => selectGroupSchema).optional(),
+});
 
 export type SelectGroupMember = z.infer<typeof selectGroupMemberSchema>;
 
-export const selectGroupSchema = selectBasicGroupSchema.merge(
-  z.object({
-    members: z.array(selectGroupMemberSchema).optional(),
-    pets: z.array(selectBasicPetSchema).optional(),
-  }),
-);
+export type SelectGroupInput = z.input<typeof selectBasicGroupSchema> & {
+  creator?: SelectUserInput | undefined;
+  members?: SelectGroupMemberInput[] | undefined;
+  pets?: SelectPetInput[] | undefined;
+};
+
+export type SelectGroupOutput = z.output<typeof selectBasicGroupSchema> & {
+  creator?: SelectUserOutput | undefined;
+  members?: SelectGroupMemberOutput[] | undefined;
+  pets?: SelectPetOutput[] | undefined;
+};
+
+export const selectGroupSchema: z.ZodType<
+  SelectGroupInput,
+  z.ZodTypeDef,
+  SelectGroupOutput
+> = selectBasicGroupSchema.extend({
+  creator: z.lazy(() => selectUserSchema).optional(),
+  members: z
+    .lazy(() => selectGroupMemberSchema)
+    .array()
+    .optional(),
+  pets: z
+    .lazy(() => selectPetSchema)
+    .array()
+    .optional(),
+});
 
 export type SelectGroup = z.infer<typeof selectGroupSchema>;
 
@@ -53,11 +98,9 @@ export const insertGroupSchema = createInsertSchema(groups);
 
 export type NewGroup = z.infer<typeof insertGroupSchema>;
 
-export const insertGroupWithPetsSchema = insertGroupSchema.merge(
-  z.object({
-    petIds: z.array(z.string()).optional(),
-  }),
-);
+export const insertGroupWithPetsSchema = insertGroupSchema.extend({
+  petIds: z.string().array().optional(),
+});
 
 export type NewGroupWithPets = z.infer<typeof insertGroupWithPetsSchema>;
 

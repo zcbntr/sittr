@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { type SelectGroup } from "~/lib/schemas/groups";
+import { type SelectGroupInput } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
 import {
@@ -58,7 +58,7 @@ export default function CreateTaskDialog({
   props,
   children,
 }: {
-  groups: SelectGroup[];
+  groups: SelectGroupInput[];
   props?: CreateTaskFormProps;
   children: React.ReactNode;
 }) {

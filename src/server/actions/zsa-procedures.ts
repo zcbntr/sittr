@@ -12,7 +12,7 @@ import {
 } from "~/lib/schemas/tasks";
 import {
   selectBasicGroupSchema,
-  type SelectGroup,
+  type SelectGroupInput,
   selectGroupSchema,
 } from "~/lib/schemas/groups";
 
@@ -121,7 +121,7 @@ export const ownsGroupProcedure = createServerActionProcedure(
       throw new Error("Group not found");
     }
 
-    const group: SelectGroup = selectGroupSchema.parse({ ...groupRow.groups });
+    const group: SelectGroupInput = selectGroupSchema.parse({ ...groupRow.groups });
 
     return { user, group };
   });

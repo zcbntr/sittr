@@ -7,7 +7,6 @@ import {
   petsToGroupFormInputSchema,
   petToGroupFormInputSchema,
   requestGroupInviteCodeFormInputSchema,
-  selectGroupSchema,
   updateGroupSchema,
   userGroupPairSchema,
 } from "~/lib/schemas/groups";
@@ -131,7 +130,7 @@ export const updateGroupAction = ownsGroupProcedure
 
 export const deleteGroupAction = ownsGroupProcedure
   .createServerAction()
-  .input(selectGroupSchema.pick({ id: true }))
+  .input(z.object({ id: z.string() }))
   .handler(async ({ ctx, input }) => {
     const user = ctx.user;
     const { success } = await ratelimit.limit(user.id);
