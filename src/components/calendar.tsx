@@ -9,17 +9,16 @@ import { addDays, addHours, addMilliseconds } from "date-fns";
 import { Button } from "./ui/button";
 import {
   selectBasicTaskSchema,
+  SelectTask,
   type CreateTaskFormProps,
   type SelectBasicTask,
 } from "~/lib/schemas/tasks";
 import EditTaskDialog from "~/app/_components/tasks/edittaskdialog";
 import CreateTaskDialog from "~/app/_components/tasks/createtaskdialog";
-import type { Group } from "~/lib/schemas/groups";
-import { type DateRange } from "~/lib/schemas";
+import type { SelectGroup } from "~/lib/schemas/groups";
 import ViewTaskDialog from "~/app/_components/tasks/viewtaskdialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { type SelectUser } from "~/lib/schemas/users";
-import { type SelectBasicPet } from "~/lib/schemas/pets";
 
 const coloursList: string[] = [
   "#f54290",
@@ -46,53 +45,33 @@ const localizer = momentLocalizer(moment);
 
 class CalendarEvent {
   id: string;
-  owner: SelectUser;
-  createdBy: SelectUser;
+  task: SelectTask;
   title: string;
   allDay: boolean;
-  dueMode: boolean;
-  dueDate: Date | null;
-  dateRange: DateRange | null;
   start: Date;
   end: Date;
-  pet: SelectBasicPet;
-  group: Group;
-  markedAsDoneBy: SelectUser | null;
-  markedAsDoneAt: Date | null;
-  claimedBy: SelectUser | null;
-  claimedAt: Date | null;
   desc: string;
   resourceId?: string;
   tooltip?: string;
 
-  constructor(_task: SelectBasicTask) {
-    this.id = _task.taskId;
-    this.owner = _task.owner;
-    this.createdBy = _task.createdBy;
+  constructor(_task: SelectTask) {
+    this.id = _task.id;
+    this.task = _task;
     this.title = _task.name;
     this.allDay = _task.dueMode;
-    this.dueMode = _task.dueMode;
-    this.dueDate = _task.dueDate ? _task.dueDate : null;
-    this.dateRange = _task.dateRange ? _task.dateRange : null;
 
     if (_task.dueMode) {
       this.start = _task.dueDate ? _task.dueDate : new Date();
       this.end = addMilliseconds(_task.dueDate ? _task.dueDate : new Date(), 1);
     } else {
-      this.start = _task.dateRange?.from ? _task.dateRange.from : new Date();
-      this.end = _task.dateRange?.to
-        ? addMilliseconds(_task.dateRange.to, 1)
+      this.start = _task.dateRangeFrom ? _task.dateRangeFrom : new Date();
+      this.end = _task.dateRangeTo
+        ? addMilliseconds(_task.dateRangeTo, 1)
         : addMilliseconds(new Date(), 1);
     }
 
-    this.markedAsDoneBy = _task.markedAsDoneBy ? _task.markedAsDoneBy : null;
-    this.markedAsDoneAt = _task.markedAsDoneAt ? _task.markedAsDoneAt : null;
-    this.claimedBy = _task.claimedBy ? _task.claimedBy : null;
-    this.claimedAt = _task.claimedAt ? _task.claimedAt : null;
-    this.pet = _task.petId;
-    this.group = _task.groupId;
     this.desc = _task.description ? _task.description : "";
-    this.resourceId = _task.petId.id;
+    this.resourceId = _task.petId ? _task.petId : undefined;
   }
 }
 
@@ -103,7 +82,7 @@ export default function CalendarComponent({
 }: {
   tasks: SelectBasicTask[];
   currentUser: SelectUser;
-  groups: Group[];
+  groups: SelectGroup[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -153,56 +132,16 @@ export default function CalendarComponent({
 
   const handleEventSelect = (event: CalendarEvent) => {
     // Check if the user owns the task
-    if (event.owner.id !== currentUser.id) {
+    if (event.task.ownerId !== currentUser.id) {
       const button = document.getElementById("openViewTaskDialogHiddenButton");
       if (button) {
-        setSelectedTask(
-          selectBasicTaskSchema.parse({
-            taskId: event.id,
-            owner: event.owner,
-            createdBy: event.createdBy,
-            name: event.title,
-            description: event.desc,
-            pet: event.pet,
-            group: event.group,
-            dueMode: event.dueMode,
-            dueDate: event.dueDate,
-            dateRange: event.dateRange,
-            markedAsDoneBy: event.markedAsDoneBy,
-            markedAsDoneAt: event.markedAsDoneAt,
-            claimedBy: event.claimedBy,
-            claimedAt: event.claimedAt,
-            requiresVerification: false,
-          }),
-        );
+        setSelectedTask(selectBasicTaskSchema.parse({ ...event.task }));
         button.click();
       }
     } else {
       const button = document.getElementById("openEditTaskDialogHiddenButton");
       if (button) {
-        setSelectedTask(
-          selectBasicTaskSchema.parse({
-            taskId: event.id,
-            owner: event.owner,
-            createdBy: event.createdBy,
-            name: event.title,
-            description: event.desc,
-            pet: event.pet,
-            group: event.group,
-            dueMode: event.dueMode,
-            dueDate: event.end,
-            dateRange: event.start &&
-              event.end && {
-                from: event.start,
-                to: event.end,
-              },
-            markedAsDoneBy: event.markedAsDoneBy,
-            markedAsDoneAt: event.markedAsDoneAt,
-            claimedBy: event.claimedBy,
-            claimedAt: event.claimedAt,
-            requiresVerification: false,
-          }),
-        );
+        setSelectedTask(selectBasicTaskSchema.parse({ ...event.task }));
         button.click();
       }
     }
@@ -236,7 +175,7 @@ export default function CalendarComponent({
             };
 
             // Map the event to a colour based on the petId
-            const petId = event.pet.id;
+            const petId = event.task.petId;
             if (petId) {
               const colour =
                 coloursList[
@@ -253,8 +192,8 @@ export default function CalendarComponent({
 
             // If the task is marked as done, or claimed by another user, change the background opacity
             if (
-              (event.claimedBy && event.claimedBy?.id != currentUser.id) ||
-              (!event.claimedBy && event.owner.id != currentUser.id)
+              (event.task.claimedBy && event.task.claimedBy?.id != currentUser.id) ||
+              (!event.task.claimedBy && event.task.ownerId != currentUser.id)
             ) {
               newStyle.opacity = 0.5;
             }
