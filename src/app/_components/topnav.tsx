@@ -80,12 +80,12 @@ export async function TopNav() {
                     <DropdownMenuItem key={notification.id}>
                       <Link
                         href={
-                          notification.associatedGroup
-                            ? `/groups/${notification.associatedGroup}?notification=${notification.id}`
-                            : notification.associatedPet
-                              ? `/pets/${notification.associatedPet}?notification=${notification.id}`
-                              : notification.associatedTask
-                                ? `/tasks/${notification.associatedTask}?notification=${notification.id}`
+                          notification.associatedGroupId
+                            ? `/groups/${notification.associatedGroupId}?notification=${notification.id}`
+                            : notification.associatedPetId
+                              ? `/pets/${notification.associatedPetId}?notification=${notification.id}`
+                              : notification.associatedTaskId
+                                ? `/tasks/${notification.associatedTaskId}?notification=${notification.id}`
                                 : "/"
                         }
                         className="flex flex-row place-content-start gap-2"

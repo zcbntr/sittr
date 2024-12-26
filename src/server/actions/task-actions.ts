@@ -121,13 +121,13 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
           markedAsDoneById: null,
           markedAsDoneAt: null,
         })
-        .where(eq(tasks.id, input.taskId))
+        .where(eq(tasks.id, input.id))
         .execute();
 
       revalidatePath(`/tasks/${task.id}`);
       revalidatePath("/");
 
-      const updatedTask = await getVisibleTaskById(input.taskId);
+      const updatedTask = await getVisibleTaskById(input.id);
 
       return updatedTask;
     } else if (task.claimedById !== userId) {
@@ -145,7 +145,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
           claimedById: userId,
           claimedAt: new Date(),
         })
-        .where(eq(tasks.id, input.taskId))
+        .where(eq(tasks.id, input.id))
         .execute();
 
       // Remove any notifications about task being unclaimed or overdue
@@ -153,7 +153,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
         .delete(notifications)
         .where(
           and(
-            eq(notifications.associatedTaskId, input.taskId),
+            eq(notifications.associatedTaskId, input.id),
             or(
               eq(
                 notifications.notificationType,
@@ -192,7 +192,7 @@ export const setTaskMarkedAsDoneAction = canMarkTaskAsDoneProcedure
       revalidatePath(`/tasks/${task.id}`);
       revalidatePath("/");
 
-      const updatedTask = await getVisibleTaskById(input.taskId);
+      const updatedTask = await getVisibleTaskById(input.id);
 
       return updatedTask;
     }
@@ -251,7 +251,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
           markedAsDoneById: null,
           markedAsDoneAt: null,
         })
-        .where(and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, userId))))
+        .where(and(eq(tasks.id, input.id), not(eq(tasks.ownerId, userId))))
         .returning()
         .execute();
 
@@ -263,7 +263,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
           task.dateRangeFrom < new Date(Date.now() + 6 * 60 * 60 * 1000))
       ) {
         const taskWithGroup = await db.query.tasks.findFirst({
-          where: eq(tasks.id, input.taskId),
+          where: eq(tasks.id, input.id),
           with: { group: { with: { usersToGroups: true } } },
         });
 
@@ -289,7 +289,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
       revalidatePath("/");
       revalidatePath(`/tasks/${task.id}`);
 
-      const updatedTask = await getVisibleTaskById(input.taskId);
+      const updatedTask = await getVisibleTaskById(input.id);
 
       return updatedTask;
       // If the task is claimed by another user, the user cannot claim it
@@ -307,7 +307,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
           claimedById: userId,
           claimedAt: new Date(),
         })
-        .where(and(eq(tasks.id, input.taskId), not(eq(tasks.ownerId, userId))))
+        .where(and(eq(tasks.id, input.id), not(eq(tasks.ownerId, userId))))
         .returning()
         .execute();
 
@@ -322,7 +322,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
         .delete(notifications)
         .where(
           and(
-            eq(notifications.associatedTaskId, input.taskId),
+            eq(notifications.associatedTaskId, input.id),
             eq(
               notifications.notificationType,
               NotificationTypeEnum.Values["Upcoming Unclaimed Task"],
@@ -334,7 +334,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
       revalidatePath("/");
       revalidatePath(`/tasks/${task.id}`);
 
-      const updatedTask = await getVisibleTaskById(input.taskId);
+      const updatedTask = await getVisibleTaskById(input.id);
 
       return updatedTask;
     }

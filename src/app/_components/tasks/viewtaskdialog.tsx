@@ -10,6 +10,7 @@ import {
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import {
+  SelectTask,
   setClaimTaskFormProps,
   setMarkedAsCompleteFormProps,
   type SelectBasicTask,
@@ -46,13 +47,13 @@ export default function ViewTaskDialog({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState<boolean>(false);
-  const [task, setTask] = useState<SelectBasicTask | undefined>(initialTaskData);
+  const [task, setTask] = useState<SelectTask | undefined>(initialTaskData);
 
   const claimTaskForm = useForm<z.infer<typeof setClaimTaskFormProps>>({
     resolver: zodResolver(setClaimTaskFormProps),
     defaultValues: {
-      taskId: task?.taskId,
-      claim: task?.claimedBy?.id === currentUser?.id,
+      id: task?.id,
+      claim: task?.claimedById === currentUser?.id,
     },
     mode: "onSubmit",
   });
@@ -62,8 +63,8 @@ export default function ViewTaskDialog({
   >({
     resolver: zodResolver(setMarkedAsCompleteFormProps),
     defaultValues: {
-      taskId: task?.taskId,
-      markAsDone: task?.markedAsDoneBy?.id === currentUser?.id,
+      id: task?.id,
+      markAsDone: task?.markedAsDoneById === currentUser?.id,
     },
     mode: "onSubmit",
   });
@@ -77,16 +78,17 @@ export default function ViewTaskDialog({
       toast.error(err.message);
     },
     onSuccess: (data) => {
-      setTask(data.data);
-      if (data.data.claimedBy?.id === currentUser?.id) {
+      const updatedTask = data.data;
+      setTask(updatedTask);
+      if (updatedTask.claimedBy?.id === currentUser?.id) {
         toast.success("Task claimed!");
         claimTaskForm.reset();
-        claimTaskForm.setValue("taskId", data.data.taskId);
+        claimTaskForm.setValue("id", updatedTask.id);
         claimTaskForm.setValue("claim", false);
       } else {
         toast.success("Task unclaimed!");
         claimTaskForm.reset();
-        claimTaskForm.setValue("taskId", data.data.taskId);
+        claimTaskForm.setValue("id", updatedTask.id);
         claimTaskForm.setValue("claim", true);
       }
     },
@@ -101,16 +103,17 @@ export default function ViewTaskDialog({
       toast.error(err.message);
     },
     onSuccess: (data) => {
-      setTask(data.data);
-      if (data.data.markedAsDoneBy?.id === currentUser?.id) {
+      const updatedTask = data.data;
+      setTask(updatedTask);
+      if (updatedTask.markedAsDoneById === currentUser?.id) {
         toast.success("Marked as done!");
         markAsCompleteForm.reset();
-        markAsCompleteForm.setValue("taskId", data.data.taskId);
+        markAsCompleteForm.setValue("id", updatedTask.id);
         markAsCompleteForm.setValue("markAsDone", false);
       } else {
         toast.success("Unmarked as done!");
         markAsCompleteForm.reset();
-        markAsCompleteForm.setValue("taskId", data.data.taskId);
+        markAsCompleteForm.setValue("id", updatedTask.id);
         markAsCompleteForm.setValue("markAsDone", true);
       }
     },
@@ -151,44 +154,43 @@ export default function ViewTaskDialog({
                 <CalendarIcon className="mr-2 h-4 w-4" />
               </div>
               <div>
-                {task?.dateRange?.from
-                  ? format(task.dateRange.from, "MMM do HH:mm")
+                {task?.dateRangeFrom
+                  ? format(task.dateRangeFrom, "MMM do HH:mm")
                   : ""}{" "}
                 -
-                {task?.dateRange?.to
-                  ? format(task?.dateRange?.to, "MMM do HH:mm")
+                {task?.dateRangeTo
+                  ? format(task?.dateRangeTo, "MMM do HH:mm")
                   : ""}
               </div>
             </div>
           )}
 
           <div className="flex flex-row gap-2">
-            <Link href={`/pets/${task?.petId.id}`}>
+            <Link href={`/pets/${task?.petId}`}>
               <Avatar>
                 <AvatarImage
-                  src={task?.petId.image}
-                  alt={`${task?.petId.name}'s avatar`}
+                  src={task?.pet?.image ? task.pet.image : ""}
+                  alt={`${task?.pet?.name}'s avatar`}
                 />
                 {/* Make this actually be the initials rather than first letter */}
                 <AvatarFallback>
-                  {task?.petId.name.substring(0, 1)}
+                  {task?.pet?.name.substring(0, 1)}
                 </AvatarFallback>
               </Avatar>
             </Link>
             <div className="flex flex-col place-content-center">
-              {task?.petId.name} ({task?.groupId.name})
+              {task?.pet?.name}{" "}
+              {task?.group?.name && <span>{task?.group?.name}</span>}
             </div>
           </div>
 
           <div>{task?.description}</div>
 
-          {task?.claimedBy?.id == currentUser?.id &&
-            task?.claimedAt && (
-              <div className="text-sm font-medium">
-                You claimed this task on{" "}
-                {format(task.claimedAt, "MMM do HH:mm")}
-              </div>
-            )}
+          {task?.claimedBy?.id == currentUser?.id && task?.claimedAt && (
+            <div className="text-sm font-medium">
+              You claimed this task on {format(task.claimedAt, "MMM do HH:mm")}
+            </div>
+          )}
 
           {task?.markedAsDoneBy?.id == currentUser?.id &&
             task?.markedAsDoneAt && (
@@ -204,7 +206,7 @@ export default function ViewTaskDialog({
                 <Button
                   className="h-fit w-full"
                   disabled={
-                    (!claimTaskForm.getValues("taskId") ||
+                    (!claimTaskForm.getValues("id") ||
                       (task?.claimedBy &&
                         task.claimedBy?.id !== currentUser?.id)) ??
                     (markAsDonePending || claimPending)
@@ -251,7 +253,7 @@ export default function ViewTaskDialog({
                 <Button
                   className="h-fit w-full"
                   disabled={
-                    (!markAsCompleteForm.getValues("taskId") ||
+                    (!markAsCompleteForm.getValues("id") ||
                       (task?.markedAsDoneBy &&
                         task.markedAsDoneBy?.id !== currentUser?.id)) ??
                     (markAsDonePending || claimPending)
