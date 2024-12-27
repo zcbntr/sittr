@@ -135,9 +135,27 @@ export const updatePetToGroupSchema =
 
 export type EditPetToGroup = z.infer<typeof updatePetToGroupSchema>;
 
-export const joinGroupFormSchema = z.object({
-  inviteCode: z.string(),
-});
+export const joinGroupFormSchema = z
+  .object({
+    inviteCode: z.string(),
+  })
+  .refine(
+    // Give error if invite code is not 8 characters long
+    (data) => data.inviteCode.length === 8,
+    {
+      message: "Invite codes are 8 characters long",
+      path: ["inviteCode"],
+    },
+  )
+  .refine(
+    // Give error if invite code has non alphanumetic characters
+    (data) => /^[a-zA-Z0-9]+$/.test(data.inviteCode),
+    {
+      message:
+        "Invite codes only contain alphanumeric characters (a-z, A-Z, 0-9)",
+      path: ["inviteCode"],
+    },
+  );
 
 export type JoinGroupFormData = z.infer<typeof joinGroupFormSchema>;
 

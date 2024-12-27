@@ -26,6 +26,7 @@ import { redirect } from "next/navigation";
 import { addMilliseconds } from "date-fns";
 import { ratelimit } from "../ratelimit";
 import { GroupRoleEnum, NotificationTypeEnum } from "~/lib/schemas";
+import { randomString } from "~/lib/utils";
 
 export const createGroupAction = authenticatedProcedure
   .createServerAction()
@@ -666,14 +667,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
       throw new Error("Max group size reached");
     }
 
-    // Create a new invite code based on the group id and random number
-    function getRandomUint32() {
-      const data = new Uint32Array(1);
-      crypto.getRandomValues(data);
-      return data[0];
-    }
-
-    const inviteCode = getRandomUint32()?.toString(16);
+    const inviteCode = randomString(8, "#aA");
 
     if (!inviteCode) {
       throw new Error("Failed to generate invite code");
@@ -716,7 +710,7 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
       throw new Error("Failed to create invite code");
     }
 
-    const code = `https://${process.env.URL ? process.env.URL : "sittr.pet"}/join-group/${newInviteCodeRow[0].code}`;
+    const code = `${process.env.URL ? process.env.URL : "sittr.pet"}/join-group/${newInviteCodeRow[0].code}`;
 
     return { code };
   });

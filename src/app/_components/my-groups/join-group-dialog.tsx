@@ -56,14 +56,14 @@ export default function JoinGroupDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-svh w-5/6 overflow-y-scroll rounded-md sm:w-[533px]">
+      <DialogContent className="max-h-svh w-5/6 overflow-y-scroll rounded-md sm:w-[460px]">
         <DialogHeader>
-          <DialogTitle>Join Group</DialogTitle>
+          <DialogTitle>Enter Group Invite Code</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => execute(values))}
-            className="w-full space-y-6"
+            className="mt-4 w-full space-y-6 px-1"
             name="joinGroup"
           >
             <FormField
@@ -71,13 +71,12 @@ export default function JoinGroupDialog({
               name="inviteCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Code</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    Enter an invite code to join a group. You can request an
-                    invite code from the group owner.
+                    You can request an invite code from the group owner. Certain
+                    groups may require owner approval before you gain access.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
