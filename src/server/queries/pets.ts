@@ -2,7 +2,7 @@
 
 import { db } from "~/server/db";
 import {
-  SelectPet,
+  type SelectPet,
   selectPetSchema,
   type SelectBasicPet,
 } from "~/lib/schemas/pets";
