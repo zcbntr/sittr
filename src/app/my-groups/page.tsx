@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
-import { type Group } from "~/lib/schemas/groups";
+import { type SelectGroup } from "~/lib/schemas/groups";
 import GroupsTable from "../_components/my-groups/groupstable";
 import { getLoggedInUser } from "~/server/queries/users";
 import { redirect } from "next/navigation";
@@ -19,7 +19,7 @@ export default async function Page() {
   return <MyGroupsPage groups={groups} user={user} />;
 }
 
-function MyGroupsPage({ groups, user }: { groups: Group[]; user: SelectUser }) {
+function MyGroupsPage({ groups, user }: { groups: SelectGroup[]; user: SelectUser }) {
   return (
     <>
       <section className="container mx-auto py-4">

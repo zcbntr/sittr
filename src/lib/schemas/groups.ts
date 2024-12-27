@@ -100,6 +100,7 @@ export type NewGroup = z.infer<typeof insertGroupSchema>;
 
 export const insertGroupWithPetsSchema = insertGroupSchema.extend({
   petIds: z.string().array().optional(),
+  description: z.string(),
 });
 
 export type NewGroupWithPets = z.infer<typeof insertGroupWithPetsSchema>;
@@ -145,6 +146,7 @@ export type JoinGroupFormData = z.infer<typeof joinGroupFormSchema>;
 // -----------------------------------------------------------------------------
 
 export const requestGroupInviteCodeFormInputSchema = z.object({
+  id: z.string(),
   groupId: z.string(),
   maxUses: z.coerce.number(),
   expiresIn: DurationEnum,
@@ -163,6 +165,7 @@ export const petToGroupFormInputSchema = z.object({
 export type petToGroupFormInput = z.infer<typeof petToGroupFormInputSchema>;
 
 export const petsToGroupFormInputSchema = z.object({
+  id: z.string(),
   petIds: z.array(z.string()),
   groupId: z.string(),
 });

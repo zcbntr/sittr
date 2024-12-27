@@ -1,10 +1,10 @@
 "use server";
 
 import { auth } from "~/auth";
-import { type SelectUser, selectUserSchema } from "~/lib/schemas/users";
+import { type SelectBasicUser, type SelectUser, selectUserSchema } from "~/lib/schemas/users";
 import { db } from "../db";
 
-export async function getLoggedInUser(): Promise<SelectUser | undefined> {
+export async function getLoggedInUser(): Promise<SelectBasicUser | undefined> {
   const session = await auth();
 
   const userEmail = session?.user?.email;

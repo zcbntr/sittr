@@ -55,6 +55,7 @@ export default function CreateGroupInviteDialog({
     mode: "onChange",
     resolver: zodResolver(requestGroupInviteCodeFormInputSchema),
     defaultValues: {
+      id: groupId,
       groupId: groupId,
       maxUses: 1,
       expiresIn: DurationEnum.enum["1 Week"],

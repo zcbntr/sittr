@@ -45,7 +45,10 @@ export const selectPetListSchema = selectPetSchema.array();
 
 export type SelectPetList = z.infer<typeof selectPetListSchema>;
 
-export const insertPetSchema = createInsertSchema(pets)
+export const insertPetSchema = selectBasicPetSchema
+  .extend({
+    breed: z.string(),
+  })
   .refine((data) => data.dob && data.dob < new Date(), {
     message: "Birthdate must be in the past",
   })

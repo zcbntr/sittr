@@ -27,7 +27,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
 import {
-  deletePetImageAction,
+  deletePetProfilePicAction,
   updatePetAction,
 } from "~/server/actions/pet-actions";
 import { useServerAction } from "zsa-react";
@@ -66,7 +66,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
   const updateForm = useForm<z.infer<typeof updatePetSchema>>({
     resolver: zodResolver(updatePetSchema),
     defaultValues: {
-      petId: pet.id,
+      id: pet.id,
       name: pet.name,
       species: pet.species,
       dob: pet.dob,
@@ -90,7 +90,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
   );
 
   const { isPending: imageDeletePending, execute: executeDeleteImage } =
-    useServerAction(deletePetImageAction, {
+    useServerAction(deletePetProfilePicAction, {
       onError: ({ err }) => {
         toast.error(err.message);
       },
@@ -149,7 +149,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                           size="icon"
                           disabled={imageDeletePending}
                           onClick={async () => {
-                            await executeDeleteImage({ petId: pet.id });
+                            await executeDeleteImage({ id: pet.id });
                             setRecentUploadUrl(undefined);
                           }}
                         >
@@ -211,7 +211,10 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                       <FormItem>
                         <FormLabel>Breed</FormLabel>
                         <FormControl>
-                          <Input placeholder="Golden Retriever" {...field} />
+                          <Input
+                            placeholder="Golden Retriever"
+                            value={field.value ? field.value : undefined}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -226,7 +229,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                         <FormLabel>Sex</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}
+                          value={field.value ? field.value : undefined}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -289,7 +292,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                                 date > new Date() ||
                                 date < new Date("1900-01-01")
                               }
-                              selected={field.value}
+                              selected={field.value ? field.value : undefined}
                               onSelect={(e) => {
                                 setDOB(e);
                                 field.onChange(e);
@@ -343,7 +346,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                           <Textarea
                             placeholder={`Include information that will help sitters take care of ${pet.name}, such as allergies, behaviours, or a favourite toy.`}
                             className="w-240 max-h-full min-h-[250px] min-w-[270px] sm:h-[620px] sm:w-full"
-                            {...field}
+                            value={field.value ? field.value : undefined}
                           />
                         </FormControl>
                         <FormMessage />

@@ -2,7 +2,7 @@
 
 import { insertPetSchema, updatePetSchema } from "~/lib/schemas/pets";
 import { db } from "../db";
-import { petImages, pets } from "../db/schema";
+import { petImages, petProfilePics, pets } from "../db/schema";
 import { authenticatedProcedure, ownsPetProcedure } from "./zsa-procedures";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -98,16 +98,44 @@ export const deletePetAction = authenticatedProcedure
     redirect(`/pets`);
   });
 
-export const deletePetImageAction = ownsPetProcedure
+export const deletePetProfilePicAction = ownsPetProcedure
   .createServerAction()
-  .input(z.object({ petId: z.string() }))
+  .input(z.object({ id: z.string() }))
   .handler(async ({ input, ctx }) => {
     const { pet } = ctx;
-    const { petId } = input;
+    const { id } = input;
+
+    const deletedProfPicRow = await db
+      .delete(petProfilePics)
+      .where(and(eq(petProfilePics.petId, id)))
+      .returning({ fileKey: petProfilePics.fileKey })
+      .execute();
+
+    if (
+      !deletedProfPicRow ||
+      deletedProfPicRow.length == 0 ||
+      !deletedProfPicRow[0]
+    ) {
+      throw new Error("Failed to delete pet image");
+    }
+
+    // Remove old image from uploadthing
+    await utapi.deleteFiles(deletedProfPicRow[0].fileKey);
+
+    revalidatePath(`/pets/${pet.id}`);
+    revalidatePath(`/pets/${pet.id}?editing=true`);
+  });
+
+export const deletePetImageAction = ownsPetProcedure
+  .createServerAction()
+  .input(z.object({ id: z.string(), imageId: z.string() }))
+  .handler(async ({ input, ctx }) => {
+    const { pet } = ctx;
+    const { id } = input;
 
     const deletedImageRow = await db
       .delete(petImages)
-      .where(and(eq(petImages.petId, petId)))
+      .where(and(eq(petImages.petId, id), eq(petImages.id, input.imageId)))
       .returning({ fileKey: petImages.fileKey })
       .execute();
 

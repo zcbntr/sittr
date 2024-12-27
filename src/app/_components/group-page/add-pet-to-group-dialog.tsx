@@ -49,6 +49,7 @@ export default function AddPetToGroupDialog({
   const form = useForm<z.infer<typeof petsToGroupFormInputSchema>>({
     resolver: zodResolver(petsToGroupFormInputSchema),
     defaultValues: {
+      id: groupId,
       groupId: groupId,
       petIds: [],
     },

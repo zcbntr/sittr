@@ -15,13 +15,16 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import type { SelectUser } from "~/lib/schemas/users";
 import { TaskEditForm } from "./task-edit-form";
+import { SelectBasicGroup } from "~/lib/schemas/groups";
 
-export function TaskOwnerPage({
+export default function TaskOwnerPage({
   task,
   user,
+  userGroups,
 }: {
   task: SelectTask;
   user: SelectUser;
+  userGroups: SelectBasicGroup[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,7 +44,7 @@ export function TaskOwnerPage({
     <div className="container mx-auto space-y-6 p-4">
       <div className="flex h-full w-full grow flex-row place-content-center">
         {isEditing ? (
-          <TaskEditForm task={task} />
+          <TaskEditForm task={task} userGroups={userGroups} />
         ) : (
           <Card className="w-full max-w-[1000px]">
             <CardContent className="p-8">

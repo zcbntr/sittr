@@ -31,7 +31,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { type SelectGroupInput } from "~/lib/schemas/groups";
+import { type SelectGroup } from "~/lib/schemas/groups";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import {
   Select,
@@ -42,11 +42,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
-import {
-  type selectBasicTaskSchema,
-  type SelectTask,
-  updateTaskSchema,
-} from "~/lib/schemas/tasks";
+import { type SelectTask, type updateTaskSchema } from "~/lib/schemas/tasks";
 import {
   deleteTaskAction,
   updateTaskAction,
@@ -73,7 +69,7 @@ export default function EditTaskDialog({
   task,
   children,
 }: {
-  groups: SelectGroupInput[];
+  groups: SelectGroup[];
   task: SelectTask | undefined;
   children: React.ReactNode;
 }) {

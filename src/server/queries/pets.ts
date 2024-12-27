@@ -1,7 +1,11 @@
 "use server";
 
 import { db } from "~/server/db";
-import { selectPetSchema, type SelectBasicPet } from "~/lib/schemas/pets";
+import {
+  SelectPet,
+  selectPetSchema,
+  type SelectBasicPet,
+} from "~/lib/schemas/pets";
 import { getLoggedInUser } from "./users";
 
 export async function getOwnedPetById(petId: string): Promise<SelectBasicPet> {
@@ -25,23 +29,12 @@ export async function getOwnedPetById(petId: string): Promise<SelectBasicPet> {
     throw new Error("Pet not found");
   }
 
-  return selectPetSchema.parse({
-    id: pet.id,
-    ownerId: pet.ownerId,
-    creatorId: pet.creatorId,
-    owner: pet.owner,
-    creator: pet.creator,
-    name: pet.name,
-    species: pet.species,
-    breed: pet.breed ? pet.breed : undefined,
-    dob: pet.dob ? pet.dob : undefined,
-    sex: pet.sex,
-    image: pet.petImages?.url ? pet.petImages.url : undefined,
-    note: pet.note ? pet.note : undefined,
-  });
+  return selectPetSchema.parse({ ...pet });
 }
 
-export async function getPetVisibleViaCommonGroup(petId: string): Promise<SelectBasicPet> {
+export async function getPetVisibleViaCommonGroup(
+  petId: string,
+): Promise<SelectBasicPet> {
   const user = await getLoggedInUser();
   const userId = user?.id;
 
@@ -82,23 +75,12 @@ export async function getPetVisibleViaCommonGroup(petId: string): Promise<Select
     throw new Error("Pet not visible");
   }
 
-  return selectPetSchema.parse({
-    id: pet.id,
-    ownerId: pet.ownerId,
-    creatorId: pet.creatorId,
-    owner: pet.owner,
-    creator: pet.creator,
-    name: pet.name,
-    species: pet.species,
-    breed: pet.breed ? pet.breed : undefined,
-    dob: pet.dob ? pet.dob : undefined,
-    sex: pet.sex,
-    image: pet.petImages?.url ? pet.petImages.url : undefined,
-    note: pet.note ? pet.note : undefined,
-  });
+  return selectPetSchema.parse({ ...pet });
 }
 
-export async function getPetsByIds(petIds: string[]): Promise<SelectBasicPet[] | string> {
+export async function getPetsByIds(
+  petIds: string[],
+): Promise<SelectBasicPet[] | string> {
   const user = await getLoggedInUser();
   const userId = user?.id;
 
@@ -139,7 +121,7 @@ export async function getPetsByIds(petIds: string[]): Promise<SelectBasicPet[] |
   });
 }
 
-export async function getOwnedPets(): Promise<SelectBasicPet[]> {
+export async function getOwnedPets(): Promise<SelectPet[]> {
   const user = await getLoggedInUser();
   const userId = user?.id;
 
@@ -157,21 +139,8 @@ export async function getOwnedPets(): Promise<SelectBasicPet[]> {
   });
 
   // Turn into zod pet type
-  const petsList: SelectBasicPet[] = ownedPets.map((pet) => {
-    return selectPetSchema.parse({
-      id: pet.id,
-      ownerId: pet.ownerId,
-      creatorId: pet.creatorId,
-      owner: pet.owner,
-      creator: pet.creator,
-      name: pet.name,
-      species: pet.species,
-      breed: pet.breed ? pet.breed : undefined,
-      dob: pet.dob ? pet.dob : undefined,
-      sex: pet.sex ? pet.sex : undefined,
-      image: pet.petImages?.url ? pet.petImages.url : undefined,
-      note: pet.note ? pet.note : undefined,
-    });
+  const petsList: SelectPet[] = ownedPets.map((pet) => {
+    return selectPetSchema.parse({ ...pet });
   });
 
   return petsList;

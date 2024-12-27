@@ -170,7 +170,7 @@ export default function CreateTaskDialog({
                   <FormControl>
                     <Textarea
                       placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
-                      {...field}
+                      value={field.value ? field.value : undefined}
                     />
                   </FormControl>
                   <FormMessage />
@@ -242,7 +242,7 @@ export default function CreateTaskDialog({
                         <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
-                            selected={field.value}
+                            selected={field.value ? field.value : undefined}
                             onSelect={field.onChange}
                             initialFocus
                             fromDate={subDays(new Date(), 1)}
@@ -254,7 +254,7 @@ export default function CreateTaskDialog({
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
                               setDate={field.onChange}
-                              date={field.value}
+                              date={field.value ? field.value : undefined}
                             />
                           </div>
                         </PopoverContent>
@@ -298,7 +298,7 @@ export default function CreateTaskDialog({
                         <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
-                            selected={field.value}
+                            selected={field.value ? field.value : undefined}
                             onSelect={field.onChange}
                             initialFocus
                             fromDate={subDays(new Date(), 1)}
@@ -310,7 +310,7 @@ export default function CreateTaskDialog({
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
                               setDate={field.onChange}
-                              date={field.value}
+                              date={field.value ? field.value : undefined}
                             />
                           </div>
                         </PopoverContent>
@@ -350,7 +350,7 @@ export default function CreateTaskDialog({
                         <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
-                            selected={field.value}
+                            selected={field.value ? field.value : undefined}
                             onSelect={field.onChange}
                             initialFocus
                             fromDate={subDays(new Date(), 1)}
@@ -362,7 +362,7 @@ export default function CreateTaskDialog({
                           <div className="border-t border-border p-3">
                             <TimePickerDemo
                               setDate={field.onChange}
-                              date={field.value}
+                              date={field.value ? field.value : undefined}
                             />
                           </div>
                         </PopoverContent>
