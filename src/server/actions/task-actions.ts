@@ -30,7 +30,7 @@ export const createTaskAction = authenticatedProcedure
 
     let taskRows = null;
 
-    if (!input.repeatingUntil || !input.repeatingFrequency) {
+    if (!input.repeatUntil || !input.repeatFrequency) {
       taskRows = await db
         .insert(tasks)
         .values({
@@ -41,6 +41,11 @@ export const createTaskAction = authenticatedProcedure
         .returning()
         .execute();
     } else {
+      // Check the user has plus
+      if (!ctx.user.plusMembership) {
+        throw new Error("You need a plus membership to create repeating tasks");
+      }
+
       // Iterate until the repeatingUntil date
       let currentDate: Date;
       if (input.dateRangeFrom && input.dateRangeTo) {
@@ -51,7 +56,7 @@ export const createTaskAction = authenticatedProcedure
 
         let currentDate = new Date(input.dateRangeFrom);
 
-        while (currentDate < input.repeatingUntil) {
+        while (currentDate < input.repeatUntil) {
           taskRows = await db
             .insert(tasks)
             .values({
@@ -64,13 +69,13 @@ export const createTaskAction = authenticatedProcedure
             .returning()
             .execute();
 
-          if (input.repeatingFrequency === "Daily") {
+          if (input.repeatFrequency === "Daily") {
             currentDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24);
-          } else if (input.repeatingFrequency === "Weekly") {
+          } else if (input.repeatFrequency === "Weekly") {
             currentDate = new Date(
               currentDate.getTime() + 1000 * 60 * 60 * 24 * 7,
             );
-          } else if (input.repeatingFrequency === "Monthly") {
+          } else if (input.repeatFrequency === "Monthly") {
             currentDate = new Date(
               currentDate.getTime() + 1000 * 60 * 60 * 24 * 30,
             );
@@ -79,7 +84,7 @@ export const createTaskAction = authenticatedProcedure
       } else if (input.dueDate) {
         currentDate = new Date(input.dueDate);
 
-        while (currentDate < input.repeatingUntil) {
+        while (currentDate < input.repeatUntil) {
           taskRows = await db
             .insert(tasks)
             .values({
@@ -91,13 +96,13 @@ export const createTaskAction = authenticatedProcedure
             .returning()
             .execute();
 
-          if (input.repeatingFrequency === "Daily") {
+          if (input.repeatFrequency === "Daily") {
             currentDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24);
-          } else if (input.repeatingFrequency === "Weekly") {
+          } else if (input.repeatFrequency === "Weekly") {
             currentDate = new Date(
               currentDate.getTime() + 1000 * 60 * 60 * 24 * 7,
             );
-          } else if (input.repeatingFrequency === "Monthly") {
+          } else if (input.repeatFrequency === "Monthly") {
             currentDate = new Date(
               currentDate.getTime() + 1000 * 60 * 60 * 24 * 30,
             );
@@ -110,7 +115,7 @@ export const createTaskAction = authenticatedProcedure
       }
     }
 
-    if (!taskRows || !taskRows[0]) {
+    if (!taskRows?.[0]) {
       throw new Error("Failed to create task");
     }
 

@@ -46,19 +46,21 @@ import {
 import {
   type CreateTaskFormProps,
   createTaskSchema,
-  insertTaskSchema,
 } from "~/lib/schemas/tasks";
 import { useEffect, useState } from "react";
 import { createTaskAction } from "~/server/actions/task-actions";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
 import { type SelectBasicPet, selectPetListSchema } from "~/lib/schemas/pets";
+import { TaskRepeatitionFrequency } from "~/lib/schemas";
 
 export default function CreateTaskDialog({
+  showRepeatingOption,
   groups,
   props,
   children,
 }: {
+  showRepeatingOption: boolean;
   groups: SelectGroupInput[];
   props?: CreateTaskFormProps;
   children: React.ReactNode;
@@ -82,6 +84,9 @@ export default function CreateTaskDialog({
       // Fix this, shouldnt be an object anymore
       dateRangeFrom: props?.dueMode ? undefined : props?.dateRange?.from,
       dateRangeTo: props?.dueMode ? undefined : props?.dateRange?.to,
+      repeatFrequency: showRepeatingOption
+        ? TaskRepeatitionFrequency.Values.Never
+        : undefined,
     },
   });
 
@@ -374,6 +379,93 @@ export default function CreateTaskDialog({
                 />
               </div>
             )}
+
+            {showRepeatingOption && (
+              <FormField
+                control={form.control}
+                name="repeatFrequency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Repeating Frequency *</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value ? field.value : undefined}
+                      disabled={!showRepeatingOption}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {TaskRepeatitionFrequency.options.map((freq) => (
+                          <SelectItem key={freq} value={freq}>
+                            {freq}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {showRepeatingOption &&
+              form.getValues("repeatFrequency") !==
+                TaskRepeatitionFrequency.Values.Never && (
+                <FormField
+                  control={form.control}
+                  name="repeatUntil"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-left">
+                        Repeat Until *
+                      </FormLabel>
+                      <Popover modal={true}>
+                        <FormControl>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !field.value && "text-muted-foreground",
+                              )}
+                            >
+                              <CalendarIcon className="h-4 w-4" />
+                              {field.value ? (
+                                format(field.value, "MMM do HH:mm")
+                              ) : (
+                                <span>Pick last task end date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                        </FormControl>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? field.value : undefined}
+                            onSelect={field.onChange}
+                            initialFocus
+                            fromDate={subDays(new Date(), 1)}
+                            toDate={addYears(new Date(), 1)}
+                            disabled={(date) =>
+                              date < new Date() && date > new Date("1900-01-01")
+                            }
+                          />
+                          <div className="border-t border-border p-3">
+                            <TimePickerDemo
+                              setDate={field.onChange}
+                              date={field.value ? field.value : undefined}
+                            />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
             <FormField
               control={form.control}

@@ -29,7 +29,12 @@ export const TaskTypeEnum = z.enum([
 ]);
 export type TaskTypeEnum = z.infer<typeof TaskTypeEnum>;
 
-export const TaskRepeatitionFrequency = z.enum(["Daily", "Weekly", "Monthly"]);
+export const TaskRepeatitionFrequency = z.enum([
+  "Never",
+  "Daily",
+  "Weekly",
+  "Monthly",
+]);
 export type TaskRepeatitionFrequency = z.infer<typeof TaskRepeatitionFrequency>;
 
 export const GroupRoleEnum = z.enum(["Owner", "Member", "Pending"]);

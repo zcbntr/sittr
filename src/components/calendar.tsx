@@ -192,7 +192,8 @@ export default function CalendarComponent({
 
             // If the task is marked as done, or claimed by another user, change the background opacity
             if (
-              (event.task.claimedBy && event.task.claimedBy?.id != currentUser.id) ||
+              (event.task.claimedBy &&
+                event.task.claimedBy?.id != currentUser.id) ||
               (!event.task.claimedBy && event.task.ownerId != currentUser.id)
             ) {
               newStyle.opacity = 0.5;
@@ -221,7 +222,11 @@ export default function CalendarComponent({
           }}
         />
 
-        <CreateTaskDialog groups={groups} props={createTaskDialogProps}>
+        <CreateTaskDialog
+          showRepeatingOption={currentUser.plusMembership}
+          groups={groups}
+          props={createTaskDialogProps}
+        >
           <Button
             id="openCreateTaskDialogHiddenButton"
             className="hidden"

@@ -52,8 +52,8 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 
 export const createTaskSchema = insertTaskSchema.extend({
-  repeatingFrequency: TaskRepeatitionFrequency.optional(),
-  repeatingUntil: z.date().optional(),
+  repeatFrequency: TaskRepeatitionFrequency.optional(),
+  repeatUntil: z.date().optional(),
 });
 
 export type CreateTask = z.infer<typeof createTaskSchema>;

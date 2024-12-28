@@ -39,7 +39,10 @@ export default async function Dashboard({
       <section>
         <div className="flex flex-row flex-wrap place-content-center gap-2 sm:place-content-end">
           <div className="flex flex-col place-content-center">
-            <CreateTaskDialog groups={groups}>
+            <CreateTaskDialog
+              showRepeatingOption={currentUser.plusMembership}
+              groups={groups}
+            >
               <Button variant="outline">
                 <div className="flex flex-row gap-2">
                   <div className="flex flex-col place-content-center">
