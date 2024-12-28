@@ -184,7 +184,7 @@ export async function notifyUpcomingUnclaimedTasks() {
           ),
         ),
       ),
-    with: { group: { with: { usersToGroups: true } } },
+    with: { group: { with: { members: true } } },
   });
 
   let count = 0;
@@ -205,7 +205,7 @@ export async function notifyUpcomingUnclaimedTasks() {
       continue;
     }
 
-    for (const user of task.group?.usersToGroups ?? []) {
+    for (const user of task.group?.members ?? []) {
       const row = await db
         .insert(notifications)
         .values({

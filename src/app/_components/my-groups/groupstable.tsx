@@ -3,7 +3,7 @@
 import { DataTable } from "~/components/ui/data-table";
 import CreateGroupDialog from "./creategroupdialog";
 import { Button } from "~/components/ui/button";
-import { type SelectGroupInput } from "~/lib/schemas/groups";
+import type { SelectGroup } from "~/lib/schemas/groups";
 import JoinGroupDialog from "./join-group-dialog";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
@@ -43,12 +43,12 @@ export default function GroupsTable({
   groups,
   user,
 }: {
-  groups: SelectGroupInput[];
+  groups: SelectGroup[];
   user: SelectUser;
 }) {
   const [alertState, setAlertState] = useState("");
 
-  const columns: ColumnDef<SelectGroupInput>[] = [
+  const columns: ColumnDef<SelectGroup>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -131,42 +131,57 @@ export default function GroupsTable({
       cell: ({ row }) => {
         const group = row.original;
 
-        if (!group.pets) return <>No pets</>;
+        if (!group.petsToGroups || group.petsToGroups?.length === 0)
+          return <>No pets</>;
 
-        if (group.pets.length <= 3)
+        if (group.petsToGroups.length <= 3)
           return (
             <div className="flex flex-row gap-2">
-              {group.pets.map((pet) => (
-                <Link href={`/pets/${pet.id}`} key={pet.id}>
-                  <Avatar>
-                    <AvatarImage
-                      src={pet.image ? pet.image : ""}
-                      alt={`${pet.name}'s avatar`}
-                    />
-                    {/* Make this actually be the initials rather than first letter */}
-                    <AvatarFallback>{pet.name.substring(0, 1)}</AvatarFallback>
-                  </Avatar>
-                </Link>
-              ))}
+              {group.petsToGroups.map((petToGroup) => {
+                const pet = petToGroup.pet;
+                if (!pet) return null;
+                return (
+                  <Link href={`/pets/${pet.id}`} key={pet.id}>
+                    <Avatar>
+                      <AvatarImage
+                        src={pet.image ? pet.image : ""}
+                        alt={`${pet.name}'s avatar`}
+                      />
+                      {/* Make this actually be the initials rather than first letter */}
+                      <AvatarFallback>
+                        {pet.name.substring(0, 1)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
+                );
+              })}
             </div>
           );
 
-        if (group.pets.length > 3 && group.pets[0] && group.pets[1])
+        if (
+          group.petsToGroups.length > 3 &&
+          group.petsToGroups[0]?.pet &&
+          group.petsToGroups[1]?.pet
+        )
           return (
             <div className="flex flex-row gap-2">
-              <Link href={`/pets/${group.pets[0].id}`}>
+              <Link href={`/pets/${group.petsToGroups[0].pet.id}`}>
                 <Avatar>
                   <AvatarImage
-                    src={group.pets[0].image ? group.pets[0].image : ""}
-                    alt={`${group.pets[0].name}'s avatar`}
+                    src={
+                      group.petsToGroups[0].pet.image
+                        ? group.petsToGroups[0].pet.image
+                        : ""
+                    }
+                    alt={`${group.petsToGroups[0].pet.name}'s avatar`}
                   />
                   {/* Make this actually be the initials rather than first letter */}
                   <AvatarFallback>
-                    {group.pets[0].name.substring(0, 1)}
+                    {group.petsToGroups[0].pet.name.substring(0, 1)}
                   </AvatarFallback>
                 </Avatar>
               </Link>
-              <div className="flex flex-col place-content-center">{`and ${group.pets.length - 1} more. `}</div>
+              <div className="flex flex-col place-content-center">{`and ${group.petsToGroups.length - 1} more. `}</div>
             </div>
           );
       },

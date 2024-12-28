@@ -67,13 +67,13 @@ export type SelectGroupMember = z.infer<typeof selectGroupMemberSchema>;
 export type SelectGroupInput = z.input<typeof selectBasicGroupSchema> & {
   creator?: SelectUserInput | undefined;
   members?: SelectGroupMemberInput[] | undefined;
-  pets?: SelectPetInput[] | undefined;
+  petsToGroups?: SelectPetToGroupInput[] | undefined;
 };
 
 export type SelectGroupOutput = z.output<typeof selectBasicGroupSchema> & {
   creator?: SelectUserOutput | undefined;
   members?: SelectGroupMemberOutput[] | undefined;
-  pets?: SelectPetOutput[] | undefined;
+  petsToGroups?: SelectPetToGroupOutput[] | undefined;
 };
 
 export const selectGroupSchema: z.ZodType<
@@ -86,8 +86,8 @@ export const selectGroupSchema: z.ZodType<
     .lazy(() => selectGroupMemberSchema)
     .array()
     .optional(),
-  pets: z
-    .lazy(() => selectPetSchema)
+  petsToGroups: z
+    .lazy(() => selectPetToGroupSchema)
     .array()
     .optional(),
 });
@@ -122,7 +122,32 @@ export const updateGroupInviteCodeSchema =
 
 export type EditGroupInviteCode = z.infer<typeof updateGroupInviteCodeSchema>;
 
-export const selectPetToGroupSchema = createSelectSchema(petsToGroups);
+export const selectBasicPetToGroupSchema = createSelectSchema(petsToGroups);
+
+export type SelectBasicPetToGroup = z.infer<typeof selectBasicPetToGroupSchema>;
+
+export type SelectPetToGroupInput = z.input<
+  typeof selectBasicPetToGroupSchema
+> & {
+  pet?: SelectPetInput | undefined;
+  group?: SelectGroupInput | undefined;
+};
+
+export type SelectPetToGroupOutput = z.output<
+  typeof selectBasicPetToGroupSchema
+> & {
+  pet?: SelectPetOutput | undefined;
+  group?: SelectGroupOutput | undefined;
+};
+
+export const selectPetToGroupSchema: z.ZodType<
+  SelectPetToGroupInput,
+  z.ZodTypeDef,
+  SelectPetToGroupOutput
+> = selectBasicPetToGroupSchema.extend({
+  pet: z.lazy(() => selectPetSchema).optional(),
+  group: z.lazy(() => selectGroupSchema).optional(),
+});
 
 export type SelectPetToGroup = z.infer<typeof selectPetToGroupSchema>;
 

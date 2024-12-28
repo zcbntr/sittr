@@ -56,11 +56,11 @@ export const createTaskAction = authenticatedProcedure
           ),
         ),
       ),
-      with: { group: { with: { usersToGroups: true } } },
+      with: { group: { with: { members: true } } },
     });
 
     if (task) {
-      for (const member of task.group?.usersToGroups ?? []) {
+      for (const member of task.group?.members ?? []) {
         await db
           .insert(notifications)
           .values({
@@ -264,14 +264,14 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
       ) {
         const taskWithGroup = await db.query.tasks.findFirst({
           where: eq(tasks.id, input.id),
-          with: { group: { with: { usersToGroups: true } } },
+          with: { group: { with: { members: true } } },
         });
 
         if (!taskWithGroup) {
           throw new Error("Task not found");
         }
 
-        for (const member of taskWithGroup.group?.usersToGroups ?? []) {
+        for (const member of taskWithGroup.group?.members ?? []) {
           await db
             .insert(notifications)
             .values({

@@ -49,7 +49,7 @@ export async function getPetVisibleViaCommonGroup(
       owner: true,
       creator: true,
       petsToGroups: {
-        with: { group: { with: { usersToGroups: true } } },
+        with: { group: { with: { members: true } } },
       },
     },
   });
@@ -64,8 +64,8 @@ export async function getPetVisibleViaCommonGroup(
 
   // Iterate through the groups and check if the user is in any of them
   const userGroups = pet.petsToGroups.map((petToGroup) => {
-    return petToGroup.group.usersToGroups.map((userToGroup) => {
-      return userToGroup.userId;
+    return petToGroup.group.members.map((member) => {
+      return member.userId;
     });
   });
 

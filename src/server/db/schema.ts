@@ -48,7 +48,7 @@ export const userRelations = relations(users, ({ many }) => ({
   petImages: many(petImages, { relationName: "uploader" }),
   groups: many(groups),
   groupInviteCodes: many(groupInviteCodes),
-  usersToGroups: many(groupMembers),
+  groupMembers: many(groupMembers),
 }));
 
 export const accounts = createTable(
@@ -290,7 +290,7 @@ export const groupsRelations = relations(groups, ({ one, many }) => ({
   }),
   tasks: many(tasks),
   groupInviteCodes: many(groupInviteCodes),
-  usersToGroups: many(groupMembers),
+  members: many(groupMembers),
   petsToGroups: many(petsToGroups),
   notifications: many(notifications),
 }));

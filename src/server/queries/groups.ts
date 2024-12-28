@@ -4,19 +4,17 @@ import { db } from "~/server/db";
 import { eq, inArray } from "drizzle-orm";
 import { groups, petsToGroups } from "../db/schema";
 import {
-  type SelectGroupInput,
   type SelectBasicGroupMember,
   selectGroupMemberSchema,
   selectGroupSchema,
   selectBasicGroupSchema,
+  type SelectGroup,
 } from "~/lib/schemas/groups";
 import { type SelectBasicPet, selectPetSchema } from "~/lib/schemas/pets";
 import { getLoggedInUser } from "./users";
 import { selectUserSchema } from "~/lib/schemas/users";
 
-export async function getGroupById(
-  id: string,
-): Promise<SelectGroupInput | null> {
+export async function getGroupById(id: string): Promise<SelectGroup | null> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -27,7 +25,7 @@ export async function getGroupById(
     where: (model, { eq }) => eq(model.id, id),
     with: {
       creator: true,
-      usersToGroups: {
+      members: {
         with: {
           user: true,
         },
@@ -49,9 +47,7 @@ export async function getGroupById(
   return selectGroupSchema.parse({ ...group });
 }
 
-export async function getGroupsByIds(
-  ids: string[],
-): Promise<SelectGroupInput[]> {
+export async function getGroupsByIds(ids: string[]): Promise<SelectGroup[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -185,7 +181,7 @@ export async function getUsersPetsNotInGroup(
   });
 }
 
-export async function getGroupsUserIsIn(): Promise<SelectGroupInput[]> {
+export async function getGroupsUserIsIn(): Promise<SelectGroup[]> {
   const user = await getLoggedInUser();
 
   if (!user) {
@@ -200,7 +196,7 @@ export async function getGroupsUserIsIn(): Promise<SelectGroupInput[]> {
       group: {
         with: {
           creator: true,
-          usersToGroups: { with: { user: true } },
+          members: { with: { user: true } },
           petsToGroups: {
             with: {
               pet: { with: { petImages: true, owner: true, creator: true } },

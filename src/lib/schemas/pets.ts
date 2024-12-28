@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { createSelectSchema } from "drizzle-zod";
 import { petImages, pets } from "~/server/db/schema";
 import { type SelectUserInput, selectUserSchema } from "./users";
 
