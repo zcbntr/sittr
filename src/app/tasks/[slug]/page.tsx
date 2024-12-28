@@ -36,11 +36,16 @@ export default async function Page({
     const notification = (await searchParams).notification;
 
     if (notification) {
-      if (notification.length >= 0) {
+      if (
+        Array.isArray(notification) &&
+        notification.every((item) => typeof item === "string")
+      ) {
         // Mark each notification as read
         for (const n of notification) {
           await markNotificationAsReadAction(n);
         }
+      } else if (typeof notification === "string") {
+        await markNotificationAsReadAction(notification);
       }
 
       // Redirect to the same page without the notification query

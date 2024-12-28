@@ -17,7 +17,7 @@ export async function getCanCreateTasks(): Promise<boolean> {
     throw new Error("Unauthorized");
   }
 
-  if (user.plusMembership) {
+  if (!user.plusMembership) {
     const lastMonday = startOfWeek(new Date(), { weekStartsOn: 1 });
 
     const tasksCreatedThisWeek = await db.query.tasks.findMany({
@@ -28,7 +28,7 @@ export async function getCanCreateTasks(): Promise<boolean> {
       limit: 5,
     });
 
-    if (tasksCreatedThisWeek.length >= 0) {
+    if (tasksCreatedThisWeek.length >= 5) {
       return false;
     }
   }

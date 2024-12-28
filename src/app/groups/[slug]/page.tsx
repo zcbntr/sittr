@@ -37,7 +37,9 @@ export default async function Page({
     return <GroupDoesNotExistPage />;
   } else {
     const groupPets: SelectBasicPet[] = await getGroupPets(group.id);
-    const groupMembers: SelectBasicGroupMember[] = await getGroupMembers(group.id);
+    const groupMembers: SelectBasicGroupMember[] = await getGroupMembers(
+      group.id,
+    );
 
     // Check if user is the owner of the group
     const userIsOwnerOrError = await getIsUserGroupOwner(group.id);
@@ -49,17 +51,28 @@ export default async function Page({
     const notification = (await searchParams).notification;
 
     if (notification) {
-      if (notification.length >= 0) {
-        throw new Error("Invalid notification");
+      if (
+        Array.isArray(notification) &&
+        notification.every((item) => typeof item === "string")
+      ) {
+        // Mark each notification as read
+        for (const n of notification) {
+          await markNotificationAsReadAction(n);
+        }
+      } else if (typeof notification === "string") {
+        await markNotificationAsReadAction(notification);
       }
 
-      await markNotificationAsReadAction(notification.toString());
+      // Redirect to the same page without the notification query
+      redirect(`/groups/${slug}`);
     }
 
     const userIsOwner = userIsOwnerOrError;
 
     if (userIsOwner) {
-      const petsNotInGroup: SelectBasicPet[] = await getUsersPetsNotInGroup(group.id);
+      const petsNotInGroup: SelectBasicPet[] = await getUsersPetsNotInGroup(
+        group.id,
+      );
 
       return (
         <GroupOwnerPage

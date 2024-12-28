@@ -8,6 +8,7 @@ import {
 } from "~/server/queries/pets";
 import { type SelectBasicPet } from "~/lib/schemas/pets";
 import { markNotificationAsReadAction } from "~/server/actions/notification-actions";
+import { redirect } from "next/navigation";
 
 export default async function Page({
   params,
@@ -42,11 +43,20 @@ export default async function Page({
     const notification = (await searchParams).notification;
 
     if (notification) {
-      if (notification.length >= 0) {
-        throw new Error("Invalid notification");
+      if (
+        Array.isArray(notification) &&
+        notification.every((item) => typeof item === "string")
+      ) {
+        // Mark each notification as read
+        for (const n of notification) {
+          await markNotificationAsReadAction(n);
+        }
+      } else if (typeof notification === "string") {
+        await markNotificationAsReadAction(notification);
       }
 
-      await markNotificationAsReadAction(notification.toString());
+      // Redirect to the same page without the notification query
+      redirect(`/pets/${slug}`);
     }
 
     if (pet.ownerId == userId) {
