@@ -30,7 +30,7 @@ export const notificationTypeEnum = pgEnum(
 export const users = createTable("user", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+    .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12)),
   name: text("name"),
   email: text("email").unique(),
   emailVerified: timestamp("email_verified", { mode: "date" }),
@@ -104,7 +104,7 @@ export const verificationTokens = createTable(
 // Tasks can be either due at a certain time or span a certain time period
 export const tasks = createTable("tasks", {
   id: text("id")
-    .$defaultFn(() => crypto.randomUUID())
+    .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
   ownerId: text("owner_id")
     .notNull()
@@ -218,7 +218,7 @@ export const petsToGroupsRelations = relations(petsToGroups, ({ one }) => ({
 
 export const pets = createTable("pets", {
   id: text("id")
-    .$defaultFn(() => crypto.randomUUID())
+    .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
   creatorId: text("creator_id")
     .notNull()
@@ -267,7 +267,7 @@ export const petRelations = relations(pets, ({ one, many }) => ({
 
 export const groups = createTable("groups", {
   id: text("id")
-    .$defaultFn(() => crypto.randomUUID())
+    .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
   creatorId: text("creator_id")
     .notNull()
@@ -337,7 +337,7 @@ export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
 
 export const groupInviteCodes = createTable("group_invite_codes", {
   id: text("id")
-    .$defaultFn(() => crypto.randomUUID())
+    .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
   groupId: text("group_id")
     .references(() => groups.id, { onDelete: "cascade" })
@@ -374,7 +374,7 @@ export const groupInviteCodesRelations = relations(
 
 export const petImages = createTable("pet_images", {
   id: text("id")
-    .$defaultFn(() => crypto.randomUUID())
+    .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
   // Do not use .notNull() here, as the pet may not have been created yet
   petId: text("pet_id").references(() => pets.id, { onDelete: "cascade" }),
@@ -405,7 +405,7 @@ export const petImagesRelations = relations(petImages, ({ one }) => ({
 
 export const petProfilePics = createTable("pet_profile_pics", {
   id: text("id")
-    .$defaultFn(() => crypto.randomUUID())
+    .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
   // Do not use .notNull() here, as the pet may not have been created yet
   petId: text("pet_id").references(() => pets.id, { onDelete: "cascade" }),
@@ -436,7 +436,7 @@ export const petProfilePicRelations = relations(petProfilePics, ({ one }) => ({
 
 export const notifications = createTable("notification", {
   id: text("id")
-    .$defaultFn(() => crypto.randomUUID())
+    .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
   userId: text("user_id")
     .notNull()
