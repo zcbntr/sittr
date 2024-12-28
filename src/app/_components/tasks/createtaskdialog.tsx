@@ -45,6 +45,7 @@ import {
 } from "~/components/ui/select";
 import {
   type CreateTaskFormProps,
+  createTaskSchema,
   insertTaskSchema,
 } from "~/lib/schemas/tasks";
 import { useEffect, useState } from "react";
@@ -71,8 +72,8 @@ export default function CreateTaskDialog({
 
   const [dueMode, setDueMode] = useState<boolean>(true);
 
-  const form = useForm<z.infer<typeof insertTaskSchema>>({
-    resolver: zodResolver(insertTaskSchema),
+  const form = useForm<z.infer<typeof createTaskSchema>>({
+    resolver: zodResolver(createTaskSchema),
     defaultValues: {
       name: "",
       description: "",

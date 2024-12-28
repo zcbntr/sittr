@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dateRangeSchema, TaskTypeEnum } from ".";
+import { dateRangeSchema, TaskRepeatitionFrequency, TaskTypeEnum } from ".";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { tasks } from "~/server/db/schema";
 import { selectPetSchema } from "./pets";
@@ -50,6 +50,13 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
 });
 
 export type InsertTask = z.infer<typeof insertTaskSchema>;
+
+export const createTaskSchema = insertTaskSchema.extend({
+  repeatingFrequency: TaskRepeatitionFrequency.optional(),
+  repeatingUntil: z.date().optional(),
+});
+
+export type CreateTask = z.infer<typeof createTaskSchema>;
 
 export const updateTaskSchema = selectBasicTaskSchema.partial();
 

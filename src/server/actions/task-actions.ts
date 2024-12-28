@@ -6,6 +6,7 @@ import {
   setMarkedAsCompleteFormProps,
   selectBasicTaskSchema,
   updateTaskSchema,
+  createTaskSchema,
 } from "~/lib/schemas/tasks";
 import { db } from "~/server/db";
 import { notifications, tasks, users } from "~/server/db/schema";
@@ -19,31 +20,104 @@ import { revalidatePath } from "next/cache";
 import { ratelimit } from "../ratelimit";
 import { getVisibleTaskById } from "../queries/tasks";
 import { NotificationTypeEnum } from "~/lib/schemas";
+import { addMinutes, differenceInMinutes } from "date-fns";
 
 export const createTaskAction = authenticatedProcedure
   .createServerAction()
-  .input(insertTaskSchema)
+  .input(createTaskSchema)
   .handler(async ({ input, ctx }) => {
     const userId = ctx.user.id;
 
-    const taskRow = await db
-      .insert(tasks)
-      .values({
-        ...input,
-        ownerId: userId,
-        creatorId: userId,
-      })
-      .returning()
-      .execute();
+    let taskRows = null;
 
-    if (!taskRow[0]) {
+    if (!input.repeatingUntil || !input.repeatingFrequency) {
+      taskRows = await db
+        .insert(tasks)
+        .values({
+          ...input,
+          ownerId: userId,
+          creatorId: userId,
+        })
+        .returning()
+        .execute();
+    } else {
+      // Iterate until the repeatingUntil date
+      let currentDate: Date;
+      if (input.dateRangeFrom && input.dateRangeTo) {
+        const taskDurationMins = differenceInMinutes(
+          input.dateRangeTo,
+          input.dateRangeFrom,
+        );
+
+        let currentDate = new Date(input.dateRangeFrom);
+
+        while (currentDate < input.repeatingUntil) {
+          taskRows = await db
+            .insert(tasks)
+            .values({
+              ...input,
+              ownerId: userId,
+              creatorId: userId,
+              dateRangeFrom: currentDate,
+              dateRangeTo: addMinutes(currentDate, taskDurationMins),
+            })
+            .returning()
+            .execute();
+
+          if (input.repeatingFrequency === "Daily") {
+            currentDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24);
+          } else if (input.repeatingFrequency === "Weekly") {
+            currentDate = new Date(
+              currentDate.getTime() + 1000 * 60 * 60 * 24 * 7,
+            );
+          } else if (input.repeatingFrequency === "Monthly") {
+            currentDate = new Date(
+              currentDate.getTime() + 1000 * 60 * 60 * 24 * 30,
+            );
+          }
+        }
+      } else if (input.dueDate) {
+        currentDate = new Date(input.dueDate);
+
+        while (currentDate < input.repeatingUntil) {
+          taskRows = await db
+            .insert(tasks)
+            .values({
+              ...input,
+              ownerId: userId,
+              creatorId: userId,
+              dueDate: currentDate,
+            })
+            .returning()
+            .execute();
+
+          if (input.repeatingFrequency === "Daily") {
+            currentDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * 24);
+          } else if (input.repeatingFrequency === "Weekly") {
+            currentDate = new Date(
+              currentDate.getTime() + 1000 * 60 * 60 * 24 * 7,
+            );
+          } else if (input.repeatingFrequency === "Monthly") {
+            currentDate = new Date(
+              currentDate.getTime() + 1000 * 60 * 60 * 24 * 30,
+            );
+          }
+        }
+      } else {
+        throw new Error(
+          "Task date range and due date missing. At least one must be provided.",
+        );
+      }
+    }
+
+    if (!taskRows || !taskRows[0]) {
       throw new Error("Failed to create task");
     }
 
     // If less than 6 hours before the task needs to be completed notify all group members
     const task = await db.query.tasks.findFirst({
       where: and(
-        eq(tasks.id, taskRow[0].id),
+        eq(tasks.id, taskRows[0].id),
         or(
           and(
             eq(tasks.dueMode, false),
