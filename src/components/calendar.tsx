@@ -79,10 +79,12 @@ export default function CalendarComponent({
   tasks,
   currentUser,
   groups,
+  canCreateTasks
 }: {
   tasks: SelectBasicTask[];
   currentUser: SelectUser;
   groups: SelectGroupInput[];
+  canCreateTasks: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -230,6 +232,7 @@ export default function CalendarComponent({
           <Button
             id="openCreateTaskDialogHiddenButton"
             className="hidden"
+            disabled={!canCreateTasks}
           ></Button>
         </CreateTaskDialog>
 

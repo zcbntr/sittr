@@ -1,7 +1,6 @@
 "use server";
 
 import {
-  insertTaskSchema,
   setClaimTaskFormProps,
   setMarkedAsCompleteFormProps,
   selectBasicTaskSchema,
@@ -15,18 +14,35 @@ import {
   canMarkTaskAsDoneProcedure,
   ownsTaskProcedure,
 } from "./zsa-procedures";
-import { and, eq, not, or } from "drizzle-orm";
+import { and, eq, gte, not, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { ratelimit } from "../ratelimit";
 import { getVisibleTaskById } from "../queries/tasks";
 import { NotificationTypeEnum } from "~/lib/schemas";
-import { addMinutes, differenceInMinutes } from "date-fns";
+import { addMinutes, differenceInMinutes, startOfWeek } from "date-fns";
 
 export const createTaskAction = authenticatedProcedure
   .createServerAction()
   .input(createTaskSchema)
   .handler(async ({ input, ctx }) => {
     const userId = ctx.user.id;
+
+    // Limit non plus users to creating 5 tasks per week. Count tasks created since the start of the week (Monday)
+    if (!ctx.user.plusMembership) {
+      const lastMonday = startOfWeek(new Date(), { weekStartsOn: 1 });
+
+      const tasksCreatedThisWeek = await db.query.tasks.findMany({
+        where: and(
+          eq(tasks.creatorId, userId),
+          gte(tasks.createdAt, lastMonday),
+        ),
+        limit: 5,
+      });
+
+      if (tasksCreatedThisWeek.length >= 5) {
+        throw new Error("You have reached the limit of tasks you can create this week");
+      }
+    }
 
     let taskRows = null;
 

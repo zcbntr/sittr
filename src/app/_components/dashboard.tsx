@@ -1,4 +1,4 @@
-/* displays big calender, overview of upcoming sittings, 
+/* Displays big calender, overview of upcoming sittings, 
 recent sittings, ability to create sittings (if owner),
 ability to satisfy sitting requests (if sitter) */
 
@@ -6,7 +6,7 @@ import CalendarComponent from "~/components/calendar";
 import { Button } from "~/components/ui/button";
 import CreateTaskDialog from "./tasks/createtaskdialog";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
-import { getTasksInRange } from "~/server/queries/tasks";
+import { getCanCreateTasks, getTasksInRange } from "~/server/queries/tasks";
 import TaskTypeSelect from "./dashboard/tasks-type-select";
 import { Suspense } from "react";
 import MonthArrows from "./dashboard/month-arrows";
@@ -24,10 +24,11 @@ export default async function Dashboard({
   dateTo: Date;
   tasksType: TaskTypeEnum;
 }) {
-  const [currentUser, groups, tasks] = await Promise.all([
+  const [currentUser, groups, tasks, canCreateTasks] = await Promise.all([
     getLoggedInUser(),
     getGroupsUserIsIn(),
     getTasksInRange(dateFrom, dateTo, tasksType),
+    getCanCreateTasks(),
   ]);
 
   if (!currentUser) {
@@ -43,7 +44,7 @@ export default async function Dashboard({
               showRepeatingOption={currentUser.plusMembership}
               groups={groups}
             >
-              <Button variant="outline">
+              <Button variant="outline" disabled={!canCreateTasks}>
                 <div className="flex flex-row gap-2">
                   <div className="flex flex-col place-content-center">
                     <MdAddTask className="h-4 w-4" />
@@ -73,6 +74,7 @@ export default async function Dashboard({
               currentUser={currentUser}
               groups={groups}
               tasks={tasks}
+              canCreateTasks={canCreateTasks}
             />
           </div>
         </Suspense>

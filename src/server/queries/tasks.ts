@@ -1,11 +1,40 @@
 "use server";
 
 import { type SelectTask, selectTaskSchema } from "~/lib/schemas/tasks";
-import { or, not, isNull, inArray } from "drizzle-orm";
+import { or, not, isNull, inArray, gte, and, eq } from "drizzle-orm";
 import { db } from "../db";
 import { tasks } from "../db/schema";
 import { TaskTypeEnum } from "~/lib/schemas";
 import { getLoggedInUser } from "./users";
+import { startOfWeek } from "date-fns";
+
+export async function getCanCreateTasks(): Promise<boolean> {
+  // Check whether use has created more than 5 tasks since the last monday
+  // Limit non plus users to creating 5 tasks per week. Count tasks created since the start of the week (Monday)
+  const user = await getLoggedInUser();
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  if (user.plusMembership) {
+    const lastMonday = startOfWeek(new Date(), { weekStartsOn: 1 });
+
+    const tasksCreatedThisWeek = await db.query.tasks.findMany({
+      where: and(
+        eq(tasks.creatorId, user.id),
+        gte(tasks.createdAt, lastMonday),
+      ),
+      limit: 5,
+    });
+
+    if (tasksCreatedThisWeek.length >= 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 export async function getAllOwnedTasks(): Promise<SelectTask[]> {
   const user = await getLoggedInUser();
