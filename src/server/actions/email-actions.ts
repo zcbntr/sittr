@@ -19,14 +19,13 @@ export const sendSupportEmailAction = createServerAction()
     const user = await getLoggedInUser();
 
     if (user) {
-      input.loggedIn = true;
       input.userId = user.id;
     }
 
     if (input) {
       try {
         const { data, error } = await resend.emails.send({
-          from: "Acme <support@sittr.pet>",
+          from: "Sittr <no-reply@support.sittr.pet>",
           to: ["zbenattar@gmail.com"],
           subject: "Support request",
           react: SupportEmailTemplate({

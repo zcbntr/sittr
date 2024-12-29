@@ -40,7 +40,7 @@ export default function ContactSupportForm({
     defaultValues: {
       fullName: user?.name ? user.name : "",
       email: user?.email ? user.email : "",
-      category: SupportCategoryEnum.enum["Other"],
+      category: SupportCategoryEnum.enum.Other,
       message: "",
     },
   });

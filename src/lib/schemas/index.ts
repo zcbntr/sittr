@@ -77,7 +77,6 @@ export const supportEmailSchema = z.object({
   message: z
     .string()
     .max(1000, { message: "This field has to be less than 1000 characters." }),
-  loggedIn: z.boolean().optional(),
   userId: z.string().optional(),
 });
 
