@@ -56,6 +56,24 @@ export const NotificationTypeEnum = z.enum([
 ]);
 export type NotificationTypeEnum = z.infer<typeof NotificationTypeEnum>;
 
+export const supportEmailSchema = z.object({
+  fullName: z
+    .string()
+    .max(100, { message: "This field has to be less than 100 characters." }),
+  email: z
+    .string()
+    .email({ message: "Invalid email address." })
+    .min(1, { message: "This field has to be filled." })
+    .max(200, { message: "This field has to be less than 200 characters." }),
+  message: z
+    .string()
+    .max(1000, { message: "This field has to be less than 1000 characters." }),
+  loggedIn: z.boolean(),
+  userId: z.string().optional(),
+});
+
+export type SupportEmailParams = z.infer<typeof supportEmailSchema>;
+
 // -----------------------------------------------------------------------------
 // API form schemas
 // -----------------------------------------------------------------------------
