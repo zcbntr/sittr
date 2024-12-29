@@ -18,6 +18,7 @@ export const env = createEnv({
     CRON_SECRET: z.string(),
     STRIPE_SECRET_KEY: z.string(),
     STRIPE_PLUS_PRICEID: z.string(),
+    RESEND_API_KEY: z.string(),
   },
 
   /**
@@ -44,6 +45,7 @@ export const env = createEnv({
     NEXT_PUBLIC_STRIPE_PUBLIC_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_PLUS_PRICEID: process.env.STRIPE_PLUS_PRICEID,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

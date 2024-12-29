@@ -1,13 +1,17 @@
-import type { Metadata } from "next";
+import { Metadata } from "next";
+import ContactSupportForm from "../_components/support-page/contact-support-form";
+import { getLoggedInUser } from "~/server/queries/users";
 
 export const metadata: Metadata = {
   title: "Support",
 };
 
-export default function SupportPage() {
+export default async function SupportPage() {
+  const user = await getLoggedInUser();
+
   return (
-    <>
-      <div>Coming soon.</div>
-    </>
+    <section>
+      <ContactSupportForm user={user}/>
+    </section>
   );
 }

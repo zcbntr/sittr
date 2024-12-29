@@ -4,6 +4,7 @@ import { SupportEmailParams } from "~/lib/schemas";
 export const SupportEmailTemplate: React.FC<Readonly<SupportEmailParams>> = ({
   fullName,
   email,
+  category,
   message,
   loggedIn,
   userId,
@@ -14,6 +15,7 @@ export const SupportEmailTemplate: React.FC<Readonly<SupportEmailParams>> = ({
     </h1>
     <h2>Logged in: {loggedIn}</h2>
     {loggedIn && userId && <h2>User ID: {userId}</h2>}
+    <h2>Category: {category}</h2>
     <p>{message}</p>
   </div>
 );

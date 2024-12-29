@@ -1,8 +1,14 @@
+"use server";
+
 import { Resend } from "resend";
 import { createServerAction } from "zsa";
 import { SupportEmailTemplate } from "~/components/email-templates/support-template";
 import { supportEmailSchema } from "~/lib/schemas";
 import { getLoggedInUser } from "../queries/users";
+
+if (!process.env.RESEND_API_KEY) {
+  throw new Error("RESEND_API_KEY is not set");
+}
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -29,12 +35,13 @@ export const sendSupportEmailAction = createServerAction()
         });
 
         if (error) {
-          return Response.json({ error }, { status: 500 });
+          throw new Error(error.message);
         }
 
-        return Response.json(data);
+        return data;
       } catch (error) {
-        return Response.json({ error }, { status: 500 });
+        console.log(error);
+        throw new Error("Unknown error");
       }
     } else {
       throw new Error("No notification provided");
