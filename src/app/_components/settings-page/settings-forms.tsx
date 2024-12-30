@@ -86,7 +86,7 @@ export default function SettingsPanel({
                     // Delete user data via server action
                     // Destroy session token and redirect to home
                     await deleteAccount();
-                    signOut({
+                    await signOut({
                       redirect: true,
                       redirectTo: "/",
                     });

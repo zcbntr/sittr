@@ -13,6 +13,7 @@ import {
   FormItem,
   FormMessage,
 } from "~/components/ui/form";
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function Home() {
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="px-2 max-w-96 space-y-6"
+                className="max-w-96 space-y-6 px-2"
               >
                 <FormField
                   control={form.control}
@@ -95,7 +96,12 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8"></div>
+        <div className="">
+          or{" "}
+          <Link href="sign-in" className="underline">
+            sign up as an owner
+          </Link>
+        </div>
       </div>
     </main>
   );
