@@ -17,7 +17,7 @@ export default async function LoginPage() {
   return (
     <div>
       <section>
-        <div className="mx-auto flex max-w-md flex-row place-content-center p-2">
+        <div className="mx-auto flex max-w-md flex-row place-content-center p-3">
           <SignInOptions />
         </div>
       </section>

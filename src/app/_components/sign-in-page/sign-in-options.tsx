@@ -35,7 +35,7 @@ export function SignInOptions() {
                 Google
               </Button>
             </form>
-            {/* <form
+            <form
               action={async () => {
                 "use server";
                 await signIn("facebook", { redirectTo: "/" });
@@ -51,11 +51,14 @@ export function SignInOptions() {
                 </div>
                 Facebook
               </Button>
-            </form> */}
+            </form>
           </div>
         </div>
       </CardContent>
-      <CardFooter></CardFooter>
+      <CardFooter>
+        Your data will be used to connect your pets, groups, and tasks with your
+        account.
+      </CardFooter>
     </Card>
   );
 }

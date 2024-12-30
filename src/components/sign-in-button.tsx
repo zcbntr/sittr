@@ -1,14 +1,5 @@
-import { signIn } from "~/auth";
+import Link from "next/link";
 
 export default function SignInButton() {
-  return (
-    <form
-      action={async () => {
-        "use server";
-        await signIn("google", { redirectTo: "/" });
-      }}
-    >
-      <button type="submit">Sign In</button>
-    </form>
-  );
+  return <Link href="sign-in">Sign In</Link>;
 }
