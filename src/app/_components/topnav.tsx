@@ -15,6 +15,7 @@ import { getLoggedInUser } from "~/server/queries/users";
 import {
   MdNotificationImportant,
   MdNotifications,
+  MdOutlineCalendarMonth,
   MdOutlineGroup,
   MdOutlinePerson,
   MdOutlinePets,
@@ -134,17 +135,15 @@ export async function TopNav() {
                   </Avatar>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="mx-1.5 min-w-[200px] max-w-full md:max-w-96">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <Link
-                      href="/my-profile"
+                      href="/"
                       className="flex flex-row place-content-start gap-2"
                     >
                       <div className="flex flex-col place-content-center">
-                        <MdOutlinePerson />
+                        <MdOutlineCalendarMonth />
                       </div>
-                      Profile
+                      Dashboard
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
