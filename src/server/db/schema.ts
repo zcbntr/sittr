@@ -46,9 +46,10 @@ export const userRelations = relations(users, ({ many }) => ({
   petsCreated: many(pets, { relationName: "creator" }),
   petsOwned: many(pets, { relationName: "owner" }),
   petImages: many(petImages, { relationName: "uploader" }),
-  groups: many(groups),
-  groupInviteCodes: many(groupInviteCodes),
-  groupMembers: many(groupMembers),
+  groupsOwned: many(groups, { relationName: "owner" }),
+  groupsCreated: many(groups, { relationName: "creator" }),
+  groupInviteCodes: many(groupInviteCodes, { relationName: "creator" }),
+  groupMembers: many(groupMembers, { relationName: "user" }),
 }));
 
 export const accounts = createTable(
@@ -109,8 +110,9 @@ export const tasks = createTable("tasks", {
   ownerId: text("owner_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  creatorId: text("creator_id")
-    .references(() => users.id, { onDelete: "set null" }),
+  creatorId: text("creator_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   // Set by task owner when they approve of its completion if requiresVerification is true
@@ -219,8 +221,9 @@ export const pets = createTable("pets", {
   id: text("id")
     .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
-  creatorId: text("creator_id")
-    .references(() => users.id, { onDelete: "set null" }),
+  creatorId: text("creator_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
   ownerId: text("owner_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -270,8 +273,9 @@ export const groups = createTable("groups", {
   ownerId: text("owner_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  creatorId: text("creator_id")
-    .references(() => users.id, { onDelete: "set null" }),
+  creatorId: text("creator_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -369,10 +373,12 @@ export const groupInviteCodesRelations = relations(
     creator: one(users, {
       fields: [groupInviteCodes.creatorId],
       references: [users.id],
+      relationName: "creator",
     }),
     group: one(groups, {
       fields: [groupInviteCodes.groupId],
       references: [groups.id],
+      relationName: "group",
     }),
   }),
 );

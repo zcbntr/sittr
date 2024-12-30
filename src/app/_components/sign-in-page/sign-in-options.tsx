@@ -17,7 +17,7 @@ export function SignInOptions() {
       </CardHeader>
       <CardContent>
         <div className="flex flex-row place-content-center">
-          <div className="flex w-min flex-col gap-4">
+          <div className="flex flex-col w-full gap-4">
             <form
               action={async () => {
                 "use server";
@@ -55,9 +55,10 @@ export function SignInOptions() {
           </div>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="text-xs text-opacity-50">
         Your data will be used to connect your pets, groups, and tasks with your
-        account.
+        chosen account. You can request to remove it at any time in your account
+        settings.
       </CardFooter>
     </Card>
   );

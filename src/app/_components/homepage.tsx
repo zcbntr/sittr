@@ -46,8 +46,8 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+    <section className="bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
+      <div className="container flex min-h-screen flex-col items-center justify-center gap-12">
         <div className="flex flex-row place-content-center">
           <h1 className="text-center text-4xl font-extrabold tracking-tight text-white sm:text-[5rem]">
             Pet sitting made easy
@@ -62,7 +62,7 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="flex flex-row place-content-center gap-4 pb-20 pt-5">
+          <div className="mt-5 flex flex-row place-content-center gap-4">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -94,15 +94,16 @@ export default function Home() {
               </form>
             </Form>
           </div>
-        </div>
-
-        <div className="">
-          or{" "}
-          <Link href="sign-in" className="underline">
-            sign up as an owner
-          </Link>
+          <div className="mt-[-20px] flex flex-row place-content-center">
+            <span>
+              or{" "}
+              <Link href="sign-in" className="underline">
+                sign up as an owner
+              </Link>
+            </span>
+          </div>
         </div>
       </div>
-    </main>
+    </section>
   );
 }
