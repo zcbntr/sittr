@@ -23,8 +23,8 @@ export function Footer() {
           >
             Terms of Service
           </Link>
-          <Link href="/contact" className="hover:underline" prefetch={false}>
-            Contact Us
+          <Link href="/support" className="hover:underline" prefetch={false}>
+            Support
           </Link>
         </nav>
       </div>

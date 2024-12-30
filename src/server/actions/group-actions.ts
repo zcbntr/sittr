@@ -24,7 +24,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { addMilliseconds } from "date-fns";
-import { ratelimit } from "../ratelimit";
+import { basicRatelimit } from "../ratelimit";
 import { GroupRoleEnum, NotificationTypeEnum } from "~/lib/schemas";
 import { randomString } from "~/lib/utils";
 
@@ -134,7 +134,7 @@ export const deleteGroupAction = ownsGroupProcedure
   .input(z.object({ id: z.string() }))
   .handler(async ({ ctx, input }) => {
     const user = ctx.user;
-    const { success } = await ratelimit.limit(user.id);
+    const { success } = await basicRatelimit.limit(user.id);
 
     if (!success) {
       throw new Error("You are deleting groups too fast");
@@ -289,7 +289,7 @@ export const addUserToGroupAction = ownsGroupProcedure
       throw new Error("Max group size reached");
     }
 
-    const { success } = await ratelimit.limit(input.userId);
+    const { success } = await basicRatelimit.limit(input.userId);
 
     if (!success) {
       throw new Error("You are adding users to the group too fast");
@@ -316,7 +316,7 @@ export const removeUserFromGroupAction = ownsGroupProcedure
   .createServerAction()
   .input(userGroupPairSchema)
   .handler(async ({ input }) => {
-    const { success } = await ratelimit.limit(input.userId);
+    const { success } = await basicRatelimit.limit(input.userId);
 
     if (!success) {
       throw new Error("You are removing users too fast");

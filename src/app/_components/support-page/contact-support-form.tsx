@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
-import { SupportCategoryEnum, supportEmailSchema } from "~/lib/schemas";
+import { SupportCategoryEnum, supportRequestInputSchema } from "~/lib/schemas";
 import { SelectUser } from "~/lib/schemas/users";
 import { sendSupportEmailAction } from "~/server/actions/email-actions";
 
@@ -34,14 +34,12 @@ export default function ContactSupportForm({
 }: {
   user: SelectUser | undefined;
 }) {
-  const form = useForm<z.infer<typeof supportEmailSchema>>({
+  const form = useForm<z.infer<typeof supportRequestInputSchema>>({
     mode: "onSubmit",
-    resolver: zodResolver(supportEmailSchema),
+    resolver: zodResolver(supportRequestInputSchema),
     defaultValues: {
       fullName: user?.name ? user.name : "",
       email: user?.email ? user.email : "",
-      category: SupportCategoryEnum.enum.Other,
-      message: "",
     },
   });
 
@@ -51,12 +49,13 @@ export default function ContactSupportForm({
     },
     onSuccess: () => {
       toast.success("Support ticket created!");
+      form.reset();
     },
   });
 
   return (
     <section>
-      <div className="mx-auto max-w-md">
+      <div className="max-w-md p-2">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => execute(values))}
@@ -126,13 +125,14 @@ export default function ContactSupportForm({
                   <FormLabel>Support Request *</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="My pet is not showing up..."
+                      placeholder="My pet is not showing up when I try to make a task..."
                       className="resize-auto"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Describe your problem in as much detail as possible.
+                    Describe your problem in as much detail as possible. The
+                    more specific you are, the faster we can help.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

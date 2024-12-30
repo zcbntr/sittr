@@ -8,7 +8,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { ratelimit } from "../ratelimit";
+import { basicRatelimit } from "../ratelimit";
 import { utapi } from "../uploadthing";
 
 export const createPetAction = authenticatedProcedure
@@ -18,7 +18,7 @@ export const createPetAction = authenticatedProcedure
     const user = ctx.user;
 
     // Once image upload is locked down to only paying customers we can remove the ratelimiting here
-    const { success } = await ratelimit.limit(user.id);
+    const { success } = await basicRatelimit.limit(user.id);
 
     if (!success) {
       throw new Error("You are creating pets too fast");

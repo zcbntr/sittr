@@ -6,7 +6,7 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-export const ratelimit = new Ratelimit({
+export const basicRatelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(5, "10 s"),
   analytics: true,
@@ -16,6 +16,13 @@ export const ratelimit = new Ratelimit({
 export const imageRateLimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(5, "60 s"),
+  analytics: true,
+  prefix: "@upstash/ratelimit",
+});
+
+export const supportRequestRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(2, "60 m"),
   analytics: true,
   prefix: "@upstash/ratelimit",
 });

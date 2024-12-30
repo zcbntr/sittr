@@ -16,7 +16,7 @@ import {
 } from "./zsa-procedures";
 import { and, eq, gte, not, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { ratelimit } from "../ratelimit";
+import { basicRatelimit } from "../ratelimit";
 import { getVisibleTaskById } from "../queries/tasks";
 import { NotificationTypeEnum } from "~/lib/schemas";
 import { addMinutes, differenceInMinutes, startOfWeek } from "date-fns";
@@ -298,7 +298,7 @@ export const deleteTaskAction = ownsTaskProcedure
   .input(selectBasicTaskSchema.pick({ id: true }))
   .handler(async ({ input, ctx }) => {
     const { userId } = ctx;
-    const { success } = await ratelimit.limit(userId);
+    const { success } = await basicRatelimit.limit(userId);
 
     if (!success) {
       throw new Error("You are deleting tasks too fast");

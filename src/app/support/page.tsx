@@ -10,8 +10,13 @@ export default async function SupportPage() {
   const user = await getLoggedInUser();
 
   return (
-    <section>
-      <ContactSupportForm user={user}/>
-    </section>
+    <div>
+      <section>
+        <div className="mx-auto flex max-w-md flex-col p-2">
+          <h1 className="p-2 text-2xl">Contact Support</h1>
+          <ContactSupportForm user={user} />
+        </div>
+      </section>
+    </div>
   );
 }

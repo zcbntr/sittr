@@ -9,12 +9,10 @@ export const SupportEmailTemplate: React.FC<Readonly<SupportEmailParams>> = ({
   userId,
 }) => (
   <div>
-    <h1>
-      User {fullName} ({email}):
-    </h1>
-
-    {!userId && <h2>Not logged in</h2>}
-    {userId && <h2>User ID: {userId}</h2>}
+    <h2>
+      {fullName} ({email})
+    </h2>
+    <h2>User ID: {userId}</h2>
     <h2>Category: {category}</h2>
     <p>{message}</p>
   </div>

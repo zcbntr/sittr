@@ -64,6 +64,24 @@ export const SupportCategoryEnum = z.enum([
 ]);
 export type SupportCategoryEnum = z.infer<typeof SupportCategoryEnum>;
 
+export const supportRequestInputSchema = z.object({
+  fullName: z
+    .string()
+    .max(100, { message: "This field has to be less than 100 characters." }),
+  email: z
+    .string()
+    .email({ message: "Invalid email address." })
+    .min(1, { message: "This field has to be filled." })
+    .max(200, { message: "This field has to be less than 200 characters." }),
+  category: SupportCategoryEnum,
+  message: z
+    .string()
+    .min(20, { message: "Please describe your problem." })
+    .max(1000, { message: "This field has to be less than 1000 characters." }),
+});
+
+export type SupportRequestInput = z.infer<typeof supportRequestInputSchema>;
+
 export const supportEmailSchema = z.object({
   fullName: z
     .string()
@@ -76,8 +94,9 @@ export const supportEmailSchema = z.object({
   category: SupportCategoryEnum,
   message: z
     .string()
+    .min(20, { message: "Please describe your problem." })
     .max(1000, { message: "This field has to be less than 1000 characters." }),
-  userId: z.string().optional(),
+  userId: z.string(),
 });
 
 export type SupportEmailParams = z.infer<typeof supportEmailSchema>;

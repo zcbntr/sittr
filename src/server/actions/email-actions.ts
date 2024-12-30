@@ -3,8 +3,9 @@
 import { Resend } from "resend";
 import { createServerAction } from "zsa";
 import { SupportEmailTemplate } from "~/components/email-templates/support-template";
-import { supportEmailSchema } from "~/lib/schemas";
+import { supportEmailSchema, supportRequestInputSchema } from "~/lib/schemas";
 import { getLoggedInUser } from "../queries/users";
+import { supportRequestRateLimit } from "../ratelimit";
 
 if (!process.env.RESEND_API_KEY) {
   throw new Error("RESEND_API_KEY is not set");
@@ -13,13 +14,20 @@ if (!process.env.RESEND_API_KEY) {
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendSupportEmailAction = createServerAction()
-  .input(supportEmailSchema)
+  .input(supportRequestInputSchema)
   .handler(async ({ input }) => {
     // Check if user is logged in
     const user = await getLoggedInUser();
 
     if (user) {
-      input.userId = user.id;
+      // Limit to two support requests per hour
+      const { success } = await supportRequestRateLimit.limit(user.id);
+
+      if (!success) {
+        throw new Error("You are sending support requests too fast");
+      }
+    } else {
+      throw new Error("User is not logged in");
     }
 
     if (input) {
@@ -27,9 +35,10 @@ export const sendSupportEmailAction = createServerAction()
         const { data, error } = await resend.emails.send({
           from: "Sittr <no-reply@support.sittr.pet>",
           to: ["zbenattar@gmail.com"],
-          subject: "Support request",
+          subject: `${input.category} - ${input.fullName}`,
           react: SupportEmailTemplate({
             ...input,
+            userId: user.id,
           }),
         });
 
