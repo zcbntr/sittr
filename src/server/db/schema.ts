@@ -110,7 +110,6 @@ export const tasks = createTable("tasks", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   creatorId: text("creator_id")
-    .notNull()
     .references(() => users.id, { onDelete: "set null" }),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
@@ -221,7 +220,6 @@ export const pets = createTable("pets", {
     .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
   creatorId: text("creator_id")
-    .notNull()
     .references(() => users.id, { onDelete: "set null" }),
   ownerId: text("owner_id")
     .notNull()
@@ -269,8 +267,10 @@ export const groups = createTable("groups", {
   id: text("id")
     .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
-  creatorId: text("creator_id")
+  ownerId: text("owner_id")
     .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  creatorId: text("creator_id")
     .references(() => users.id, { onDelete: "set null" }),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
@@ -283,6 +283,11 @@ export const groups = createTable("groups", {
 });
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [groups.ownerId],
+    references: [users.id],
+    relationName: "owner",
+  }),
   creator: one(users, {
     fields: [groups.creatorId],
     references: [users.id],
@@ -376,8 +381,9 @@ export const petImages = createTable("pet_images", {
   id: text("id")
     .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
-  // Do not use .notNull() here, as the pet may not have been created yet
-  petId: text("pet_id").references(() => pets.id, { onDelete: "cascade" }),
+  // Do not use .notNull() here, as the pet may not have been created yet, or the pet may have been deleted
+  // We need to keep the image row so we can delete the image from uploadthing
+  petId: text("pet_id").references(() => pets.id, { onDelete: "set null" }),
   uploaderId: text("uploader_id")
     .notNull()
     .references(() => users.id, { onDelete: "set null" }),
@@ -407,8 +413,9 @@ export const petProfilePics = createTable("pet_profile_pics", {
   id: text("id")
     .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
     .primaryKey(),
-  // Do not use .notNull() here, as the pet may not have been created yet
-  petId: text("pet_id").references(() => pets.id, { onDelete: "cascade" }),
+  // Do not use .notNull() here, as the pet may not have been created yet, or the pet may have been deleted
+  // We need to keep the image row so we can delete the image from uploadthing
+  petId: text("pet_id").references(() => pets.id, { onDelete: "set null" }),
   uploaderId: text("uploader_id")
     .notNull()
     .references(() => users.id, { onDelete: "set null" }),

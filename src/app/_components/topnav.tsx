@@ -1,5 +1,4 @@
 import Link from "next/link";
-// import { MdGroups, MdPets } from "react-icons/md";
 import SignInButton from "~/components/sign-in-button";
 import SignOutButton from "~/components/sign-out-button";
 import {
@@ -17,7 +16,6 @@ import {
   MdNotifications,
   MdOutlineCalendarMonth,
   MdOutlineGroup,
-  MdOutlinePerson,
   MdOutlinePets,
   MdOutlineSettings,
 } from "react-icons/md";

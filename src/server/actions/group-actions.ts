@@ -35,21 +35,17 @@ export const createGroupAction = authenticatedProcedure
     const user = ctx.user;
 
     // Check if the user already has maximum groups for their plan
-    const userGroups = await db.query.groupMembers.findMany({
-      where: (model, { eq, and }) =>
-        and(
-          eq(model.role, GroupRoleEnum.Values.Owner),
-          eq(model.userId, user.id),
-        ),
+    const userGroupRows = await db.query.groups.findMany({
+      where: (model, { eq, and }) => and(eq(model.ownerId, user.id)),
     });
 
-    if (!userGroups) {
+    if (!userGroupRows) {
       throw new Error("Could not fetch user's group");
     }
 
     if (
-      (user.plusMembership && userGroups.length >= 100) ||
-      (!user.plusMembership && userGroups.length >= 5)
+      (user.plusMembership && userGroupRows.length >= 100) ||
+      (!user.plusMembership && userGroupRows.length >= 5)
     ) {
       throw new Error("Reached maximum groups for your plan");
     }
@@ -62,7 +58,7 @@ export const createGroupAction = authenticatedProcedure
       // Create group
       const newGroup = await db
         .insert(groups)
-        .values({ ...input, creatorId: user.id })
+        .values({ ...input, creatorId: user.id, ownerId: user.id })
         .returning()
         .execute();
 

@@ -102,26 +102,19 @@ export const ownsGroupProcedure = createServerActionProcedure(
     const user = ctx.user;
     const userId = ctx.user.id;
 
-    // Check if the user is the owner of the group by left joining group members
-    const groupRow = (
-      await db
-        .select()
-        .from(groups)
-        .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
-        .where(
-          and(
-            eq(groups.id, input.id),
-            eq(groupMembers.userId, userId),
-            eq(groupMembers.role, "Owner"),
-          ),
-        )
-    )[0];
+    // Check if the user is the owner of the group with the given ID
+    const groupRow = await db.query.groups.findFirst({
+      where: (model, { and, eq }) =>
+        and(eq(model.id, input.id), eq(model.ownerId, userId)),
+    });
 
     if (!groupRow) {
       throw new Error("Group not found");
     }
 
-    const group: SelectGroupInput = selectGroupSchema.parse({ ...groupRow.groups });
+    const group: SelectGroupInput = selectGroupSchema.parse({
+      ...groupRow,
+    });
 
     return { user, group };
   });

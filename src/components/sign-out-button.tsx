@@ -7,7 +7,6 @@ export default function SignOutButton() {
       type="submit"
       onClick={async () => {
         "use server";
-        console.log(" sign out");
 
         await signOut({ redirectTo: "/" });
       }}
