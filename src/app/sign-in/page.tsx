@@ -17,7 +17,7 @@ export default async function LoginPage() {
   return (
     <section className="bg-gradient-to-b from-violet-900 to-[#15162c] text-white">
       <div className="container flex min-h-screen flex-col items-center justify-center gap-12 px-4">
-        <div className="mt-[-40px] sm:mt-[-180px]">
+        <div className="mt-[-60px] mb-[60px] sm:mt-[-200px]">
           <SignInOptions />
         </div>
       </div>

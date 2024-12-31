@@ -39,8 +39,8 @@ import {
 } from "~/components/ui/alert-dialog";
 import { useState } from "react";
 import { deleteAccount } from "~/server/actions/account-actions";
-import { redirect } from "next/navigation";
 import { signOut } from "next-auth/react";
+import Link from "next/link";
 
 export default function SettingsPanel({
   user,
@@ -51,8 +51,45 @@ export default function SettingsPanel({
 
   return (
     <div className="p-2">
-      <div>
-        <div className="flex flex-col gap-3 rounded-md border border-red-500 p-3">
+      <div className="flex flex-col gap-5">
+        {user?.plusMembership && (
+          <div className="flex flex-col gap-3 rounded-md border border-violet-600 p-3">
+            <div className="text-xl">
+              You have{" "}
+              <span className="font-bold">
+                sittr
+                <sup className="text-violet-600">+</sup>
+              </span>
+            </div>
+            <div className="">
+              Thank you for being an early adopter of Sittr. Your support helps
+              us continue to grow and improve the platform.
+            </div>
+          </div>
+        )}
+
+        {!user?.plusMembership && (
+          <div className="flex flex-col gap-3 rounded-md border border-violet-600 p-3">
+            <div className="text-xl">
+              Get{" "}
+              <span className="font-bold">
+                sittr
+                <sup className="text-violet-600">+</sup>
+              </span>
+            </div>
+            <div className="">
+              Sittr Plus lets you access premium features like unlimited tasks,
+              more images per task and larger groups.
+            </div>
+            <Button asChild className="w-full bg-violet-600">
+              <Link href="/plus" className="">
+                Find Out More
+              </Link>
+            </Button>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-3 rounded-md border border-red-500 border-opacity-50 p-3">
           <div className="text-xl">Delete Account</div>
           <div className="">
             Permanently remove your account and all of its data from Sittr. This
@@ -61,6 +98,7 @@ export default function SettingsPanel({
           {/* Open a dialog with confirmation, then call server action to delete all user data except user row, then log user out and delete user row */}
           <Button
             variant={"destructive"}
+            className="bg-opacity-50"
             onClick={() => {
               setAlertState(`confirm-delete-account`);
             }}
