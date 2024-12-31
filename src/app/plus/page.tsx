@@ -26,9 +26,12 @@ export default async function PlusUpgradeSuccess() {
             <li>Create unlimited pets</li>
             <li>Create unlimited groups</li>
             <li>Create unlimited tasks per week</li>
-            <li>Upload up to 10 images to help sitters per task</li>
+            <li>
+              Upload up to 10 images to help sitters per task (coming soon)
+            </li>
             <li>
               Your sitters can upload up to 10 images upon task completion
+              (coming soon)
             </li>
             <li>And many more features.</li>
           </ul>
@@ -55,6 +58,7 @@ export default async function PlusUpgradeSuccess() {
               sittr
               <sup className="text-violet-600">+</sup>
             </span>
+            . You have 14 days to request a refund.
           </div>
         </div>
       </div>

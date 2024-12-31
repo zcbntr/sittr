@@ -10,21 +10,6 @@ const PrivacyPolicy = () => {
   return (
     <main className="mx-auto max-w-xl">
       <div className="p-5">
-        <Link href="/" className="btn btn-ghost">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className="h-5 w-5"
-          >
-            <path
-              fillRule="evenodd"
-              d="M15 10a.75.75 0 01-.75.75H7.612l2.158 1.96a.75.75 0 11-1.04 1.08l-3.5-3.25a.75.75 0 010-1.08l3.5-3.25a.75.75 0 111.04 1.08L7.612 9.25h6.638A.75.75 0 0115 10z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Back
-        </Link>
         <h1 className="pb-6 text-3xl font-extrabold">
           Privacy Policy for sittr
         </h1>
@@ -33,7 +18,7 @@ const PrivacyPolicy = () => {
           className="whitespace-pre-wrap leading-relaxed"
           style={{ fontFamily: "sans-serif" }}
         >
-          {`Last Updated: October 2nd, 2024
+          {`Last Updated: December 31th, 2024
   
   Thank you for visiting sittr ("we," "us," or "our"). This Privacy Policy outlines how we collect, use, and protect your personal and non-personal information when you use our website located at https://sittr.uk (the "Website").
   
@@ -56,7 +41,7 @@ const PrivacyPolicy = () => {
   
   2. Purpose of Data Collection
   
-  We collect and use your personal data for the sole purpose of order processing. This includes processing your orders, sending order confirmations, providing customer support, and keeping you updated about the status of your orders.
+  We collect and use your personal data for the purposes of order processing and to provide the service. This includes processing your orders, sending order confirmations, providing customer support, and keeping you updated about the status of your orders.
   
   3. Data Sharing
   
@@ -74,7 +59,7 @@ const PrivacyPolicy = () => {
   
   If you have any questions, concerns, or requests related to this Privacy Policy, you can contact us at:
   
-  Email: zac@mail.sittr.uk
+  Email: zbenattar@gmail.com
   
   For all other inquiries, please visit our Contact Us page on the Website.
   
