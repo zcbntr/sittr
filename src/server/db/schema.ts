@@ -43,6 +43,12 @@ export const userRelations = relations(users, ({ many }) => ({
   tasksOwned: many(tasks, { relationName: "owner" }),
   tasksClaimed: many(tasks, { relationName: "claimedBy" }),
   tasksMarkedAsDone: many(tasks, { relationName: "markedAsDoneBy" }),
+  taskInstructionImages: many(taskInstructionImages, {
+    relationName: "uploader",
+  }),
+  taskCompletionImages: many(taskCompletionImages, {
+    relationName: "uploader",
+  }),
   petsCreated: many(pets, { relationName: "creator" }),
   petsOwned: many(pets, { relationName: "owner" }),
   petImages: many(petImages, { relationName: "uploader" }),
@@ -175,8 +181,80 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
     fields: [tasks.groupId],
     references: [groups.id],
   }),
+  instructionImages: many(taskInstructionImages),
+  completionImages: many(taskCompletionImages),
   notifications: many(notifications),
 }));
+
+export const taskInstructionImages = createTable("task_instruction_images", {
+  id: text("id")
+    .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
+    .primaryKey(),
+  // Do not use .notNull() here, as the pet may not have been created yet, or the pet may have been deleted
+  // We need to keep the image row so we can delete the image from uploadthing
+  taskId: text("task_id").references(() => tasks.id, { onDelete: "set null" }),
+  uploaderId: text("uploader_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "set null" }),
+  url: text("url").notNull(),
+  fileKey: text("file_key").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const taskInstructionImagesRelations = relations(
+  taskInstructionImages,
+  ({ one }) => ({
+    uploader: one(users, {
+      fields: [taskInstructionImages.uploaderId],
+      references: [users.id],
+      relationName: "uploader",
+    }),
+    task: one(tasks, {
+      fields: [taskInstructionImages.taskId],
+      references: [tasks.id],
+    }),
+  }),
+);
+
+export const taskCompletionImages = createTable("task_completion_images", {
+  id: text("id")
+    .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
+    .primaryKey(),
+  // Do not use .notNull() here, as the pet may not have been created yet, or the pet may have been deleted
+  // We need to keep the image row so we can delete the image from uploadthing
+  taskId: text("task_id").references(() => tasks.id, { onDelete: "set null" }),
+  uploaderId: text("uploader_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "set null" }),
+  url: text("url").notNull(),
+  fileKey: text("file_key").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const taskCompletionImagesRelations = relations(
+  taskCompletionImages,
+  ({ one }) => ({
+    uploader: one(users, {
+      fields: [taskCompletionImages.uploaderId],
+      references: [users.id],
+      relationName: "uploader",
+    }),
+    task: one(tasks, {
+      fields: [taskCompletionImages.taskId],
+      references: [tasks.id],
+    }),
+  }),
+);
 
 export const petsToGroups = createTable(
   "pets_to_groups",

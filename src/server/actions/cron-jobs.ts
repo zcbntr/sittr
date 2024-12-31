@@ -1,16 +1,36 @@
 import { and, gte, inArray, isNotNull, lt, or, sql } from "drizzle-orm";
 import { db } from "../db";
-import { groupInviteCodes, notifications, petImages, pets } from "../db/schema";
+import {
+  groupInviteCodes,
+  notifications,
+  petImages,
+  petProfilePics,
+  pets,
+  taskCompletionImages,
+  taskInstructionImages,
+} from "../db/schema";
 import { utapi } from "../uploadthing";
 import { NotificationTypeEnum } from "~/lib/schemas";
 
 export async function deleteOldUnlinkedImages(): Promise<number> {
-  const [petImages, petProfilePics] = await Promise.all([
+  const [
+    taskInstructionImages,
+    taskCompletionImages,
+    petImages,
+    petProfilePics,
+  ] = await Promise.all([
+    deleteOldUnlinkedTaskInstructionImages(),
+    deleteOldUnlinkedTaskCompletionImages(),
     deleteOldUnlinkedPetImages(),
     deleteOldUnlinkedPetProfilePics(),
   ]);
 
-  return petImages.length + petProfilePics.length;
+  return (
+    taskInstructionImages.length +
+    taskCompletionImages.length +
+    petImages.length +
+    petProfilePics.length
+  );
 }
 
 export async function notifyOfPetBirthdays() {
@@ -204,6 +224,98 @@ export async function notifyUpcomingUnclaimedTasks() {
   return count;
 }
 
+async function deleteOldUnlinkedTaskInstructionImages(): Promise<string[]> {
+  // Images must be at least 2 hours old
+  // (account for task creation time before user clicks create but has images uploaded)
+  // to be deleted and not be connected to a user account or task
+  const oldUnlinkTaskInstructionImageRows =
+    await db.query.taskInstructionImages.findMany({
+      where: (model, { and, isNull, lt }) =>
+        or(
+          isNull(model.uploaderId),
+          and(
+            isNull(model.taskId),
+            lt(model.createdAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
+          ),
+        ),
+    });
+
+  // Delete from UT
+  const imageKeys: string[] = oldUnlinkTaskInstructionImageRows.map(
+    (row) => row.fileKey,
+  );
+  const rowToDeleteIds: string[] = [];
+  const errorKeys: string[] = [];
+  for (const imageKey of imageKeys) {
+    const { success } = await utapi.deleteFiles(imageKey);
+    if (success) {
+      rowToDeleteIds.push(imageKey);
+    } else {
+      errorKeys.push(imageKey);
+    }
+  }
+
+  if (errorKeys.length > 0) {
+    console.error(
+      `UploadThing image deletion of orphened task instruction images failed.\nFailed to delete: ${errorKeys.length} images.\n${errorKeys.join(", ")}`,
+    );
+  }
+
+  // Delete from db only the images that have been successfully deleted from UT
+  await db
+    .delete(taskInstructionImages)
+    .where(inArray(petImages.id, rowToDeleteIds))
+    .execute();
+
+  return rowToDeleteIds;
+}
+
+async function deleteOldUnlinkedTaskCompletionImages(): Promise<string[]> {
+  // Images must be at least 2 hours old
+  // (account for task mark as done time before user clicks mark as done but has images uploaded)
+  // to be deleted and not be connected to a user account or task
+  const oldUnlinkTaskCompletionImageRows =
+    await db.query.taskCompletionImages.findMany({
+      where: (model, { and, isNull, lt }) =>
+        or(
+          isNull(model.uploaderId),
+          and(
+            isNull(model.taskId),
+            lt(model.createdAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
+          ),
+        ),
+    });
+
+  // Delete from UT
+  const imageKeys: string[] = oldUnlinkTaskCompletionImageRows.map(
+    (row) => row.fileKey,
+  );
+  const rowToDeleteIds: string[] = [];
+  const errorKeys: string[] = [];
+  for (const imageKey of imageKeys) {
+    const { success } = await utapi.deleteFiles(imageKey);
+    if (success) {
+      rowToDeleteIds.push(imageKey);
+    } else {
+      errorKeys.push(imageKey);
+    }
+  }
+
+  if (errorKeys.length > 0) {
+    console.error(
+      `UploadThing image deletion of orphened task completion images failed.\nFailed to delete: ${errorKeys.length} images.\n${errorKeys.join(", ")}`,
+    );
+  }
+
+  // Delete from db only the images that have been successfully deleted from UT
+  await db
+    .delete(taskCompletionImages)
+    .where(inArray(petImages.id, rowToDeleteIds))
+    .execute();
+
+  return rowToDeleteIds;
+}
+
 async function deleteOldUnlinkedPetImages(): Promise<string[]> {
   // Images must be at least 2 hours old to be deleted and not be connected to a user account or pet
   const oldUnlinkedPetImages = await db.query.petImages.findMany({
@@ -248,7 +360,7 @@ async function deleteOldUnlinkedPetImages(): Promise<string[]> {
 async function deleteOldUnlinkedPetProfilePics(): Promise<string[]> {
   // Images must be at least 2 hours old to be deleted and not be connected to a pet
   // Or belong to a deleted user
-  const oldUnlinkedPetImages = await db.query.petProfilePics.findMany({
+  const oldUnlinkedPetProfilePics = await db.query.petProfilePics.findMany({
     where: (model, { and, isNull, lt }) =>
       or(
         isNull(model.uploaderId),
@@ -260,7 +372,7 @@ async function deleteOldUnlinkedPetProfilePics(): Promise<string[]> {
   });
 
   // Delete from UT
-  const imageKeys = oldUnlinkedPetImages.map((row) => row.fileKey);
+  const imageKeys = oldUnlinkedPetProfilePics.map((row) => row.fileKey);
   const rowToDeleteIds: string[] = [];
   const errorKeys: string[] = [];
   for (const imageKey of imageKeys) {
@@ -280,7 +392,7 @@ async function deleteOldUnlinkedPetProfilePics(): Promise<string[]> {
 
   // Delete from db only the images that have been successfully deleted from UT
   await db
-    .delete(petImages)
+    .delete(petProfilePics)
     .where(inArray(petImages.id, rowToDeleteIds))
     .execute();
 
