@@ -1,37 +1,16 @@
-import { and, gte, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
+import { and, gte, inArray, isNotNull, lt, or, sql } from "drizzle-orm";
 import { db } from "../db";
 import { groupInviteCodes, notifications, petImages, pets } from "../db/schema";
 import { utapi } from "../uploadthing";
 import { NotificationTypeEnum } from "~/lib/schemas";
 
-export async function deleteOldUnlinkedImages() {
-  // Images must be at least 2 hours old to be deleted
-  const oldUnlinkedImages = await db.query.petImages.findMany({
-    where: (model, { and, isNull, lt }) =>
-      and(
-        isNull(model.petId),
-        lt(model.createdAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
-      ),
-  });
+export async function deleteOldUnlinkedImages(): Promise<number> {
+  const [petImages, petProfilePics] = await Promise.all([
+    deleteOldUnlinkedPetImages(),
+    deleteOldUnlinkedPetProfilePics(),
+  ]);
 
-  // Delete from upload thing
-  for (const image of oldUnlinkedImages) {
-    await utapi.deleteFiles(image.fileKey);
-  }
-
-  // Delete from db
-  const rows = await db
-    .delete(petImages)
-    .where(
-      and(
-        isNull(petImages.petId),
-        lt(petImages.createdAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
-      ),
-    )
-    .returning()
-    .execute();
-
-  return rows.length;
+  return petImages.length + petProfilePics.length;
 }
 
 export async function notifyOfPetBirthdays() {
@@ -223,4 +202,87 @@ export async function notifyUpcomingUnclaimedTasks() {
   }
 
   return count;
+}
+
+async function deleteOldUnlinkedPetImages(): Promise<string[]> {
+  // Images must be at least 2 hours old to be deleted and not be connected to a user account or pet
+  const oldUnlinkedPetImages = await db.query.petImages.findMany({
+    where: (model, { and, isNull, lt }) =>
+      or(
+        isNull(model.uploaderId),
+        and(
+          isNull(model.petId),
+          lt(model.createdAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
+        ),
+      ),
+  });
+
+  // Delete from UT
+  const imageKeys: string[] = oldUnlinkedPetImages.map((row) => row.fileKey);
+  const rowToDeleteIds: string[] = [];
+  const errorKeys: string[] = [];
+  for (const imageKey of imageKeys) {
+    const { success } = await utapi.deleteFiles(imageKey);
+    if (success) {
+      rowToDeleteIds.push(imageKey);
+    } else {
+      errorKeys.push(imageKey);
+    }
+  }
+
+  if (errorKeys.length > 0) {
+    console.error(
+      `UploadThing image deletion of orphened pet images failed.\nFailed to delete: ${errorKeys.length} images.\n${errorKeys.join(", ")}`,
+    );
+  }
+
+  // Delete from db only the images that have been successfully deleted from UT
+  await db
+    .delete(petImages)
+    .where(inArray(petImages.id, rowToDeleteIds))
+    .execute();
+
+  return rowToDeleteIds;
+}
+
+async function deleteOldUnlinkedPetProfilePics(): Promise<string[]> {
+  // Images must be at least 2 hours old to be deleted and not be connected to a pet
+  // Or belong to a deleted user
+  const oldUnlinkedPetImages = await db.query.petProfilePics.findMany({
+    where: (model, { and, isNull, lt }) =>
+      or(
+        isNull(model.uploaderId),
+        and(
+          isNull(model.petId),
+          lt(model.createdAt, new Date(Date.now() - 2 * 60 * 60 * 1000)),
+        ),
+      ),
+  });
+
+  // Delete from UT
+  const imageKeys = oldUnlinkedPetImages.map((row) => row.fileKey);
+  const rowToDeleteIds: string[] = [];
+  const errorKeys: string[] = [];
+  for (const imageKey of imageKeys) {
+    const { success } = await utapi.deleteFiles(imageKey);
+    if (success) {
+      rowToDeleteIds.push(imageKey);
+    } else {
+      errorKeys.push(imageKey);
+    }
+  }
+
+  if (errorKeys.length > 0) {
+    console.error(
+      `UploadThing image deletion of orphened pet profile pics failed.\nFailed to delete: ${errorKeys.length} images.\n${errorKeys.join(", ")}`,
+    );
+  }
+
+  // Delete from db only the images that have been successfully deleted from UT
+  await db
+    .delete(petImages)
+    .where(inArray(petImages.id, rowToDeleteIds))
+    .execute();
+
+  return rowToDeleteIds;
 }
