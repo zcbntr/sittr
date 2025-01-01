@@ -130,7 +130,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                     {(pet.image ?? recentUploadUrl) && (
                       <div className="flex flex-row place-content-center gap-2">
                         <UploadButton
-                          endpoint="editPetImageUploader"
+                          endpoint="petProfilePicUploader"
                           input={{ petId: pet.id }}
                           onClientUploadComplete={(res) => {
                             // Do something with the response
@@ -160,7 +160,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
 
                     {!pet.image && !recentUploadUrl && (
                       <UploadButton
-                        endpoint="editPetImageUploader"
+                        endpoint="petProfilePicUploader"
                         input={{ petId: pet.id }}
                         onClientUploadComplete={(res) => {
                           // Do something with the response

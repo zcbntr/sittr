@@ -94,7 +94,7 @@ export default function CreatePetDialog({
                 </div>
               )}
               <UploadButton
-                endpoint="createPetImageUploader"
+                endpoint="unlinkedPetProfilePicUploader"
                 onClientUploadComplete={(res) => {
                   // Do something with the response
                   if (res[0]?.serverData.imageId) {

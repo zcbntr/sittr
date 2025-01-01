@@ -13,9 +13,18 @@ export const basicRatelimit = new Ratelimit({
   prefix: "@upstash/ratelimit",
 });
 
-export const imageRateLimit = new Ratelimit({
+// Used for single image uploads and other image endpoints open to non plus user
+export const singleImageRateLimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(5, "60 s"),
+  analytics: true,
+  prefix: "@upstash/ratelimit",
+});
+
+// Used for plus locked down endpoints like task instructions or completion images
+export const multiImageRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(15, "30 m"),
   analytics: true,
   prefix: "@upstash/ratelimit",
 });
