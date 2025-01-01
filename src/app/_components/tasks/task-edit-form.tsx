@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
 import { Button } from "~/components/ui/button";
@@ -41,10 +41,11 @@ import { Card, CardContent } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
 import { updateTaskAction } from "~/server/actions/task-actions";
 import { Switch } from "~/components/ui/switch";
-import { SelectBasicPet } from "~/lib/schemas/pets";
+import { type SelectBasicPet, selectPetListSchema } from "~/lib/schemas/pets";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import { groups } from "~/server/db/schema";
-import { SelectBasicGroup } from "~/lib/schemas/groups";
+import { type SelectBasicGroup } from "~/lib/schemas/groups";
+import { MdCancel, MdEdit } from "react-icons/md";
 
 export function TaskEditForm({
   task,
@@ -53,10 +54,7 @@ export function TaskEditForm({
   task: SelectBasicTask;
   userGroups: SelectBasicGroup[];
 }) {
-  const [dob, setDOB] = React.useState<Date | undefined>();
-  const [recentUploadUrl, setRecentUploadUrl] = React.useState<
-    string | undefined
-  >(undefined);
+  const [recentUploadUrls, setRecentUploadUrls] = React.useState<string[]>([]);
 
   const [groupPets, setGroupPets] = useState<SelectBasicPet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
@@ -81,7 +79,13 @@ export function TaskEditForm({
   const updateForm = useForm<z.infer<typeof updateTaskSchema>>({
     resolver: zodResolver(updateTaskSchema),
     defaultValues: {
-      ...task,
+      id: task?.id,
+      name: task?.name,
+      description: task?.description ? task.description : undefined,
+      dueMode: task?.dueMode,
+      dueDate: task?.dueDate ? task.dueDate : undefined,
+      dateRangeFrom: task?.dateRangeFrom ? task.dateRangeFrom : undefined,
+      dateRangeTo: task?.dateRangeTo ? task.dateRangeTo : undefined,
     },
   });
 
@@ -107,6 +111,38 @@ export function TaskEditForm({
   //       toast.success("Image deleted!");
   //     },
   //   });
+
+  useEffect(() => {
+    setSelectedGroupId(task?.groupId ? task.groupId : "");
+
+    async function fetchGroupPets() {
+      await fetch("../api/group-pets?id=" + updateForm.getValues("groupId"), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((json) => selectPetListSchema.safeParse(json))
+        .then((validatedPetListObject) => {
+          if (!validatedPetListObject.success) {
+            console.log(validatedPetListObject.error);
+            throw new Error("Failed to get group's pets");
+          }
+
+          if (validatedPetListObject.data.length > 0) {
+            setGroupPets(validatedPetListObject.data);
+          } else if (validatedPetListObject.data.length === 0) {
+            setPetsEmpty(true);
+          }
+        });
+    }
+
+    // Fetch all possible sitting pets
+    if (task) {
+      void fetchGroupPets();
+    }
+  }, [task, selectedGroupId]);
 
   return (
     <Card className="w-min max-w-[1000px] sm:w-full">
@@ -496,6 +532,30 @@ export function TaskEditForm({
                       </FormItem>
                     )}
                   />
+
+                  <div className="flex flex-row gap-2 pt-2">
+                    <Button type="submit" disabled={updatePending}>
+                      <div className="flex flex-row gap-2">
+                        <div className="flex flex-col place-content-center">
+                          <MdEdit size={"1.2rem"} />
+                        </div>
+                        {updatePending ? "Updating Pet..." : "Update Pet"}
+                      </div>
+                    </Button>
+
+                    <Button
+                      type="reset"
+                      onClick={exitEditMode}
+                      disabled={updatePending}
+                    >
+                      <div className="flex flex-row gap-2">
+                        <div className="flex flex-col place-content-center">
+                          <MdCancel size={"1.2rem"} />
+                        </div>
+                        Cancel
+                      </div>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

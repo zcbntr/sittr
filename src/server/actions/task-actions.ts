@@ -175,12 +175,9 @@ export const createTaskAction = authenticatedProcedure
 
 export const updateTaskAction = ownsTaskProcedure
   .createServerAction()
-  // This needs to become a taskeditschema
   .input(updateTaskSchema)
   .handler(async ({ input, ctx }) => {
     const { userId, task } = ctx;
-
-    if (input?.id) delete input?.id;
 
     await db
       .update(tasks)

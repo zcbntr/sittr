@@ -38,7 +38,6 @@ import { Card, CardContent } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
 
 export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
-  const [dob, setDOB] = React.useState<Date | undefined>();
   const [recentUploadUrl, setRecentUploadUrl] = React.useState<
     string | undefined
   >(undefined);
@@ -226,7 +225,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                                 variant={"outline"}
                                 className={cn(
                                   "justify-start text-left font-normal",
-                                  !dob && "text-muted-foreground",
+                                  !field.value && "text-muted-foreground",
                                 )}
                               >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -250,10 +249,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                                 date < new Date("1900-01-01")
                               }
                               selected={field.value ? field.value : undefined}
-                              onSelect={(e) => {
-                                setDOB(e);
-                                field.onChange(e);
-                              }}
+                              onSelect={field.onChange}
                             />
                           </PopoverContent>
                         </Popover>

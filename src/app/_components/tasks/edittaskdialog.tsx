@@ -42,7 +42,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
-import { type SelectTask, type updateTaskSchema } from "~/lib/schemas/tasks";
+import { updateTaskSchema, type SelectTask } from "~/lib/schemas/tasks";
 import {
   deleteTaskAction,
   updateTaskAction,
@@ -63,6 +63,7 @@ import {
 } from "~/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
 import { selectPetListSchema, type SelectBasicPet } from "~/lib/schemas/pets";
+import Link from "next/link";
 
 export default function EditTaskDialog({
   groups,
@@ -83,20 +84,8 @@ export default function EditTaskDialog({
   );
   const [dueMode, setDueMode] = useState<boolean>(true);
 
-  const schema = z.object({
-    id: z.string(),
-    name: z.string().min(1).max(100),
-    description: z.string().max(500).optional(),
-    dueMode: z.boolean(),
-    dueDate: z.date().optional(),
-    dateRangeFrom: z.date().optional(),
-    dateRangeTo: z.date().optional(),
-    petId: z.string().min(1),
-    groupId: z.string().min(1),
-  });
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<z.infer<typeof updateTaskSchema>>({
+    resolver: zodResolver(updateTaskSchema),
     defaultValues: {
       id: task?.id,
       name: task?.name,
@@ -211,7 +200,10 @@ export default function EditTaskDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="h-5/6 max-h-svh w-11/12 max-w-[450px] rounded-md sm:h-fit">
         <DialogHeader className="pb-2">
-          <DialogTitle>Edit Task</DialogTitle>
+          <DialogTitle>
+            {task && <Link href={`/tasks/${task?.id}`}>Edit Task</Link>}
+            {!task && <span>Edit Task</span>}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form

@@ -113,7 +113,72 @@ export const createTaskSchema = createInsertSchema(tasks)
 
 export type NewTask = z.infer<typeof createTaskSchema>;
 
-export const updateTaskSchema = selectBasicTaskSchema.partial();
+export const updateTaskSchema = selectBasicTaskSchema
+  .partial()
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+    ownerId: true,
+    creatorId: true,
+    claimedAt: true,
+    claimedById: true,
+    completedAt: true,
+    markedAsDoneAt: true,
+    markedAsDoneById: true,
+  })
+  .extend({
+    name: z
+      .string()
+      .min(5, { message: "Please provide a title for your task" })
+      .max(50, { message: "Title should be 50 characters or less" }),
+    description: z
+      .string()
+      .min(15, {
+        message: "Please describe the task in detail to help your sitters",
+      })
+      .max(500, { message: "Description should not exceed 500 characters" })
+      .optional(),
+    groupId: z
+      .string()
+      .nonempty({ message: "Provide a group to assign the group to" }),
+    dueDate: z.coerce
+      .date()
+      .min(new Date(), { message: "Date must be in the future" })
+      .optional(),
+    dateRangeFrom: z
+      .date()
+      .min(new Date(), { message: "Date must be in the future" })
+      .optional(),
+    dateRangeTo: z
+      .date()
+      .min(new Date(), { message: "Date must be in the future" })
+      .optional(),
+    petId: z.string().nonempty({ message: "Provide the pet the task serves" }),
+    repeatFrequency: TaskRepeatitionFrequency.optional(),
+    repeatUntil: z.date().optional(),
+  })
+  .refine((data) => !data.dueMode || (data.dueMode && data.dueDate), {
+    message: "Due date is required for tasks set to due mode",
+    path: ["dueDate"],
+  })
+  .refine((data) => data.dueMode ?? (!data.dueMode && data.dateRangeFrom), {
+    message: "From date is required for tasks that span a time period",
+    path: ["dateRangeFrom"],
+  })
+  .refine((data) => data.dueMode ?? (!data.dueMode && data.dateRangeFrom), {
+    message: "From date is required for tasks that span a time period",
+    path: ["dateRangeTo"],
+  })
+  .refine(
+    (data) =>
+      (data.repeatFrequency && data.repeatUntil) ??
+      (!data.repeatFrequency && !data.repeatUntil),
+    {
+      message:
+        "Repeating tasks require both repeat frequency and repeat until date",
+      path: ["repeatFrequency", "repeatUntil"],
+    },
+  );
 
 export type EditTask = z.infer<typeof updateTaskSchema>;
 
