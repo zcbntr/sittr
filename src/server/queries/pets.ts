@@ -6,10 +6,10 @@ import {
   selectPetSchema,
   type SelectBasicPet,
 } from "~/lib/schemas/pets";
-import { getLoggedInUser } from "./users";
+import { getBasicLoggedInUser } from "./users";
 
 export async function getOwnedPetById(petId: string): Promise<SelectBasicPet> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
   const userId = user?.id;
 
   if (!userId) {
@@ -35,7 +35,7 @@ export async function getOwnedPetById(petId: string): Promise<SelectBasicPet> {
 export async function getPetVisibleViaCommonGroup(
   petId: string,
 ): Promise<SelectBasicPet> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
   const userId = user?.id;
 
   if (!userId) {
@@ -81,7 +81,7 @@ export async function getPetVisibleViaCommonGroup(
 export async function getPetsByIds(
   petIds: string[],
 ): Promise<SelectBasicPet[] | string> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
   const userId = user?.id;
 
   if (!userId) {
@@ -121,7 +121,7 @@ export async function getPetsByIds(
 }
 
 export async function getOwnedPets(): Promise<SelectPet[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
   const userId = user?.id;
 
   if (!userId) {

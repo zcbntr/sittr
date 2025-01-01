@@ -11,7 +11,7 @@ import {
 } from "~/server/queries/groups";
 import { type SelectBasicPet } from "~/lib/schemas/pets";
 import { redirect } from "next/navigation";
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 import { markNotificationAsReadAction } from "~/server/actions/notification-actions";
 
 export default async function Page({
@@ -21,7 +21,7 @@ export default async function Page({
   params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
   if (!user) {
     redirect("/");
   }

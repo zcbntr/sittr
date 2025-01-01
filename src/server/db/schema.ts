@@ -37,7 +37,12 @@ export const users = createTable("user", {
   plusMembership: boolean("plus_membership").notNull().default(false),
 });
 
-export const userRelations = relations(users, ({ many }) => ({
+export const userRelations = relations(users, ({ one, many }) => ({
+  notificationPreferences: one(notificationPreferences, {
+    fields: [users.id],
+    references: [notificationPreferences.userId],
+    relationName: "user",
+  }),
   tasksCreated: many(tasks, { relationName: "creator" }),
   tasksOwned: many(tasks, { relationName: "owner" }),
   tasksClaimed: many(tasks, { relationName: "claimedBy" }),
@@ -55,6 +60,7 @@ export const userRelations = relations(users, ({ many }) => ({
   groupsCreated: many(groups, { relationName: "creator" }),
   groupInviteCodes: many(groupInviteCodes),
   groupMembers: many(groupMembers),
+  notifications: many(notifications),
 }));
 
 export const accounts = createTable(
@@ -549,6 +555,10 @@ export const notifications = createTable("notification", {
 });
 
 export const notificationRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
   associatedTask: one(tasks, {
     fields: [notifications.associatedTaskId],
     references: [tasks.id],
@@ -562,3 +572,36 @@ export const notificationRelations = relations(notifications, ({ one }) => ({
     references: [pets.id],
   }),
 }));
+
+export const notificationPreferences = createTable("notification_preferences", {
+  id: text("id")
+    .$defaultFn(() => crypto.randomUUID().replace("-", "").substring(0, 12))
+    .primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  emailUpcomingTasks: boolean("email_upcoming_tasks").notNull().default(false),
+  emailOverdueTasks: boolean("email_overdue_tasks").notNull().default(false),
+  emailGroupMembershipChanges: boolean("email_group_membership_changes")
+    .notNull()
+    .default(false),
+  emailPetBirthdays: boolean("email_pet_birthdays").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+    () => new Date(),
+  ),
+});
+
+export const notificationPreferencesRelations = relations(
+  notifications,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [notifications.userId],
+      references: [users.id],
+      relationName: "user",
+    }),
+  }),
+);

@@ -11,7 +11,7 @@ import TaskTypeSelect from "./dashboard/tasks-type-select";
 import { Suspense } from "react";
 import MonthArrows from "./dashboard/month-arrows";
 import { MdAddTask } from "react-icons/md";
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 import { type TaskTypeEnum } from "~/lib/schemas";
 import { redirect } from "next/navigation";
 
@@ -25,7 +25,7 @@ export default async function Dashboard({
   tasksType: TaskTypeEnum;
 }) {
   const [currentUser, groups, tasks, canCreateTasks] = await Promise.all([
-    getLoggedInUser(),
+    getBasicLoggedInUser(),
     getGroupsUserIsIn(),
     getTasksInRange(dateFrom, dateTo, tasksType),
     getCanCreateTasks(),

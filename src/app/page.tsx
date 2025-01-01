@@ -3,7 +3,7 @@ import { TaskTypeEnum } from "~/lib/schemas";
 import Dashboard from "./_components/dashboard";
 import Home from "./_components/homepage";
 import { endOfMonth, endOfWeek, startOfMonth, startOfWeek } from "date-fns";
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 
 export default async function Page({
   searchParams,
@@ -16,7 +16,7 @@ export default async function Page({
 
   if (!session?.user?.email) return <Home />;
 
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   // Safely convert the date strings to Date objects.
   // If they are not specified, default to the start and end of calendar month page.

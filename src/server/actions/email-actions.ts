@@ -4,7 +4,7 @@ import { Resend } from "resend";
 import { createServerAction } from "zsa";
 import { SupportEmailTemplate } from "~/components/email-templates/support-template";
 import { supportEmailSchema, supportRequestInputSchema } from "~/lib/schemas";
-import { getLoggedInUser } from "../queries/users";
+import { getBasicLoggedInUser } from "../queries/users";
 import { supportRequestRateLimit } from "../ratelimit";
 
 if (!process.env.RESEND_API_KEY) {
@@ -17,7 +17,7 @@ export const sendSupportEmailAction = createServerAction()
   .input(supportRequestInputSchema)
   .handler(async ({ input }) => {
     // Check if user is logged in
-    const user = await getLoggedInUser();
+    const user = await getBasicLoggedInUser();
 
     if (user) {
       // Limit to two support requests per hour

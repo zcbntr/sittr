@@ -1,10 +1,10 @@
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 import PlusPurchaseForm from "../../_components/account/plus-purchase-form";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export default async function Page({}) {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     return null;

@@ -1,4 +1,4 @@
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 import JoinGroupPage from "./join-group-page";
 import { signIn } from "~/auth";
 
@@ -9,7 +9,7 @@ export default async function Page({
 }) {
   const slug = (await params).slug;
 
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     // Hope this works!

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { type NextRequest } from "next/server";
 import Stripe from "stripe";
 import { upgradeUserToPlus } from "~/server/actions/account-actions";
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("Stripe key is not defined");
@@ -23,7 +23,7 @@ export const GET = async (request: NextRequest) => {
   if (session.status === "complete") {
     // Go to a success page!
 
-    const user = await getLoggedInUser();
+    const user = await getBasicLoggedInUser();
 
     if (!user) {
       console.error(

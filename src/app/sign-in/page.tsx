@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 import { SignInOptions } from "../_components/sign-in-page/sign-in-options";
 
 export const metadata: Metadata = {
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LoginPage() {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (user) {
     redirect("/");

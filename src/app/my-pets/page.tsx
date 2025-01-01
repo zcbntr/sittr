@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import PetsTable from "../_components/my-pets/petstable";
 import { getOwnedPets } from "~/server/queries/pets";
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 import { redirect } from "next/navigation";
 
 export default async function Page() {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     redirect("/");

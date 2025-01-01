@@ -5,13 +5,13 @@ import { or, not, isNull, inArray, gte, and, eq } from "drizzle-orm";
 import { db } from "../db";
 import { tasks } from "../db/schema";
 import { TaskTypeEnum } from "~/lib/schemas";
-import { getLoggedInUser } from "./users";
+import { getBasicLoggedInUser } from "./users";
 import { startOfWeek } from "date-fns";
 
 export async function getCanCreateTasks(): Promise<boolean> {
   // Check whether use has created more than 5 tasks since the last monday
   // Limit non plus users to creating 5 tasks per week. Count tasks created since the start of the week (Monday)
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -37,7 +37,7 @@ export async function getCanCreateTasks(): Promise<boolean> {
 }
 
 export async function getAllOwnedTasks(): Promise<SelectTask[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -69,7 +69,7 @@ export async function getAllOwnedTasks(): Promise<SelectTask[]> {
 export async function getOwnedTasksByIds(
   taskIds: string[],
 ): Promise<SelectTask[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -107,7 +107,7 @@ export async function getOwnedTasksByIds(
 }
 
 export async function getOwnedTaskById(taskId: string): Promise<SelectTask> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -143,7 +143,7 @@ export async function getOwnedTaskById(taskId: string): Promise<SelectTask> {
 }
 
 export async function getVisibleTaskById(taskId: string): Promise<SelectTask> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -200,7 +200,7 @@ async function getTasksOwnedInRange(
   from: Date,
   to: Date,
 ): Promise<SelectTask[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -248,7 +248,7 @@ async function getTasksSittingForInRange(
   from: Date,
   to: Date,
 ): Promise<SelectTask[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -295,7 +295,7 @@ async function getTasksVisibileInRange(
   from: Date,
   to: Date,
 ): Promise<SelectTask[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -373,7 +373,7 @@ async function getTasksUnclaimedInRange(
   from: Date,
   to: Date,
 ): Promise<SelectTask[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");

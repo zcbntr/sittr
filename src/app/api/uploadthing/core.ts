@@ -4,7 +4,7 @@ import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
 import { db } from "~/server/db";
 import { petProfilePics, taskInstructionImages } from "~/server/db/schema";
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 import { multiImageRateLimit, singleImageRateLimit } from "~/server/ratelimit";
 import { utapi } from "~/server/uploadthing";
 
@@ -18,7 +18,7 @@ export const ourFileRouter = {
     // Set permissions and file types for this FileRoute
     .middleware(async ({}) => {
       // This code runs on the server before upload
-      const user = await getLoggedInUser();
+      const user = await getBasicLoggedInUser();
       const userId = user?.id;
 
       // eslint-disable-next-line @typescript-eslint/only-throw-error
@@ -81,7 +81,7 @@ export const ourFileRouter = {
     // Set permissions and file types for this FileRoute
     .middleware(async ({ input }) => {
       // This code runs on the server before upload
-      const user = await getLoggedInUser();
+      const user = await getBasicLoggedInUser();
       const userId = user?.id;
 
       // eslint-disable-next-line @typescript-eslint/only-throw-error
@@ -150,7 +150,7 @@ export const ourFileRouter = {
     // Set permissions and file types for this FileRoute
     .middleware(async ({ req, input }) => {
       // This code runs on the server before upload
-      const user = await getLoggedInUser();
+      const user = await getBasicLoggedInUser();
       const userId = user?.id;
 
       // TODO

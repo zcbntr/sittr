@@ -5,10 +5,10 @@ import {
   type SelectNotification,
 } from "~/lib/schemas/notifications";
 import { db } from "../db";
-import { getLoggedInUser } from "./users";
+import { getBasicLoggedInUser } from "./users";
 
 export async function getUserNotifications(): Promise<SelectNotification[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");

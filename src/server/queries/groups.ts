@@ -11,11 +11,11 @@ import {
   type SelectGroup,
 } from "~/lib/schemas/groups";
 import { type SelectBasicPet, selectPetSchema } from "~/lib/schemas/pets";
-import { getLoggedInUser } from "./users";
+import { getBasicLoggedInUser } from "./users";
 import { selectUserSchema } from "~/lib/schemas/users";
 
 export async function getGroupById(id: string): Promise<SelectGroup | null> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -48,7 +48,7 @@ export async function getGroupById(id: string): Promise<SelectGroup | null> {
 }
 
 export async function getGroupsByIds(ids: string[]): Promise<SelectGroup[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -69,7 +69,7 @@ export async function getGroupsByIds(ids: string[]): Promise<SelectGroup[]> {
 }
 
 export async function getIsUserGroupOwner(groupId: string): Promise<boolean> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -92,7 +92,7 @@ export async function getIsUserGroupOwner(groupId: string): Promise<boolean> {
 export async function getGroupMembers(
   groupId: string,
 ): Promise<SelectBasicGroupMember[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -109,7 +109,7 @@ export async function getGroupMembers(
 }
 
 export async function getGroupPets(groupId: string): Promise<SelectBasicPet[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -143,7 +143,7 @@ export async function getGroupPets(groupId: string): Promise<SelectBasicPet[]> {
 export async function getUsersPetsNotInGroup(
   groupId: string,
 ): Promise<SelectBasicPet[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");
@@ -182,7 +182,7 @@ export async function getUsersPetsNotInGroup(
 }
 
 export async function getGroupsUserIsIn(): Promise<SelectGroup[]> {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     throw new Error("Unauthorized");

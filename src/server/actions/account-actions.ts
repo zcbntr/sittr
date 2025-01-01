@@ -2,10 +2,9 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "../db";
-import { users } from "../db/schema";
+import { notificationPreferences, users } from "../db/schema";
 import { authenticatedProcedure } from "./zsa-procedures";
-import { signOut } from "~/auth";
-import { redirect } from "next/navigation";
+import { updateNotificationPreferencesSchema } from "~/lib/schemas/users";
 
 export async function upgradeUserToPlus(userId: string): Promise<void> {
   const updatedUser = await db
@@ -34,4 +33,16 @@ export const deleteAccount = authenticatedProcedure
       console.error(e);
       throw new Error("Account deletion failed - please contact support");
     }
+  });
+
+export const updateNotificationPreferences = authenticatedProcedure
+  .createServerAction()
+  .input(updateNotificationPreferencesSchema)
+  .handler(async ({ ctx, input }) => {
+    const userId = ctx.user.id;
+
+    await db
+      .update(notificationPreferences)
+      .set({ ...input })
+      .where(eq(notificationPreferences.userId, userId));
   });

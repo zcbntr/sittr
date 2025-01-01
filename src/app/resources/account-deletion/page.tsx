@@ -1,14 +1,14 @@
 import { Metadata } from "next";
 import Link from "next/link";
 
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 
 export const metadata: Metadata = {
   title: "Delete My Account",
 };
 
 export default async function SettingsPage() {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   return (
     <div>

@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 import {
   MdNotificationImportant,
   MdNotifications,
@@ -23,7 +23,7 @@ import { getUserNotifications } from "~/server/queries/notifications";
 import { getTimeSinceDateAsString } from "~/lib/utils";
 
 export async function TopNav() {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (!user) {
     return (

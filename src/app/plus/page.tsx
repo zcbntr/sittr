@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 import { buttonVariants } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { redirect } from "next/navigation";
 
 export default async function PlusUpgradeSuccess() {
-  const user = await getLoggedInUser();
+  const user = await getBasicLoggedInUser();
 
   if (user?.plusMembership) {
     redirect("/plus-upgrade-success");

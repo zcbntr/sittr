@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { PetOwnerPage } from "~/app/_components/pet-page/pet-owner-page";
 import { PetNonOwnerPage } from "~/app/_components/pet-page/pet-non-owner-page";
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 import {
   getOwnedPetById,
   getPetVisibleViaCommonGroup,
@@ -33,7 +33,7 @@ export default async function Page({
     return <PetDoesNotExistPage />;
   } else {
     // Check if user is the owner of the pet
-    const user = await getLoggedInUser();
+    const user = await getBasicLoggedInUser();
     const userId = user?.id;
 
     if (!userId) {

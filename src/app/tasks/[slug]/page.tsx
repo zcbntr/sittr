@@ -3,7 +3,7 @@ import { markNotificationAsReadAction } from "~/server/actions/notification-acti
 import { getOwnedTaskById, getVisibleTaskById } from "~/server/queries/tasks";
 import type { SelectBasicTask } from "~/lib/schemas/tasks";
 import { redirect } from "next/navigation";
-import { getLoggedInUser } from "~/server/queries/users";
+import { getBasicLoggedInUser } from "~/server/queries/users";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
 import TaskOwnerPage from "~/app/_components/tasks/task-owner-page";
 import TaskNonOwnerPage from "~/app/_components/tasks/task-non-owner-page";
@@ -52,7 +52,7 @@ export default async function Page({
       redirect(`/tasks/${slug}`);
     }
 
-    const user = await getLoggedInUser();
+    const user = await getBasicLoggedInUser();
 
     if (!user) {
       throw new Error("User not found. Contact support.");

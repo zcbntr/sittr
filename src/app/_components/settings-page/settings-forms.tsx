@@ -16,6 +16,7 @@ import { useState } from "react";
 import { deleteAccount } from "~/server/actions/account-actions";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
+import NotificationPreferencesForm from "./notification-preferences-form";
 
 export default function SettingsPanel({
   user,
@@ -63,6 +64,11 @@ export default function SettingsPanel({
             </Button>
           </div>
         )}
+
+        <div className="flex flex-col gap-3 rounded-md border p-3">
+          <div className="text-xl">Notification Preferences</div>
+          <NotificationPreferencesForm preferences={user?.notificationPreferences}/>
+        </div>
 
         <div className="flex flex-col gap-3 rounded-md border border-red-500 border-opacity-50 p-3">
           <div className="text-xl">Delete Account</div>

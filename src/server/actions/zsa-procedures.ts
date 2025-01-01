@@ -3,7 +3,7 @@ import { db } from "../db";
 import { groups, tasks, groupMembers } from "../db/schema";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { getLoggedInUser } from "../queries/users";
+import { getBasicLoggedInUser } from "../queries/users";
 import { type SelectUser } from "~/lib/schemas/users";
 import {
   selectBasicTaskSchema,
@@ -18,7 +18,7 @@ import {
 
 export const authenticatedProcedure = createServerActionProcedure().handler(
   async () => {
-    const user: SelectUser | undefined = await getLoggedInUser();
+    const user: SelectUser | undefined = await getBasicLoggedInUser();
 
     if (!user) {
       // Return to homepage
