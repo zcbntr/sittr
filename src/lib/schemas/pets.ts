@@ -45,18 +45,38 @@ export const selectPetListSchema = selectPetSchema.array();
 
 export type SelectPetList = z.infer<typeof selectPetListSchema>;
 
-export const insertPetSchema = selectBasicPetSchema
+export const createPetSchema = selectBasicPetSchema
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    creatorId: true,
+    ownerId: true,
+    note: true,
+  })
   .extend({
-    breed: z.string(),
+    name: z
+      .string()
+      .min(1, { message: "Your pet needs a name" })
+      .max(50, { message: "Name must be less than 50 characters" }),
+    species: z
+      .string()
+      .min(1, { message: "Your pet needs a species" })
+      .max(50, {
+        message: "Species must be less than 50 characters",
+      }),
+    image: z.string().optional(),
+    breed: z.string().optional(),
+    dob: z.coerce.date().optional(),
   })
   .refine((data) => data.dob && data.dob < new Date(), {
     message: "Birthdate must be in the past",
+    path: ["dob"],
   })
   .refine((data) => data.dob && data.dob > new Date("1900-01-01"), {
     message: "Birthdate must be after 1900-01-01",
+    path: ["dob"],
   });
-
-export type NewPet = z.infer<typeof insertPetSchema>;
 
 export const updatePetSchema = createSelectSchema(pets)
   .partial()

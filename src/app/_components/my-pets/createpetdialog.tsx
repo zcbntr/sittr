@@ -21,7 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { type z } from "zod";
+import type { z } from "zod";
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -32,20 +32,12 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { insertPetSchema } from "~/lib/schemas/pets";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
 import { createPetAction } from "~/server/actions/pet-actions";
 import { UploadButton } from "~/lib/uploadthing";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import { SexEnum } from "~/lib/schemas";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { createPetSchema } from "~/lib/schemas/pets";
 
 export default function CreatePetDialog({
   children,
@@ -58,10 +50,16 @@ export default function CreatePetDialog({
 
   const [image, setImage] = React.useState<string | undefined>(undefined);
 
-  const form = useForm<z.infer<typeof insertPetSchema>>({
-    mode: "onBlur",
-    resolver: zodResolver(insertPetSchema),
-    defaultValues: {},
+  const form = useForm<z.infer<typeof createPetSchema>>({
+    mode: "onSubmit",
+    resolver: zodResolver(createPetSchema),
+    defaultValues: {
+      name: "",
+      species: "",
+      breed: "",
+      dob: undefined,
+      image: "",
+    },
   });
 
   const { isPending, execute } = useServerAction(createPetAction, {
@@ -155,35 +153,6 @@ export default function CreatePetDialog({
                     <FormDescription>
                       e.g. Husky, Siamese, etc. (Not required)
                     </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="sex"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Sex</FormLabel>
-                    <Select onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a sex" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value={SexEnum.enum.Male.toString()}>
-                          Male
-                        </SelectItem>
-                        <SelectItem value={SexEnum.enum.Female.toString()}>
-                          Female
-                        </SelectItem>
-                        <SelectItem value={SexEnum.enum.Unspecified.toString()}>
-                          Unspecified
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -1,6 +1,6 @@
 "use server";
 
-import { insertPetSchema, updatePetSchema } from "~/lib/schemas/pets";
+import { createPetSchema, updatePetSchema } from "~/lib/schemas/pets";
 import { db } from "../db";
 import { petImages, petProfilePics, pets } from "../db/schema";
 import { authenticatedProcedure, ownsPetProcedure } from "./zsa-procedures";
@@ -13,7 +13,7 @@ import { utapi } from "../uploadthing";
 
 export const createPetAction = authenticatedProcedure
   .createServerAction()
-  .input(insertPetSchema)
+  .input(createPetSchema)
   .handler(async ({ input, ctx }) => {
     const user = ctx.user;
 
@@ -43,15 +43,9 @@ export const createPetAction = authenticatedProcedure
     const petRow = await db
       .insert(pets)
       .values({
+        ...input,
         creatorId: user.id,
         ownerId: user.id,
-        name: input.name,
-        species: input.species,
-        breed: input.breed,
-        dob: input.dob,
-        sex: input.sex,
-        image: input.image,
-        note: input.note,
       })
       .returning({ insertedId: pets.id })
       .execute();
@@ -95,7 +89,7 @@ export const deletePetAction = authenticatedProcedure
       .where(and(eq(pets.id, input.petId), eq(pets.ownerId, userId)))
       .execute();
 
-    redirect(`/pets`);
+    redirect(`/my-pets`);
   });
 
 export const deletePetProfilePicAction = ownsPetProcedure

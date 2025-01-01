@@ -72,11 +72,6 @@ export function PetOwnerPage({ pet }: { pet: SelectBasicPet }) {
                         )
                       </p>
 
-                      {pet.sex && (
-                        <p className="text-xl text-muted-foreground">
-                          {pet.sex}
-                        </p>
-                      )}
                       {petAgeString && (
                         <p className="text-xl text-muted-foreground">
                           {petAgeString} old

@@ -32,18 +32,10 @@ import {
 } from "~/server/actions/pet-actions";
 import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { UploadButton } from "~/lib/uploadthing";
 import { Card, CardContent } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
-import { SexEnum } from "~/lib/schemas";
 
 export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
   const [dob, setDOB] = React.useState<Date | undefined>();
@@ -71,7 +63,6 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
       species: pet.species,
       dob: pet.dob,
       breed: pet.breed,
-      sex: pet.sex,
       note: pet.note ? pet.note : undefined,
     },
   });
@@ -216,40 +207,6 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                             value={field.value ? field.value : undefined}
                           />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={updateForm.control}
-                    name="sex"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sex</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value ? field.value : undefined}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value={SexEnum.enum.Male.toString()}>
-                              Male
-                            </SelectItem>
-                            <SelectItem value={SexEnum.enum.Female.toString()}>
-                              Female
-                            </SelectItem>
-                            <SelectItem
-                              value={SexEnum.enum.Unspecified.toString()}
-                            >
-                              Unspecified
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}

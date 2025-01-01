@@ -11,7 +11,7 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
-import { GroupRoleEnum, SexEnum, NotificationTypeEnum } from "~/lib/schemas";
+import { GroupRoleEnum, NotificationTypeEnum } from "~/lib/schemas";
 
 /**
  * Multi-project schema feature of Drizzle ORM.
@@ -21,7 +21,6 @@ import { GroupRoleEnum, SexEnum, NotificationTypeEnum } from "~/lib/schemas";
 export const createTable = pgTableCreator((name) => `sittr_${name}`);
 
 export const groupRoleEnum = pgEnum("role", GroupRoleEnum.options);
-export const sexEnum = pgEnum("sex", SexEnum.options);
 export const notificationTypeEnum = pgEnum(
   "notification_type",
   NotificationTypeEnum.options,
@@ -309,7 +308,6 @@ export const pets = createTable("pets", {
   species: varchar("species", { length: 255 }).notNull(),
   breed: varchar("breed", { length: 255 }),
   dob: timestamp("dob", { withTimezone: true }),
-  sex: sexEnum("sex"),
   image: text("image"),
   note: text("note"),
   createdAt: timestamp("created_at", { withTimezone: true })

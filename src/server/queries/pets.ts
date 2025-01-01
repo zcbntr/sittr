@@ -114,7 +114,6 @@ export async function getPetsByIds(
       species: pet.species,
       breed: pet.breed ? pet.breed : undefined,
       dob: pet.dob ? pet.dob : undefined,
-      sex: pet.sex ? pet.sex : undefined,
       image: pet.image ? pet.image : undefined,
       note: pet.note ? pet.note : undefined,
     });
