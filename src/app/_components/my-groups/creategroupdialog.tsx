@@ -213,13 +213,11 @@ export default function CreateGroupDialog({
             />
             <DialogFooter>
               <Button type="submit" disabled={petsEmpty || isPending}>
-                Create Group
+                {isPending ? "Creating Group..." : "Create Group"}
               </Button>
             </DialogFooter>
           </form>
         </Form>
-
-        {isPending && <p>Creating group...</p>}
       </DialogContent>
     </Dialog>
   );

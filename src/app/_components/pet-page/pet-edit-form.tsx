@@ -268,7 +268,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                         <div className="flex flex-col place-content-center">
                           <MdEdit size={"1.2rem"} />
                         </div>
-                        Update Pet
+                        {updatePending ? "Updating Pet..." : "Update Pet"}
                       </div>
                     </Button>
 

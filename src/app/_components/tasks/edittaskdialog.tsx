@@ -238,10 +238,7 @@ export default function EditTaskDialog({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
-                      {...field}
-                    />
+                    <Textarea placeholder="None given." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -564,7 +561,7 @@ export default function EditTaskDialog({
                 </AlertDialog>
 
                 <Button type="submit" disabled={updatePending || deletePending}>
-                  Update Task
+                  {updatePending ? "Updating Task..." : "Update Task"}
                 </Button>
               </div>
             </DialogFooter>

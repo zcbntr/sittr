@@ -144,10 +144,7 @@ export default function AddPetToGroupDialog({
                             checked={selectedPetIds.includes(pet.id)}
                             onCheckedChange={() => {
                               if (!selectedPetIds.includes(pet.id)) {
-                                setSelectedPetIds([
-                                  ...selectedPetIds,
-                                  pet.id,
-                                ]);
+                                setSelectedPetIds([...selectedPetIds, pet.id]);
                                 field.onChange([...selectedPetIds, pet.id]);
                               } else {
                                 setSelectedPetIds(
@@ -183,14 +180,16 @@ export default function AddPetToGroupDialog({
                   petsNotInGroup.length === 0 || selectedPetIds.length == 0
                 }
               >
-                {selectedPetIds.length <= 1 && <div>Add Pet</div>}
-                {selectedPetIds.length > 1 && <div>Add Pets</div>}
+                {selectedPetIds.length <= 1 && (
+                  <div>{isPending ? "Adding Pet..." : "Add Pet"}</div>
+                )}
+                {selectedPetIds.length > 1 && (
+                  <div>{isPending ? "Adding Pets..." : "Add Pets"}</div>
+                )}
               </Button>
             </DialogFooter>
           </form>
         </Form>
-
-        {isPending && <p>Adding pet(s)...</p>}
       </DialogContent>
     </Dialog>
   );

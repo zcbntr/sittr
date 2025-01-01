@@ -208,13 +208,11 @@ export default function CreatePetDialog({
 
               <DialogFooter>
                 <Button type="submit" disabled={isPending}>
-                  Save Pet
+                  {isPending ? "Creating Pet..." : "Create Pet"}
                 </Button>
               </DialogFooter>
             </form>
           </Form>
-
-          {isPending && <div>Creating pet...</div>}
         </div>
       </DialogContent>
     </Dialog>

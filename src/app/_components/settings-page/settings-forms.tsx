@@ -1,32 +1,7 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { type z } from "zod";
-import { useServerAction } from "zsa-react";
 import { Button } from "~/components/ui/button";
-import { DialogFooter } from "~/components/ui/dialog";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  FormDescription,
-  Form,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import { Textarea } from "~/components/ui/textarea";
-import { SupportCategoryEnum, supportRequestInputSchema } from "~/lib/schemas";
-import { SelectUser } from "~/lib/schemas/users";
+import { type SelectUser } from "~/lib/schemas/users";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -82,7 +57,7 @@ export default function SettingsPanel({
               more images per task and larger groups.
             </div>
             <Button asChild className="w-full bg-violet-600">
-              <Link href="/plus" className="">
+              <Link href="/plus" prefetch={true}>
                 Find Out More
               </Link>
             </Button>

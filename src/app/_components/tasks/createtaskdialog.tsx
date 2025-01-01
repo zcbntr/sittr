@@ -43,10 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  type CreateTaskFormProps,
-  createTaskSchema,
-} from "~/lib/schemas/tasks";
+import { createTaskSchema, type NewTask } from "~/lib/schemas/tasks";
 import { useEffect, useState } from "react";
 import { createTaskAction } from "~/server/actions/task-actions";
 import { toast } from "sonner";
@@ -62,7 +59,7 @@ export default function CreateTaskDialog({
 }: {
   showRepeatingOption: boolean;
   groups: SelectGroupInput[];
-  props?: CreateTaskFormProps;
+  props?: NewTask;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState<boolean>(false);
@@ -77,13 +74,17 @@ export default function CreateTaskDialog({
   const form = useForm<z.infer<typeof createTaskSchema>>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
-      name: "",
-      description: "",
+      name: props?.name ? props.name : "",
+      description: props?.description ? props.description : undefined,
       dueMode: props?.dueMode ?? true,
       dueDate: props?.dueMode ? props.dueDate : undefined,
       // Fix this, shouldnt be an object anymore
-      dateRangeFrom: props?.dueMode ? undefined : props?.dateRange?.from,
-      dateRangeTo: props?.dueMode ? undefined : props?.dateRange?.to,
+      dateRangeFrom:
+        !props?.dueMode && props?.dateRangeFrom
+          ? props?.dateRangeFrom
+          : undefined,
+      dateRangeTo:
+        !props?.dueMode && props?.dateRangeTo ? props?.dateRangeTo : undefined,
       repeatFrequency: showRepeatingOption
         ? TaskRepeatitionFrequency.Values.Never
         : undefined,
@@ -176,7 +177,7 @@ export default function CreateTaskDialog({
                   <FormControl>
                     <Textarea
                       placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
-                      value={field.value ? field.value : undefined}
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -548,7 +549,6 @@ export default function CreateTaskDialog({
           </form>
         </Form>
 
-        {isPending && <div>Creating task...</div>}
         {error && (
           <div>Failed to create task: {JSON.stringify(error.fieldErrors)}</div>
         )}

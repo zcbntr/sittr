@@ -22,7 +22,11 @@ import { updateGroupAction } from "~/server/actions/group-actions";
 import { useServerAction } from "zsa-react";
 import { toast } from "sonner";
 
-export function GroupNameDescriptionForm({ group }: { group: SelectGroupInput }) {
+export function GroupNameDescriptionForm({
+  group,
+}: {
+  group: SelectGroupInput;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -103,7 +107,7 @@ export function GroupNameDescriptionForm({ group }: { group: SelectGroupInput })
               <div className="flex flex-col place-content-center">
                 <MdEdit size={"1.2rem"} />
               </div>
-              Update Group
+              {isPending ? "Updating Group..." : "Update Group"}
             </div>
           </Button>
 
