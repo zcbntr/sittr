@@ -1,7 +1,10 @@
 "use client";
 
 import { GroupNameDescriptionForm } from "~/app/_components/group-page/group-details-form";
-import type { SelectBasicGroupMember, SelectGroupInput } from "~/lib/schemas/groups";
+import type {
+  SelectBasicGroupMember,
+  SelectGroupInput,
+} from "~/lib/schemas/groups";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -89,7 +92,7 @@ export function GroupOwnerPage({
                         Delete
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="max-w-sm">
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete Group</AlertDialogTitle>
                       </AlertDialogHeader>
@@ -97,7 +100,7 @@ export function GroupOwnerPage({
                         Are you sure you want to delete this group? This action
                         cannot be undone.
                       </AlertDialogDescription>
-                      <AlertDialogFooter>
+                      <AlertDialogFooter className="gap-2">
                         <AlertDialogAction
                           disabled={isPending}
                           onClick={async () => {

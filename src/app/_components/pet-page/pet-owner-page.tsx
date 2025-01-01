@@ -99,7 +99,7 @@ export function PetOwnerPage({ pet }: { pet: SelectBasicPet }) {
                           Delete
                         </Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent>
+                      <AlertDialogContent className="max-w-sm">
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete Pet</AlertDialogTitle>
                         </AlertDialogHeader>

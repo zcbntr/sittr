@@ -2,7 +2,7 @@
 
 import {
   acceptPendingMemberSchema,
-  insertGroupWithPetsSchema,
+  createGroupSchema,
   joinGroupFormSchema,
   petsToGroupFormInputSchema,
   petToGroupFormInputSchema,
@@ -30,7 +30,7 @@ import { randomString } from "~/lib/utils";
 
 export const createGroupAction = authenticatedProcedure
   .createServerAction()
-  .input(insertGroupWithPetsSchema)
+  .input(createGroupSchema)
   .handler(async ({ input, ctx }) => {
     const user = ctx.user;
 

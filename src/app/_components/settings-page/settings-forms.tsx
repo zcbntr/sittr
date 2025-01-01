@@ -106,7 +106,7 @@ export default function SettingsPanel({
             Delete Account
           </Button>
           <AlertDialog open={alertState === `confirm-delete-account`}>
-            <AlertDialogContent>
+            <AlertDialogContent className="max-w-sm">
               <AlertDialogHeader>
                 <AlertDialogTitle>Confirm Account Deletion</AlertDialogTitle>
                 <AlertDialogDescription>

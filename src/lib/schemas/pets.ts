@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createSelectSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { petImages, pets } from "~/server/db/schema";
 import { type SelectUserInput, selectUserSchema } from "./users";
 
@@ -45,7 +45,7 @@ export const selectPetListSchema = selectPetSchema.array();
 
 export type SelectPetList = z.infer<typeof selectPetListSchema>;
 
-export const createPetSchema = selectBasicPetSchema
+export const createPetSchema = createInsertSchema(pets)
   .omit({
     id: true,
     createdAt: true,
@@ -69,11 +69,11 @@ export const createPetSchema = selectBasicPetSchema
     breed: z.string().optional(),
     dob: z.coerce.date().optional(),
   })
-  .refine((data) => data.dob && data.dob < new Date(), {
+  .refine((data) => !data.dob || data.dob < new Date(), {
     message: "Birthdate must be in the past",
     path: ["dob"],
   })
-  .refine((data) => data.dob && data.dob > new Date("1900-01-01"), {
+  .refine((data) => !data.dob || data.dob > new Date("1900-01-01"), {
     message: "Birthdate must be after 1900-01-01",
     path: ["dob"],
   });

@@ -94,16 +94,29 @@ export const selectGroupSchema: z.ZodType<
 
 export type SelectGroup = z.infer<typeof selectGroupSchema>;
 
-export const insertGroupSchema = createInsertSchema(groups);
+export const createGroupSchema = createInsertSchema(groups)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    creatorId: true,
+    ownerId: true,
+  })
+  .extend({
+    name: z
+      .string()
+      .min(1, { message: "Your group must have a name" })
+      .max(50, { message: "Group names must be 50 characters or less" }),
+    description: z
+      .string()
+      .min(10, {
+        message: "Please describe the purpose of your group to members",
+      })
+      .max(500, { message: "Description must be 500 characters or less" }),
+    petIds: z.string().array().optional(),
+  });
 
-export type NewGroup = z.infer<typeof insertGroupSchema>;
-
-export const insertGroupWithPetsSchema = insertGroupSchema.extend({
-  petIds: z.string().array().optional(),
-  description: z.string(),
-});
-
-export type NewGroupWithPets = z.infer<typeof insertGroupWithPetsSchema>;
+export type NewGroup = z.infer<typeof createGroupSchema>;
 
 export const updateGroupSchema = createSelectSchema(groups).partial();
 

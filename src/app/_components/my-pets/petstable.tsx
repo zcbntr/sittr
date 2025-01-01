@@ -147,7 +147,7 @@ export default function PetsTable({
               </DropdownMenu>
             </div>
             <AlertDialog open={alertState === `delete-${pet.id}`}>
-              <AlertDialogContent>
+              <AlertDialogContent className="max-w-sm">
                 <AlertDialogHeader>
                   <AlertDialogTitle>
                     Confirm deletion of {pet.name}

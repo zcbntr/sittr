@@ -535,7 +535,7 @@ export default function EditTaskDialog({
                       Delete Task
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="max-h-screen overflow-y-scroll rounded-md sm:w-[533px]">
+                  <AlertDialogContent className="max-w-sm">
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete Task</AlertDialogTitle>
                     </AlertDialogHeader>

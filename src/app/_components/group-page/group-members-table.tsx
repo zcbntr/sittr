@@ -172,7 +172,7 @@ export default function GroupMembersTable({
               </DropdownMenu>
             </div>
             <AlertDialog open={alertState === `remove-${member.user?.id}`}>
-              <AlertDialogContent>
+              <AlertDialogContent className="max-w-sm">
                 <AlertDialogHeader>
                   <AlertDialogTitle>
                     Confirm removal of {member.user?.name}
@@ -205,7 +205,7 @@ export default function GroupMembersTable({
               </AlertDialogContent>
             </AlertDialog>
             <AlertDialog open={alertState === `accept-${member.user?.id}`}>
-              <AlertDialogContent>
+              <AlertDialogContent className="max-w-sm">
                 <AlertDialogHeader>
                   <AlertDialogTitle>
                     Confirm accepting of {member.user?.name}

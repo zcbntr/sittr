@@ -24,7 +24,7 @@ export function AlertConfirmation({
 }: Props) {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-sm">
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>{message}</AlertDialogDescription>

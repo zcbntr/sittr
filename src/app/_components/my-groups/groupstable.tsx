@@ -231,7 +231,7 @@ export default function GroupsTable({
               </DropdownMenu>
             </div>
             <AlertDialog open={alertState === `leave-${group.id}`}>
-              <AlertDialogContent>
+              <AlertDialogContent className="max-w-sm">
                 <AlertDialogHeader>
                   <AlertDialogTitle>
                     Confirm leaving {group.name}

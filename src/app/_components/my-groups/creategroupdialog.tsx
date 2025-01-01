@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { insertGroupWithPetsSchema } from "~/lib/schemas/groups";
+import { createGroupSchema } from "~/lib/schemas/groups";
 import { Textarea } from "~/components/ui/textarea";
 import {
   DropdownMenu,
@@ -47,10 +47,13 @@ export default function CreateGroupDialog({
   const [selectedPetIds, setSelectedPetIds] = React.useState<string[]>([]);
   const [petsEmpty, setPetsEmpty] = React.useState<boolean>(false);
 
-  const form = useForm<z.infer<typeof insertGroupWithPetsSchema>>({
+  const form = useForm<z.infer<typeof createGroupSchema>>({
     mode: "onBlur",
-    resolver: zodResolver(insertGroupWithPetsSchema),
-    defaultValues: {},
+    resolver: zodResolver(createGroupSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
   });
 
   const { isPending, execute } = useServerAction(createGroupAction, {

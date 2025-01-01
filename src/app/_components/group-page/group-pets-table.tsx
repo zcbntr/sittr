@@ -201,7 +201,7 @@ export default function GroupPetsTable({
               </DropdownMenu>
             </div>
             <AlertDialog open={alertState === `remove-${pet.id}`}>
-              <AlertDialogContent>
+              <AlertDialogContent className="max-w-sm">
                 <AlertDialogHeader>
                   <AlertDialogTitle>
                     Confirm removal of {pet.name}
