@@ -17,7 +17,7 @@ export function SignInOptions() {
       </CardHeader>
       <CardContent>
         <div className="flex flex-row place-content-center">
-          <div className="flex flex-col w-full gap-4">
+          <div className="flex w-full flex-col gap-4">
             <form
               action={async () => {
                 "use server";
@@ -43,6 +43,7 @@ export function SignInOptions() {
             >
               <Button
                 type="submit"
+                disabled
                 variant="default"
                 className="w-full text-lg"
               >

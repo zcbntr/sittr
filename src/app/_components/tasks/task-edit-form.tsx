@@ -15,7 +15,11 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { type SelectBasicTask, updateTaskSchema } from "~/lib/schemas/tasks";
+import {
+  type SelectBasicTask,
+  SelectTask,
+  updateTaskSchema,
+} from "~/lib/schemas/tasks";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Popover,
@@ -43,7 +47,6 @@ import { updateTaskAction } from "~/server/actions/task-actions";
 import { Switch } from "~/components/ui/switch";
 import { type SelectBasicPet, selectPetListSchema } from "~/lib/schemas/pets";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
-import { groups } from "~/server/db/schema";
 import { type SelectBasicGroup } from "~/lib/schemas/groups";
 import { MdCancel, MdEdit } from "react-icons/md";
 
@@ -51,7 +54,7 @@ export function TaskEditForm({
   task,
   userGroups,
 }: {
-  task: SelectBasicTask;
+  task: SelectTask;
   userGroups: SelectBasicGroup[];
 }) {
   const [recentUploadUrls, setRecentUploadUrls] = React.useState<string[]>([]);
@@ -86,6 +89,8 @@ export function TaskEditForm({
       dueDate: task?.dueDate ? task.dueDate : undefined,
       dateRangeFrom: task?.dateRangeFrom ? task.dateRangeFrom : undefined,
       dateRangeTo: task?.dateRangeTo ? task.dateRangeTo : undefined,
+      groupId: task?.groupId ? task.groupId : undefined,
+      petId: task?.petId ? task.petId : undefined,
     },
   });
 
@@ -113,9 +118,23 @@ export function TaskEditForm({
   //   });
 
   useEffect(() => {
-    setSelectedGroupId(task?.groupId ? task.groupId : "");
+    setSelectedGroupId(
+      updateForm.getValues("groupId")
+        ? updateForm.getValues("groupId")
+        : task?.groupId
+          ? task.groupId
+          : "",
+    );
 
     async function fetchGroupPets() {
+      let groupId = updateForm.getValues("groupId");
+
+      if (!groupId && task.groupId) {
+        groupId = task.groupId;
+      } else if (!groupId) {
+        throw new Error("No group ID found");
+      }
+
       await fetch("../api/group-pets?id=" + updateForm.getValues("groupId"), {
         method: "GET",
         headers: {
@@ -497,10 +516,7 @@ export function TaskEditForm({
                       <FormItem>
                         <FormLabel>Pet *</FormLabel>
                         <Select
-                          defaultValue={
-                            task?.petId ? task.petId.toString() : ""
-                          }
-                          value={field.value?.toString()}
+                          value={field.value}
                           onValueChange={(value) => {
                             updateForm.setValue("petId", value);
                           }}
@@ -510,9 +526,11 @@ export function TaskEditForm({
                             <SelectTrigger>
                               <SelectValue
                                 placeholder={
-                                  !petsEmpty || groupPets.length !== 0
-                                    ? "Select a pet assigned to the group"
-                                    : "Choose a group with pets assigned"
+                                  task.pet?.name
+                                    ? task.pet.name
+                                    : !petsEmpty || groupPets.length !== 0
+                                      ? "Select a pet assigned to the group"
+                                      : "Choose a group with pets assigned"
                                 }
                               />
                             </SelectTrigger>
