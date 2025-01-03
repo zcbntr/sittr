@@ -27,7 +27,7 @@ export default async function SettingsPage({
   return (
     <div>
       <section>
-        <div className="mx-auto flex max-w-md flex-col p-2">
+        <div className="mx-auto flex max-w-md sm:max-w-lg flex-col p-2">
           <h1 className="p-2 text-2xl">Settings</h1>
           <SettingsPanel user={user} />
         </div>

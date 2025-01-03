@@ -9,6 +9,7 @@ import { useServerAction } from "zsa-react";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -34,21 +35,6 @@ export default function NotificationPreferencesForm({
     },
   });
 
-  if (!form.getValues().id) {
-    return (
-      <div className="flex h-[136px] w-full flex-row place-content-center px-1">
-        <div className="flex flex-col place-content-center">
-          <div className="flex flex-row place-content-center gap-2">
-            <div className="flex flex-col place-content-center">
-              <MdError />
-            </div>{" "}
-            Failed to load preferences
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const { isPending, data, execute } = useServerAction(
     updateNotificationPreferences,
     {
@@ -69,31 +55,51 @@ export default function NotificationPreferencesForm({
     },
   );
 
+  if (!form.getValues().id) {
+    return (
+      <div className="flex min-h-28 w-full flex-row place-content-center">
+        <div className="flex flex-col place-content-center">
+          <div className="flex flex-row place-content-center gap-3">
+            <div className="flex flex-col place-content-center">
+              <MdError />
+            </div>{" "}
+            Failed to load preferences
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit((values) => execute(values))}
-        className="h-full w-full space-y-4 px-1"
+        className="h-full w-full space-y-4"
       >
-        <div className="flex flex-col gap-3 px-3 text-lg">
+        <div className="flex flex-col gap-3 px-2 text-lg">
           <FormField
             control={form.control}
             name="emailUpcomingTasks"
             render={({ field }) => (
-              <FormItem className="flex flex-col justify-between pr-1">
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="col-span-2 flex flex-col place-content-center">
-                    <FormLabel>Upcoming Tasks</FormLabel>
+              <FormItem className="flex flex-col justify-between">
+                <div className="flex flex-row place-content-end gap-3">
+                  <div className="flex flex-col">
+                    <FormLabel className="text-base font-medium">
+                      Upcoming Task Emails
+                    </FormLabel>
+                    <FormDescription className="text-sm">
+                      Get reminders about upcoming tasks that you have claimed.
+                    </FormDescription>
                   </div>
 
-                  <div className="flex flex-col place-content-center">
+                  <div className="col-span-1 flex w-min flex-col place-content-center">
                     <FormControl>
                       <Switch
                         disabled={isPending}
                         checked={field.value}
                         onCheckedChange={(e) => {
                           field.onChange(e);
-                          execute(form.getValues());
+                          void execute(form.getValues());
                         }}
                       />
                     </FormControl>
@@ -108,10 +114,16 @@ export default function NotificationPreferencesForm({
             control={form.control}
             name="emailOverdueTasks"
             render={({ field }) => (
-              <FormItem className="flex flex-col justify-between pr-1">
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="col-span-2 flex flex-col place-content-center">
-                    <FormLabel>Overdue Tasks</FormLabel>
+              <FormItem className="flex flex-col justify-between">
+                <div className="flex flex-row place-content-end gap-3">
+                  <div className="flex w-full flex-col">
+                    <FormLabel className="text-base font-medium">
+                      Overdue Task Emails
+                    </FormLabel>
+                    <FormDescription className="text-sm">
+                      Get reminders about tasks you have claimed that are
+                      overdue.
+                    </FormDescription>
                   </div>
 
                   <div className="flex flex-col place-content-center">
@@ -121,7 +133,7 @@ export default function NotificationPreferencesForm({
                         checked={field.value}
                         onCheckedChange={(e) => {
                           field.onChange(e);
-                          execute(form.getValues());
+                          void execute(form.getValues());
                         }}
                       />
                     </FormControl>
@@ -136,10 +148,15 @@ export default function NotificationPreferencesForm({
             control={form.control}
             name="emailGroupMembershipChanges"
             render={({ field }) => (
-              <FormItem className="flex flex-col justify-between pr-1">
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="col-span-2 flex flex-col place-content-center">
-                    <FormLabel>Group Membership Changes</FormLabel>
+              <FormItem className="flex flex-col justify-between">
+                <div className="flex flex-row place-content-end gap-3">
+                  <div className="flex w-full flex-col">
+                    <FormLabel className="text-base font-medium">
+                      Group Membership Emails
+                    </FormLabel>
+                    <FormDescription className="text-sm">
+                      Get notified when you are added or removed from a group.
+                    </FormDescription>
                   </div>
 
                   <div className="flex flex-col place-content-center">
@@ -149,7 +166,7 @@ export default function NotificationPreferencesForm({
                         checked={field.value}
                         onCheckedChange={(e) => {
                           field.onChange(e);
-                          execute(form.getValues());
+                          void execute(form.getValues());
                         }}
                       />
                     </FormControl>
@@ -164,10 +181,15 @@ export default function NotificationPreferencesForm({
             control={form.control}
             name="emailPetBirthdays"
             render={({ field }) => (
-              <FormItem className="flex flex-col justify-between pr-1">
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="col-span-2 flex flex-col place-content-center">
-                    <FormLabel>Pet Birthdays</FormLabel>
+              <FormItem className="flex flex-col justify-between">
+                <div className="flex flex-row place-content-end gap-3">
+                  <div className="flex w-full flex-col">
+                    <FormLabel className="text-base font-medium">
+                      Pet Birthdays Emails
+                    </FormLabel>
+                    <FormDescription className="text-sm">
+                      Get birthday messages for your pets.
+                    </FormDescription>
                   </div>
 
                   <div className="flex flex-col place-content-center">
@@ -177,7 +199,7 @@ export default function NotificationPreferencesForm({
                         checked={field.value}
                         onCheckedChange={(e) => {
                           field.onChange(e);
-                          execute(form.getValues());
+                          void execute(form.getValues());
                         }}
                       />
                     </FormControl>

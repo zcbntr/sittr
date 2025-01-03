@@ -8,6 +8,7 @@ import moment from "moment";
 import { addDays, addHours, addMilliseconds } from "date-fns";
 import { Button } from "./ui/button";
 import {
+  EditTask,
   selectBasicTaskSchema,
   SelectTask,
   type CreateTaskFormProps,
@@ -79,7 +80,7 @@ export default function CalendarComponent({
   tasks,
   currentUser,
   groups,
-  canCreateTasks
+  canCreateTasks,
 }: {
   tasks: SelectBasicTask[];
   currentUser: SelectUser;
@@ -112,19 +113,15 @@ export default function CalendarComponent({
         setCreateTaskDialogProps({
           dueMode: true,
           dueDate: startAdjusted,
-          dateRange: {
-            from: startAdjusted,
-            to: addHours(startAdjusted, 8),
-          },
+          dateRangeFrom: startAdjusted,
+          dateRangeTo: addHours(startAdjusted, 8),
         });
       } else {
         setCreateTaskDialogProps({
           dueMode: false,
           dueDate: startAdjusted,
-          dateRange: {
-            from: startAdjusted,
-            to: endAdjusted,
-          },
+          dateRangeFrom: startAdjusted,
+          dateRangeTo: endAdjusted,
         });
       }
 

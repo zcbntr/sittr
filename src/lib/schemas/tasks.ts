@@ -214,10 +214,21 @@ export const createTaskFormProps = z.object({
   name: z.string().min(3).max(50).optional(),
   description: z.string().min(3).max(500).optional(),
   dueMode: z.boolean().optional(),
-  dueDate: z.coerce.date().optional(),
   dateRange: dateRangeSchema.optional(),
   petId: z.string().optional(),
   groupId: z.string().optional(),
+  dueDate: z.coerce
+    .date()
+    .min(new Date(), { message: "Date must be in the future" })
+    .optional(),
+  dateRangeFrom: z
+    .date()
+    .min(new Date(), { message: "Date must be in the future" })
+    .optional(),
+  dateRangeTo: z
+    .date()
+    .min(new Date(), { message: "Date must be in the future" })
+    .optional(),
 });
 
 export type CreateTaskFormProps = z.infer<typeof createTaskFormProps>;

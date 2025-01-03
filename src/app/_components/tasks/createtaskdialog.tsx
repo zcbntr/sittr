@@ -43,7 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { createTaskSchema, type NewTask } from "~/lib/schemas/tasks";
+import { CreateTaskFormProps, createTaskSchema, type NewTask } from "~/lib/schemas/tasks";
 import { useEffect, useState } from "react";
 import { createTaskAction } from "~/server/actions/task-actions";
 import { toast } from "sonner";
@@ -59,7 +59,7 @@ export default function CreateTaskDialog({
 }: {
   showRepeatingOption: boolean;
   groups: SelectGroupInput[];
-  props?: NewTask;
+  props?: CreateTaskFormProps;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState<boolean>(false);
