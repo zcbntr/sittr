@@ -75,7 +75,7 @@ export async function getLoggedInUser(): Promise<SelectUser | undefined> {
 
       // User has a session but not in the database - something has gone horribly wrong
       if (!userRow) {
-        return undefined;
+        throw new Error("Fatal database error");
       }
     }
   }

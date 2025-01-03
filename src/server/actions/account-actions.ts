@@ -41,8 +41,16 @@ export const updateNotificationPreferences = authenticatedProcedure
   .handler(async ({ ctx, input }) => {
     const userId = ctx.user.id;
 
-    await db
+    const updatedPreferences = await db
       .update(notificationPreferences)
       .set({ ...input })
-      .where(eq(notificationPreferences.userId, userId));
+      .where(eq(notificationPreferences.userId, userId))
+      .returning()
+      .execute();
+
+    if (!updatedPreferences?.[0]) {
+      throw new Error("Failed to update users notification preferences");
+    }
+
+    return updatedPreferences[0];
   });

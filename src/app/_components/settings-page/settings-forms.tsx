@@ -65,7 +65,7 @@ export default function SettingsPanel({
           </div>
         )}
 
-        <div className="flex flex-col gap-3 rounded-md border p-3">
+        <div className="flex flex-col gap-3 rounded-md border border-gray-500 border-opacity-50 p-3">
           <div className="text-xl">Notification Preferences</div>
           <NotificationPreferencesForm preferences={user?.notificationPreferences}/>
         </div>
