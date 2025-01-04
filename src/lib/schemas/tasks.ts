@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { dateRangeSchema, TaskRepeatitionFrequency, TaskTypeEnum } from ".";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { tasks } from "~/server/db/schema";
+import {
+  taskCompletionImages,
+  taskInstructionImages,
+  tasks,
+} from "~/server/db/schema";
 import { selectPetSchema } from "./pets";
 import { selectGroupSchema } from "./groups";
 import { selectUserSchema } from "./users";
@@ -9,6 +13,21 @@ import { selectUserSchema } from "./users";
 // -----------------------------------------------------------------------------
 // Task Schemas
 // -----------------------------------------------------------------------------
+
+export const selectBasicTaskInstructionImageSchema = createSelectSchema(
+  taskInstructionImages,
+);
+
+export type SelectBasicTaskInstructionImage = z.infer<
+  typeof selectBasicTaskInstructionImageSchema
+>;
+
+export const selectBasicTaskCompletionImageSchema =
+  createSelectSchema(taskCompletionImages);
+
+export type SelectBasicTaskCompletionImage = z.infer<
+  typeof selectBasicTaskCompletionImageSchema
+>;
 
 export const selectBasicTaskSchema = createSelectSchema(tasks);
 
@@ -37,6 +56,14 @@ export const selectTaskSchema = selectBasicTaskSchema.extend({
     .nullable(),
   markedAsDoneBy: z
     .lazy(() => selectUserSchema)
+    .optional()
+    .nullable(),
+  instructionImages: z
+    .array(selectBasicTaskInstructionImageSchema)
+    .optional()
+    .nullable(),
+  completionImages: z
+    .array(selectBasicTaskCompletionImageSchema)
     .optional()
     .nullable(),
 });

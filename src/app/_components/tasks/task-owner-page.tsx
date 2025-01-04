@@ -5,6 +5,13 @@ import { Card, CardContent } from "~/components/ui/card";
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MdDelete, MdEdit } from "react-icons/md";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "~/components/ui/carousel";
 import { useServerAction } from "zsa-react";
 import { deleteTaskAction } from "~/server/actions/task-actions";
 import { toast } from "sonner";
@@ -45,10 +52,10 @@ export default function TaskOwnerPage({
       {isEditing ? (
         <TaskEditForm task={task} userGroups={userGroups} />
       ) : (
-        <div className="flex w-full max-w-5xl flex-row place-content-center px-6 py-2">
+        <div className="flex w-full max-w-5xl flex-row place-content-center px-6 py-3">
           <div className="flex w-full max-w-xl flex-col gap-4">
             <div>
-              <div className="flex flex-row gap-2">
+              <div className="flex flex-row gap-3">
                 <Link
                   className="flex flex-col place-content-center"
                   href={`/pets/${task?.petId}`}
@@ -109,7 +116,7 @@ export default function TaskOwnerPage({
               </div>
             </div>
 
-            <div className="flex flex-col gap-1">
+            <div className="mt-[-6px] flex flex-col gap-1">
               <div className="text-2xl font-semibold">{task.name}</div>
               {/* Make it extendable with a label for when its opened by clicking see more */}
               <div className="open:max-h-auto max-h-28">
@@ -117,30 +124,142 @@ export default function TaskOwnerPage({
               </div>
             </div>
 
-            {/* Optional based on whether there are images - needs to be a carousel */}
-            <div className="border-1 flex h-64 w-full flex-col place-content-center border border-neutral-500 sm:h-auto">
-              <span className="text-center">Image</span>
-            </div>
+            {task?.instructionImages && (
+              <div className="flex flex-row place-content-center">
+                <Carousel className="max-h-64 max-w-full px-20 sm:h-auto">
+                  <CarouselContent>
+                    {task.instructionImages.map((image, index) => (
+                      <CarouselItem key={index} className="rounded-md">
+                        <img
+                          src={image.url}
+                          alt={`Instruction image ${index}`}
+                        />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="hidden sm:block" />
+                  <CarouselNext className="hidden sm:block" />
+                </Carousel>
+              </div>
+            )}
+
+            {!task?.instructionImages && (
+              <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-neutral-500 px-20 sm:h-auto">
+                <div className="flex flex-col place-content-center">
+                  <div className="text-center text-muted-foreground">
+                    No Instruction Images
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-col gap-2">
-              {task?.claimedBy?.id && task?.claimedAt && (
-                <div className="text-sm font-medium">
-                  {task.claimedBy.name} claimed this task on{" "}
-                  {format(task.claimedAt, "MMM do HH:mm")}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-row place-content-center">
+                  <div className="flex flex-col">
+                    <div className="text-center text-sm text-muted-foreground">
+                      Claimed by
+                    </div>
+                    {task.claimedBy && (
+                      <div className="text-lg">{task.claimedBy.name}</div>
+                    )}
+                    {!task?.claimedBy && (
+                      <div className="text-lg">Unclaimed</div>
+                    )}
+                  </div>
                 </div>
-              )}
-
-              {!task?.claimedBy && <div>Unclaimed</div>}
-
-              {task?.markedAsDoneBy?.id && task?.markedAsDoneAt && (
-                <div className="text-sm font-medium">
-                  {task.markedAsDoneBy.name} completed this task on{" "}
-                  {format(task.markedAsDoneAt, "MMM do HH:mm")}
+                <div className="flex flex-row place-content-center">
+                  <div className="flex flex-col">
+                    <div className="text-center text-sm text-muted-foreground">
+                      Claimed at
+                    </div>
+                    {task.claimedAt && (
+                      <div className="text-lg">
+                        {format(task.claimedAt, "MMM do HH:mm")}
+                      </div>
+                    )}
+                    {!task?.claimedAt && (
+                      <div className="text-lg">Unclaimed</div>
+                    )}
+                  </div>
                 </div>
-              )}
-
-              {!task?.markedAsDoneBy && <div>Incomplete</div>}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-row place-content-center">
+                  <div className="flex flex-col">
+                    <div className="text-center text-sm text-muted-foreground">
+                      Marked as done by
+                    </div>
+                    {task.markedAsDoneBy && (
+                      <div className="text-lg">{task.markedAsDoneBy?.name}</div>
+                    )}
+                    {!task?.markedAsDoneBy && (
+                      <div className="text-lg">Not complete</div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-row place-content-center">
+                  <div className="flex flex-col">
+                    <div className="text-center text-sm text-muted-foreground">
+                      Marked as done at
+                    </div>
+                    {task.markedAsDoneAt && (
+                      <div className="text-lg">
+                        {format(task.markedAsDoneAt, "MMM do HH:mm")}
+                      </div>
+                    )}
+                    {!task?.markedAsDoneAt && (
+                      <div className="text-lg">Not complete</div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
+
+            {task.completedAt && task?.completionImages && (
+              <div className="flex flex-row place-content-center">
+                <Carousel className="max-h-64 max-w-full px-20 sm:h-auto">
+                  <CarouselContent>
+                    {task.completionImages.map((image, index) => (
+                      <CarouselItem key={index} className="rounded-md">
+                        <img
+                          src={image.url}
+                          alt={`Completion image ${index}`}
+                        />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="hidden sm:block" />
+                  <CarouselNext className="hidden sm:block" />
+                </Carousel>
+              </div>
+            )}
+
+            {task.completedAt &&
+              !task?.completionImages &&
+              user.plusMembership && (
+                <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-neutral-500 px-20 sm:h-auto">
+                  <div className="flex flex-col place-content-center">
+                    <div className="text-center text-muted-foreground">
+                      No Completion Images
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            {task.completedAt &&
+              !task?.completionImages &&
+              !user.plusMembership && (
+                <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-neutral-500 px-20 sm:h-auto">
+                  <div className="flex flex-col place-content-center">
+                    <div className="text-center text-muted-foreground">
+                      No Completion Images. Upgrade to Plus to let your sitter
+                      upload images to show they have completed the task to your
+                      satisfaction.
+                    </div>
+                  </div>
+                </div>
+              )}
           </div>
         </div>
       )}
