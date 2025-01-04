@@ -41,91 +41,109 @@ export default function TaskOwnerPage({
   });
 
   return (
-    <div className="container mx-auto space-y-6 p-4">
-      <div className="flex h-full w-full grow flex-row place-content-center">
-        {isEditing ? (
-          <TaskEditForm task={task} userGroups={userGroups} />
-        ) : (
-          <Card className="w-full max-w-[1000px]">
-            <CardContent className="p-8">
-              <div className="flex flex-row flex-wrap place-content-center gap-8">
-                <div className="flex max-w-[500px] flex-col place-content-between gap-2">
-                  <div className="flex flex-col gap-2">
-                    <div>
-                      {task?.dueMode && (
-                        <div>
-                          <div className="flex flex-row rounded-md">
-                            <div className="flex flex-col place-content-center">
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                            </div>
-
-                            <div>
-                              {task?.dueDate
-                                ? format(task.dueDate, "MMMM do HH:mm")
-                                : ""}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {!task?.dueMode && (
-                        <div className="flex flex-row rounded-md">
-                          <div className="flex flex-col place-content-center">
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                          </div>
-                          <div>
-                            {task?.dateRangeFrom
-                              ? format(task.dateRangeFrom, "MMM do HH:mm")
-                              : ""}{" "}
-                            -
-                            {task?.dateRangeTo
-                              ? format(task?.dateRangeTo, "MMM do HH:mm")
-                              : ""}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex flex-row gap-2">
-                        <Link href={`/pets/${task?.petId}`}>
-                          <Avatar>
-                            <AvatarImage
-                              src={task?.pet?.image ? task.pet.image : ""}
-                              alt={`${task?.pet?.name}'s avatar`}
-                            />
-                            {/* Make this actually be the initials rather than first letter */}
-                            <AvatarFallback>
-                              {task?.pet?.name.substring(0, 1)}
-                            </AvatarFallback>
-                          </Avatar>
-                        </Link>
-                        <div className="flex flex-col place-content-center">
-                          {task?.pet?.name} ({task?.group?.name})
-                        </div>
-                      </div>
-
-                      <div>{task?.description}</div>
-
-                      {task?.claimedBy?.id && task?.claimedAt && (
-                        <div className="text-sm font-medium">
-                          {task.claimedBy.name} claimed this task on{" "}
-                          {format(task.claimedAt, "MMM do HH:mm")}
-                        </div>
-                      )}
-
-                      {task?.markedAsDoneBy?.id && task?.markedAsDoneAt && (
-                        <div className="text-sm font-medium">
-                          {task.markedAsDoneBy.name} completed this task on{" "}
-                          {format(task.markedAsDoneAt, "MMM do HH:mm")}
-                        </div>
-                      )}
+    <div className="mx-auto space-y-6 sm:container">
+      {isEditing ? (
+        <TaskEditForm task={task} userGroups={userGroups} />
+      ) : (
+        <div className="flex w-full max-w-5xl flex-row place-content-center px-6 py-2">
+          <div className="flex w-full max-w-xl flex-col gap-4">
+            <div>
+              <div className="flex flex-row gap-2">
+                <Link
+                  className="flex flex-col place-content-center"
+                  href={`/pets/${task?.petId}`}
+                >
+                  <Avatar>
+                    <AvatarImage
+                      src={task?.pet?.image ? task.pet.image : ""}
+                      alt={`${task?.pet?.name}'s avatar`}
+                    />
+                    {/* Make this actually be the initials rather than first letter */}
+                    <AvatarFallback>
+                      {task?.pet?.name.substring(0, 1)}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+                <div className="flex flex-col">
+                  <div className="flex flex-col place-content-center">
+                    <div className="flex flex-row gap-2">
+                      <span className="font-semibold">{task?.pet?.name}</span>
+                      <span className="text-muted-foreground">
+                        ({task?.group?.name})
+                      </span>
                     </div>
                   </div>
+                  {task?.dueMode && (
+                    <div className="flex flex-row rounded-md">
+                      <div className="flex flex-col place-content-center">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                      </div>
+
+                      <div className="flex flex-col place-content-center">
+                        <div className="text-sm">
+                          {task?.dueDate
+                            ? format(task.dueDate, "iiii do MMMM HH:mm")
+                            : ""}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {!task?.dueMode && (
+                    <div className="flex flex-row rounded-md">
+                      <div className="flex flex-col place-content-center">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                      </div>
+                      <div>
+                        {task?.dateRangeFrom
+                          ? format(task.dateRangeFrom, "MMM do HH:mm")
+                          : ""}{" "}
+                        -
+                        {task?.dateRangeTo
+                          ? format(task?.dateRangeTo, "MMM do HH:mm")
+                          : ""}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="text-2xl font-semibold">{task.name}</div>
+              {/* Make it extendable with a label for when its opened by clicking see more */}
+              <div className="open:max-h-auto max-h-28">
+                {task?.description}
+              </div>
+            </div>
+
+            {/* Optional based on whether there are images - needs to be a carousel */}
+            <div className="border-1 flex h-64 w-full flex-col place-content-center border border-neutral-500 sm:h-auto">
+              <span className="text-center">Image</span>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {task?.claimedBy?.id && task?.claimedAt && (
+                <div className="text-sm font-medium">
+                  {task.claimedBy.name} claimed this task on{" "}
+                  {format(task.claimedAt, "MMM do HH:mm")}
+                </div>
+              )}
+
+              {!task?.claimedBy && <div>Unclaimed</div>}
+
+              {task?.markedAsDoneBy?.id && task?.markedAsDoneAt && (
+                <div className="text-sm font-medium">
+                  {task.markedAsDoneBy.name} completed this task on{" "}
+                  {format(task.markedAsDoneAt, "MMM do HH:mm")}
+                </div>
+              )}
+
+              {!task?.markedAsDoneBy && <div>Incomplete</div>}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
