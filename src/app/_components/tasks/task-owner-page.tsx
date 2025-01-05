@@ -23,6 +23,8 @@ import { CalendarIcon } from "lucide-react";
 import type { SelectUser } from "~/lib/schemas/users";
 import { TaskEditForm } from "./task-edit-form";
 import { SelectBasicGroup } from "~/lib/schemas/groups";
+import { IconContext } from "react-icons/lib";
+import { FaEdit } from "react-icons/fa";
 
 export default function TaskOwnerPage({
   task,
@@ -50,69 +52,81 @@ export default function TaskOwnerPage({
   return (
     <div className="mx-auto space-y-6 sm:container">
       {isEditing ? (
-        <TaskEditForm task={task} userGroups={userGroups} />
+        <div className="flex w-full max-w-5xl flex-row place-content-center px-6 py-4">
+          <div className="flex w-full max-w-xl flex-col gap-4">
+            <TaskEditForm task={task} user={user} userGroups={userGroups} />
+          </div>
+        </div>
       ) : (
         <div className="flex w-full max-w-5xl flex-row place-content-center px-6 py-3">
           <div className="flex w-full max-w-xl flex-col gap-4">
-            <div>
-              <div className="flex flex-row gap-3">
-                <Link
-                  className="flex flex-col place-content-center"
-                  href={`/pets/${task?.petId}`}
-                >
-                  <Avatar>
-                    <AvatarImage
-                      src={task?.pet?.image ? task.pet.image : ""}
-                      alt={`${task?.pet?.name}'s avatar`}
-                    />
-                    {/* Make this actually be the initials rather than first letter */}
-                    <AvatarFallback>
-                      {task?.pet?.name.substring(0, 1)}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-                <div className="flex flex-col">
-                  <div className="flex flex-col place-content-center">
-                    <div className="flex flex-row gap-2">
-                      <span className="font-semibold">{task?.pet?.name}</span>
-                      <span className="text-muted-foreground">
-                        ({task?.group?.name})
-                      </span>
-                    </div>
+            <div className="flex flex-row place-content-between gap-3">
+              <Link
+                className="flex flex-col place-content-center"
+                href={`/pets/${task?.petId}`}
+              >
+                <Avatar>
+                  <AvatarImage
+                    src={task?.pet?.image ? task.pet.image : ""}
+                    alt={`${task?.pet?.name}'s avatar`}
+                  />
+                  {/* Make this actually be the initials rather than first letter */}
+                  <AvatarFallback>
+                    {task?.pet?.name.substring(0, 1)}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+              <div className="flex flex-col">
+                <div className="flex flex-col place-content-center">
+                  <div className="flex flex-row gap-2">
+                    <span className="font-semibold">{task?.pet?.name}</span>
+                    <span className="text-muted-foreground">
+                      ({task?.group?.name})
+                    </span>
                   </div>
-                  {task?.dueMode && (
-                    <div className="flex flex-row rounded-md">
-                      <div className="flex flex-col place-content-center">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                      </div>
-
-                      <div className="flex flex-col place-content-center">
-                        <div className="text-sm">
-                          {task?.dueDate
-                            ? format(task.dueDate, "iiii do MMMM HH:mm")
-                            : ""}
-                        </div>
-                      </div>
+                </div>
+                {task?.dueMode && (
+                  <div className="flex flex-row rounded-md">
+                    <div className="flex flex-col place-content-center">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
                     </div>
-                  )}
 
-                  {!task?.dueMode && (
-                    <div className="flex flex-row rounded-md">
-                      <div className="flex flex-col place-content-center">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                      </div>
-                      <div>
-                        {task?.dateRangeFrom
-                          ? format(task.dateRangeFrom, "MMM do HH:mm")
-                          : ""}{" "}
-                        -
-                        {task?.dateRangeTo
-                          ? format(task?.dateRangeTo, "MMM do HH:mm")
+                    <div className="flex flex-col place-content-center">
+                      <div className="text-sm">
+                        {task?.dueDate
+                          ? format(task.dueDate, "iiii do MMMM HH:mm")
                           : ""}
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                {!task?.dueMode && (
+                  <div className="flex flex-row rounded-md">
+                    <div className="flex flex-col place-content-center">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                    </div>
+                    <div>
+                      {task?.dateRangeFrom
+                        ? format(task.dateRangeFrom, "MMM do HH:mm")
+                        : ""}{" "}
+                      -
+                      {task?.dateRangeTo
+                        ? format(task?.dateRangeTo, "MMM do HH:mm")
+                        : ""}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col place-content-center">
+                <Button
+                  asChild
+                  variant={"ghost"}
+                  onClick={() => router.replace("?editing=true")}
+                  className="px-0"
+                >
+                  <MdEdit size={"3em"} />
+                </Button>
               </div>
             </div>
 
@@ -143,12 +157,34 @@ export default function TaskOwnerPage({
               </div>
             )}
 
-            {!task?.instructionImages && (
-              <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-neutral-500 px-20 sm:h-auto">
+            {!task?.instructionImages && user.plusMembership && (
+              <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-input px-20 sm:h-auto">
                 <div className="flex flex-col place-content-center">
-                  <div className="text-center text-muted-foreground">
-                    No Instruction Images
-                  </div>
+                  <Button
+                    variant={"link"}
+                    onClick={() => router.replace("?editing=true")}
+                    className="text-center text-sm text-muted-foreground"
+                  >
+                    Add images to your tasks
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {!task?.instructionImages && !user.plusMembership && (
+              <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-input px-20 sm:h-auto">
+                <div className="flex flex-col place-content-center">
+                  <Link
+                    href={"/plus"}
+                    className="text-center text-sm text-muted-foreground"
+                  >
+                    Get{" "}
+                    <span className="font-bold">
+                      sittr
+                      <sup className="text-violet-600 opacity-70">+</sup>
+                    </span>{" "}
+                    to add images to your tasks
+                  </Link>
                 </div>
               </div>
             )}
@@ -166,29 +202,18 @@ export default function TaskOwnerPage({
                     {!task?.claimedBy && (
                       <div className="text-lg">Unclaimed</div>
                     )}
-                  </div>
-                </div>
-                <div className="flex flex-row place-content-center">
-                  <div className="flex flex-col">
-                    <div className="text-center text-sm text-muted-foreground">
-                      Claimed at
-                    </div>
                     {task.claimedAt && (
-                      <div className="text-lg">
+                      <div className="text-md text-muted-foreground">
                         {format(task.claimedAt, "MMM do HH:mm")}
                       </div>
                     )}
-                    {!task?.claimedAt && (
-                      <div className="text-lg">Unclaimed</div>
-                    )}
                   </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
+
                 <div className="flex flex-row place-content-center">
                   <div className="flex flex-col">
                     <div className="text-center text-sm text-muted-foreground">
-                      Marked as done by
+                      Completed by
                     </div>
                     {task.markedAsDoneBy && (
                       <div className="text-lg">{task.markedAsDoneBy?.name}</div>
@@ -196,20 +221,10 @@ export default function TaskOwnerPage({
                     {!task?.markedAsDoneBy && (
                       <div className="text-lg">Not complete</div>
                     )}
-                  </div>
-                </div>
-                <div className="flex flex-row place-content-center">
-                  <div className="flex flex-col">
-                    <div className="text-center text-sm text-muted-foreground">
-                      Marked as done at
-                    </div>
                     {task.markedAsDoneAt && (
-                      <div className="text-lg">
+                      <div className="text-md text-muted-foreground">
                         {format(task.markedAsDoneAt, "MMM do HH:mm")}
                       </div>
-                    )}
-                    {!task?.markedAsDoneAt && (
-                      <div className="text-lg">Not complete</div>
                     )}
                   </div>
                 </div>

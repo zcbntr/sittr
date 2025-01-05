@@ -44,12 +44,23 @@ import { type SelectBasicPet, selectPetListSchema } from "~/lib/schemas/pets";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import { type SelectBasicGroup } from "~/lib/schemas/groups";
 import { MdCancel, MdEdit } from "react-icons/md";
+import { SelectBasicUser } from "~/lib/schemas/users";
+import Link from "next/link";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "~/components/ui/carousel";
 
 export function TaskEditForm({
   task,
+  user,
   userGroups,
 }: {
   task: SelectTask;
+  user: SelectBasicUser;
   userGroups: SelectBasicGroup[];
 }) {
   const [recentUploadUrls, setRecentUploadUrls] = React.useState<string[]>([]);
@@ -165,7 +176,7 @@ export function TaskEditForm({
           onSubmit={updateForm.handleSubmit((values) => executeUpdate(values))}
           className="space-y-2"
         >
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
             {/* <div className="flex flex-col gap-2">
                     <div className="flex flex-row place-content-center">
                       <div className="w-xl h-xl text-center">Image goes here</div>
@@ -225,7 +236,6 @@ export function TaskEditForm({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name *</FormLabel>
                   <FormControl>
                     <Input placeholder="Give Jake his dinner" {...field} />
                   </FormControl>
@@ -238,11 +248,11 @@ export function TaskEditForm({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
                       value={field.value ? field.value : undefined}
+                      className="min-h-32"
                     />
                   </FormControl>
                   <FormMessage />
@@ -250,301 +260,364 @@ export function TaskEditForm({
               )}
             />
 
-            <FormField
-              control={updateForm.control}
-              name="dueMode"
-              render={({ field }) => (
-                <FormItem className="flex flex-col justify-between pr-1">
-                  <div className="flex flex-row gap-3">
-                    <div className="flex flex-col place-content-center">
-                      <FormLabel className="">Span Time Period</FormLabel>
-                    </div>
-
-                    <div className="flex flex-col place-content-center">
-                      <FormControl>
-                        <Switch
-                          checked={!field.value}
-                          onCheckedChange={() => {
-                            updateForm.setValue("dueMode", !dueMode);
-                            setDueMode(!dueMode);
+            {user.plusMembership && (
+              <Carousel className="h-64 max-h-64 max-w-full rounded-md border border-input px-20">
+                <CarouselContent className="h-64 max-h-64 max-w-full">
+                  {recentUploadUrls.length < 10 && (
+                    <CarouselItem className="flex grow">
+                      <div className="flex flex-col place-content-center grow min-w-[180px]">
+                        <UploadButton
+                          endpoint="createTaskInstructionImageUploader"
+                          input={{ taskId: task.id }}
+                          onClientUploadComplete={(res) => {
+                            // Do something with the response
+                            if (res[0]?.serverData.url)
+                              setRecentUploadUrls([
+                                ...recentUploadUrls,
+                                res[0].serverData.url,
+                              ]);
+                            else toast.error("Image Upload Error!");
+                          }}
+                          onUploadError={(error: Error) => {
+                            // Do something with the error.
+                            toast.error(`Image Upload Error! ${error.message}`);
                           }}
                         />
-                      </FormControl>
+                      </div>
+                    </CarouselItem>
+                  )}
+                  {recentUploadUrls.map((url, index) => (
+                    <CarouselItem key={index} className="rounded-md">
+                      <img src={url} alt={`Instruction image ${index}`} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden sm:block" />
+                <CarouselNext className="hidden sm:block" />
+              </Carousel>
+            )}
+
+            {!user.plusMembership && (
+              <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-input px-20 sm:h-auto">
+                <div className="flex flex-col place-content-center">
+                  <Link
+                    href={"/plus"}
+                    className="text-center text-sm text-muted-foreground"
+                  >
+                    Get{" "}
+                    <span className="font-bold">
+                      sittr
+                      <sup className="text-violet-600 opacity-70">+</sup>
+                    </span>{" "}
+                    to add images to your tasks
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3">
+              <div className="mb-[-6px] font-semibold">Details</div>
+              <FormField
+                control={updateForm.control}
+                name="dueMode"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col justify-between pr-1">
+                    <div className="flex flex-row gap-3">
+                      <div className="flex flex-col place-content-center">
+                        <FormLabel className="">Span Time Period</FormLabel>
+                      </div>
+
+                      <div className="flex flex-col place-content-center">
+                        <FormControl>
+                          <Switch
+                            checked={!field.value}
+                            onCheckedChange={() => {
+                              updateForm.setValue("dueMode", !dueMode);
+                              setDueMode(!dueMode);
+                            }}
+                          />
+                        </FormControl>
+                      </div>
                     </div>
-                  </div>
 
-                  <FormDescription>
-                    Toggle whether the task has a due date/time or is a span of
-                    time.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormDescription className="text-pretty">
+                      Toggle whether the task has a due date/time or spans time.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {dueMode && (
-              <div className="grid grid-cols-1 gap-2">
-                <FormField
-                  control={updateForm.control}
-                  name="dueDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-left">
-                        Due Date/Time *
-                      </FormLabel>
-                      <Popover modal={true}>
-                        <FormControl>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !field.value && "text-muted-foreground",
-                              )}
-                            >
-                              <CalendarIcon className="h-4 w-4" />
-                              {field.value ? (
-                                format(field.value, "MMMM do HH:mm")
-                              ) : (
-                                <span>Pick a due date & time</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                        </FormControl>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={field.value ? field.value : undefined}
-                            onSelect={field.onChange}
-                            initialFocus
-                            fromDate={subDays(new Date(), 1)}
-                            toDate={addYears(new Date(), 1)}
-                            disabled={(date) =>
-                              date < new Date() && date > new Date("1900-01-01")
-                            }
-                          />
-                          <div className="border-t border-border p-3">
-                            <TimePickerDemo
-                              setDate={field.onChange}
-                              date={field.value ? field.value : undefined}
+              {dueMode && (
+                <div className="grid grid-cols-1 gap-2">
+                  <FormField
+                    control={updateForm.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel className="text-left">
+                          Due Date/Time *
+                        </FormLabel>
+                        <Popover modal={true}>
+                          <FormControl>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal",
+                                  !field.value && "text-muted-foreground",
+                                )}
+                              >
+                                <CalendarIcon className="h-4 w-4" />
+                                {field.value ? (
+                                  format(field.value, "MMMM do HH:mm")
+                                ) : (
+                                  <span>Pick a due date & time</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                          </FormControl>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={field.value ? field.value : undefined}
+                              onSelect={field.onChange}
+                              initialFocus
+                              fromDate={subDays(new Date(), 1)}
+                              toDate={addYears(new Date(), 1)}
+                              disabled={(date) =>
+                                date < new Date() &&
+                                date > new Date("1900-01-01")
+                              }
                             />
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-
-            {!dueMode && (
-              <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2">
-                <FormField
-                  control={updateForm.control}
-                  name="dateRangeFrom"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-left">
-                        Start Date/Time *
-                      </FormLabel>
-                      <Popover modal={true}>
-                        <FormControl>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !field.value && "text-muted-foreground",
-                              )}
-                            >
-                              <CalendarIcon className="h-4 w-4" />
-                              {field.value ? (
-                                format(field.value, "MMM do HH:mm")
-                              ) : (
-                                <span>Pick a start date & time</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                        </FormControl>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={field.value ? field.value : undefined}
-                            onSelect={field.onChange}
-                            initialFocus
-                            fromDate={subDays(new Date(), 1)}
-                            toDate={addYears(new Date(), 1)}
-                            disabled={(date) =>
-                              date < new Date() && date > new Date("1900-01-01")
-                            }
-                          />
-                          <div className="border-t border-border p-3">
-                            <TimePickerDemo
-                              setDate={field.onChange}
-                              date={field.value ? field.value : undefined}
-                            />
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={updateForm.control}
-                  name="dateRangeTo"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-left">
-                        End Date/Time *
-                      </FormLabel>
-                      <Popover modal={true}>
-                        <FormControl>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !field.value && "text-muted-foreground",
-                              )}
-                            >
-                              <CalendarIcon className="h-4 w-4" />
-                              {field.value ? (
-                                format(field.value, "MMM do HH:mm")
-                              ) : (
-                                <span>Pick a end date & time</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                        </FormControl>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={field.value ? field.value : undefined}
-                            onSelect={field.onChange}
-                            initialFocus
-                            fromDate={subDays(new Date(), 1)}
-                            toDate={addYears(new Date(), 1)}
-                            disabled={(date) =>
-                              date < new Date() && date > new Date("1900-01-01")
-                            }
-                          />
-                          <div className="border-t border-border p-3">
-                            <TimePickerDemo
-                              setDate={field.onChange}
-                              date={field.value ? field.value : undefined}
-                            />
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-
-            <FormField
-              control={updateForm.control}
-              name="groupId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Group *</FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      updateForm.setValue("groupId", value);
-                      setSelectedGroupId(value);
-                    }}
-                    disabled={userGroups.length === 0}
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            userGroups.length !== 0
-                              ? "Select group to associate with task"
-                              : "Make a group first"
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {userGroups.map((group) => (
-                        <SelectItem key={group.id} value={group.id.toString()}>
-                          {group.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={updateForm.control}
-              name="petId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pet *</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={(value) => {
-                      updateForm.setValue("petId", value);
-                    }}
-                    disabled={petsEmpty || groupPets.length === 0}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            task.pet?.name
-                              ? task.pet.name
-                              : !petsEmpty || groupPets.length !== 0
-                                ? "Select a pet assigned to the group"
-                                : "Choose a group with pets assigned"
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {groupPets.map((pet) => (
-                        <SelectItem key={pet.id} value={pet.id.toString()}>
-                          {pet.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex flex-row gap-2 pt-2">
-              <Button type="submit" disabled={updatePending}>
-                <div className="flex flex-row gap-2">
-                  <div className="flex flex-col place-content-center">
-                    <MdEdit size={"1.2rem"} />
-                  </div>
-                  {updatePending ? "Updating Pet..." : "Update Pet"}
+                            <div className="border-t border-border p-3">
+                              <TimePickerDemo
+                                setDate={field.onChange}
+                                date={field.value ? field.value : undefined}
+                              />
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </Button>
+              )}
 
-              <Button
-                type="reset"
-                onClick={exitEditMode}
-                disabled={updatePending}
-              >
-                <div className="flex flex-row gap-2">
-                  <div className="flex flex-col place-content-center">
-                    <MdCancel size={"1.2rem"} />
-                  </div>
-                  Cancel
+              {!dueMode && (
+                <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2">
+                  <FormField
+                    control={updateForm.control}
+                    name="dateRangeFrom"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel className="text-left">
+                          Start Date/Time *
+                        </FormLabel>
+                        <Popover modal={true}>
+                          <FormControl>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal",
+                                  !field.value && "text-muted-foreground",
+                                )}
+                              >
+                                <CalendarIcon className="h-4 w-4" />
+                                {field.value ? (
+                                  format(field.value, "MMM do HH:mm")
+                                ) : (
+                                  <span>Pick a start date & time</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                          </FormControl>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={field.value ? field.value : undefined}
+                              onSelect={field.onChange}
+                              initialFocus
+                              fromDate={subDays(new Date(), 1)}
+                              toDate={addYears(new Date(), 1)}
+                              disabled={(date) =>
+                                date < new Date() &&
+                                date > new Date("1900-01-01")
+                              }
+                            />
+                            <div className="border-t border-border p-3">
+                              <TimePickerDemo
+                                setDate={field.onChange}
+                                date={field.value ? field.value : undefined}
+                              />
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={updateForm.control}
+                    name="dateRangeTo"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel className="text-left">
+                          End Date/Time *
+                        </FormLabel>
+                        <Popover modal={true}>
+                          <FormControl>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal",
+                                  !field.value && "text-muted-foreground",
+                                )}
+                              >
+                                <CalendarIcon className="h-4 w-4" />
+                                {field.value ? (
+                                  format(field.value, "MMM do HH:mm")
+                                ) : (
+                                  <span>Pick a end date & time</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                          </FormControl>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={field.value ? field.value : undefined}
+                              onSelect={field.onChange}
+                              initialFocus
+                              fromDate={subDays(new Date(), 1)}
+                              toDate={addYears(new Date(), 1)}
+                              disabled={(date) =>
+                                date < new Date() &&
+                                date > new Date("1900-01-01")
+                              }
+                            />
+                            <div className="border-t border-border p-3">
+                              <TimePickerDemo
+                                setDate={field.onChange}
+                                date={field.value ? field.value : undefined}
+                              />
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </Button>
+              )}
+
+              <FormField
+                control={updateForm.control}
+                name="groupId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Group *</FormLabel>
+                    <Select
+                      onValueChange={(value) => {
+                        updateForm.setValue("groupId", value);
+                        setSelectedGroupId(value);
+                      }}
+                      disabled={userGroups.length === 0}
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              userGroups.length !== 0
+                                ? "Select group to associate with task"
+                                : "Make a group first"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {userGroups.map((group) => (
+                          <SelectItem
+                            key={group.id}
+                            value={group.id.toString()}
+                          >
+                            {group.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={updateForm.control}
+                name="petId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pet *</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => {
+                        updateForm.setValue("petId", value);
+                      }}
+                      disabled={petsEmpty || groupPets.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              task.pet?.name
+                                ? task.pet.name
+                                : !petsEmpty || groupPets.length !== 0
+                                  ? "Select a pet assigned to the group"
+                                  : "Choose a group with pets assigned"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {groupPets.map((pet) => (
+                          <SelectItem key={pet.id} value={pet.id.toString()}>
+                            {pet.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex flex-row gap-2 pt-2">
+                <Button type="submit" disabled={updatePending}>
+                  <div className="flex flex-row gap-2">
+                    <div className="flex flex-col place-content-center">
+                      <MdEdit size={"1.2rem"} />
+                    </div>
+                    {updatePending ? "Updating Pet..." : "Update Pet"}
+                  </div>
+                </Button>
+
+                <Button
+                  type="reset"
+                  onClick={exitEditMode}
+                  disabled={updatePending}
+                >
+                  <div className="flex flex-row gap-2">
+                    <div className="flex flex-col place-content-center">
+                      <MdCancel size={"1.2rem"} />
+                    </div>
+                    Cancel
+                  </div>
+                </Button>
+              </div>
             </div>
           </div>
         </form>

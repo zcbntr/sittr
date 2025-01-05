@@ -12,8 +12,8 @@ export default async function PlusUpgradeSuccess() {
   }
 
   return (
-    <main className="m-4 mx-auto w-full max-w-xl p-4 text-center">
-      <div className="mb-10 flex flex-col gap-5">
+    <main className="mx-auto max-w-xl p-4 text-center sm:flex sm:grow sm:flex-col sm:place-content-center">
+      <div className="flex h-min w-full grow flex-col gap-2">
         <h3 className="mb-2 text-2xl font-medium">
           <span className="font-bold">
             sittr
@@ -21,8 +21,8 @@ export default async function PlusUpgradeSuccess() {
           </span>{" "}
           gives you access to all the features of sittr and more.
         </h3>
-        <div className="mx-auto flex flex-row place-content-center text-pretty pl-12 pr-6 text-left sm:pl-16">
-          <ul className="list-disc space-y-1 text-xl tracking-wide text-zinc-500">
+        <div className="mx-auto flex flex-row place-content-center pl-12 pr-6 text-left sm:pl-16">
+          <ul className="list-disc space-y-1 text-pretty text-xl tracking-wide text-zinc-500">
             <li>Create unlimited pets</li>
             <li>Create unlimited groups</li>
             <li>Create unlimited tasks per week</li>
