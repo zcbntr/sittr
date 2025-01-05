@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { markNotificationAsReadAction } from "~/server/actions/notification-actions";
 import { getOwnedTaskById, getVisibleTaskById } from "~/server/queries/tasks";
-import type { SelectBasicTask } from "~/lib/schemas/tasks";
+import type { SelectTask } from "~/lib/schemas/tasks";
 import { redirect } from "next/navigation";
 import { getBasicLoggedInUser } from "~/server/queries/users";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
@@ -18,7 +18,7 @@ export default async function Page({
   // Get the data for the pet from the slug
   const slug = (await params).slug;
   let ownsTask = false;
-  let task: SelectBasicTask | null = await getOwnedTaskById(slug);
+  let task: SelectTask | null = await getOwnedTaskById(slug);
   ownsTask = true;
   if (!task) {
     task = await getVisibleTaskById(slug);

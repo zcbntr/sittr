@@ -123,6 +123,8 @@ export async function getOwnedTaskById(taskId: string): Promise<SelectTask> {
       markedAsDoneBy: true,
       group: true,
       pet: { with: { petImages: true } },
+      instructionImages: true,
+      completionImages: true,
     },
     where: (model, { and, eq }) =>
       and(eq(model.id, taskId), eq(model.ownerId, userId)),
@@ -159,6 +161,8 @@ export async function getVisibleTaskById(taskId: string): Promise<SelectTask> {
       markedAsDoneBy: true,
       group: true,
       pet: { with: { petImages: true } },
+      instructionImages: true,
+      completionImages: true,
     },
     where: (model, { and, eq }) =>
       and(eq(model.id, taskId), not(eq(model.ownerId, userId))),

@@ -63,7 +63,7 @@ export function TaskEditForm({
   user: SelectBasicUser;
   userGroups: SelectBasicGroup[];
 }) {
-  const [recentUploadUrls, setRecentUploadUrls] = React.useState<string[]>([]);
+  const [instructionImages, setInstructionImages] = React.useState<string[]>([]);
 
   const [groupPets, setGroupPets] = useState<SelectBasicPet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
@@ -262,18 +262,30 @@ export function TaskEditForm({
 
             {user.plusMembership && (
               <Carousel className="h-64 max-h-64 max-w-full rounded-md border border-input px-20">
-                <CarouselContent className="h-64 max-h-64 max-w-full">
-                  {recentUploadUrls.length < 10 && (
-                    <CarouselItem className="flex grow">
-                      <div className="flex flex-col place-content-center grow min-w-[180px]">
+                <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full">
+                  {instructionImages.map((url, index) => (
+                    <CarouselItem key={index} className="rounded-md pl-4">
+                      <div className="h-64 w-full">
+                        {" "}
+                        <img
+                          src={url}
+                          alt={`Instruction image ${index}`}
+                          className="h-auto max-w-full"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                  {instructionImages.length < 10 && (
+                    <CarouselItem className="flex grow pl-4">
+                      <div className="flex min-w-[180px] grow flex-col place-content-center">
                         <UploadButton
                           endpoint="createTaskInstructionImageUploader"
                           input={{ taskId: task.id }}
                           onClientUploadComplete={(res) => {
                             // Do something with the response
                             if (res[0]?.serverData.url)
-                              setRecentUploadUrls([
-                                ...recentUploadUrls,
+                              setInstructionImages([
+                                ...instructionImages,
                                 res[0].serverData.url,
                               ]);
                             else toast.error("Image Upload Error!");
@@ -286,11 +298,6 @@ export function TaskEditForm({
                       </div>
                     </CarouselItem>
                   )}
-                  {recentUploadUrls.map((url, index) => (
-                    <CarouselItem key={index} className="rounded-md">
-                      <img src={url} alt={`Instruction image ${index}`} />
-                    </CarouselItem>
-                  ))}
                 </CarouselContent>
                 <CarouselPrevious className="hidden sm:block" />
                 <CarouselNext className="hidden sm:block" />

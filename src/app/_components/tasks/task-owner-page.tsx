@@ -1,10 +1,9 @@
 "use client";
 
 import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MdDelete, MdEdit } from "react-icons/md";
+import { MdEdit } from "react-icons/md";
 import {
   Carousel,
   CarouselContent,
@@ -23,8 +22,7 @@ import { CalendarIcon } from "lucide-react";
 import type { SelectUser } from "~/lib/schemas/users";
 import { TaskEditForm } from "./task-edit-form";
 import { SelectBasicGroup } from "~/lib/schemas/groups";
-import { IconContext } from "react-icons/lib";
-import { FaEdit } from "react-icons/fa";
+import Image from "next/image";
 
 export default function TaskOwnerPage({
   task,
@@ -140,14 +138,19 @@ export default function TaskOwnerPage({
 
             {task?.instructionImages && (
               <div className="flex flex-row place-content-center">
-                <Carousel className="max-h-64 max-w-full px-20 sm:h-auto">
+                <Carousel className="max-h-64 max-w-full sm:h-auto">
                   <CarouselContent>
                     {task.instructionImages.map((image, index) => (
-                      <CarouselItem key={index} className="rounded-md">
-                        <img
-                          src={image.url}
-                          alt={`Instruction image ${index}`}
-                        />
+                      <CarouselItem key={index} className="">
+                        {/* Fix width here */}
+                        <div className="h-64 w-[calc(100vw-8rem)] max-w-[calc(100vw-8rem)]">
+                          <Image
+                            fill
+                            className="rounded-md object-cover"
+                            src={image.url}
+                            alt={`Instruction image ${index}`}
+                          />
+                        </div>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
