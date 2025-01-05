@@ -4,7 +4,8 @@ import { type SelectBasicPet } from "~/lib/schemas/pets";
 import { Card, CardContent } from "~/components/ui/card";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { getPetAgeString } from "~/lib/utils";
+import { getPetAgeString, initials } from "~/lib/utils";
+import { MdPets } from "react-icons/md";
 
 export function PetNonOwnerPage({ pet }: { pet: SelectBasicPet }) {
   const petAgeString = pet.dob ? getPetAgeString(pet.dob) : null;
@@ -22,9 +23,9 @@ export function PetNonOwnerPage({ pet }: { pet: SelectBasicPet }) {
                       alt={`${pet.name}'s avatar`}
                       className="h-18"
                     />
-                    {/* Make this actually be the initials rather than first letter */}
+
                     <AvatarFallback delayMs={600}>
-                      {pet.name.substring(0, 1)}
+                      {pet.name ? initials(pet.name) : <MdPets />}
                     </AvatarFallback>
                   </Avatar>
 

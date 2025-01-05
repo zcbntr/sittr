@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
-import { MdCancel, MdEdit } from "react-icons/md";
+import { MdCancel, MdEdit, MdPets } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -25,7 +25,7 @@ import {
 import { Calendar } from "~/components/ui/calendar";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "~/lib/utils";
+import { cn, initials } from "~/lib/utils";
 import {
   deletePetProfilePicAction,
   updatePetAction,
@@ -110,9 +110,9 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                           alt={`${pet.name}'s avatar`}
                           className="h-18"
                         />
-                        {/* Make this actually be the initials rather than first letter */}
+
                         <AvatarFallback delayMs={600}>
-                          {pet.name.substring(0, 1)}
+                          {pet.name ? initials(pet.name) : <MdPets />}
                         </AvatarFallback>
                       </Avatar>
                     </div>

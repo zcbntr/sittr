@@ -22,6 +22,8 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import type { SelectUser } from "~/lib/schemas/users";
 import Image from "next/image";
+import { initials } from "~/lib/utils";
+import { MdPets } from "react-icons/md";
 
 export default function TaskNonOwnerPage({
   task,
@@ -69,9 +71,12 @@ export default function TaskNonOwnerPage({
                   src={task?.pet?.image ? task.pet.image : ""}
                   alt={`${task?.pet?.name}'s avatar`}
                 />
-                {/* Make this actually be the initials rather than first letter */}
                 <AvatarFallback>
-                  {task?.pet?.name.substring(0, 1)}
+                  {task?.pet?.name ? (
+                    initials(task?.pet?.name ? task.pet.name : "")
+                  ) : (
+                    <MdPets />
+                  )}
                 </AvatarFallback>
               </Avatar>
             </Link>

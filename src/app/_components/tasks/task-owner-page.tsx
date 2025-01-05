@@ -3,7 +3,7 @@
 import { Button } from "~/components/ui/button";
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MdEdit } from "react-icons/md";
+import { MdEdit, MdPets } from "react-icons/md";
 import {
   Carousel,
   CarouselContent,
@@ -23,6 +23,7 @@ import type { SelectUser } from "~/lib/schemas/users";
 import { TaskEditForm } from "./task-edit-form";
 import { SelectBasicGroup } from "~/lib/schemas/groups";
 import Image from "next/image";
+import { initials } from "~/lib/utils";
 
 export default function TaskOwnerPage({
   task,
@@ -58,9 +59,10 @@ export default function TaskOwnerPage({
                     src={task?.pet?.image ? task.pet.image : ""}
                     alt={`${task?.pet?.name}'s avatar`}
                   />
-                  {/* Make this actually be the initials rather than first letter */}
-                  <AvatarFallback>
+
+                  <AvatarFallback delayMs={600}>
                     {task?.pet?.name.substring(0, 1)}
+                    {task?.pet?.name ? initials(task.pet.name) : <MdPets />}
                   </AvatarFallback>
                 </Avatar>
               </Link>

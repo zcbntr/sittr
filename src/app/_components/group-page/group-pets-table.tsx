@@ -30,6 +30,8 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { type SelectUser } from "~/lib/schemas/users";
+import { MdPets } from "react-icons/md";
+import { initials } from "~/lib/utils";
 
 export default function GroupPetsTable({
   user,
@@ -127,8 +129,9 @@ export default function GroupPetsTable({
                 src={pet.image ? pet.image : ""}
                 alt={`${pet.name}'s avatar`}
               />
-              {/* Make this actually be the initials rather than first letter */}
-              <AvatarFallback>{pet.name.substring(0, 1)}</AvatarFallback>
+              <AvatarFallback>
+                {pet.name ? initials(pet.name) : <MdPets />}
+              </AvatarFallback>
             </Avatar>
           </Link>
         );

@@ -18,9 +18,10 @@ import {
   MdOutlineGroup,
   MdOutlinePets,
   MdOutlineSettings,
+  MdPerson,
 } from "react-icons/md";
 import { getUserNotifications } from "~/server/queries/notifications";
-import { getTimeSinceDateAsString } from "~/lib/utils";
+import { getTimeSinceDateAsString, initials } from "~/lib/utils";
 
 export async function TopNav() {
   const user = await getBasicLoggedInUser();
@@ -126,9 +127,8 @@ export async function TopNav() {
                       src={user.image ? user.image : undefined}
                       alt={`${user.name}'s avatar`}
                     />
-                    {/* Make this actually be the initials rather than first letter */}
                     <AvatarFallback>
-                      {user.name?.substring(0, 1)}
+                      {user.name ? initials(user.name) : <MdPerson />}
                     </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>

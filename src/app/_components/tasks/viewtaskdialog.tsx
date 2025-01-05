@@ -30,12 +30,14 @@ import {
   MdLockOutline,
   MdOutlineCheck,
   MdOutlineCircle,
+  MdPets,
 } from "react-icons/md";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type z } from "zod";
 import { Form } from "~/components/ui/form";
 import { type SelectUser } from "~/lib/schemas/users";
+import { initials } from "~/lib/utils";
 
 export default function ViewTaskDialog({
   currentUser,
@@ -172,9 +174,9 @@ export default function ViewTaskDialog({
                   src={task?.pet?.image ? task.pet.image : ""}
                   alt={`${task?.pet?.name}'s avatar`}
                 />
-                {/* Make this actually be the initials rather than first letter */}
-                <AvatarFallback>
-                  {task?.pet?.name.substring(0, 1)}
+
+                <AvatarFallback delayMs={600}>
+                  {task?.pet?.name ? initials(task.pet.name) : <MdPets />}
                 </AvatarFallback>
               </Avatar>
             </Link>

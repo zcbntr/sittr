@@ -38,6 +38,8 @@ import { useState } from "react";
 import { leaveGroupAction } from "~/server/actions/group-actions";
 import { GroupRoleEnum } from "~/lib/schemas";
 import { type SelectUser } from "~/lib/schemas/users";
+import { initials } from "~/lib/utils";
+import { MdPerson, MdPets } from "react-icons/md";
 
 export default function GroupsTable({
   groups,
@@ -90,9 +92,12 @@ export default function GroupsTable({
                     src={member.user?.image ? member.user?.image : undefined}
                     alt={`${member.user?.name}'s avatar`}
                   />
-                  {/* Make this actually be the initials rather than first letter */}
                   <AvatarFallback>
-                    {member.user?.name?.substring(0, 1)}
+                    {member.user?.name ? (
+                      initials(member.user?.name)
+                    ) : (
+                      <MdPerson />
+                    )}
                   </AvatarFallback>
                 </Avatar>
               ))}
@@ -115,9 +120,12 @@ export default function GroupsTable({
                   }
                   alt={`${filteredMembers[0].user?.name}'s avatar`}
                 />
-                {/* Make this actually be the initials rather than first letter */}
                 <AvatarFallback>
-                  {filteredMembers[0].user?.name?.substring(0, 1)}
+                  {filteredMembers[0].user?.name ? (
+                    initials(filteredMembers[0].user?.name)
+                  ) : (
+                    <MdPerson />
+                  )}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col place-content-center">{`and ${filteredMembers.length - 1} more. `}</div>
@@ -147,9 +155,8 @@ export default function GroupsTable({
                         src={pet.image ? pet.image : ""}
                         alt={`${pet.name}'s avatar`}
                       />
-                      {/* Make this actually be the initials rather than first letter */}
                       <AvatarFallback>
-                        {pet.name.substring(0, 1)}
+                        {pet.name ? initials(pet.name) : <MdPets />}
                       </AvatarFallback>
                     </Avatar>
                   </Link>
@@ -175,9 +182,12 @@ export default function GroupsTable({
                     }
                     alt={`${group.petsToGroups[0].pet.name}'s avatar`}
                   />
-                  {/* Make this actually be the initials rather than first letter */}
                   <AvatarFallback>
-                    {group.petsToGroups[0].pet.name.substring(0, 1)}
+                    {group.petsToGroups[0].pet.name ? (
+                      initials(group.petsToGroups[0].pet.name)
+                    ) : (
+                      <MdPets />
+                    )}
                   </AvatarFallback>
                 </Avatar>
               </Link>

@@ -40,6 +40,8 @@ import {
   TooltipContent,
 } from "~/components/ui/tooltip";
 import { type SelectUser } from "~/lib/schemas/users";
+import { initials } from "~/lib/utils";
+import { MdPerson } from "react-icons/md";
 
 export default function GroupMembersTable({
   user,
@@ -68,9 +70,8 @@ export default function GroupMembersTable({
                 src={member.user?.image ? member.user?.image : undefined}
                 alt={`${member.user?.name}'s avatar`}
               />
-              {/* Make this actually be the initials rather than first letter */}
               <AvatarFallback>
-                {member.user?.name?.substring(0, 1)}
+                {member.user?.name ? initials(member.user?.name) : <MdPerson />}
               </AvatarFallback>
             </Avatar>
           </Link>

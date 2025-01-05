@@ -6,7 +6,7 @@ import { type SelectBasicPet } from "~/lib/schemas/pets";
 import { Card, CardContent } from "~/components/ui/card";
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MdDelete, MdEdit } from "react-icons/md";
+import { MdDelete, MdEdit, MdPets } from "react-icons/md";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +22,7 @@ import { useServerAction } from "zsa-react";
 import { deletePetAction } from "~/server/actions/pet-actions";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { getPetAgeString } from "~/lib/utils";
+import { getPetAgeString, initials } from "~/lib/utils";
 
 export function PetOwnerPage({ pet }: { pet: SelectBasicPet }) {
   const router = useRouter();
@@ -56,9 +56,9 @@ export function PetOwnerPage({ pet }: { pet: SelectBasicPet }) {
                         alt={`${pet.name}'s avatar`}
                         className="h-18"
                       />
-                      {/* Make this actually be the initials rather than first letter */}
+
                       <AvatarFallback delayMs={600}>
-                        {pet.name.substring(0, 1)}
+                        {pet.name ? initials(pet.name) : <MdPets />}
                       </AvatarFallback>
                     </Avatar>
 
