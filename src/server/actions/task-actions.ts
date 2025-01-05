@@ -10,6 +10,7 @@ import {
 import { db } from "~/server/db";
 import {
   notifications,
+  taskCompletionImages,
   taskInstructionImages,
   tasks,
   users,
@@ -441,7 +442,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
     }
   });
 
-export const removeTaskImageAction = ownsTaskProcedure
+export const removeTaskInstructionImageAction = ownsTaskProcedure
   .createServerAction()
   .input(
     z.object({ id: z.string().min(12).max(12), imageUrl: z.string().url() }),
@@ -462,7 +463,39 @@ export const removeTaskImageAction = ownsTaskProcedure
       .execute();
 
     if (deletedImageRow.length === 0 || !deletedImageRow[0]) {
-      throw new Error("Failed to remove image from task");
+      throw new Error("Failed to instruction remove image from task");
+    }
+
+    // Delete the image from the uploadthing
+    await utapi.deleteFiles(deletedImageRow[0].fileKey);
+
+    revalidatePath(`/tasks/${task.id}`);
+
+    return deletedImageRow[0];
+  });
+
+export const removeTaskCompletionImageAction = ownsTaskProcedure
+  .createServerAction()
+  .input(
+    z.object({ id: z.string().min(12).max(12), imageUrl: z.string().url() }),
+  )
+  .handler(async ({ input, ctx }) => {
+    const { userId, task } = ctx;
+
+    const deletedImageRow = await db
+      .delete(taskCompletionImages)
+      .where(
+        and(
+          eq(taskCompletionImages.uploaderId, userId),
+          eq(taskCompletionImages.taskId, input.id),
+          eq(taskCompletionImages.url, input.imageUrl),
+        ),
+      )
+      .returning()
+      .execute();
+
+    if (deletedImageRow.length === 0 || !deletedImageRow[0]) {
+      throw new Error("Failed to remove completion image from task");
     }
 
     // Delete the image from the uploadthing

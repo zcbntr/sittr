@@ -39,7 +39,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { UploadButton } from "~/lib/uploadthing";
 import { Textarea } from "~/components/ui/textarea";
 import {
-  removeTaskImageAction,
+  removeTaskInstructionImageAction,
   updateTaskAction,
 } from "~/server/actions/task-actions";
 import { Switch } from "~/components/ui/switch";
@@ -127,7 +127,7 @@ export function TaskEditForm({
   );
 
   const { isPending: imageRemovalPending, execute: executeImageRemoval } =
-    useServerAction(removeTaskImageAction, {
+    useServerAction(removeTaskInstructionImageAction, {
       onError: ({ err }) => {
         toast.error(err.message);
       },

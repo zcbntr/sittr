@@ -3,7 +3,10 @@ import { markNotificationAsReadAction } from "~/server/actions/notification-acti
 import { getOwnedTaskById, getVisibleTaskById } from "~/server/queries/tasks";
 import type { SelectTask } from "~/lib/schemas/tasks";
 import { redirect } from "next/navigation";
-import { getBasicLoggedInUser } from "~/server/queries/users";
+import {
+  getBasicLoggedInUser,
+  getBasicUserByUserId,
+} from "~/server/queries/users";
 import { getGroupsUserIsIn } from "~/server/queries/groups";
 import TaskOwnerPage from "~/app/_components/tasks/task-owner-page";
 import TaskNonOwnerPage from "~/app/_components/tasks/task-non-owner-page";
@@ -63,7 +66,9 @@ export default async function Page({
 
       return <TaskOwnerPage task={task} user={user} userGroups={userGroups} />;
     } else {
-      return <TaskNonOwnerPage task={task} user={user} />;
+      const taskOwner = await getBasicUserByUserId(task.ownerId);
+
+      return <TaskNonOwnerPage task={task} user={user} taskOwner={taskOwner} />;
     }
   }
 }

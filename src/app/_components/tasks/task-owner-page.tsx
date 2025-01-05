@@ -37,16 +37,6 @@ export default function TaskOwnerPage({
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("editing");
 
-  const { isPending, execute } = useServerAction(deleteTaskAction, {
-    onError: ({ err }) => {
-      toast.error(err.message);
-    },
-    onSuccess: () => {
-      router.push("/");
-      toast.success("Task deleted!");
-    },
-  });
-
   return (
     <div className="mx-auto space-y-6 sm:container">
       {isEditing ? (

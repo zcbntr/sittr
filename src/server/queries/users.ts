@@ -83,7 +83,7 @@ export async function getLoggedInUser(): Promise<SelectUser | undefined> {
   return selectUserSchema.parse(userRow);
 }
 
-export async function getUserByUserId(userId: string): Promise<SelectUser> {
+export async function getBasicUserByUserId(userId: string): Promise<SelectBasicUser> {
   const session = await auth();
 
   if (!session?.user) {
@@ -101,7 +101,7 @@ export async function getUserByUserId(userId: string): Promise<SelectUser> {
   return selectUserSchema.parse(userRow);
 }
 
-export async function getUserByEmail(email: string): Promise<SelectUser> {
+export async function getBasicUserByEmail(email: string): Promise<SelectBasicUser> {
   const session = await auth();
 
   if (!session?.user) {
