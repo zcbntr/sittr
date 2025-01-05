@@ -63,7 +63,11 @@ export function TaskEditForm({
   user: SelectBasicUser;
   userGroups: SelectBasicGroup[];
 }) {
-  const [instructionImages, setInstructionImages] = React.useState<string[]>([]);
+  const [instructionImages, setInstructionImages] = React.useState<string[]>(
+    task.instructionImages
+      ? task.instructionImages.map((image) => image.url)
+      : [],
+  );
 
   const [groupPets, setGroupPets] = useState<SelectBasicPet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
@@ -261,47 +265,63 @@ export function TaskEditForm({
             />
 
             {user.plusMembership && (
-              <Carousel className="h-64 max-h-64 max-w-full rounded-md border border-input px-20">
-                <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full">
-                  {instructionImages.map((url, index) => (
-                    <CarouselItem key={index} className="rounded-md pl-4">
-                      <div className="h-64 w-full">
-                        {" "}
-                        <img
-                          src={url}
-                          alt={`Instruction image ${index}`}
-                          className="h-auto max-w-full"
-                        />
-                      </div>
-                    </CarouselItem>
-                  ))}
-                  {instructionImages.length < 10 && (
-                    <CarouselItem className="flex grow pl-4">
-                      <div className="flex min-w-[180px] grow flex-col place-content-center">
-                        <UploadButton
-                          endpoint="createTaskInstructionImageUploader"
-                          input={{ taskId: task.id }}
-                          onClientUploadComplete={(res) => {
-                            // Do something with the response
-                            if (res[0]?.serverData.url)
-                              setInstructionImages([
-                                ...instructionImages,
-                                res[0].serverData.url,
-                              ]);
-                            else toast.error("Image Upload Error!");
-                          }}
-                          onUploadError={(error: Error) => {
-                            // Do something with the error.
-                            toast.error(`Image Upload Error! ${error.message}`);
-                          }}
-                        />
-                      </div>
-                    </CarouselItem>
-                  )}
-                </CarouselContent>
-                <CarouselPrevious className="hidden sm:block" />
-                <CarouselNext className="hidden sm:block" />
-              </Carousel>
+              <div className="flex flex-col gap-1">
+                <Carousel className="h-64 max-h-64 max-w-full rounded-md border border-input px-20">
+                  <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full">
+                    {instructionImages.map((url, index) => (
+                      <CarouselItem key={index} className="rounded-md pl-4">
+                        <div className="h-64 w-full">
+                          {" "}
+                          <img
+                            src={url}
+                            alt={`Instruction image ${index}`}
+                            className="h-auto max-w-full"
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                    {instructionImages.length < 10 && (
+                      <CarouselItem className="flex grow pl-4">
+                        <div className="flex min-w-[180px] grow flex-col place-content-center">
+                          <UploadButton
+                            endpoint="createTaskInstructionImageUploader"
+                            input={{ taskId: task.id }}
+                            onClientUploadComplete={(res) => {
+                              // Do something with the response
+                              if (res[0]?.serverData.url)
+                                setInstructionImages([
+                                  ...instructionImages,
+                                  res[0].serverData.url,
+                                ]);
+                              else toast.error("Image Upload Error!");
+                            }}
+                            onUploadError={(error: Error) => {
+                              // Do something with the error.
+                              toast.error(
+                                `Image Upload Error! ${error.message}`,
+                              );
+                            }}
+                          />
+                        </div>
+                      </CarouselItem>
+                    )}
+                  </CarouselContent>
+                  <CarouselPrevious className="hidden sm:block" />
+                  <CarouselNext className="hidden sm:block" />
+                </Carousel>
+                {/* Use carousel API to determine which image is being shown and give option to delete */}
+                {instructionImages.length > 0 && (
+                  <Button
+                    variant={"link"}
+                    className="text-center text-sm text-muted-foreground"
+                    onClick={() => {
+                      console.log("Delete image");
+                    }}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
             )}
 
             {!user.plusMembership && (
