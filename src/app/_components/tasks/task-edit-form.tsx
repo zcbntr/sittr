@@ -38,7 +38,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { UploadButton } from "~/lib/uploadthing";
 import { Textarea } from "~/components/ui/textarea";
-import { updateTaskAction } from "~/server/actions/task-actions";
+import {
+  removeTaskImageAction,
+  updateTaskAction,
+} from "~/server/actions/task-actions";
 import { Switch } from "~/components/ui/switch";
 import { type SelectBasicPet, selectPetListSchema } from "~/lib/schemas/pets";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
@@ -48,6 +51,7 @@ import { SelectBasicUser } from "~/lib/schemas/users";
 import Link from "next/link";
 import {
   Carousel,
+  CarouselApi,
   CarouselContent,
   CarouselItem,
   CarouselNext,
@@ -63,11 +67,16 @@ export function TaskEditForm({
   user: SelectBasicUser;
   userGroups: SelectBasicGroup[];
 }) {
-  const [instructionImages, setInstructionImages] = React.useState<string[]>(
+  const [instructionImageUrls, setInstructionImagesUrls] = React.useState<
+    string[]
+  >(
     task.instructionImages
       ? task.instructionImages.map((image) => image.url)
       : [],
   );
+  const [api, setApi] = React.useState<CarouselApi>();
+  const [current, setCurrent] = React.useState(0);
+  const [count, setCount] = React.useState(0);
 
   const [groupPets, setGroupPets] = useState<SelectBasicPet[]>([]);
   const [petsEmpty, setPetsEmpty] = useState<boolean>(false);
@@ -117,15 +126,15 @@ export function TaskEditForm({
     },
   );
 
-  // const { isPending: imageDeletePending, execute: executeDeleteImage } =
-  //   useServerAction(deleteTaskImageAction, {
-  //     onError: ({ err }) => {
-  //       toast.error(err.message);
-  //     },
-  //     onSuccess: () => {
-  //       toast.success("Image deleted!");
-  //     },
-  //   });
+  const { isPending: imageRemovalPending, execute: executeImageRemoval } =
+    useServerAction(removeTaskImageAction, {
+      onError: ({ err }) => {
+        toast.error(err.message);
+      },
+      onSuccess: () => {
+        toast.success("Image removed!");
+      },
+    });
 
   useEffect(() => {
     setSelectedGroupId(
@@ -172,6 +181,19 @@ export function TaskEditForm({
       void fetchGroupPets();
     }
   }, [task, selectedGroupId]);
+
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
 
   return (
     <div className="w-full max-w-[1000px] sm:w-full">
@@ -255,7 +277,7 @@ export function TaskEditForm({
                   <FormControl>
                     <Textarea
                       placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
-                      value={field.value ? field.value : undefined}
+                      {...field}
                       className="min-h-32"
                     />
                   </FormControl>
@@ -266,9 +288,12 @@ export function TaskEditForm({
 
             {user.plusMembership && (
               <div className="flex flex-col gap-1">
-                <Carousel className="h-64 max-h-64 max-w-full rounded-md border border-input px-20">
+                <Carousel
+                  setApi={setApi}
+                  className="h-64 max-h-64 max-w-full rounded-md border border-input px-20"
+                >
                   <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full">
-                    {instructionImages.map((url, index) => (
+                    {instructionImageUrls.map((url, index) => (
                       <CarouselItem key={index} className="rounded-md pl-4">
                         <div className="h-64 w-full">
                           {" "}
@@ -280,7 +305,7 @@ export function TaskEditForm({
                         </div>
                       </CarouselItem>
                     ))}
-                    {instructionImages.length < 10 && (
+                    {instructionImageUrls.length < 10 && (
                       <CarouselItem className="flex grow pl-4">
                         <div className="flex min-w-[180px] grow flex-col place-content-center">
                           <UploadButton
@@ -289,8 +314,8 @@ export function TaskEditForm({
                             onClientUploadComplete={(res) => {
                               // Do something with the response
                               if (res[0]?.serverData.url)
-                                setInstructionImages([
-                                  ...instructionImages,
+                                setInstructionImagesUrls([
+                                  ...instructionImageUrls,
                                   res[0].serverData.url,
                                 ]);
                               else toast.error("Image Upload Error!");
@@ -310,12 +335,25 @@ export function TaskEditForm({
                   <CarouselNext className="hidden sm:block" />
                 </Carousel>
                 {/* Use carousel API to determine which image is being shown and give option to delete */}
-                {instructionImages.length > 0 && (
+                {instructionImageUrls.length > 0 && (
                   <Button
+                    disabled={imageRemovalPending}
                     variant={"link"}
                     className="text-center text-sm text-muted-foreground"
-                    onClick={() => {
-                      console.log("Delete image");
+                    onClick={async () => {
+                      if (
+                        instructionImageUrls.length === 0 ||
+                        instructionImageUrls[current] === undefined
+                      ) {
+                        return;
+                      }
+
+                      await executeImageRemoval({
+                        id: task.id,
+                        imageUrl: instructionImageUrls[current],
+                      });
+
+                      instructionImageUrls.splice(current, 1);
                     }}
                   >
                     Remove

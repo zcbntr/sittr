@@ -8,7 +8,12 @@ import {
   createTaskSchema,
 } from "~/lib/schemas/tasks";
 import { db } from "~/server/db";
-import { notifications, tasks, users } from "~/server/db/schema";
+import {
+  notifications,
+  taskInstructionImages,
+  tasks,
+  users,
+} from "~/server/db/schema";
 import {
   authenticatedProcedure,
   canMarkTaskAsDoneProcedure,
@@ -20,6 +25,8 @@ import { basicRatelimit } from "../ratelimit";
 import { getVisibleTaskById } from "../queries/tasks";
 import { NotificationTypeEnum } from "~/lib/schemas";
 import { addMinutes, differenceInMinutes, startOfWeek } from "date-fns";
+import { z } from "zod";
+import { utapi } from "../uploadthing";
 
 export const createTaskAction = authenticatedProcedure
   .createServerAction()
@@ -40,7 +47,9 @@ export const createTaskAction = authenticatedProcedure
       });
 
       if (tasksCreatedThisWeek.length >= 5) {
-        throw new Error("You have reached the limit of tasks you can create this week");
+        throw new Error(
+          "You have reached the limit of tasks you can create this week",
+        );
       }
     }
 
@@ -385,7 +394,7 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
 
       return updatedTask;
       // If the task is claimed by another user, the user cannot claim it
-    } else if (task?.claimedBy) {
+    } else if (task?.claimedById) {
       throw new Error("Task is already claimed by another user");
       // If the task is not completed and not claimed, the user can claim it
     } else {
@@ -430,4 +439,36 @@ export const setClaimTaskAction = canMarkTaskAsDoneProcedure
 
       return updatedTask;
     }
+  });
+
+export const removeTaskImageAction = ownsTaskProcedure
+  .createServerAction()
+  .input(
+    z.object({ id: z.string().min(12).max(12), imageUrl: z.string().url() }),
+  )
+  .handler(async ({ input, ctx }) => {
+    const { userId, task } = ctx;
+
+    const deletedImageRow = await db
+      .delete(taskInstructionImages)
+      .where(
+        and(
+          eq(taskInstructionImages.uploaderId, userId),
+          eq(taskInstructionImages.taskId, input.id),
+          eq(taskInstructionImages.url, input.imageUrl),
+        ),
+      )
+      .returning()
+      .execute();
+
+    if (deletedImageRow.length === 0 || !deletedImageRow[0]) {
+      throw new Error("Failed to remove image from task");
+    }
+
+    // Delete the image from the uploadthing
+    await utapi.deleteFiles(deletedImageRow[0].fileKey);
+
+    revalidatePath(`/tasks/${task.id}`);
+
+    return deletedImageRow[0];
   });

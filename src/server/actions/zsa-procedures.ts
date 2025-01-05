@@ -4,21 +4,14 @@ import { groups, tasks, groupMembers } from "../db/schema";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getBasicLoggedInUser } from "../queries/users";
-import { type SelectUser } from "~/lib/schemas/users";
-import {
-  selectBasicTaskSchema,
-  type SelectTask,
-  selectTaskSchema,
-} from "~/lib/schemas/tasks";
-import {
-  selectBasicGroupSchema,
-  type SelectGroupInput,
-  selectGroupSchema,
-} from "~/lib/schemas/groups";
+import { SelectBasicUser } from "~/lib/schemas/users";
+import { SelectBasicTask, selectBasicTaskSchema } from "~/lib/schemas/tasks";
+import { SelectBasicGroup, selectBasicGroupSchema } from "~/lib/schemas/groups";
+import { selectBasicPetSchema } from "~/lib/schemas/pets";
 
 export const authenticatedProcedure = createServerActionProcedure().handler(
   async () => {
-    const user: SelectUser | undefined = await getBasicLoggedInUser();
+    const user: SelectBasicUser | undefined = await getBasicLoggedInUser();
 
     if (!user) {
       // Return to homepage
@@ -36,14 +29,16 @@ export const ownsPetProcedure = createServerActionProcedure(
   .handler(async ({ ctx, input }) => {
     const userId = ctx.user.id;
 
-    const pet = await db.query.pets.findFirst({
+    const petRow = await db.query.pets.findFirst({
       where: (model, { and, eq }) =>
         and(eq(model.id, input.id), eq(model.ownerId, userId)),
     });
 
-    if (!pet) {
+    if (!petRow) {
       throw new Error("Pet not found");
     }
+
+    const pet = selectBasicPetSchema.parse({ ...petRow });
 
     return { userId, pet };
   });
@@ -63,7 +58,7 @@ export const ownsTaskProcedure = createServerActionProcedure(
       throw new Error("Task not found");
     }
 
-    const task = selectTaskSchema.parse({ ...taskRow });
+    const task = selectBasicTaskSchema.parse({ ...taskRow });
 
     return { userId, task };
   });
@@ -89,7 +84,9 @@ export const canMarkTaskAsDoneProcedure = createServerActionProcedure(
     }
 
     // Return just the task part of the row
-    const task: SelectTask = selectTaskSchema.parse({ ...taskRow.tasks });
+    const task: SelectBasicTask = selectBasicTaskSchema.parse({
+      ...taskRow.tasks,
+    });
 
     return { userId, task };
   });
@@ -112,7 +109,7 @@ export const ownsGroupProcedure = createServerActionProcedure(
       throw new Error("Group not found");
     }
 
-    const group: SelectGroupInput = selectGroupSchema.parse({
+    const group: SelectBasicGroup = selectBasicGroupSchema.parse({
       ...groupRow,
     });
 
