@@ -74,7 +74,6 @@ export default function ViewTaskDialog({
   const {
     isPending: claimPending,
     execute: executeClaim,
-    error: claimError,
   } = useServerAction(setClaimTaskAction, {
     onError: ({ err }) => {
       toast.error(err.message);
@@ -99,7 +98,6 @@ export default function ViewTaskDialog({
   const {
     isPending: markAsDonePending,
     execute: executeMarkAsDone,
-    error: markAsDoneError,
   } = useServerAction(setTaskMarkedAsDoneAction, {
     onError: ({ err }) => {
       toast.error(err.message);
@@ -297,9 +295,6 @@ export default function ViewTaskDialog({
             </Form>
           </div>
         </div>
-
-        {claimError && <div>{claimError.message}</div>}
-        {markAsDoneError && <div>{markAsDoneError.message}</div>}
       </DialogContent>
     </Dialog>
   );

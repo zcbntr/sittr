@@ -18,15 +18,28 @@ import {
 } from "~/server/actions/task-actions";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import type { SelectTask } from "~/lib/schemas/tasks";
+import {
+  type SelectTask,
+  setClaimTaskFormProps,
+  setMarkedAsCompleteFormProps,
+} from "~/lib/schemas/tasks";
 import Link from "next/link";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import type { SelectUser } from "~/lib/schemas/users";
+import { type SelectUser } from "~/lib/schemas/users";
 import Image from "next/image";
 import { initials } from "~/lib/utils";
-import { MdPets } from "react-icons/md";
+import {
+  MdLockOpen,
+  MdLockOutline,
+  MdOutlineCheck,
+  MdOutlineCircle,
+  MdPets,
+} from "react-icons/md";
 import { UploadButton } from "~/lib/uploadthing";
+import { Form, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 export default function TaskNonOwnerPage({
   task,
@@ -47,6 +60,24 @@ export default function TaskNonOwnerPage({
   const [api, setApi] = React.useState<CarouselApi>();
   const [current, setCurrent] = React.useState(0);
   const [count, setCount] = React.useState(0);
+
+  const claimTaskForm = useForm<z.infer<typeof setClaimTaskFormProps>>({
+    resolver: zodResolver(setClaimTaskFormProps),
+    defaultValues: {
+      id: task?.id,
+      claim: task?.claimedById === user?.id,
+    },
+  });
+
+  const markAsCompleteForm = useForm<
+    z.infer<typeof setMarkedAsCompleteFormProps>
+  >({
+    resolver: zodResolver(setMarkedAsCompleteFormProps),
+    defaultValues: {
+      id: task?.id,
+      markAsDone: task?.markedAsDoneById === user?.id,
+    },
+  });
 
   const { isPending: claimPending, execute: claimTask } = useServerAction(
     setClaimTaskAction,
@@ -193,41 +224,125 @@ export default function TaskNonOwnerPage({
 
           <div className="flex flex-col gap-2">
             <div className="grid grid-cols-2 gap-2">
-              <div className="flex flex-row place-content-center">
-                <div className="flex flex-col">
-                  <div className="text-center text-sm text-muted-foreground">
-                    Claimed by
-                  </div>
-                  {task.claimedBy && (
-                    <div className="text-lg">{task.claimedBy.name}</div>
-                  )}
-                  {!task?.claimedBy && <div className="text-lg">Unclaimed</div>}
-                  {task.claimedAt && (
-                    <div className="text-md text-muted-foreground">
-                      {format(task.claimedAt, "MMM do HH:mm")}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <Form {...claimTaskForm}>
+                <form onSubmit={claimTaskForm.handleSubmit(claimTask)}>
+                  <Button
+                    className="h-fit w-full"
+                    disabled={
+                      (!claimTaskForm.getValues("id") ||
+                        (task?.claimedBy && task.claimedBy?.id !== user?.id)) ??
+                      (markAsDonePending || claimPending)
+                    }
+                    type="submit"
+                  >
+                    {task?.claimedBy && task.claimedBy?.id !== user?.id && (
+                      <div className="flex flex-row flex-nowrap">
+                        <div className="flex flex-col place-content-center">
+                          <MdLockOutline className="mr-1 h-4 w-4" />
+                        </div>
 
-              <div className="flex flex-row place-content-center">
-                <div className="flex flex-col">
-                  <div className="text-center text-sm text-muted-foreground">
-                    Completed by
-                  </div>
-                  {task.markedAsDoneBy && (
-                    <div className="text-lg">{task.markedAsDoneBy?.name}</div>
-                  )}
-                  {!task?.markedAsDoneBy && (
-                    <div className="text-lg">Not complete</div>
-                  )}
-                  {task.markedAsDoneAt && (
-                    <div className="text-md text-muted-foreground">
-                      {format(task.markedAsDoneAt, "MMM do HH:mm")}
-                    </div>
-                  )}
-                </div>
-              </div>
+                        <div className="flex flex-col">
+                          <div className="text-center text-sm text-muted-foreground">
+                            Claimed by
+                          </div>
+                          {task.claimedBy && (
+                            <div className="text-lg">{task.claimedBy.name}</div>
+                          )}
+                          {!task?.claimedBy && (
+                            <div className="text-lg">Unclaimed</div>
+                          )}
+                          {task.claimedAt && (
+                            <div className="text-md text-muted-foreground">
+                              {format(task.claimedAt, "MMM do HH:mm")}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {task?.claimedBy && task.claimedBy?.id === user?.id && (
+                      <div className="flex flex-row flex-nowrap">
+                        <div className="flex flex-col place-content-center">
+                          <MdLockOpen className="mr-1 h-4 w-4" />
+                        </div>
+
+                        <div>Unclaim Task</div>
+                      </div>
+                    )}
+                    {!task?.claimedBy && (
+                      <div className="flex flex-row flex-nowrap">
+                        <div className="flex flex-col place-content-center">
+                          <MdLockOutline className="mr-1 h-4 w-4" />
+                        </div>
+
+                        <div>Claim Task</div>
+                      </div>
+                    )}
+                  </Button>
+                </form>
+              </Form>
+
+              <Form {...markAsCompleteForm}>
+                <form
+                  onSubmit={markAsCompleteForm.handleSubmit(markTaskAsDone)}
+                >
+                  <Button
+                    className="h-fit w-full"
+                    disabled={
+                      (!markAsCompleteForm.getValues("id") ||
+                        (task?.markedAsDoneBy &&
+                          task.markedAsDoneBy?.id !== user?.id)) ??
+                      (markAsDonePending || claimPending)
+                    }
+                    type="submit"
+                  >
+                    {task?.markedAsDoneBy &&
+                      task.markedAsDoneBy?.id !== user?.id && (
+                        <div className="flex flex-row flex-nowrap">
+                          <div className="flex flex-col place-content-center">
+                            <MdOutlineCheck className="mr-1 h-4 w-4" />
+                          </div>
+
+                          <div className="flex flex-col">
+                            <div className="text-center text-sm text-muted-foreground">
+                              Completed by
+                            </div>
+                            {task.markedAsDoneBy && (
+                              <div className="text-lg">
+                                {task.markedAsDoneBy?.name}
+                              </div>
+                            )}
+                            {!task?.markedAsDoneBy && (
+                              <div className="text-lg">Not complete</div>
+                            )}
+                            {task.markedAsDoneAt && (
+                              <div className="text-md text-muted-foreground">
+                                {format(task.markedAsDoneAt, "MMM do HH:mm")}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    {task?.markedAsDoneBy &&
+                      task.markedAsDoneBy?.id === user?.id && (
+                        <div className="flex flex-row flex-nowrap">
+                          <div className="flex flex-col place-content-center">
+                            <MdOutlineCircle className="mr-1 h-4 w-4" />
+                          </div>
+                          <div>Unmark as complete</div>
+                        </div>
+                      )}
+                    {!task?.markedAsDoneBy && (
+                      <div className="flex flex-row flex-nowrap">
+                        <div className="flex flex-col place-content-center">
+                          <MdOutlineCheck className="mr-1 h-4 w-4" />
+                        </div>
+
+                        <div>Mark as complete</div>
+                      </div>
+                    )}
+                  </Button>
+                </form>
+              </Form>
             </div>
           </div>
 
@@ -277,7 +392,7 @@ export default function TaskNonOwnerPage({
                 <CarouselPrevious className="hidden sm:block" />
                 <CarouselNext className="hidden sm:block" />
               </Carousel>
-              {/* Use carousel API to determine which image is being shown and give option to delete */}
+              {/* Show the total number of images uploaded somewhere here */}
               {completionImageUrls.length > 0 && (
                 <Button
                   disabled={imageRemovalPending}

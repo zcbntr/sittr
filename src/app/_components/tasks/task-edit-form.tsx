@@ -280,7 +280,7 @@ export function TaskEditForm({
                   <CarouselPrevious className="hidden sm:block" />
                   <CarouselNext className="hidden sm:block" />
                 </Carousel>
-                {/* Use carousel API to determine which image is being shown and give option to delete */}
+                {/* Show the total number of images uploaded somewhere here */}
                 {instructionImageUrls.length > 0 && (
                   <Button
                     disabled={imageRemovalPending}
