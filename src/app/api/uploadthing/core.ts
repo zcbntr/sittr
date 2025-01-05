@@ -3,7 +3,11 @@ import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
 import { db } from "~/server/db";
-import { petProfilePics, taskInstructionImages } from "~/server/db/schema";
+import {
+  petProfilePics,
+  taskCompletionImages,
+  taskInstructionImages,
+} from "~/server/db/schema";
 import { getBasicLoggedInUser } from "~/server/queries/users";
 import { multiImageRateLimit, singleImageRateLimit } from "~/server/ratelimit";
 import { utapi } from "~/server/uploadthing";
@@ -153,9 +157,21 @@ export const ourFileRouter = {
       const user = await getBasicLoggedInUser();
       const userId = user?.id;
 
-      // TODO
-      // Check if the task already has max instruction images
-      // TODO
+      const taskRow = await db.query.tasks
+        .findFirst({
+          where: (model, { eq }) => eq(model.id, input.taskId),
+          with: {
+            instructionImages: true,
+          },
+        })
+        .execute();
+
+      if (
+        taskRow?.instructionImages &&
+        taskRow.instructionImages.length >= 10
+      ) {
+        throw new Error("Maximum instruction images reached");
+      }
 
       // eslint-disable-next-line @typescript-eslint/only-throw-error
       if (!userId) throw new UploadThingError("Unauthorized");
@@ -181,7 +197,7 @@ export const ourFileRouter = {
           url: file.url,
           fileKey: file.key,
         })
-        .returning({ insertedId: petProfilePics.id });
+        .returning({ insertedId: taskCompletionImages.id });
 
       if (
         !taskInstructionImageRow ||
@@ -195,6 +211,74 @@ export const ourFileRouter = {
       return {
         uploadedBy: metadata.userId,
         imageId: taskInstructionImageRow[0].insertedId,
+        url: file.url,
+      };
+    }),
+  createTaskCompletionImageUploader: f({
+    image: { maxFileSize: "4MB", maxFileCount: 10 },
+  })
+    .input(z.object({ taskId: z.string() }))
+    // Set permissions and file types for this FileRoute
+    .middleware(async ({ req, input }) => {
+      // This code runs on the server before upload
+      const user = await getBasicLoggedInUser();
+      const userId = user?.id;
+
+      const taskRow = await db.query.tasks
+        .findFirst({
+          where: (model, { eq }) => eq(model.id, input.taskId),
+          with: {
+            completionImages: true,
+          },
+        })
+        .execute();
+
+      if (taskRow?.ownerId == userId) {
+        throw new Error("Cannot upload creation images to your own task");
+      }
+
+      if (taskRow?.completionImages && taskRow.completionImages.length >= 10) {
+        throw new Error("Maximum completion images reached");
+      }
+
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
+      if (!userId) throw new UploadThingError("Unauthorized");
+
+      const { success } = await multiImageRateLimit.limit(userId);
+
+      if (!success) {
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        throw new UploadThingError("You are uploading images too fast");
+      }
+
+      // Whatever is returned here is accessible in onUploadComplete as `metadata`
+      return { userId: userId, taskId: input.taskId };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      // This code runs on the server after upload
+
+      const taskCompletionImageRow = await db
+        .insert(taskCompletionImages)
+        .values({
+          taskId: metadata.taskId,
+          uploaderId: metadata.userId,
+          url: file.url,
+          fileKey: file.key,
+        })
+        .returning({ insertedId: taskCompletionImages.id });
+
+      if (
+        !taskCompletionImageRow ||
+        taskCompletionImageRow.length == 0 ||
+        !taskCompletionImageRow[0]
+      ) {
+        throw new Error("Failed to insert task instruction image");
+      }
+
+      // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
+      return {
+        uploadedBy: metadata.userId,
+        imageId: taskCompletionImageRow[0].insertedId,
         url: file.url,
       };
     }),

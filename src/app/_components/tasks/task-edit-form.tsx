@@ -203,60 +203,6 @@ export function TaskEditForm({
           className="space-y-2"
         >
           <div className="flex flex-col gap-4">
-            {/* <div className="flex flex-col gap-2">
-                    <div className="flex flex-row place-content-center">
-                      <div className="w-xl h-xl text-center">Image goes here</div>
-                    </div>
-
-                    {(task.images ?? recentUploadUrl) && (
-                      <div className="flex flex-row place-content-center gap-2">
-                        <UploadButton
-                          endpoint="editTaskImageUploader"
-                          input={{ taskId: task.id }}
-                          onClientUploadComplete={(res) => {
-                            // Do something with the response
-                            if (res[0]?.serverData.url)
-                              setRecentUploadUrl(res[0].serverData.url);
-                            else toast.error("Image Upload Error!");
-                          }}
-                          onUploadError={(error: Error) => {
-                            // Do something with the error.
-                            toast.error(`Image Upload Error! ${error.message}`);
-                          }}
-                        />
-
-                        <Button
-                          className="h-10 w-10"
-                          size="icon"
-                          disabled={imageDeletePending}
-                          onClick={async () => {
-                            await executeDeleteImage({ taskId: task.id, imageId: task.images[0].id });
-                            setRecentUploadUrl(undefined);
-                          }}
-                        >
-                          <MdCancel />
-                        </Button>
-                      </div>
-                    )}
-
-                    {task.images.length === 0 && !recentUploadUrl && (
-                      <UploadButton
-                        endpoint="editTaskImageUploader"
-                        input={{ taskId: task.id, imageId: task.images[0].id }}
-                        onClientUploadComplete={(res) => {
-                          // Do something with the response
-                          if (res[0]?.serverData.url)
-                            setRecentUploadUrl(res[0].serverData.url);
-                          else toast.error("Image Upload Error!");
-                        }}
-                        onUploadError={(error: Error) => {
-                          // Do something with the error.
-                          toast.error(`Image Upload Error! ${error.message}`);
-                        }}
-                      />
-                    )}
-                  </div> */}
-
             <FormField
               control={updateForm.control}
               name="name"

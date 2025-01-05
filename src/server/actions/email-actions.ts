@@ -3,7 +3,7 @@
 import { Resend } from "resend";
 import { createServerAction } from "zsa";
 import { SupportEmailTemplate } from "~/components/email-templates/support-template";
-import { supportEmailSchema, supportRequestInputSchema } from "~/lib/schemas";
+import { supportRequestInputSchema } from "~/lib/schemas";
 import { getBasicLoggedInUser } from "../queries/users";
 import { supportRequestRateLimit } from "../ratelimit";
 

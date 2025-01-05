@@ -4,6 +4,7 @@ import { Button } from "~/components/ui/button";
 import React from "react";
 import {
   Carousel,
+  CarouselApi,
   CarouselContent,
   CarouselItem,
   CarouselNext,
@@ -11,6 +12,7 @@ import {
 } from "~/components/ui/carousel";
 import { useServerAction } from "zsa-react";
 import {
+  removeTaskCompletionImageAction,
   setClaimTaskAction,
   setTaskMarkedAsDoneAction,
 } from "~/server/actions/task-actions";
@@ -24,6 +26,7 @@ import type { SelectUser } from "~/lib/schemas/users";
 import Image from "next/image";
 import { initials } from "~/lib/utils";
 import { MdPets } from "react-icons/md";
+import { UploadButton } from "~/lib/uploadthing";
 
 export default function TaskNonOwnerPage({
   task,
@@ -34,6 +37,17 @@ export default function TaskNonOwnerPage({
   user: SelectUser;
   taskOwner: SelectUser;
 }) {
+  const [completionImageUrls, setCompletionImagesUrls] = React.useState<
+    string[]
+  >(
+    task.completionImages
+      ? task.completionImages.map((image) => image.url)
+      : [],
+  );
+  const [api, setApi] = React.useState<CarouselApi>();
+  const [current, setCurrent] = React.useState(0);
+  const [count, setCount] = React.useState(0);
+
   const { isPending: claimPending, execute: claimTask } = useServerAction(
     setClaimTaskAction,
     {
@@ -55,6 +69,29 @@ export default function TaskNonOwnerPage({
         toast.success("Task marked as done!");
       },
     });
+
+  const { isPending: imageRemovalPending, execute: executeImageRemoval } =
+    useServerAction(removeTaskCompletionImageAction, {
+      onError: ({ err }) => {
+        toast.error(err.message);
+      },
+      onSuccess: () => {
+        toast.success("Image removed!");
+      },
+    });
+
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
 
   return (
     <div className="mx-auto space-y-6 sm:container">
@@ -194,19 +231,77 @@ export default function TaskNonOwnerPage({
             </div>
           </div>
 
-          {task.completedAt && task?.completionImages && (
-            <div className="flex flex-row place-content-center">
-              <Carousel className="max-h-64 max-w-full px-20 sm:h-auto">
-                <CarouselContent>
-                  {task.completionImages.map((image, index) => (
-                    <CarouselItem key={index} className="rounded-md">
-                      <img src={image.url} alt={`Completion image ${index}`} />
+          {taskOwner.plusMembership && (
+            <div className="flex flex-col gap-1">
+              <Carousel
+                setApi={setApi}
+                className="h-64 max-h-64 max-w-full rounded-md border border-input px-20"
+              >
+                <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full">
+                  {completionImageUrls.map((url, index) => (
+                    <CarouselItem key={index} className="rounded-md pl-4">
+                      <div className="h-64 w-full">
+                        {" "}
+                        <img
+                          src={url}
+                          alt={`Instruction image ${index}`}
+                          className="h-auto max-w-full"
+                        />
+                      </div>
                     </CarouselItem>
                   ))}
+                  {completionImageUrls.length < 10 && (
+                    <CarouselItem className="flex grow pl-4">
+                      <div className="flex min-w-[180px] grow flex-col place-content-center">
+                        <UploadButton
+                          endpoint="createTaskCompletionImageUploader"
+                          input={{ taskId: task.id }}
+                          onClientUploadComplete={(res) => {
+                            // Do something with the response
+                            if (res[0]?.serverData.url)
+                              setCompletionImagesUrls([
+                                ...completionImageUrls,
+                                res[0].serverData.url,
+                              ]);
+                            else toast.error("Image Upload Error!");
+                          }}
+                          onUploadError={(error: Error) => {
+                            // Do something with the error.
+                            toast.error(`Image Upload Error! ${error.message}`);
+                          }}
+                        />
+                      </div>
+                    </CarouselItem>
+                  )}
                 </CarouselContent>
                 <CarouselPrevious className="hidden sm:block" />
                 <CarouselNext className="hidden sm:block" />
               </Carousel>
+              {/* Use carousel API to determine which image is being shown and give option to delete */}
+              {completionImageUrls.length > 0 && (
+                <Button
+                  disabled={imageRemovalPending}
+                  variant={"link"}
+                  className="text-center text-sm text-muted-foreground"
+                  onClick={async () => {
+                    if (
+                      completionImageUrls.length === 0 ||
+                      completionImageUrls[current] === undefined
+                    ) {
+                      return;
+                    }
+
+                    await executeImageRemoval({
+                      id: task.id,
+                      imageUrl: completionImageUrls[current],
+                    });
+
+                    completionImageUrls.splice(current, 1);
+                  }}
+                >
+                  Remove
+                </Button>
+              )}
             </div>
           )}
 

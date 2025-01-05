@@ -1,5 +1,5 @@
 import * as React from "react";
-import { SupportEmailParams } from "~/lib/schemas";
+import { type SupportEmailParams } from "~/lib/schemas";
 
 export const SupportEmailTemplate: React.FC<Readonly<SupportEmailParams>> = ({
   fullName,

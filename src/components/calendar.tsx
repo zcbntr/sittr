@@ -8,9 +8,8 @@ import moment from "moment";
 import { addDays, addHours, addMilliseconds } from "date-fns";
 import { Button } from "./ui/button";
 import {
-  EditTask,
   selectBasicTaskSchema,
-  SelectTask,
+  type SelectTask,
   type CreateTaskFormProps,
   type SelectBasicTask,
 } from "~/lib/schemas/tasks";
