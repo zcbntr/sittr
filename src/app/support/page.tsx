@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import ContactSupportForm from "../_components/support-page/contact-support-form";
 import { getBasicLoggedInUser } from "~/server/queries/users";
 

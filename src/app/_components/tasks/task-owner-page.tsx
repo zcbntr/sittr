@@ -11,9 +11,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "~/components/ui/carousel";
-import { useServerAction } from "zsa-react";
-import { deleteTaskAction } from "~/server/actions/task-actions";
-import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import type { SelectTask } from "~/lib/schemas/tasks";
 import Link from "next/link";
@@ -54,14 +51,13 @@ export default function TaskOwnerPage({
                 className="flex flex-col place-content-center"
                 href={`/pets/${task?.petId}`}
               >
-                <Avatar>
+                <Avatar className="border border-neutral-200">
                   <AvatarImage
                     src={task?.pet?.image ? task.pet.image : ""}
                     alt={`${task?.pet?.name}'s avatar`}
                   />
 
                   <AvatarFallback delayMs={600}>
-                    {task?.pet?.name.substring(0, 1)}
                     {task?.pet?.name ? initials(task.pet.name) : <MdPets />}
                   </AvatarFallback>
                 </Avatar>

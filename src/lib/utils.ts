@@ -114,7 +114,7 @@ export function randomString(length: number, chars: string) {
 export function initials(name: string): string {
   const nameParts = name.split(" ");
   if (nameParts.length === 1) {
-    return name;
+    return `${nameParts[0]?.substring(0, 1).toLocaleUpperCase()}`;
   } else if (nameParts.length === 2) {
     return `${nameParts[0]?.substring(0, 1)}${nameParts[1]?.substring(0, 1)}`.toLocaleUpperCase();
   } else if (nameParts.length === 3) {

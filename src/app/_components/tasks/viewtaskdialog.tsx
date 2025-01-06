@@ -10,7 +10,7 @@ import {
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import {
-  SelectTask,
+  type SelectTask,
   setClaimTaskFormProps,
   setMarkedAsCompleteFormProps,
   type SelectBasicTask,

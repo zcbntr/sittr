@@ -46,7 +46,7 @@ import { Switch } from "~/components/ui/switch";
 import { type SelectBasicPet, selectPetListSchema } from "~/lib/schemas/pets";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import { type SelectBasicGroup } from "~/lib/schemas/groups";
-import { MdCancel, MdEdit } from "react-icons/md";
+import { MdCancel, MdEdit, MdSave } from "react-icons/md";
 import { SelectBasicUser } from "~/lib/schemas/users";
 import Link from "next/link";
 import {
@@ -202,129 +202,141 @@ export function TaskEditForm({
           onSubmit={updateForm.handleSubmit((values) => executeUpdate(values))}
           className="space-y-2"
         >
-          <div className="flex flex-col gap-4">
-            <FormField
-              control={updateForm.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Give Jake his dinner" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={updateForm.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Textarea
-                      placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
-                      {...field}
-                      className="min-h-32"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {user.plusMembership && (
-              <div className="flex flex-col gap-1">
-                <Carousel
-                  setApi={setApi}
-                  className="h-64 max-h-64 max-w-full rounded-md border border-input px-20"
-                >
-                  <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full">
-                    {instructionImageUrls.map((url, index) => (
-                      <CarouselItem key={index} className="rounded-md pl-4">
-                        <div className="h-64 w-full">
-                          {" "}
-                          <img
-                            src={url}
-                            alt={`Instruction image ${index}`}
-                            className="h-auto max-w-full"
-                          />
-                        </div>
-                      </CarouselItem>
-                    ))}
-                    {instructionImageUrls.length < 10 && (
-                      <CarouselItem className="flex grow pl-4">
-                        <div className="flex min-w-[180px] grow flex-col place-content-center">
-                          <UploadButton
-                            endpoint="createTaskInstructionImageUploader"
-                            input={{ taskId: task.id }}
-                            onClientUploadComplete={(res) => {
-                              // Do something with the response
-                              if (res[0]?.serverData.url)
-                                setInstructionImagesUrls([
-                                  ...instructionImageUrls,
-                                  res[0].serverData.url,
-                                ]);
-                              else toast.error("Image Upload Error!");
-                            }}
-                            onUploadError={(error: Error) => {
-                              // Do something with the error.
-                              toast.error(
-                                `Image Upload Error! ${error.message}`,
-                              );
-                            }}
-                          />
-                        </div>
-                      </CarouselItem>
-                    )}
-                  </CarouselContent>
-                  <CarouselPrevious className="hidden sm:block" />
-                  <CarouselNext className="hidden sm:block" />
-                </Carousel>
-                {/* Show the total number of images uploaded somewhere here */}
-                {instructionImageUrls.length > 0 && (
-                  <Button
-                    disabled={imageRemovalPending}
-                    variant={"link"}
-                    className="text-center text-sm text-muted-foreground"
-                    onClick={async () => {
-                      if (
-                        instructionImageUrls.length === 0 ||
-                        instructionImageUrls[current] === undefined
-                      ) {
-                        return;
-                      }
-
-                      await executeImageRemoval({
-                        id: task.id,
-                        imageUrl: instructionImageUrls[current],
-                      });
-
-                      instructionImageUrls.splice(current, 1);
-                    }}
-                  >
-                    Remove
-                  </Button>
+          <div className="flex flex-col">
+            <div className="flex flex-col gap-4">
+              <FormField
+                control={updateForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder="Give Jake his dinner" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
-            )}
+              />
+              <FormField
+                control={updateForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Textarea
+                        placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
+                        {...field}
+                        className="min-h-32"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {!user.plusMembership && (
-              <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-input px-20 sm:h-auto">
-                <div className="flex flex-col place-content-center">
-                  <Link
-                    href={"/plus"}
-                    className="text-center text-sm text-muted-foreground"
+              {user.plusMembership && (
+                <div className="flex flex-col">
+                  <Carousel
+                    setApi={setApi}
+                    className="h-64 max-h-64 max-w-full rounded-md border border-input px-20"
                   >
-                    Get{" "}
-                    <span className="font-bold">
-                      sittr
-                      <sup className="text-violet-600 opacity-70">+</sup>
-                    </span>{" "}
-                    to add images to your tasks
-                  </Link>
+                    <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full">
+                      {instructionImageUrls.map((url, index) => (
+                        <CarouselItem key={index} className="rounded-md pl-4">
+                          <div className="h-64 w-full">
+                            {" "}
+                            <img
+                              src={url}
+                              alt={`Instruction image ${index}`}
+                              className="h-auto max-w-full"
+                            />
+                          </div>
+                        </CarouselItem>
+                      ))}
+                      {instructionImageUrls.length < 10 && (
+                        <CarouselItem className="flex grow pl-4">
+                          <div className="flex min-w-[180px] grow flex-col place-content-center">
+                            <UploadButton
+                              endpoint="createTaskInstructionImageUploader"
+                              input={{ taskId: task.id }}
+                              onClientUploadComplete={(res) => {
+                                // Do something with the response
+                                if (res[0]?.serverData.url)
+                                  setInstructionImagesUrls([
+                                    ...instructionImageUrls,
+                                    res[0].serverData.url,
+                                  ]);
+                                else toast.error("Image Upload Error!");
+                              }}
+                              onUploadError={(error: Error) => {
+                                // Do something with the error.
+                                toast.error(
+                                  `Image Upload Error! ${error.message}`,
+                                );
+                              }}
+                            />
+                          </div>
+                        </CarouselItem>
+                      )}
+                    </CarouselContent>
+                    <CarouselPrevious className="hidden sm:block" />
+                    <CarouselNext className="hidden sm:block" />
+                  </Carousel>
+                  <div className="grid grid-cols-3">
+                    <div className="h-9 w-1"></div>
+                    {/* Show the total number of images uploaded somewhere here */}
+                    {instructionImageUrls.length > 0 && current != count && (
+                      <Button
+                        disabled={imageRemovalPending}
+                        variant={"link"}
+                        className="text-center text-sm text-muted-foreground"
+                        onClick={async () => {
+                          if (
+                            instructionImageUrls.length === 0 ||
+                            instructionImageUrls[current] === undefined
+                          ) {
+                            return;
+                          }
+
+                          await executeImageRemoval({
+                            id: task.id,
+                            imageUrl: instructionImageUrls[current],
+                          });
+
+                          instructionImageUrls.splice(current, 1);
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                    {current != count && (
+                      <div className="flex flex-col place-content-center p-2 text-sm text-muted-foreground">
+                        <span className="flex flex-row place-content-end">
+                          {current}/10
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {!user.plusMembership && (
+                <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-input px-20 sm:h-auto">
+                  <div className="flex flex-col place-content-center">
+                    <Link
+                      href={"/plus"}
+                      className="text-center text-sm text-muted-foreground"
+                    >
+                      Get{" "}
+                      <span className="font-bold">
+                        sittr
+                        <sup className="text-violet-600 opacity-70">+</sup>
+                      </span>{" "}
+                      to add images to your tasks
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="flex flex-col gap-3">
               <div className="mb-[-6px] font-semibold">Details</div>
@@ -607,12 +619,12 @@ export function TaskEditForm({
               />
 
               <div className="flex flex-row gap-2 pt-2">
-                <Button type="submit" disabled={updatePending}>
+                <Button type="submit" disabled={updatePending} asChild>
                   <div className="flex flex-row gap-2">
                     <div className="flex flex-col place-content-center">
-                      <MdEdit size={"1.2rem"} />
+                      <MdSave size={"1.2rem"} />
                     </div>
-                    {updatePending ? "Updating Pet..." : "Update Pet"}
+                    {updatePending ? "Saving..." : "Save"}
                   </div>
                 </Button>
 
@@ -620,6 +632,7 @@ export function TaskEditForm({
                   type="reset"
                   onClick={exitEditMode}
                   disabled={updatePending}
+                  asChild
                 >
                   <div className="flex flex-row gap-2">
                     <div className="flex flex-col place-content-center">

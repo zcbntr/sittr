@@ -4,7 +4,7 @@ import { Button } from "~/components/ui/button";
 import React from "react";
 import {
   Carousel,
-  CarouselApi,
+  type CarouselApi,
   CarouselContent,
   CarouselItem,
   CarouselNext,
@@ -39,7 +39,7 @@ import {
 import { UploadButton } from "~/lib/uploadthing";
 import { Form, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { type z } from "zod";
 
 export default function TaskNonOwnerPage({
   task,
@@ -127,7 +127,7 @@ export default function TaskNonOwnerPage({
   return (
     <div className="mx-auto space-y-6 sm:container">
       <div className="flex w-full max-w-5xl flex-row px-6 py-3">
-        <div className="flex w-full max-w-xl flex-col gap-4">
+        <div className="flex w-full max-w-xl flex-col">
           <div className="flex flex-row place-content-between gap-3">
             <Link
               className="flex flex-col place-content-center"
@@ -393,30 +393,40 @@ export default function TaskNonOwnerPage({
                 <CarouselNext className="hidden sm:block" />
               </Carousel>
               {/* Show the total number of images uploaded somewhere here */}
-              {completionImageUrls.length > 0 && (
-                <Button
-                  disabled={imageRemovalPending}
-                  variant={"link"}
-                  className="text-center text-sm text-muted-foreground"
-                  onClick={async () => {
-                    if (
-                      completionImageUrls.length === 0 ||
-                      completionImageUrls[current] === undefined
-                    ) {
-                      return;
-                    }
+              <div className="flex flex-row place-content-between">
+                <div className="w-1 h-9"></div>
 
-                    await executeImageRemoval({
-                      id: task.id,
-                      imageUrl: completionImageUrls[current],
-                    });
+                {completionImageUrls.length > 0 && (
+                  <Button
+                    disabled={imageRemovalPending}
+                    variant={"link"}
+                    className="text-center text-sm text-muted-foreground"
+                    onClick={async () => {
+                      if (
+                        completionImageUrls.length === 0 ||
+                        completionImageUrls[current] === undefined
+                      ) {
+                        return;
+                      }
 
-                    completionImageUrls.splice(current, 1);
-                  }}
-                >
-                  Remove
-                </Button>
-              )}
+                      await executeImageRemoval({
+                        id: task.id,
+                        imageUrl: completionImageUrls[current],
+                      });
+
+                      completionImageUrls.splice(current, 1);
+                    }}
+                  >
+                    Remove
+                  </Button>
+                )}
+
+                {current != count && (
+                  <div className="flex flex-col place-content-center p-2 text-sm text-muted-foreground">
+                    {current}/10
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

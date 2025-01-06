@@ -1,6 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { markNotificationAsReadAction } from "~/server/actions/notification-actions";
-import { getOwnedTaskById, getVisibleTaskById } from "~/server/queries/tasks";
+import {
+  getOwnedTaskById,
+  getTaskById,
+  getVisibleTaskById,
+} from "~/server/queries/tasks";
 import type { SelectTask } from "~/lib/schemas/tasks";
 import { redirect } from "next/navigation";
 import {
@@ -10,6 +14,35 @@ import {
 import { getGroupsUserIsIn } from "~/server/queries/groups";
 import TaskOwnerPage from "~/app/_components/tasks/task-owner-page";
 import TaskNonOwnerPage from "~/app/_components/tasks/task-non-owner-page";
+
+import type { Metadata, ResolvingMetadata } from "next";
+
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export async function generateMetadata(
+  { params, searchParams }: Props,
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
+  // Get the data for the pet from the slug
+  const slug = (await params).slug;
+  const task: SelectTask | null = await getTaskById(slug);
+
+  return {
+    title: task.name ? task.name : "Task",
+    openGraph: {
+      title: task.name ? task.name : "Task",
+      description: task.description ? task.description : "",
+      siteName: "sittr",
+      url: `https://sittr.pet/tasks/${slug}`,
+      images: task.instructionImages?.[0]
+        ? [task.instructionImages[0].url]
+        : [],
+    },
+  };
+}
 
 export default async function Page({
   params,

@@ -8,6 +8,35 @@ import { TaskTypeEnum } from "~/lib/schemas";
 import { getBasicLoggedInUser } from "./users";
 import { startOfWeek } from "date-fns";
 
+export async function getTaskById(taskId: string): Promise<SelectTask> {
+  const task = await db.query.tasks.findFirst({
+    with: {
+      owner: true,
+      creator: true,
+      claimedBy: true,
+      markedAsDoneBy: true,
+      group: true,
+      pet: { with: { petImages: true } },
+      instructionImages: true,
+      completionImages: true,
+    },
+    where: (model, { eq }) => eq(model.id, taskId),
+  });
+
+  if (!task) {
+    throw new Error("Task not found");
+  }
+
+  const parse = selectTaskSchema.safeParse({ ...task });
+
+  if (!parse.success) {
+    console.log(parse.error);
+    throw new Error("Failed to parse task");
+  }
+
+  return parse.data;
+}
+
 export async function getCanCreateTasks(): Promise<boolean> {
   // Check whether use has created more than 5 tasks since the last monday
   // Limit non plus users to creating 5 tasks per week. Count tasks created since the start of the week (Monday)
