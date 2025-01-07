@@ -21,6 +21,7 @@ import { TaskEditForm } from "./task-edit-form";
 import { SelectBasicGroup } from "~/lib/schemas/groups";
 import Image from "next/image";
 import { initials } from "~/lib/utils";
+import { IconContext } from "react-icons/lib";
 
 export default function TaskOwnerPage({
   task,
@@ -109,9 +110,10 @@ export default function TaskOwnerPage({
                   asChild
                   variant={"ghost"}
                   onClick={() => router.replace("?editing=true")}
-                  className="px-0"
+                  className="px-0 max-w-6"
+                  size="icon"
                 >
-                  <MdEdit size={"3em"} />
+                  <MdEdit />
                 </Button>
               </div>
             </div>

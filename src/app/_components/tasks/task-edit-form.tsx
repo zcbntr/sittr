@@ -57,6 +57,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "~/components/ui/carousel";
+import { IconContext } from "react-icons/lib";
 
 export function TaskEditForm({
   task,
@@ -607,7 +608,7 @@ export function TaskEditForm({
                       </FormControl>
                       <SelectContent>
                         {groupPets.map((pet) => (
-                          <SelectItem key={pet.id} value={pet.id.toString()}>
+                          <SelectItem key={pet.id} value={pet.id}>
                             {pet.name}
                           </SelectItem>
                         ))}
@@ -619,27 +620,18 @@ export function TaskEditForm({
               />
 
               <div className="flex flex-row gap-2 pt-2">
-                <Button type="submit" disabled={updatePending} asChild>
-                  <div className="flex flex-row gap-2">
-                    <div className="flex flex-col place-content-center">
-                      <MdSave size={"1.2rem"} />
-                    </div>
-                    {updatePending ? "Saving..." : "Save"}
-                  </div>
+                <Button type="submit" disabled={updatePending}>
+                  <MdSave />
+                  {updatePending ? "Saving..." : "Save"}
                 </Button>
 
                 <Button
                   type="reset"
                   onClick={exitEditMode}
                   disabled={updatePending}
-                  asChild
                 >
-                  <div className="flex flex-row gap-2">
-                    <div className="flex flex-col place-content-center">
-                      <MdCancel size={"1.2rem"} />
-                    </div>
-                    Cancel
-                  </div>
+                  <MdCancel />
+                  Cancel
                 </Button>
               </div>
             </div>
