@@ -139,19 +139,26 @@ export default function TaskNonOwnerPage({
               href={`/pets/${task?.petId}`}
             >
               {/* Give the avatar a plus badge if the owner has plus */}
-              <Avatar>
-                <AvatarImage
-                  src={task?.pet?.image ? task.pet.image : ""}
-                  alt={`${task?.pet?.name}'s avatar`}
-                />
-                <AvatarFallback>
-                  {task?.pet?.name ? (
-                    initials(task?.pet?.name ? task.pet.name : "")
-                  ) : (
-                    <MdPets />
-                  )}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative inline-block">
+                <Avatar>
+                  <AvatarImage
+                    src={task?.pet?.image ? task.pet.image : ""}
+                    alt={`${task?.pet?.name}'s avatar`}
+                  />
+                  <AvatarFallback>
+                    {task?.pet?.name ? (
+                      initials(task?.pet?.name ? task.pet.name : "")
+                    ) : (
+                      <MdPets />
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                {taskOwner.plusMembership && (
+                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
+                    +
+                  </div>
+                )}
+              </div>
             </Link>
             <div className="flex flex-col">
               <div className="flex flex-col place-content-center">
@@ -402,7 +409,7 @@ export default function TaskNonOwnerPage({
                 <CarouselPrevious className="hidden sm:block" />
                 <CarouselNext className="hidden sm:block" />
               </Carousel>
-              {/* Show the total number of images uploaded somewhere here */}
+
               <div className="flex flex-row place-content-between">
                 <div className="h-9 w-1"></div>
 

@@ -65,15 +65,26 @@ export default function GroupMembersTable({
 
         return (
           <Link href={`/profile/${member.user?.id}`}>
-            <Avatar>
-              <AvatarImage
-                src={member.user?.image ? member.user?.image : undefined}
-                alt={`${member.user?.name}'s avatar`}
-              />
-              <AvatarFallback>
-                {member.user?.name ? initials(member.user?.name) : <MdPerson />}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative inline-block">
+              <Avatar>
+                <AvatarImage
+                  src={member.user?.image ? member.user?.image : undefined}
+                  alt={`${member.user?.name}'s avatar`}
+                />
+                <AvatarFallback>
+                  {member.user?.name ? (
+                    initials(member.user?.name)
+                  ) : (
+                    <MdPerson />
+                  )}
+                </AvatarFallback>
+              </Avatar>
+              {member.user?.plusMembership && (
+                <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
+                  +
+                </div>
+              )}
+            </div>
           </Link>
         );
       },

@@ -52,16 +52,23 @@ export default function TaskOwnerPage({
                 className="flex flex-col place-content-center"
                 href={`/pets/${task?.petId}`}
               >
-                <Avatar className="border border-neutral-200">
-                  <AvatarImage
-                    src={task?.pet?.image ? task.pet.image : ""}
-                    alt={`${task?.pet?.name}'s avatar`}
-                  />
+                <div className="relative inline-block">
+                  <Avatar className="border border-neutral-200">
+                    <AvatarImage
+                      src={task?.pet?.image ? task.pet.image : ""}
+                      alt={`${task?.pet?.name}'s avatar`}
+                    />
 
-                  <AvatarFallback delayMs={600}>
-                    {task?.pet?.name ? initials(task.pet.name) : <MdPets />}
-                  </AvatarFallback>
-                </Avatar>
+                    <AvatarFallback delayMs={600}>
+                      {task?.pet?.name ? initials(task.pet.name) : <MdPets />}
+                    </AvatarFallback>
+                  </Avatar>
+                  {user.plusMembership && (
+                    <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
+                      +
+                    </div>
+                  )}
+                </div>
               </Link>
               <div className="flex flex-col">
                 <div className="flex flex-col place-content-center">
@@ -134,7 +141,7 @@ export default function TaskOwnerPage({
                       <CarouselItem key={index} className="pl-4">
                         <div className="flex h-full w-full flex-col place-content-center rounded-lg border border-input">
                           <img
-                            className="h-full w-auto max-w-full object-cover rounded-md"
+                            className="h-full w-auto max-w-full rounded-md object-cover"
                             src={image.url}
                             alt={`Instruction image ${index}`}
                           />
@@ -234,7 +241,7 @@ export default function TaskOwnerPage({
                         <img
                           src={image.url}
                           alt={`Completion image ${index}`}
-                          className="h-full w-auto max-w-full object-cover rounded-md"
+                          className="h-full w-auto max-w-full rounded-md object-cover"
                         />
                       </CarouselItem>
                     ))}

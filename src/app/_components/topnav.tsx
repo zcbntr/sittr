@@ -122,15 +122,17 @@ export async function TopNav() {
             <div className="flex flex-col place-content-center">
               <DropdownMenu>
                 <DropdownMenuTrigger>
-                  <Avatar className="border-2 border-opacity-50">
-                    <AvatarImage
-                      src={user.image ? user.image : undefined}
-                      alt={`${user.name}'s avatar`}
-                    />
-                    <AvatarFallback>
-                      {user.name ? initials(user.name) : <MdPerson />}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative inline-block">
+                    <Avatar className="border-2 border-opacity-50">
+                      <AvatarImage
+                        src={user.image ? user.image : undefined}
+                        alt={`${user.name}'s avatar`}
+                      />
+                      <AvatarFallback>
+                        {user.name ? initials(user.name) : <MdPerson />}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="mx-1.5 min-w-[200px] max-w-full md:max-w-96">
                   <DropdownMenuItem>

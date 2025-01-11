@@ -71,53 +71,51 @@ export default function ViewTaskDialog({
     mode: "onSubmit",
   });
 
-  const {
-    isPending: claimPending,
-    execute: executeClaim,
-  } = useServerAction(setClaimTaskAction, {
-    onError: ({ err }) => {
-      toast.error(err.message);
+  const { isPending: claimPending, execute: executeClaim } = useServerAction(
+    setClaimTaskAction,
+    {
+      onError: ({ err }) => {
+        toast.error(err.message);
+      },
+      onSuccess: (data) => {
+        const updatedTask = data.data;
+        setTask(updatedTask);
+        if (updatedTask.claimedBy?.id === currentUser?.id) {
+          toast.success("Task claimed!");
+          claimTaskForm.reset();
+          claimTaskForm.setValue("id", updatedTask.id);
+          claimTaskForm.setValue("claim", false);
+        } else {
+          toast.success("Task unclaimed!");
+          claimTaskForm.reset();
+          claimTaskForm.setValue("id", updatedTask.id);
+          claimTaskForm.setValue("claim", true);
+        }
+      },
     },
-    onSuccess: (data) => {
-      const updatedTask = data.data;
-      setTask(updatedTask);
-      if (updatedTask.claimedBy?.id === currentUser?.id) {
-        toast.success("Task claimed!");
-        claimTaskForm.reset();
-        claimTaskForm.setValue("id", updatedTask.id);
-        claimTaskForm.setValue("claim", false);
-      } else {
-        toast.success("Task unclaimed!");
-        claimTaskForm.reset();
-        claimTaskForm.setValue("id", updatedTask.id);
-        claimTaskForm.setValue("claim", true);
-      }
-    },
-  });
+  );
 
-  const {
-    isPending: markAsDonePending,
-    execute: executeMarkAsDone,
-  } = useServerAction(setTaskMarkedAsDoneAction, {
-    onError: ({ err }) => {
-      toast.error(err.message);
-    },
-    onSuccess: (data) => {
-      const updatedTask = data.data;
-      setTask(updatedTask);
-      if (updatedTask.markedAsDoneById === currentUser?.id) {
-        toast.success("Marked as done!");
-        markAsCompleteForm.reset();
-        markAsCompleteForm.setValue("id", updatedTask.id);
-        markAsCompleteForm.setValue("markAsDone", false);
-      } else {
-        toast.success("Unmarked as done!");
-        markAsCompleteForm.reset();
-        markAsCompleteForm.setValue("id", updatedTask.id);
-        markAsCompleteForm.setValue("markAsDone", true);
-      }
-    },
-  });
+  const { isPending: markAsDonePending, execute: executeMarkAsDone } =
+    useServerAction(setTaskMarkedAsDoneAction, {
+      onError: ({ err }) => {
+        toast.error(err.message);
+      },
+      onSuccess: (data) => {
+        const updatedTask = data.data;
+        setTask(updatedTask);
+        if (updatedTask.markedAsDoneById === currentUser?.id) {
+          toast.success("Marked as done!");
+          markAsCompleteForm.reset();
+          markAsCompleteForm.setValue("id", updatedTask.id);
+          markAsCompleteForm.setValue("markAsDone", false);
+        } else {
+          toast.success("Unmarked as done!");
+          markAsCompleteForm.reset();
+          markAsCompleteForm.setValue("id", updatedTask.id);
+          markAsCompleteForm.setValue("markAsDone", true);
+        }
+      },
+    });
 
   useEffect(() => {
     if (initialTaskData) {
@@ -167,16 +165,23 @@ export default function ViewTaskDialog({
 
           <div className="flex flex-row gap-2">
             <Link href={`/pets/${task?.petId}`}>
-              <Avatar>
-                <AvatarImage
-                  src={task?.pet?.image ? task.pet.image : ""}
-                  alt={`${task?.pet?.name}'s avatar`}
-                />
+              <div className="relative inline-block">
+                <Avatar>
+                  <AvatarImage
+                    src={task?.pet?.image ? task.pet.image : ""}
+                    alt={`${task?.pet?.name}'s avatar`}
+                  />
 
-                <AvatarFallback delayMs={600}>
-                  {task?.pet?.name ? initials(task.pet.name) : <MdPets />}
-                </AvatarFallback>
-              </Avatar>
+                  <AvatarFallback delayMs={600}>
+                    {task?.pet?.name ? initials(task.pet.name) : <MdPets />}
+                  </AvatarFallback>
+                </Avatar>
+                {task?.pet?.owner?.plusMembership && (
+                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
+                    +
+                  </div>
+                )}
+              </div>
             </Link>
             <div className="flex flex-col place-content-center">
               {task?.pet?.name}{" "}
