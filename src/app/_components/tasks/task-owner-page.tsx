@@ -39,15 +39,15 @@ export default function TaskOwnerPage({
   return (
     <div className="mx-auto space-y-6 sm:container">
       {isEditing ? (
-        <div className="flex w-full max-w-5xl flex-row place-content-center px-6 py-4">
+        <div className="flex w-full max-w-5xl flex-row place-content-center py-4">
           <div className="flex w-full max-w-xl flex-col gap-4">
             <TaskEditForm task={task} user={user} userGroups={userGroups} />
           </div>
         </div>
       ) : (
-        <div className="flex w-full max-w-5xl flex-row place-content-center px-6 py-3">
+        <div className="flex w-full max-w-5xl flex-row place-content-center py-3">
           <div className="flex w-full max-w-xl flex-col gap-4">
-            <div className="flex flex-row place-content-between gap-3">
+            <div className="flex flex-row place-content-between gap-3 px-6">
               <Link
                 className="flex flex-col place-content-center"
                 href={`/pets/${task?.petId}`}
@@ -110,7 +110,7 @@ export default function TaskOwnerPage({
                   asChild
                   variant={"ghost"}
                   onClick={() => router.replace("?editing=true")}
-                  className="px-0 max-w-6"
+                  className="max-w-6 px-0"
                   size="icon"
                 >
                   <MdEdit />
@@ -118,7 +118,7 @@ export default function TaskOwnerPage({
               </div>
             </div>
 
-            <div className="mt-[-6px] flex flex-col gap-1">
+            <div className="mt-[-6px] flex flex-col gap-1 px-6">
               <div className="text-2xl font-semibold">{task.name}</div>
               {/* Make it extendable with a label for when its opened by clicking see more */}
               <div className="open:max-h-auto max-h-28">
@@ -128,15 +128,13 @@ export default function TaskOwnerPage({
 
             {task?.instructionImages && (
               <div className="flex flex-row place-content-center">
-                <Carousel className="max-h-64 max-w-full sm:h-auto">
-                  <CarouselContent>
+                <Carousel className="h-64 max-h-64 max-w-full rounded-md">
+                  <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full pl-6 pr-4">
                     {task.instructionImages.map((image, index) => (
-                      <CarouselItem key={index} className="">
-                        {/* Fix width here */}
-                        <div className="h-64 w-[calc(100vw-8rem)] max-w-[calc(100vw-8rem)]">
-                          <Image
-                            fill
-                            className="rounded-md object-cover"
+                      <CarouselItem key={index} className="pl-4">
+                        <div className="flex h-full w-full flex-col place-content-center rounded-lg border border-input">
+                          <img
+                            className="h-full w-auto max-w-full object-cover rounded-md"
                             src={image.url}
                             alt={`Instruction image ${index}`}
                           />
@@ -182,7 +180,7 @@ export default function TaskOwnerPage({
               </div>
             )}
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 px-6">
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-row place-content-center">
                   <div className="flex flex-col">
@@ -226,13 +224,17 @@ export default function TaskOwnerPage({
 
             {task.completedAt && task?.completionImages && (
               <div className="flex flex-row place-content-center">
-                <Carousel className="max-h-64 max-w-full px-20 sm:h-auto">
-                  <CarouselContent>
+                <Carousel className="h-64 max-h-64 max-w-full rounded-md">
+                  <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full pl-6 pr-4">
                     {task.completionImages.map((image, index) => (
-                      <CarouselItem key={index} className="rounded-md">
+                      <CarouselItem
+                        key={index}
+                        className="flex h-full w-full flex-col place-content-center rounded-md border border-input"
+                      >
                         <img
                           src={image.url}
                           alt={`Completion image ${index}`}
+                          className="h-full w-auto max-w-full object-cover rounded-md"
                         />
                       </CarouselItem>
                     ))}

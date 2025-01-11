@@ -205,56 +205,57 @@ export function TaskEditForm({
         >
           <div className="flex flex-col">
             <div className="flex flex-col gap-4">
-              <FormField
-                control={updateForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder="Give Jake his dinner" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={updateForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
-                        {...field}
-                        className="min-h-32"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="flex flex-col gap-4 px-6">
+                <FormField
+                  control={updateForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="Give Jake his dinner" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={updateForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Textarea
+                          placeholder="The food box is on the dresser in the kitchen. He has three scoops for dinner."
+                          {...field}
+                          className="min-h-32"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               {user.plusMembership && (
                 <div className="flex flex-col">
                   <Carousel
                     setApi={setApi}
-                    className="h-64 max-h-64 max-w-full rounded-md border border-input px-20"
+                    className="h-64 max-h-64 max-w-full rounded-lg"
                   >
-                    <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full">
+                    <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full pl-6 pr-4">
                       {instructionImageUrls.map((url, index) => (
-                        <CarouselItem key={index} className="rounded-md pl-4">
-                          <div className="h-64 w-full">
-                            {" "}
+                        <CarouselItem key={index} className="pl-4">
+                          <div className="flex h-full w-full flex-col place-content-center rounded-md border border-input">
                             <img
                               src={url}
                               alt={`Instruction image ${index}`}
-                              className="h-auto max-w-full"
+                              className="h-full w-auto max-w-full object-cover rounded-md"
                             />
                           </div>
                         </CarouselItem>
                       ))}
                       {instructionImageUrls.length < 10 && (
-                        <CarouselItem className="flex grow pl-4">
+                        <CarouselItem className="flex grow">
                           <div className="flex min-w-[180px] grow flex-col place-content-center">
                             <UploadButton
                               endpoint="createTaskInstructionImageUploader"
@@ -282,7 +283,7 @@ export function TaskEditForm({
                     <CarouselPrevious className="hidden sm:block" />
                     <CarouselNext className="hidden sm:block" />
                   </Carousel>
-                  <div className="grid grid-cols-3">
+                  <div className="grid grid-cols-3 px-6">
                     <div className="h-9 w-1"></div>
                     {/* Show the total number of images uploaded somewhere here */}
                     {instructionImageUrls.length > 0 && current != count && (
@@ -339,7 +340,7 @@ export function TaskEditForm({
               )}
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 px-6">
               <div className="mb-[-6px] font-semibold">Details</div>
               <FormField
                 control={updateForm.control}
