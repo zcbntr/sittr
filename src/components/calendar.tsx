@@ -137,11 +137,13 @@ export default function CalendarComponent({
         button.click();
       }
     } else {
-      const button = document.getElementById("openEditTaskDialogHiddenButton");
-      if (button) {
-        setSelectedTask(selectBasicTaskSchema.parse({ ...event.task }));
-        button.click();
-      }
+      router.push(`/tasks/${event.task.id}`);
+
+      // const button = document.getElementById("openEditTaskDialogHiddenButton");
+      // if (button) {
+      //   setSelectedTask(selectBasicTaskSchema.parse({ ...event.task }));
+      //   button.click();
+      // }
     }
   };
 

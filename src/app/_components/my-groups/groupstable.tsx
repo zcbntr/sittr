@@ -87,7 +87,10 @@ export default function GroupsTable({
           return (
             <div className="flex flex-row gap-2">
               {filteredMembers.map((member) => (
-                <div className="relative inline-block">
+                <div
+                  className="relative inline-block"
+                  key={member.groupId + member.user?.id}
+                >
                   <Avatar key={member.groupId + member.user?.id}>
                     <AvatarImage
                       src={member.user?.image ? member.user?.image : undefined}
