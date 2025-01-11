@@ -57,7 +57,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "~/components/ui/carousel";
-import { IconContext } from "react-icons/lib";
 
 export function TaskEditForm({
   task,
@@ -188,11 +187,16 @@ export function TaskEditForm({
       return;
     }
 
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap() + 1);
+    setCount(api.scrollSnapList().length - 1);
+    setCurrent(api.selectedScrollSnap());
 
     api.on("select", () => {
-      setCurrent(api.selectedScrollSnap() + 1);
+      setCurrent(api.selectedScrollSnap());
+    });
+
+    api.on("slidesChanged", () => {
+      setCount(api.scrollSnapList().length - 1);
+      setCurrent(api.selectedScrollSnap());
     });
   }, [api]);
 
@@ -242,20 +246,20 @@ export function TaskEditForm({
                     setApi={setApi}
                     className="h-64 max-h-64 max-w-full rounded-lg"
                   >
-                    <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full pl-6 pr-4">
+                    <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full pl-6 pr-3">
                       {instructionImageUrls.map((url, index) => (
                         <CarouselItem key={index} className="pl-4">
                           <div className="flex h-full w-full flex-col place-content-center rounded-md border border-input">
                             <img
                               src={url}
                               alt={`Instruction image ${index}`}
-                              className="h-full w-auto max-w-full object-cover rounded-md"
+                              className="h-full w-auto max-w-full rounded-md object-cover"
                             />
                           </div>
                         </CarouselItem>
                       ))}
                       {instructionImageUrls.length < 10 && (
-                        <CarouselItem className="flex grow">
+                        <CarouselItem className="flex grow pl-4">
                           <div className="flex min-w-[180px] grow flex-col place-content-center">
                             <UploadButton
                               endpoint="createTaskInstructionImageUploader"
@@ -286,18 +290,13 @@ export function TaskEditForm({
                   <div className="grid grid-cols-3 px-6">
                     <div className="h-9 w-1"></div>
                     {/* Show the total number of images uploaded somewhere here */}
-                    {instructionImageUrls.length > 0 && current != count && (
+                    {count > 0 && current != count && (
                       <Button
                         disabled={imageRemovalPending}
                         variant={"link"}
                         className="text-center text-sm text-muted-foreground"
                         onClick={async () => {
-                          if (
-                            instructionImageUrls.length === 0 ||
-                            instructionImageUrls[current] === undefined
-                          ) {
-                            return;
-                          }
+                          if (!instructionImageUrls[current] || !api) return;
 
                           await executeImageRemoval({
                             id: task.id,
@@ -305,6 +304,8 @@ export function TaskEditForm({
                           });
 
                           instructionImageUrls.splice(current, 1);
+                          setCount(api?.scrollSnapList.length - 1);
+                          setCurrent(api.selectedScrollSnap());
                         }}
                       >
                         Remove
@@ -313,7 +314,7 @@ export function TaskEditForm({
                     {current != count && (
                       <div className="flex flex-col place-content-center p-2 text-sm text-muted-foreground">
                         <span className="flex flex-row place-content-end">
-                          {current}/10
+                          {current + 1}/10
                         </span>
                       </div>
                     )}

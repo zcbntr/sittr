@@ -116,11 +116,16 @@ export default function TaskNonOwnerPage({
       return;
     }
 
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap() + 1);
+    setCount(api.scrollSnapList().length - 1);
+    setCurrent(api.selectedScrollSnap());
 
     api.on("select", () => {
-      setCurrent(api.selectedScrollSnap() + 1);
+      setCurrent(api.selectedScrollSnap());
+    });
+
+    api.on("slidesChanged", () => {
+      setCount(api.scrollSnapList().length - 1);
+      setCurrent(api.selectedScrollSnap());
     });
   }, [api]);
 
@@ -200,19 +205,18 @@ export default function TaskNonOwnerPage({
 
           {task?.instructionImages && (
             <div className="flex flex-row place-content-center">
-              <Carousel className="max-h-64 max-w-full sm:h-auto">
-                <CarouselContent>
+              <Carousel className="h-64 max-h-64 max-w-full rounded-md">
+                <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full pl-6 pr-4">
                   {task.instructionImages.map((image, index) => (
-                    <CarouselItem key={index} className="">
-                      {/* Fix width here */}
-                      <div className="h-64 w-[calc(100vw-8rem)] max-w-[calc(100vw-8rem)]">
-                        <Image
-                          fill
-                          className="rounded-md object-cover"
-                          src={image.url}
-                          alt={`Instruction image ${index}`}
-                        />
-                      </div>
+                    <CarouselItem
+                      key={index}
+                      className="flex h-full w-full flex-col place-content-center rounded-md border border-input"
+                    >
+                      <img
+                        src={image.url}
+                        alt={`Instruction image ${index}`}
+                        className="h-full w-auto max-w-full rounded-md object-cover"
+                      />
                     </CarouselItem>
                   ))}
                 </CarouselContent>
@@ -347,20 +351,19 @@ export default function TaskNonOwnerPage({
           </div>
 
           {taskOwner.plusMembership && (
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col">
               <Carousel
                 setApi={setApi}
-                className="h-64 max-h-64 max-w-full rounded-md border border-input px-20"
+                className="h-64 max-h-64 max-w-full rounded-lg"
               >
                 <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full">
                   {completionImageUrls.map((url, index) => (
-                    <CarouselItem key={index} className="rounded-md pl-4">
-                      <div className="h-64 w-full">
-                        {" "}
+                    <CarouselItem key={index} className="pl-4">
+                      <div className="flex h-full w-full flex-col place-content-center rounded-md border border-input">
                         <img
                           src={url}
                           alt={`Instruction image ${index}`}
-                          className="h-auto max-w-full"
+                          className="h-full w-auto max-w-full rounded-md object-cover"
                         />
                       </div>
                     </CarouselItem>
@@ -368,7 +371,14 @@ export default function TaskNonOwnerPage({
                   {completionImageUrls.length < 10 && (
                     <CarouselItem className="flex grow pl-4">
                       <div className="flex min-w-[180px] grow flex-col place-content-center">
+                        {/* User must first claim the task before uploading images */}
                         <UploadButton
+                          disabled={
+                            (!claimTaskForm.getValues("id") ||
+                              (task?.claimedBy &&
+                                task.claimedBy?.id !== user?.id)) ??
+                            (markAsDonePending || claimPending)
+                          }
                           endpoint="createTaskCompletionImageUploader"
                           input={{ taskId: task.id }}
                           onClientUploadComplete={(res) => {
@@ -394,20 +404,15 @@ export default function TaskNonOwnerPage({
               </Carousel>
               {/* Show the total number of images uploaded somewhere here */}
               <div className="flex flex-row place-content-between">
-                <div className="w-1 h-9"></div>
+                <div className="h-9 w-1"></div>
 
-                {completionImageUrls.length > 0 && (
+                {count > 0 && current != count && (
                   <Button
                     disabled={imageRemovalPending}
                     variant={"link"}
                     className="text-center text-sm text-muted-foreground"
                     onClick={async () => {
-                      if (
-                        completionImageUrls.length === 0 ||
-                        completionImageUrls[current] === undefined
-                      ) {
-                        return;
-                      }
+                      if (!completionImageUrls[current] || !api) return;
 
                       await executeImageRemoval({
                         id: task.id,
@@ -415,6 +420,8 @@ export default function TaskNonOwnerPage({
                       });
 
                       completionImageUrls.splice(current, 1);
+                      setCount(api?.scrollSnapList.length - 1);
+                      setCurrent(api.selectedScrollSnap());
                     }}
                   >
                     Remove
@@ -423,7 +430,9 @@ export default function TaskNonOwnerPage({
 
                 {current != count && (
                   <div className="flex flex-col place-content-center p-2 text-sm text-muted-foreground">
-                    {current}/10
+                    <span className="flex flex-row place-content-end">
+                      {current + 1}/10
+                    </span>
                   </div>
                 )}
               </div>
