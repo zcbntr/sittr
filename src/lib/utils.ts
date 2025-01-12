@@ -42,7 +42,11 @@ export function getDominantMonth(startDate: Date, endDate: Date): string {
   return dominantMonth;
 }
 
-export function getPetAgeString(dob: Date): string {
+export function getPetAgeString(dob: Date): string | null {
+  if (!dob) {
+    return null;
+  }
+
   const today = new Date();
 
   const days = differenceInDays(today, dob);

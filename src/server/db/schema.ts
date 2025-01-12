@@ -314,7 +314,6 @@ export const pets = createTable("pets", {
   species: varchar("species", { length: 255 }).notNull(),
   breed: varchar("breed", { length: 255 }),
   dob: timestamp("dob", { withTimezone: true }),
-  image: text("image"),
   note: text("note"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)

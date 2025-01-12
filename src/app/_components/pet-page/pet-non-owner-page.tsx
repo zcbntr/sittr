@@ -1,13 +1,13 @@
 "use client";
 
-import { type SelectBasicPet } from "~/lib/schemas/pets";
+import { type SelectPet } from "~/lib/schemas/pets";
 import { Card, CardContent } from "~/components/ui/card";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getPetAgeString, initials } from "~/lib/utils";
 import { MdPets } from "react-icons/md";
 
-export function PetNonOwnerPage({ pet }: { pet: SelectBasicPet }) {
+export function PetNonOwnerPage({ pet }: { pet: SelectPet }) {
   const petAgeString = pet.dob ? getPetAgeString(pet.dob) : null;
   return (
     <div className="container mx-auto space-y-6 p-4">
@@ -19,7 +19,7 @@ export function PetNonOwnerPage({ pet }: { pet: SelectBasicPet }) {
                 <div className="flex flex-col gap-2">
                   <Avatar className="h-56 w-56">
                     <AvatarImage
-                      src={pet.image ? pet.image : ""}
+                      src={pet.profPic ? pet.profPic.url : ""}
                       alt={`${pet.name}'s avatar`}
                       className="h-18"
                     />

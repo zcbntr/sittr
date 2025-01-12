@@ -9,7 +9,7 @@ export type SelectBasicPetImage = z.infer<typeof selectBasicPetImageSchema>;
 
 export const selectBasicPetSchema = createSelectSchema(pets);
 
-export type SelectBasicPet = z.infer<typeof selectPetSchema>;
+export type SelectBasicPet = z.infer<typeof selectBasicPetSchema>;
 
 export type SelectPetInput = z.input<typeof selectBasicPetSchema> & {
   creator?: SelectUserInput;
@@ -36,7 +36,7 @@ export const selectPetSchema: z.ZodType<
   images: selectBasicPetImageSchema.array().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-  dob: z.coerce.date(),
+  dob: z.coerce.date().nullable(),
 });
 
 export type SelectPet = z.infer<typeof selectPetSchema>;

@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "~/components/ui/data-table";
-import { type SelectBasicPet } from "~/lib/schemas/pets";
+import { SelectPet, type SelectBasicPet } from "~/lib/schemas/pets";
 import CreatePetDialog from "./createpetdialog";
 import { Button } from "~/components/ui/button";
 import { type ColumnDef } from "@tanstack/react-table";
@@ -45,29 +45,34 @@ export default function PetsTable({
   pets,
 }: {
   user: SelectUser;
-  pets: SelectBasicPet[];
+  pets: SelectPet[];
 }) {
   const [alertState, setAlertState] = useState("");
 
-  const columns: ColumnDef<SelectBasicPet>[] = [
+  const columns: ColumnDef<SelectPet>[] = [
     {
       accessorKey: "avatar",
       header: "",
       cell: ({ row }) => {
         const pet = row.original;
 
+        console.log(pet);
+
         return (
-          <Link href={`/pets/${pet.id}`}>
-            <Avatar>
-              <AvatarImage
-                src={pet.image ? pet.image : ""}
-                alt={`${pet.name}'s avatar`}
-              />
-              <AvatarFallback>
-                {pet.name ? initials(pet.name) : <MdPets />}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
+          // Shrink div required to prevent link area being bigger than the avatar
+          <div className="flex shrink">
+            <Link href={`/pets/${pet.id}`}>
+              <Avatar>
+                <AvatarImage
+                  src={pet.profPic ? pet.profPic.url : ""}
+                  alt={`${pet.name}'s avatar`}
+                />
+                <AvatarFallback>
+                  {pet.name ? initials(pet.name) : <MdPets />}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+          </div>
         );
       },
     },

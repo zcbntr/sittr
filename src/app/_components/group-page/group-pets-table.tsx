@@ -4,7 +4,7 @@ import { DataTable } from "~/components/ui/data-table";
 import React, { useState } from "react";
 import { Button } from "~/components/ui/button";
 import AddPetToGroupDialog from "./add-pet-to-group-dialog";
-import { type SelectBasicPet } from "~/lib/schemas/pets";
+import { SelectPet } from "~/lib/schemas/pets";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { MoreHorizontal } from "lucide-react";
@@ -42,8 +42,8 @@ export default function GroupPetsTable({
 }: {
   user: SelectUser;
   groupId: string;
-  groupPets: SelectBasicPet[];
-  petsNotInGroup?: SelectBasicPet[];
+  groupPets: SelectPet[];
+  petsNotInGroup?: SelectPet[];
   isOwner?: boolean;
 }) {
   const [alertState, setAlertState] = useState("");
@@ -52,7 +52,7 @@ export default function GroupPetsTable({
     return null;
   }
 
-  const memberColumns: ColumnDef<SelectBasicPet>[] = [
+  const petColumns: ColumnDef<SelectPet>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -115,7 +115,7 @@ export default function GroupPetsTable({
     },
   ];
 
-  const ownerColumns: ColumnDef<SelectBasicPet>[] = [
+  const ownerColumns: ColumnDef<SelectPet>[] = [
     {
       accessorKey: "avatar",
       header: "",
@@ -126,7 +126,7 @@ export default function GroupPetsTable({
           <Link href={`/pets/${pet.id}`}>
             <Avatar>
               <AvatarImage
-                src={pet.image ? pet.image : ""}
+                src={pet.profPic ? pet.profPic.url : ""}
                 alt={`${pet.name}'s avatar`}
               />
               <AvatarFallback>
@@ -254,7 +254,7 @@ export default function GroupPetsTable({
     </DataTable>
   ) : (
     <DataTable
-      columns={memberColumns}
+      columns={petColumns}
       data={groupPets}
       searchable={true}
       filterable={true}

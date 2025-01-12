@@ -4,11 +4,10 @@ import { db } from "~/server/db";
 import {
   type SelectPet,
   selectPetSchema,
-  type SelectBasicPet,
 } from "~/lib/schemas/pets";
 import { getBasicLoggedInUser } from "./users";
 
-export async function getOwnedPetById(petId: string): Promise<SelectBasicPet> {
+export async function getOwnedPetById(petId: string): Promise<SelectPet> {
   const user = await getBasicLoggedInUser();
   const userId = user?.id;
 
@@ -19,6 +18,7 @@ export async function getOwnedPetById(petId: string): Promise<SelectBasicPet> {
   const pet = await db.query.pets.findFirst({
     where: (model, { eq }) => eq(model.id, petId),
     with: {
+      profilePic: true,
       petImages: true,
       owner: true,
       creator: true,
@@ -34,7 +34,7 @@ export async function getOwnedPetById(petId: string): Promise<SelectBasicPet> {
 
 export async function getPetVisibleViaCommonGroup(
   petId: string,
-): Promise<SelectBasicPet> {
+): Promise<SelectPet> {
   const user = await getBasicLoggedInUser();
   const userId = user?.id;
 
@@ -45,6 +45,7 @@ export async function getPetVisibleViaCommonGroup(
   const pet = await db.query.pets.findFirst({
     where: (model, { eq }) => eq(model.id, petId),
     with: {
+      profilePic: true,
       petImages: true,
       owner: true,
       creator: true,
@@ -80,7 +81,7 @@ export async function getPetVisibleViaCommonGroup(
 
 export async function getPetsByIds(
   petIds: string[],
-): Promise<SelectBasicPet[] | string> {
+): Promise<SelectPet[] | string> {
   const user = await getBasicLoggedInUser();
   const userId = user?.id;
 
@@ -92,7 +93,7 @@ export async function getPetsByIds(
   const petsList = await db.query.pets.findMany({
     where: (model, { inArray }) => inArray(model.id, petIds),
     with: {
-      petImages: true,
+      profilePic: true,
       owner: true,
       creator: true,
     },
@@ -105,17 +106,7 @@ export async function getPetsByIds(
   // Turn into zod pet type
   return petsList.map((pet) => {
     return selectPetSchema.parse({
-      id: pet.id,
-      ownerId: pet.ownerId,
-      creatorId: pet.creatorId,
-      owner: pet.owner,
-      creator: pet.creator,
-      name: pet.name,
-      species: pet.species,
-      breed: pet.breed ? pet.breed : undefined,
-      dob: pet.dob ? pet.dob : undefined,
-      image: pet.image ? pet.image : undefined,
-      note: pet.note ? pet.note : undefined,
+      ...pet,
     });
   });
 }
@@ -128,17 +119,17 @@ export async function getOwnedPets(): Promise<SelectPet[]> {
     throw new Error("Unauthorized");
   }
 
-  const ownedPets = await db.query.pets.findMany({
+  const ownedPetsRows = await db.query.pets.findMany({
     where: (model, { eq }) => eq(model.ownerId, userId),
     with: {
-      petImages: true,
+      profilePic: true,
       owner: true,
       creator: true,
     },
   });
 
   // Turn into zod pet type
-  const petsList: SelectPet[] = ownedPets.map((pet) => {
+  const petsList: SelectPet[] = ownedPetsRows.map((pet) => {
     return selectPetSchema.parse({ ...pet });
   });
 

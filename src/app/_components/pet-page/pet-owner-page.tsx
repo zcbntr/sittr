@@ -2,7 +2,7 @@
 
 import { Button } from "~/components/ui/button";
 import { PetEditForm } from "~/app/_components/pet-page/pet-edit-form";
-import { type SelectBasicPet } from "~/lib/schemas/pets";
+import { SelectPet, type SelectBasicPet } from "~/lib/schemas/pets";
 import { Card, CardContent } from "~/components/ui/card";
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getPetAgeString, initials } from "~/lib/utils";
 
-export function PetOwnerPage({ pet }: { pet: SelectBasicPet }) {
+export function PetOwnerPage({ pet }: { pet: SelectPet }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("editing");
@@ -52,7 +52,7 @@ export function PetOwnerPage({ pet }: { pet: SelectBasicPet }) {
                   <div className="flex flex-col gap-2">
                     <Avatar className="h-56 w-56">
                       <AvatarImage
-                        src={pet.image ? pet.image : undefined}
+                        src={pet.profPic ? pet.profPic.url : undefined}
                         alt={`${pet.name}'s avatar`}
                         className="h-18"
                       />
@@ -65,11 +65,12 @@ export function PetOwnerPage({ pet }: { pet: SelectBasicPet }) {
                     <div className="flex flex-col gap-0.5">
                       <p className="text-2xl font-semibold">{pet.name}</p>
                       <p className="pt-2 text-xl text-muted-foreground">
-                        {pet.species} (
-                        <span className="text-lg text-muted-foreground">
-                          {pet.breed}
-                        </span>
-                        )
+                        {pet.species}{" "}
+                        {pet.breed && (
+                          <span className="align-bottom text-lg text-muted-foreground">
+                            ({pet.breed})
+                          </span>
+                        )}
                       </p>
 
                       {petAgeString && (

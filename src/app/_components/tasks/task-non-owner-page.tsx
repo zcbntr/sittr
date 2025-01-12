@@ -142,7 +142,7 @@ export default function TaskNonOwnerPage({
               <div className="relative inline-block">
                 <Avatar>
                   <AvatarImage
-                    src={task?.pet?.image ? task.pet.image : ""}
+                    src={task?.pet?.profPic ? task.pet.profPic.url : ""}
                     alt={`${task?.pet?.name}'s avatar`}
                   />
                   <AvatarFallback>

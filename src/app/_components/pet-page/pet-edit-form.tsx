@@ -15,7 +15,10 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { type SelectBasicPet, updatePetSchema } from "~/lib/schemas/pets";
+import {
+  type SelectPet,
+  updatePetSchema,
+} from "~/lib/schemas/pets";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Popover,
@@ -37,7 +40,7 @@ import { UploadButton } from "~/lib/uploadthing";
 import { Card, CardContent } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
 
-export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
+export function PetEditForm({ pet }: { pet: SelectPet }) {
   const [recentUploadUrl, setRecentUploadUrl] = React.useState<
     string | undefined
   >(undefined);
@@ -106,7 +109,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                     <div className="flex flex-row place-content-center">
                       <Avatar className="h-36 w-36">
                         <AvatarImage
-                          src={pet.image ?? recentUploadUrl}
+                          src={pet.profPic?.url ?? recentUploadUrl}
                           alt={`${pet.name}'s avatar`}
                           className="h-18"
                         />
@@ -117,7 +120,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                       </Avatar>
                     </div>
 
-                    {(pet.image ?? recentUploadUrl) && (
+                    {(pet.profPic?.url ?? recentUploadUrl) && (
                       <div className="flex flex-row place-content-center gap-2">
                         <UploadButton
                           endpoint="petProfilePicUploader"
@@ -148,7 +151,7 @@ export function PetEditForm({ pet }: { pet: SelectBasicPet }) {
                       </div>
                     )}
 
-                    {!pet.image && !recentUploadUrl && (
+                    {!pet.profPic?.url && !recentUploadUrl && (
                       <UploadButton
                         endpoint="petProfilePicUploader"
                         input={{ petId: pet.id }}
