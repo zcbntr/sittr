@@ -52,7 +52,7 @@ export function PetOwnerPage({ pet }: { pet: SelectPet }) {
                   <div className="flex flex-col gap-2">
                     <Avatar className="h-56 w-56">
                       <AvatarImage
-                        src={pet.profPic ? pet.profPic.url : undefined}
+                        src={pet.profilePic ? pet.profilePic.url : undefined}
                         alt={`${pet.name}'s avatar`}
                         className="h-18"
                       />

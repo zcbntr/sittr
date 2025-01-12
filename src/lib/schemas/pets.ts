@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { petImages, pets } from "~/server/db/schema";
+import { petImages, petProfilePics, pets } from "~/server/db/schema";
 import { type SelectUserInput, selectUserSchema } from "./users";
+
+export const selectBasicPetProfilePicSchema = createSelectSchema(petProfilePics);
+
+export type SelectBasicPetProfilePic = z.infer<typeof selectBasicPetProfilePicSchema>;
 
 export const selectBasicPetImageSchema = createSelectSchema(petImages);
 
@@ -14,14 +18,14 @@ export type SelectBasicPet = z.infer<typeof selectBasicPetSchema>;
 export type SelectPetInput = z.input<typeof selectBasicPetSchema> & {
   creator?: SelectUserInput;
   owner?: SelectUserInput;
-  profPic?: SelectBasicPetImage;
+  profilePic?: SelectBasicPetProfilePic;
   images?: SelectBasicPetImage[];
 };
 
 export type SelectPetOutput = z.output<typeof selectBasicPetSchema> & {
   creator?: SelectUserInput;
   owner?: SelectUserInput;
-  profPic?: SelectBasicPetImage;
+  profilePic?: SelectBasicPetProfilePic;
   images?: SelectBasicPetImage[];
 };
 
@@ -32,7 +36,7 @@ export const selectPetSchema: z.ZodType<
 > = selectBasicPetSchema.extend({
   creator: z.lazy(() => selectUserSchema).optional(),
   owner: z.lazy(() => selectUserSchema).optional(),
-  profPic: selectBasicPetImageSchema.optional(),
+  profilePic: selectBasicPetProfilePicSchema.optional(),
   images: selectBasicPetImageSchema.array().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),

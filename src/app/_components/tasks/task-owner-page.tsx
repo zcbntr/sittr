@@ -55,7 +55,7 @@ export default function TaskOwnerPage({
                 <div className="relative inline-block">
                   <Avatar className="border border-neutral-200">
                     <AvatarImage
-                      src={task?.pet?.profPic ? task.pet.profPic.url : ""}
+                      src={task?.pet?.profilePic ? task.pet.profilePic.url : ""}
                       alt={`${task?.pet?.name}'s avatar`}
                     />
 

@@ -48,7 +48,7 @@ export default function CreatePetDialog({
 
   const [dob, setDOB] = React.useState<Date | undefined>();
 
-  const [image, setImage] = React.useState<string | undefined>(undefined);
+  const [imageUrl, setImageUrl] = React.useState<string | undefined>(undefined);
 
   const form = useForm<z.infer<typeof createPetSchema>>({
     mode: "onSubmit",
@@ -58,7 +58,7 @@ export default function CreatePetDialog({
       species: "",
       breed: "",
       dob: undefined,
-      image: "",
+      image: undefined,
     },
   });
 
@@ -83,11 +83,11 @@ export default function CreatePetDialog({
           <div>
             <div className="font-medium">Avatar</div>
             <div className="flex flex-col place-content-center gap-4">
-              {image && (
+              {imageUrl && (
                 <div className="flex flex-row place-content-center">
                   <Avatar className="h-32 w-32">
-                    <AvatarImage src={image} alt={`Your pet's avatar`} />
-                    <AvatarFallback delayMs={600}>🐶</AvatarFallback>
+                    <AvatarImage src={imageUrl} alt={`Your pet's avatar`} />
+                    <AvatarFallback delayMs={800}>🐶</AvatarFallback>
                   </Avatar>
                 </div>
               )}
@@ -97,7 +97,7 @@ export default function CreatePetDialog({
                   // Do something with the response
                   if (res[0]?.serverData.imageId) {
                     form.setValue("image", res[0].serverData.imageId);
-                    setImage(res[0].serverData.url);
+                    setImageUrl(res[0].serverData.url);
                   } else {
                     toast.error("Image upload error");
                   }

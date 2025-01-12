@@ -64,7 +64,7 @@ export default function PetsTable({
             <Link href={`/pets/${pet.id}`}>
               <Avatar>
                 <AvatarImage
-                  src={pet.profPic ? pet.profPic.url : ""}
+                  src={pet.profilePic ? pet.profilePic.url : ""}
                   alt={`${pet.name}'s avatar`}
                 />
                 <AvatarFallback>

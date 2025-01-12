@@ -17,7 +17,6 @@ export const createPetAction = authenticatedProcedure
   .handler(async ({ input, ctx }) => {
     const user = ctx.user;
 
-    // Once image upload is locked down to only paying customers we can remove the ratelimiting here
     const { success } = await basicRatelimit.limit(user.id);
 
     if (!success) {
@@ -52,9 +51,9 @@ export const createPetAction = authenticatedProcedure
 
     if (input.image) {
       await db
-        .update(petImages)
+        .update(petProfilePics)
         .set({ petId: petRow[0]?.insertedId })
-        .where(eq(petImages.id, input.image))
+        .where(eq(petProfilePics.id, input.image))
         .execute();
     }
 
@@ -99,22 +98,22 @@ export const deletePetProfilePicAction = ownsPetProcedure
     const { pet } = ctx;
     const { id } = input;
 
-    const deletedProfPicRow = await db
+    const deletedprofilePicRow = await db
       .delete(petProfilePics)
       .where(and(eq(petProfilePics.petId, id)))
       .returning({ fileKey: petProfilePics.fileKey })
       .execute();
 
     if (
-      !deletedProfPicRow ||
-      deletedProfPicRow.length == 0 ||
-      !deletedProfPicRow[0]
+      !deletedprofilePicRow ||
+      deletedprofilePicRow.length == 0 ||
+      !deletedprofilePicRow[0]
     ) {
       throw new Error("Failed to delete pet image");
     }
 
     // Remove old image from uploadthing
-    await utapi.deleteFiles(deletedProfPicRow[0].fileKey);
+    await utapi.deleteFiles(deletedprofilePicRow[0].fileKey);
 
     revalidatePath(`/pets/${pet.id}`);
     revalidatePath(`/pets/${pet.id}?editing=true`);

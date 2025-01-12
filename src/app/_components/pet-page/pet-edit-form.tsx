@@ -109,7 +109,7 @@ export function PetEditForm({ pet }: { pet: SelectPet }) {
                     <div className="flex flex-row place-content-center">
                       <Avatar className="h-36 w-36">
                         <AvatarImage
-                          src={pet.profPic?.url ?? recentUploadUrl}
+                          src={pet.profilePic?.url ?? recentUploadUrl}
                           alt={`${pet.name}'s avatar`}
                           className="h-18"
                         />
@@ -120,7 +120,7 @@ export function PetEditForm({ pet }: { pet: SelectPet }) {
                       </Avatar>
                     </div>
 
-                    {(pet.profPic?.url ?? recentUploadUrl) && (
+                    {(pet.profilePic?.url ?? recentUploadUrl) && (
                       <div className="flex flex-row place-content-center gap-2">
                         <UploadButton
                           endpoint="petProfilePicUploader"
@@ -151,7 +151,7 @@ export function PetEditForm({ pet }: { pet: SelectPet }) {
                       </div>
                     )}
 
-                    {!pet.profPic?.url && !recentUploadUrl && (
+                    {!pet.profilePic?.url && !recentUploadUrl && (
                       <UploadButton
                         endpoint="petProfilePicUploader"
                         input={{ petId: pet.id }}

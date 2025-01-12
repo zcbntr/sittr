@@ -169,7 +169,7 @@ export default function GroupsTable({
                   <Link href={`/pets/${pet.id}`} key={pet.id}>
                     <Avatar>
                       <AvatarImage
-                        src={pet.profPic ? pet.profPic.url : ""}
+                        src={pet.profilePic ? pet.profilePic.url : ""}
                         alt={`${pet.name}'s avatar`}
                       />
                       <AvatarFallback>
@@ -193,8 +193,8 @@ export default function GroupsTable({
                 <Avatar>
                   <AvatarImage
                     src={
-                      group.petsToGroups[0].pet.profPic
-                        ? group.petsToGroups[0].pet.profPic.url
+                      group.petsToGroups[0].pet.profilePic
+                        ? group.petsToGroups[0].pet.profilePic.url
                         : ""
                     }
                     alt={`${group.petsToGroups[0].pet.name}'s avatar`}
