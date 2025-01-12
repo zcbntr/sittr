@@ -170,7 +170,7 @@ export default function TaskNonOwnerPage({
                 </div>
               </div>
               {task?.dueMode && (
-                <div className="flex flex-row rounded-md">
+                <div className="flex flex-row place-content-center">
                   <div className="flex flex-col place-content-center">
                     <CalendarIcon className="mr-2 h-4 w-4" />
                   </div>
@@ -186,7 +186,7 @@ export default function TaskNonOwnerPage({
               )}
 
               {!task?.dueMode && (
-                <div className="flex flex-row rounded-md">
+                <div className="flex flex-row place-content-center">
                   <div className="flex flex-col place-content-center">
                     <CalendarIcon className="mr-2 h-4 w-4" />
                   </div>
@@ -212,8 +212,8 @@ export default function TaskNonOwnerPage({
 
           {task?.instructionImages && (
             <div className="flex flex-row place-content-center">
-              <Carousel className="h-64 max-h-64 max-w-full rounded-md">
-                <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full pl-6 pr-4">
+              <Carousel className="h-fit max-h-64 min-h-64 max-w-full rounded-md sm:max-h-96">
+                <CarouselContent className="-ml-4 max-h-96 min-h-64 max-w-full pl-6 pr-4">
                   {task.instructionImages.map((image, index) => (
                     <CarouselItem
                       key={index}
@@ -361,9 +361,9 @@ export default function TaskNonOwnerPage({
             <div className="flex flex-col">
               <Carousel
                 setApi={setApi}
-                className="h-64 max-h-64 max-w-full rounded-lg"
+                className="h-fit max-h-64 min-h-64 max-w-full rounded-md sm:max-h-96"
               >
-                <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full">
+                <CarouselContent className="-ml-4 max-h-96 min-h-64 max-w-full pl-6 pr-4">
                   {completionImageUrls.map((url, index) => (
                     <CarouselItem key={index} className="pl-4">
                       <div className="flex h-full w-full flex-col place-content-center rounded-md border border-input">

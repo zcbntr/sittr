@@ -37,7 +37,7 @@ export default function TaskOwnerPage({
   const isEditing = searchParams.get("editing");
 
   return (
-    <div className="mx-auto space-y-6 sm:container">
+    <div className="mx-auto flex flex-row place-content-center space-y-6 sm:container">
       {isEditing ? (
         <div className="flex w-full max-w-5xl flex-row place-content-center py-4">
           <div className="flex w-full max-w-xl flex-col gap-4">
@@ -45,8 +45,8 @@ export default function TaskOwnerPage({
           </div>
         </div>
       ) : (
-        <div className="flex w-full max-w-5xl flex-row place-content-center py-3">
-          <div className="flex w-full max-w-xl flex-col gap-4">
+        <div className="max-w-5xl py-3">
+          <div className="flex w-full max-w-3xl flex-col gap-4">
             <div className="flex flex-row place-content-between gap-3 px-6">
               <Link
                 className="flex flex-col place-content-center"
@@ -80,7 +80,7 @@ export default function TaskOwnerPage({
                   </div>
                 </div>
                 {task?.dueMode && (
-                  <div className="flex flex-row rounded-md">
+                  <div className="flex flex-row place-content-center">
                     <div className="flex flex-col place-content-center">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                     </div>
@@ -96,7 +96,7 @@ export default function TaskOwnerPage({
                 )}
 
                 {!task?.dueMode && (
-                  <div className="flex flex-row rounded-md">
+                  <div className="flex flex-row place-content-center">
                     <div className="flex flex-col place-content-center">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                     </div>
@@ -135,8 +135,8 @@ export default function TaskOwnerPage({
 
             {task?.instructionImages && (
               <div className="flex flex-row place-content-center">
-                <Carousel className="h-64 max-h-64 max-w-full rounded-md">
-                  <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full pl-6 pr-4">
+                <Carousel className="h-fit max-h-64 min-h-64 max-w-full rounded-md sm:max-h-96">
+                  <CarouselContent className="-ml-4 max-h-96 min-h-64 max-w-full pl-6 pr-4">
                     {task.instructionImages.map((image, index) => (
                       <CarouselItem key={index} className="pl-4">
                         <div className="flex h-full w-full flex-col place-content-center rounded-lg border border-input">
@@ -231,8 +231,8 @@ export default function TaskOwnerPage({
 
             {task.completedAt && task?.completionImages && (
               <div className="flex flex-row place-content-center">
-                <Carousel className="h-64 max-h-64 max-w-full rounded-md">
-                  <CarouselContent className="-ml-4 h-64 max-h-64 max-w-full pl-6 pr-4">
+                <Carousel className="h-fit max-h-64 min-h-64 max-w-full rounded-md sm:max-h-96">
+                  <CarouselContent className="-ml-4 max-h-96 min-h-64 max-w-full pl-6 pr-4">
                     {task.completionImages.map((image, index) => (
                       <CarouselItem
                         key={index}
