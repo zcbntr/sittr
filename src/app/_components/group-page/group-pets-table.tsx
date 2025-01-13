@@ -4,7 +4,7 @@ import { DataTable } from "~/components/ui/data-table";
 import React, { useState } from "react";
 import { Button } from "~/components/ui/button";
 import AddPetToGroupDialog from "./add-pet-to-group-dialog";
-import { SelectPet } from "~/lib/schemas/pets";
+import { type SelectPet } from "~/lib/schemas/pets";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { MoreHorizontal } from "lucide-react";

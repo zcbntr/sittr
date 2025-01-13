@@ -18,7 +18,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import type { SelectUser } from "~/lib/schemas/users";
 import { TaskEditForm } from "./task-edit-form";
-import { SelectBasicGroup } from "~/lib/schemas/groups";
+import { type SelectBasicGroup } from "~/lib/schemas/groups";
 import Image from "next/image";
 import { initials } from "~/lib/utils";
 
@@ -44,7 +44,7 @@ export default function TaskOwnerPage({
           </div>
         </div>
       ) : (
-        <div className="max-w-5xl py-3">
+        <div className="max-w-5xl pt-3 pb-6">
           <div className="flex w-full max-w-3xl flex-col gap-4">
             <div className="flex flex-row place-content-between gap-3 px-6">
               <Link

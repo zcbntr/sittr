@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { SelectTask, updateTaskSchema } from "~/lib/schemas/tasks";
+import { type SelectTask, updateTaskSchema } from "~/lib/schemas/tasks";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Popover,
@@ -45,12 +45,12 @@ import { Switch } from "~/components/ui/switch";
 import { type SelectBasicPet, selectPetListSchema } from "~/lib/schemas/pets";
 import { TimePickerDemo } from "~/components/ui/time-picker-demo";
 import { type SelectBasicGroup } from "~/lib/schemas/groups";
-import { MdCancel, MdEdit, MdSave } from "react-icons/md";
-import { SelectBasicUser } from "~/lib/schemas/users";
+import { MdCancel, MdSave } from "react-icons/md";
+import { type SelectBasicUser } from "~/lib/schemas/users";
 import Link from "next/link";
 import {
   Carousel,
-  CarouselApi,
+  type CarouselApi,
   CarouselContent,
   CarouselItem,
   CarouselNext,

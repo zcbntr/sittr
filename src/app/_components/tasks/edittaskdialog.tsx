@@ -20,7 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { z } from "zod";
+import { type z } from "zod";
 import { useForm } from "react-hook-form";
 import {
   Form,

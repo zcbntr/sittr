@@ -43,7 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { CreateTaskFormProps, createTaskSchema, type NewTask } from "~/lib/schemas/tasks";
+import { type CreateTaskFormProps, createTaskSchema } from "~/lib/schemas/tasks";
 import { useEffect, useState } from "react";
 import { createTaskAction } from "~/server/actions/task-actions";
 import { toast } from "sonner";

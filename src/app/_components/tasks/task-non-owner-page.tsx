@@ -130,7 +130,7 @@ export default function TaskNonOwnerPage({
   }, [api]);
 
   return (
-    <div className="mx-auto space-y-6 sm:container">
+    <div className="mx-auto space-y-6 pb-6 pt-3 sm:container">
       <div className="flex w-full max-w-5xl flex-row px-6 py-3">
         <div className="flex w-full max-w-xl flex-col">
           <div className="flex flex-row place-content-between gap-3">

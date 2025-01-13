@@ -26,7 +26,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { SupportCategoryEnum, supportRequestInputSchema } from "~/lib/schemas";
-import { SelectUser } from "~/lib/schemas/users";
+import { type SelectUser } from "~/lib/schemas/users";
 import { sendSupportEmailAction } from "~/server/actions/email-actions";
 
 export default function ContactSupportForm({

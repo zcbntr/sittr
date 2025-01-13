@@ -5,7 +5,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getPetAgeString, initials } from "~/lib/utils";
-import { MdPets } from "react-icons/md";
+import { MdPerson, MdPets } from "react-icons/md";
 
 export function PetNonOwnerPage({ pet }: { pet: SelectPet }) {
   const petAgeString = pet.dob ? getPetAgeString(pet.dob) : null;
@@ -47,17 +47,30 @@ export function PetNonOwnerPage({ pet }: { pet: SelectPet }) {
 
                     <div className="flex flex-row gap-2 pt-2">
                       <div className="flex flex-col place-content-center">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage
-                            src={pet.owner?.image ? pet.owner.image : undefined}
-                            alt={`${pet.name}'s avatar`}
-                            className="h-18"
-                          />
+                        <div className="relative inline-block">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage
+                              src={
+                                pet.owner?.image ? pet.owner.image : undefined
+                              }
+                              alt={`${pet.owner?.name}'s avatar`}
+                              className="h-18"
+                            />
 
-                          <AvatarFallback delayMs={600}>
-                            {pet.name ? initials(pet.name) : <MdPets />}
-                          </AvatarFallback>
-                        </Avatar>
+                            <AvatarFallback delayMs={600}>
+                              {pet.owner?.name ? (
+                                initials(pet.owner.name)
+                              ) : (
+                                <MdPerson />
+                              )}
+                            </AvatarFallback>
+                          </Avatar>
+                          {pet.owner?.plusMembership && (
+                            <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
+                              +
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex flex-col place-content-center text-muted-foreground">

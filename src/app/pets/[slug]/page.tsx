@@ -6,7 +6,7 @@ import {
   getOwnedPetById,
   getPetVisibleViaCommonGroup,
 } from "~/server/queries/pets";
-import { SelectPet, type SelectBasicPet } from "~/lib/schemas/pets";
+import { type SelectPet } from "~/lib/schemas/pets";
 import { markNotificationAsReadAction } from "~/server/actions/notification-actions";
 import { redirect } from "next/navigation";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "~/components/ui/data-table";
-import { SelectPet, type SelectBasicPet } from "~/lib/schemas/pets";
+import { type SelectPet } from "~/lib/schemas/pets";
 import CreatePetDialog from "./createpetdialog";
 import { Button } from "~/components/ui/button";
 import { type ColumnDef } from "@tanstack/react-table";
