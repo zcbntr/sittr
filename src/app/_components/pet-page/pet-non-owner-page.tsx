@@ -29,17 +29,44 @@ export function PetNonOwnerPage({ pet }: { pet: SelectPet }) {
                     </AvatarFallback>
                   </Avatar>
 
-                  <div className="flex flex-col">
+                  <div className="flex flex-col gap-1">
                     <p className="text-2xl font-semibold">{pet.name}</p>
-                    <p className="pt-2 text-lg text-muted-foreground">
-                      {pet.species}
+                    <p className="pt-2 text-xl text-muted-foreground">
+                      {pet.species}{" "}
+                      {pet.breed && (
+                        <span className="align-bottom text-lg text-muted-foreground">
+                          ({pet.breed})
+                        </span>
+                      )}
                     </p>
-                    <p className="text-lg text-muted-foreground">{pet.breed}</p>
                     {petAgeString && (
                       <p className="text-lg text-muted-foreground">
                         {petAgeString} old
                       </p>
                     )}
+
+                    <div className="flex flex-row gap-2 pt-2">
+                      <div className="flex flex-col place-content-center">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage
+                            src={pet.owner?.image ? pet.owner.image : undefined}
+                            alt={`${pet.name}'s avatar`}
+                            className="h-18"
+                          />
+
+                          <AvatarFallback delayMs={600}>
+                            {pet.name ? initials(pet.name) : <MdPets />}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+
+                      <div className="flex flex-col place-content-center text-muted-foreground">
+                        <div className="flex flex-col">
+                          <div className="text-md">Owned By</div>{" "}
+                          <div className="text-xl">{pet.owner?.name}</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <span id="padding" />
