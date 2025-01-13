@@ -3,11 +3,21 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { petImages, petProfilePics, pets } from "~/server/db/schema";
 import { type SelectUserInput, selectUserSchema } from "./users";
 
-export const selectBasicPetProfilePicSchema = createSelectSchema(petProfilePics);
+export const selectBasicPetProfilePicSchema = createSelectSchema(
+  petProfilePics,
+).extend({
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
 
-export type SelectBasicPetProfilePic = z.infer<typeof selectBasicPetProfilePicSchema>;
+export type SelectBasicPetProfilePic = z.infer<
+  typeof selectBasicPetProfilePicSchema
+>;
 
-export const selectBasicPetImageSchema = createSelectSchema(petImages);
+export const selectBasicPetImageSchema = createSelectSchema(petImages).extend({
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
 
 export type SelectBasicPetImage = z.infer<typeof selectBasicPetImageSchema>;
 
