@@ -30,24 +30,27 @@ export function PetOwnerPage({ pet }: { pet: SelectPet }) {
   const isEditing = searchParams.get("editing");
   const petAgeString = pet.dob ? getPetAgeString(pet.dob) : null;
 
-  const { isPending, execute: executeDelete } = useServerAction(deletePetAction, {
-    onError: ({ err }) => {
-      toast.error(err.message);
+  const { isPending, execute: executeDelete } = useServerAction(
+    deletePetAction,
+    {
+      onError: ({ err }) => {
+        toast.error(err.message);
+      },
+      onSuccess: () => {
+        toast.success("Pet deleted!");
+      },
     },
-    onSuccess: () => {
-      toast.success("Pet deleted!");
-    },
-  });
+  );
 
   return (
-    <div className="container mx-auto space-y-6 p-4">
+    <div className="container mx-auto w-full space-y-6 p-4">
       <div className="flex h-full w-full grow flex-row place-content-center">
         {isEditing ? (
           <PetEditForm pet={pet} />
         ) : (
-          <Card className="w-full max-w-[1000px]">
-            <CardContent className="p-8">
-              <div className="flex flex-row flex-wrap place-content-center gap-8">
+          <Card className="w-full max-w-3xl">
+            <CardContent className="w-full pb-6 pt-8">
+              <div className="flex flex-row flex-wrap place-content-center gap-8 md:flex-nowrap">
                 <div className="flex max-w-[500px] flex-col place-content-between gap-2">
                   <div className="flex flex-col gap-2">
                     <Avatar className="h-56 w-56">
@@ -127,9 +130,9 @@ export function PetOwnerPage({ pet }: { pet: SelectPet }) {
                   </div>
                 </div>
 
-                <div className="flex max-w-[800px] grow flex-col gap-2">
+                <div className="flex max-w-2xl grow flex-col gap-2">
                   <div className="text-xl">Notes for Sitters</div>
-                  <div className="w-240 flex max-h-full min-h-[250px] min-w-[270px] rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 sm:h-[620px] sm:w-full md:text-sm">
+                  <div className="flex max-h-full min-h-96 min-w-64 rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 sm:h-[620px] sm:w-full md:text-sm">
                     {pet.note ?? `No notes written for ${pet.name}`}
                   </div>
                 </div>
