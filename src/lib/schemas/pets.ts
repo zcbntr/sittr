@@ -18,14 +18,14 @@ export type SelectBasicPet = z.infer<typeof selectBasicPetSchema>;
 export type SelectPetInput = z.input<typeof selectBasicPetSchema> & {
   creator?: SelectUserInput;
   owner?: SelectUserInput;
-  profilePic?: SelectBasicPetProfilePic;
+  profilePic?: SelectBasicPetProfilePic | null;
   images?: SelectBasicPetImage[];
 };
 
 export type SelectPetOutput = z.output<typeof selectBasicPetSchema> & {
   creator?: SelectUserInput;
   owner?: SelectUserInput;
-  profilePic?: SelectBasicPetProfilePic;
+  profilePic?: SelectBasicPetProfilePic | null;
   images?: SelectBasicPetImage[];
 };
 
@@ -36,7 +36,7 @@ export const selectPetSchema: z.ZodType<
 > = selectBasicPetSchema.extend({
   creator: z.lazy(() => selectUserSchema).optional(),
   owner: z.lazy(() => selectUserSchema).optional(),
-  profilePic: selectBasicPetProfilePicSchema.optional(),
+  profilePic: selectBasicPetProfilePicSchema.optional().nullable(),
   images: selectBasicPetImageSchema.array().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),

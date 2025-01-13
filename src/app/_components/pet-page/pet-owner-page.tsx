@@ -30,7 +30,7 @@ export function PetOwnerPage({ pet }: { pet: SelectPet }) {
   const isEditing = searchParams.get("editing");
   const petAgeString = pet.dob ? getPetAgeString(pet.dob) : null;
 
-  const { isPending, execute } = useServerAction(deletePetAction, {
+  const { isPending, execute: executeDelete } = useServerAction(deletePetAction, {
     onError: ({ err }) => {
       toast.error(err.message);
     },
@@ -104,19 +104,15 @@ export function PetOwnerPage({ pet }: { pet: SelectPet }) {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete Pet</AlertDialogTitle>
                         </AlertDialogHeader>
-                        <AlertDialogDescription>
-                          <p className="pb-2 font-medium">
-                            Are you sure you want to delete this pet?{" "}
-                          </p>
-                          <p className="font-light">
-                            This action cannot be undone and will delete all
-                            associated data including tasks for this pet.
-                          </p>
+                        <AlertDialogDescription className="font-medium">
+                          Are you sure you want to delete this pet? This action
+                          cannot be undone and will delete all associated data
+                          including tasks for this pet.
                         </AlertDialogDescription>
                         <AlertDialogFooter>
                           <AlertDialogAction
                             onClick={async () => {
-                              await execute({ petId: pet.id });
+                              await executeDelete({ petId: pet.id });
                             }}
                             disabled={isPending}
                           >
