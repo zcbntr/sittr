@@ -15,6 +15,13 @@ const config = {
         pathname: "/f/**",
         search: "",
       },
+      {
+        protocol: "https",
+        hostname: "utfs.io",
+        port: "",
+        pathname: "/a/**",
+        search: "",
+      },
     ],
   },
 };

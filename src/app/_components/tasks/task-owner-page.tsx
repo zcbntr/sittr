@@ -21,7 +21,6 @@ import { TaskEditForm } from "./task-edit-form";
 import { SelectBasicGroup } from "~/lib/schemas/groups";
 import Image from "next/image";
 import { initials } from "~/lib/utils";
-import { IconContext } from "react-icons/lib";
 
 export default function TaskOwnerPage({
   task,
@@ -135,13 +134,15 @@ export default function TaskOwnerPage({
 
             {task?.instructionImages && (
               <div className="flex flex-row place-content-center">
-                <Carousel className="h-fit max-h-64 min-h-64 max-w-full rounded-md sm:max-h-96">
+                <Carousel className="h-fit max-h-96 min-h-64 max-w-full rounded-md">
                   <CarouselContent className="-ml-4 max-h-96 min-h-64 max-w-full pl-6 pr-4">
                     {task.instructionImages.map((image, index) => (
                       <CarouselItem key={index} className="pl-4">
                         <div className="flex h-full w-full flex-col place-content-center rounded-lg border border-input">
-                          <img
-                            className="h-full w-auto max-w-full rounded-md object-cover"
+                          <Image
+                            width={375}
+                            height={270}
+                            className="max-h-69 h-full w-auto max-w-full rounded-md object-cover"
                             src={image.url}
                             alt={`Instruction image ${index}`}
                           />
@@ -238,7 +239,9 @@ export default function TaskOwnerPage({
                         key={index}
                         className="flex h-full w-full flex-col place-content-center rounded-md border border-input"
                       >
-                        <img
+                        <Image
+                          width={375}
+                          height={270}
                           src={image.url}
                           alt={`Completion image ${index}`}
                           className="h-full w-auto max-w-full rounded-md object-cover"

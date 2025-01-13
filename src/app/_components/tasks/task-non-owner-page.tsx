@@ -219,7 +219,9 @@ export default function TaskNonOwnerPage({
                       key={index}
                       className="flex h-full w-full flex-col place-content-center rounded-md border border-input"
                     >
-                      <img
+                      <Image
+                        width={375}
+                        height={270}
                         src={image.url}
                         alt={`Instruction image ${index}`}
                         className="h-full w-auto max-w-full rounded-md object-cover"
@@ -361,16 +363,18 @@ export default function TaskNonOwnerPage({
             <div className="flex flex-col">
               <Carousel
                 setApi={setApi}
-                className="h-fit max-h-64 min-h-64 max-w-full rounded-md sm:max-h-96"
+                className="h-fit max-h-96 min-h-64 max-w-full rounded-md"
               >
                 <CarouselContent className="-ml-4 max-h-96 min-h-64 max-w-full pl-6 pr-4">
                   {completionImageUrls.map((url, index) => (
                     <CarouselItem key={index} className="pl-4">
                       <div className="flex h-full w-full flex-col place-content-center rounded-md border border-input">
-                        <img
+                        <Image
+                          width={375}
+                          height={270}
                           src={url}
                           alt={`Instruction image ${index}`}
-                          className="h-full w-auto max-w-full rounded-md object-cover"
+                          className="h-full max-h-96 w-auto max-w-full rounded-md object-cover"
                         />
                       </div>
                     </CarouselItem>
