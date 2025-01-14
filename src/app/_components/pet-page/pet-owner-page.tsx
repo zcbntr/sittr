@@ -23,7 +23,7 @@ import { deletePetAction } from "~/server/actions/pet-actions";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getPetAgeString, initials } from "~/lib/utils";
-import { SelectBasicUser } from "~/lib/schemas/users";
+import { type SelectBasicUser } from "~/lib/schemas/users";
 
 export function PetOwnerPage({ pet, usersVisibleTo }: { pet: SelectPet, usersVisibleTo: SelectBasicUser[] }) {
   const router = useRouter();
