@@ -60,8 +60,8 @@ export default function Home() {
   }
 
   return (
-    <section className="bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <div className="container flex min-h-screen flex-col items-center justify-center gap-12">
+    <section className="bg-gradient-to-b from-[#2e026d] via-[#0c0d19] via-70% to-[#27025b] text-white">
+      <div className="container flex min-h-svh flex-col items-center justify-center gap-12">
         <div className="flex flex-row place-content-center">
           <h1 className="text-center text-4xl font-extrabold tracking-tight text-white sm:text-[5rem]">
             Pet sitting made easy
@@ -157,29 +157,29 @@ export default function Home() {
                 </div>
               </TabsTrigger>
             </TabsList>
-            <div className="flex w-full flex-row place-content-center bg-gray-950">
+            <div className="flex w-full flex-row place-content-center bg-transparent">
               <div className="w-full max-w-xl rounded-md p-3">
                 <TabsContent value="groups">
                   <div className="flex flex-col gap-3">
-                    <div className="text-lg font-bold">
+                    <div className="text-xl font-bold">
                       Create groups of sitters you trust
                     </div>
                     <div className="flex flex-col gap-2 text-stone-300">
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <MdCheck size="icon" className="w-6" />
                         </div>
                         <div>Create groups for your pets</div>
                       </div>
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <MdCheck size="icon" className="w-6" />
                         </div>
                         <div>Invite friends and family you trust</div>
                       </div>
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <MdCheck size="icon" className="w-6" />
                         </div>
                         <div>
                           Manage group memberships to keep your pets in good
@@ -188,7 +188,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <MdCheck size="icon" className="w-6" />
                         </div>
                         <div>
                           Set invite link expiration and max uses for group
@@ -200,27 +200,28 @@ export default function Home() {
                 </TabsContent>
                 <TabsContent value="tasks">
                   <div className="flex flex-col gap-3">
-                    <div className="text-lg font-bold">
+                    <div className="text-xl font-bold">
                       Set tasks for your sitters
                     </div>
                     <div className="flex flex-col gap-2 text-stone-300">
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <MdCheck size="icon" className="w-6" />
                         </div>
                         <div>Create tasks for your groups to complete</div>
                       </div>
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <MdCheck size="icon" className="w-6" />
                         </div>
                         <div>
-                          Upload instruction images to show sitters what to do
+                          Customise task details, set which pet the task is for,
+                          and when it is due
                         </div>
                       </div>
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <MdCheck size="icon" className="w-6" />
                         </div>
                         <div>
                           Sitters can claim tasks that they will complete
@@ -228,9 +229,21 @@ export default function Home() {
                       </div>
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <div className="-mt-3 h-7 w-6 text-center text-3xl font-medium text-indigo-500">
+                            +
+                          </div>
                         </div>
-                        <div>
+                        <div className="text-indigo-500">
+                          Upload instruction images to show sitters what to do
+                        </div>
+                      </div>
+                      <div className="flex flex-row gap-2">
+                        <div className="flex flex-col place-content-center">
+                          <div className="-mt-3 h-7 w-6 text-center text-3xl font-medium text-indigo-500">
+                            +
+                          </div>
+                        </div>
+                        <div className="inline-block text-indigo-500">
                           Get pictures of the completed task from the sitter who
                           completed it
                         </div>
@@ -240,21 +253,21 @@ export default function Home() {
                 </TabsContent>
                 <TabsContent value="pets">
                   <div className="flex flex-col gap-3">
-                    <div className="text-lg font-bold">
+                    <div className="text-xl font-bold">
                       Tell sitters about your pets
                     </div>
                     <div className="flex flex-col gap-2 text-stone-300">
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <MdCheck size="icon" className="w-6" />
                         </div>
-                        <div>Create profiles for your pets</div>
+                        <div className="">Create profiles for your pets</div>
                       </div>
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <MdCheck size="icon" className="w-6" />
                         </div>
-                        <div>
+                        <div className="">
                           Share information that can help sitters such as
                           feeding instructions, medical needs, and behavioural
                           quirks
@@ -262,20 +275,22 @@ export default function Home() {
                       </div>
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <MdCheck size="icon" className="w-6" />
                         </div>
-                        <div>
-                          Upload pictures of your pet to help sitters get to
-                          know them
+                        <div className="">
+                          Manage who has access to your pet&apos;s details via
+                          shared groups to ensure your pet is in good hands
                         </div>
                       </div>
                       <div className="flex flex-row gap-2">
                         <div className="flex flex-col place-content-center">
-                          <MdCheck size="icon" className="w-4" />
+                          <div className="-mt-3 h-7 w-6 text-center text-3xl font-medium text-indigo-500">
+                            +
+                          </div>
                         </div>
-                        <div>
-                          Manage who has access to your pet's details via shared
-                          groups to ensure your pet is in good hands
+                        <div className="text-indigo-500">
+                          Upload pictures of your pet to help sitters get to
+                          know them
                         </div>
                       </div>
                     </div>
@@ -300,24 +315,62 @@ export default function Home() {
               <AccordionTrigger className="text-xl">
                 Is sittr free?
               </AccordionTrigger>
-              <AccordionContent className="text-pretty">
-                Yes. Sittr is free to use for everyone. There are minimal limits
-                on things like tasks created per week but no limits for sitters
-                completing tasks.
+              <AccordionContent className="flex flex-col gap-2 text-pretty px-2 text-lg">
+                <div>
+                  Yes. Sittr is free to use for everyone, but there are minimal{" "}
+                  <Link href="plus" className="font-semibold">
+                    usage limits
+                  </Link>{" "}
+                  for owners on actions such as tasks created per week but no
+                  limits for sitters completing tasks.
+                </div>
+                <div>
+                  <Link href="plus" className="font-semibold">
+                    Sittr plus
+                  </Link>{" "}
+                  is available for those who need more frequent sitting.
+                </div>
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-2">
               <AccordionTrigger className="text-xl">
+                How do I invite someone to sit for my pet?
+              </AccordionTrigger>
+              <AccordionContent className="text-pretty px-2 text-lg">
+                First create a group for your pet. This can be done from the{" "}
+                <Link href="my-groups" className="font-medium">
+                  My Groups
+                </Link>{" "}
+                page. Then on the group page, click the create invite button.
+                This will open a dialog with a link to copy and options for how
+                long it is valid for.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-3">
+              <AccordionTrigger className="text-xl">
+                How do I create a task?
+              </AccordionTrigger>
+              <AccordionContent className="text-pretty px-2 text-lg">
+                From the{" "}
+                <Link href="sign-in" className="font-semibold">
+                  dashboard
+                </Link>{" "}
+                click the create task button and fill in the required details.
+                You can choose between the task having a due date or spanning a
+                certain period. For example feeding a pet at a 6pm, or being in
+                the house from 6pm to 9pm for a pet.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-4">
+              <AccordionTrigger className="text-xl">
                 What if I have a problem with something?
               </AccordionTrigger>
-              <AccordionContent className="text-pretty">
-                <div>
-                  You can{" "}
-                  <Link href="/support" className="underline">
-                    contact support
-                  </Link>{" "}
-                  at any time. We aim to respond to all queries within 48 hours.
-                </div>
+              <AccordionContent className="text-pretty px-2 text-lg">
+                You can{" "}
+                <Link href="/support" className="font-semibold">
+                  contact support
+                </Link>{" "}
+                at any time. We aim to respond to all queries within 48 hours.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
