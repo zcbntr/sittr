@@ -5,6 +5,7 @@ import { getBasicLoggedInUser } from "~/server/queries/users";
 import {
   getOwnedPetById,
   getPetVisibleViaCommonGroup,
+  getWhoCanSeePetById,
 } from "~/server/queries/pets";
 import { type SelectPet } from "~/lib/schemas/pets";
 import { markNotificationAsReadAction } from "~/server/actions/notification-actions";
@@ -60,7 +61,9 @@ export default async function Page({
     }
 
     if (pet.ownerId == userId) {
-      return <PetOwnerPage pet={pet} />;
+      const usersPetVisibleTo = await getWhoCanSeePetById(pet.id);
+
+      return <PetOwnerPage pet={pet} usersVisibleTo={usersPetVisibleTo} />;
     } else {
       return <PetNonOwnerPage pet={pet} />;
     }

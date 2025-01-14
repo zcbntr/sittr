@@ -1,11 +1,9 @@
 "use server";
 
 import { db } from "~/server/db";
-import {
-  type SelectPet,
-  selectPetSchema,
-} from "~/lib/schemas/pets";
+import { type SelectPet, selectPetSchema } from "~/lib/schemas/pets";
 import { getBasicLoggedInUser } from "./users";
+import { type SelectBasicUser } from "~/lib/schemas/users";
 
 export async function getOwnedPetById(petId: string): Promise<SelectPet> {
   const user = await getBasicLoggedInUser();
@@ -134,4 +132,43 @@ export async function getOwnedPets(): Promise<SelectPet[]> {
   });
 
   return petsList;
+}
+
+export async function getWhoCanSeePetById(
+  petId: string,
+): Promise<SelectBasicUser[]> {
+  const user = await getBasicLoggedInUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const pet = await db.query.pets.findFirst({
+    where: (model, { eq }) => eq(model.id, petId),
+    with: {
+      petsToGroups: {
+        with: { group: { with: { members: { with: { user: true } } } } },
+      },
+    },
+  });
+
+  if (!pet) {
+    throw new Error("Pet not found");
+  }
+
+  if (!pet.petsToGroups) {
+    throw new Error("Pet not visible");
+  }
+
+  // Iterate through the groups and check if the user is in any of them
+  const groupsWithMemberUsers = pet.petsToGroups.map((petToGroup) => {
+    return petToGroup.group.members.map((member) => {
+      return member.user;
+    });
+  });
+
+  const usersPetVisibleTo = groupsWithMemberUsers.flat();
+
+  return usersPetVisibleTo;
 }

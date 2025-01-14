@@ -23,12 +23,15 @@ import { deletePetAction } from "~/server/actions/pet-actions";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getPetAgeString, initials } from "~/lib/utils";
+import { SelectBasicUser } from "~/lib/schemas/users";
 
-export function PetOwnerPage({ pet }: { pet: SelectPet }) {
+export function PetOwnerPage({ pet, usersVisibleTo }: { pet: SelectPet, usersVisibleTo: SelectBasicUser[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("editing");
   const petAgeString = pet.dob ? getPetAgeString(pet.dob) : null;
+
+  const [visibleToModal, setVisibleToModal] = React.useState(false);
 
   const { isPending, execute: executeDelete } = useServerAction(
     deletePetAction,
@@ -52,18 +55,31 @@ export function PetOwnerPage({ pet }: { pet: SelectPet }) {
             <CardContent className="w-full pb-6 pt-8">
               <div className="flex flex-row flex-wrap place-content-center gap-8 md:flex-nowrap">
                 <div className="flex max-w-[500px] flex-col place-content-between gap-2">
+                  <div className="mb-1 text-sm text-muted-foreground">
+                    People in groups that sit for {pet.name} will see this page.{" "}
+                    <button
+                      className="underline"
+                      onClick={() => {
+                        setVisibleToModal(true);
+                      }}
+                    >
+                      See who
+                    </button>
+                  </div>
                   <div className="flex flex-col gap-2">
-                    <Avatar className="h-56 w-56">
-                      <AvatarImage
-                        src={pet.profilePic ? pet.profilePic.url : undefined}
-                        alt={`${pet.name}'s avatar`}
-                        className="h-18"
-                      />
+                    <div className="flex flex-row place-content-center">
+                      <Avatar className="h-56 w-56">
+                        <AvatarImage
+                          src={pet.profilePic ? pet.profilePic.url : undefined}
+                          alt={`${pet.name}'s avatar`}
+                          className="h-18"
+                        />
 
-                      <AvatarFallback delayMs={600}>
-                        {pet.name ? initials(pet.name) : <MdPets />}
-                      </AvatarFallback>
-                    </Avatar>
+                        <AvatarFallback delayMs={600}>
+                          {pet.name ? initials(pet.name) : <MdPets />}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
 
                     <div className="flex flex-col gap-1">
                       <p className="text-2xl font-semibold">{pet.name}</p>
