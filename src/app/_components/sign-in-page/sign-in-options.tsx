@@ -10,7 +10,6 @@ import {
 } from "~/components/ui/card";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import Link from "next/link";
-import { MdPets } from "react-icons/md";
 
 export function SignInOptions() {
   return (

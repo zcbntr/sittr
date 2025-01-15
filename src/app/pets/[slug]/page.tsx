@@ -61,7 +61,9 @@ export default async function Page({
     }
 
     if (pet.ownerId == userId) {
-      const usersPetVisibleTo = await getWhoCanSeePetById(pet.id);
+      const usersPetVisibleTo = (await getWhoCanSeePetById(pet.id)).filter(
+        (x) => x.id !== userId,
+      );
 
       return <PetOwnerPage pet={pet} usersVisibleTo={usersPetVisibleTo} />;
     } else {

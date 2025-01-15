@@ -18,14 +18,30 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
+
 import { useServerAction } from "zsa-react";
 import { deletePetAction } from "~/server/actions/pet-actions";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getPetAgeString, initials } from "~/lib/utils";
 import { type SelectBasicUser } from "~/lib/schemas/users";
+import UsersVisibleTo from "./users-visible-to";
 
-export function PetOwnerPage({ pet, usersVisibleTo }: { pet: SelectPet, usersVisibleTo: SelectBasicUser[] }) {
+export function PetOwnerPage({
+  pet,
+  usersVisibleTo,
+}: {
+  pet: SelectPet;
+  usersVisibleTo: SelectBasicUser[];
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditing = searchParams.get("editing");
@@ -54,25 +70,41 @@ export function PetOwnerPage({ pet, usersVisibleTo }: { pet: SelectPet, usersVis
           <Card className="w-full max-w-3xl">
             <CardContent className="w-full pb-6 pt-8">
               <div className="flex flex-row flex-wrap place-content-center gap-8 md:flex-nowrap">
-                <div className="flex max-w-[500px] flex-col place-content-between gap-2">
-                  <div className="mb-1 text-sm text-muted-foreground">
-                    People in groups that sit for {pet.name} will see this page.{" "}
-                    <button
-                      className="underline"
-                      onClick={() => {
-                        setVisibleToModal(true);
-                      }}
-                    >
-                      See who
-                    </button>
-                  </div>
-                  <div className="flex flex-col gap-2">
+                <div className="flex flex-col place-content-between gap-2 sm:max-w-64">
+                  <div className="flex flex-col gap-5">
+                    <div className="text-sm text-muted-foreground">
+                      People in groups that sit for {pet.name} will see this
+                      page.{" "}
+                      <Dialog
+                        open={visibleToModal}
+                        onOpenChange={setVisibleToModal}
+                      >
+                        {usersVisibleTo.length > 0 && (
+                          <DialogTrigger className="underline">
+                            See who
+                          </DialogTrigger>
+                        )}
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              Users who can see {pet.name}
+                            </DialogTitle>
+                            <DialogDescription>
+                              These users are in a group that sits for{" "}
+                              {pet.name}.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="pt-5">
+                            <UsersVisibleTo pet={pet} users={usersVisibleTo} />
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                     <div className="flex flex-row place-content-center">
-                      <Avatar className="h-56 w-56">
+                      <Avatar className="h-auto w-full max-w-64">
                         <AvatarImage
                           src={pet.profilePic ? pet.profilePic.url : undefined}
                           alt={`${pet.name}'s avatar`}
-                          className="h-18"
                         />
 
                         <AvatarFallback delayMs={600}>

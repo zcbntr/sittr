@@ -15,13 +15,12 @@ export function PetNonOwnerPage({ pet }: { pet: SelectPet }) {
         <Card className="w-full max-w-3xl">
           <CardContent className="w-full pb-6 pt-8">
             <div className="flex flex-row flex-wrap place-content-center gap-8 md:flex-nowrap">
-              <div className="flex max-w-lg flex-col place-content-between gap-2">
+              <div className="flex flex-col place-content-between gap-2 sm:max-w-64">
                 <div className="flex flex-col gap-2">
-                  <Avatar className="h-56 w-56">
+                  <Avatar className="h-auto w-full max-w-64">
                     <AvatarImage
                       src={pet.profilePic ? pet.profilePic.url : ""}
                       alt={`${pet.name}'s avatar`}
-                      className="h-18"
                     />
 
                     <AvatarFallback delayMs={600}>
