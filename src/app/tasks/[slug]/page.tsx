@@ -53,6 +53,13 @@ export default async function Page({
 }) {
   // Get the data for the pet from the slug
   const slug = (await params).slug;
+
+  const user = await getBasicLoggedInUser();
+
+  if (!user) {
+    redirect("/sign-in?redirect=/tasks/" + slug);
+  }
+
   let ownsTask = false;
   let task: SelectTask | null = await getOwnedTaskById(slug);
   ownsTask = true;
@@ -86,12 +93,6 @@ export default async function Page({
 
       // Redirect to the same page without the notification query
       redirect(`/tasks/${slug}`);
-    }
-
-    const user = await getBasicLoggedInUser();
-
-    if (!user) {
-      throw new Error("User not found. Contact support.");
     }
 
     if (ownsTask) {

@@ -29,7 +29,7 @@ export default async function PlusUpgradeSuccess() {
             <li>Create unlimited tasks per week</li>
             <li>Upload up to 10 images to help sitters per task</li>
             <li>
-              Your sitters can upload up to 10 images upon task completion
+              Your sitters can upload up to 10 images to show task completion
             </li>
             <li>And many more features.</li>
           </ul>

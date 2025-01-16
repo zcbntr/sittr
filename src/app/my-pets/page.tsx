@@ -8,7 +8,7 @@ export default async function Page() {
   const user = await getBasicLoggedInUser();
 
   if (!user) {
-    redirect("/");
+    redirect("sign-in?redirect=/my-pets");
   }
 
   const pets = await getOwnedPets();

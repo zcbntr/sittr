@@ -13,7 +13,7 @@ export default async function Page() {
   ]);
 
   if (!user) {
-    redirect("/");
+    redirect("sign-in?redirect=/my-groups");
   }
 
   return <MyGroupsPage groups={groups} user={user} />;

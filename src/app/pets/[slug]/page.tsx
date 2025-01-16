@@ -20,6 +20,13 @@ export default async function Page({
 }) {
   // Get the data for the pet from the slug
   const slug = (await params).slug;
+
+  const user = await getBasicLoggedInUser();
+
+  if (!user) {
+    redirect("sign-in?redirect=/pets/" + slug);
+  }
+
   let pet: SelectPet | null = await getOwnedPetById(slug);
   if (!pet) {
     pet = await getPetVisibleViaCommonGroup(slug);
@@ -33,14 +40,6 @@ export default async function Page({
 
     return <PetDoesNotExistPage />;
   } else {
-    // Check if user is the owner of the pet
-    const user = await getBasicLoggedInUser();
-    const userId = user?.id;
-
-    if (!userId) {
-      throw new Error("Unauthorized");
-    }
-
     const notification = (await searchParams).notification;
 
     if (notification) {
@@ -60,9 +59,10 @@ export default async function Page({
       redirect(`/pets/${slug}`);
     }
 
-    if (pet.ownerId == userId) {
+    // Check if user is the owner of the pet
+    if (pet.ownerId == user.id) {
       const usersPetVisibleTo = (await getWhoCanSeePetById(pet.id)).filter(
-        (x) => x.id !== userId,
+        (x) => x.id !== user.id,
       );
 
       return <PetOwnerPage pet={pet} usersVisibleTo={usersPetVisibleTo} />;

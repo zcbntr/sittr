@@ -7,12 +7,12 @@ export default async function Page({}) {
   const user = await getBasicLoggedInUser();
 
   if (!user) {
-    return null;
+    redirect("/sign-in?redirect=/plus/get-plus");
   }
 
   if (user.plusMembership) {
-    // Redirect to account page
-    redirect("/account");
+    // Redirect to thank you page
+    redirect("/plus-upgrade-success");
   }
 
   return (

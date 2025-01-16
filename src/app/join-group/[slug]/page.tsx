@@ -1,6 +1,6 @@
 import { getBasicLoggedInUser } from "~/server/queries/users";
 import JoinGroupPage from "./join-group-page";
-import { signIn } from "~/auth";
+import { redirect } from "next/navigation";
 
 export default async function Page({
   params,
@@ -12,9 +12,7 @@ export default async function Page({
   const user = await getBasicLoggedInUser();
 
   if (!user) {
-    // Hope this works!
-    await signIn("google");
-    return <div></div>;
+    redirect("sign-in?redirect=/join-group/" + slug);
   }
 
   return <JoinGroupPage slug={slug} />;

@@ -11,7 +11,14 @@ import {
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import Link from "next/link";
 
-export function SignInOptions() {
+// Update to work with redirects
+export function SignInOptions({ redirectUrl }: { redirectUrl?: string }) {
+  if (!redirectUrl) {
+    redirectUrl = "/";
+  } else if (!redirectUrl?.startsWith("/")) {
+    redirectUrl = "/" + redirectUrl;
+  }
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
@@ -27,7 +34,7 @@ export function SignInOptions() {
               <form
                 action={async () => {
                   "use server";
-                  await signIn("google", { redirectTo: "/" });
+                  await signIn("google", { redirectTo: redirectUrl });
                 }}
               >
                 <Button
@@ -44,7 +51,7 @@ export function SignInOptions() {
               <form
                 action={async () => {
                   "use server";
-                  await signIn("facebook", { redirectTo: "/" });
+                  await signIn("facebook", { redirectTo: redirectUrl });
                 }}
               >
                 <Button

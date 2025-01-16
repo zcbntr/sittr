@@ -19,19 +19,16 @@ export default async function PlusUpgradeSuccess() {
             sittr
             <sup className="text-violet-600">+</sup>
           </span>{" "}
-          gives you access to all the features of sittr and more.
+          gives you access to all the features of sittr.
         </h3>
         <div className="mx-auto flex flex-row place-content-center pl-12 pr-6 text-left sm:pl-16">
           <ul className="list-disc space-y-1 text-pretty text-xl tracking-wide text-zinc-500">
             <li>Create unlimited pets</li>
             <li>Create unlimited groups</li>
             <li>Create unlimited tasks per week</li>
-            <li>
-              Upload up to 10 images to help sitters per task (coming soon)
-            </li>
+            <li>Upload up to 10 images to help sitters per task</li>
             <li>
               Your sitters can upload up to 10 images upon task completion
-              (coming soon)
             </li>
             <li>And many more features.</li>
           </ul>
@@ -40,7 +37,10 @@ export default async function PlusUpgradeSuccess() {
         <div className="mt-2 flex flex-row place-content-center">
           <Link
             href="/plus/get-plus"
-            className={cn(buttonVariants({ variant: "default" }), "max-w-36")}
+            className={cn(
+              buttonVariants({ variant: "default" }),
+              "w-full max-w-xl sm:max-w-48 mx-3",
+            )}
           >
             <span className="text-lg">Get Plus</span>
           </Link>

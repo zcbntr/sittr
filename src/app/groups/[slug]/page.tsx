@@ -21,13 +21,14 @@ export default async function Page({
   params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await getBasicLoggedInUser();
-  if (!user) {
-    redirect("/");
-  }
-
   // Get the data for the group from the slug
   const slug = (await params).slug;
+
+  const user = await getBasicLoggedInUser();
+  
+  if (!user) {
+    redirect("sign-in?redirect=/groups/" + slug);
+  }
 
   const group = await getGroupById(slug);
 

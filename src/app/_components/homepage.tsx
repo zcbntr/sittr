@@ -126,7 +126,7 @@ export default function Home() {
       </div>
       <div className="container flex min-h-screen flex-col items-center justify-center gap-20 tracking-wide">
         <div className="flex max-w-xl flex-col gap-6">
-          <div className="-rotate-1 -skew-y-1 text-[1.5rem] font-medium duration-500 hover:rotate-[-1deg] hover:scale-125 sm:rotate-[-0.5deg] sm:skew-y-0">
+          <div className="ml-5 -rotate-1 -skew-y-1 pr-3 text-[1.5rem] font-medium duration-500 hover:rotate-[-1deg] hover:scale-110 sm:ml-2 sm:rotate-[-0.5deg] sm:skew-y-0 sm:hover:scale-125">
             Forget the hassle of finding a trusted{" "}
             <span className="bg-violet-600 bg-opacity-50 text-[1.7rem] font-semibold italic">
               dog walker
@@ -140,14 +140,14 @@ export default function Home() {
               complicated auto feeder
             </span>
           </div>
-          <div className="sm:skew-0 flex rotate-[1deg] skew-y-[0.5] flex-col pl-3 indent-3 text-lg duration-500 hover:scale-125 sm:rotate-[0.3deg] sm:px-5">
+          <div className="sm:skew-0 flex rotate-[1deg] skew-y-[0.5] flex-row place-content-center  p-3 indent-1 text-lg duration-500 hover:scale-125 sm:rotate-[0.3deg] sm:px-5">
             Sittr makes organising pet sitting with the people you already trust
             easy.
           </div>
         </div>
         <div className="flex w-full flex-row place-content-center">
           <Tabs defaultValue="groups" className="w-full max-w-xl">
-            <TabsList className="flex h-min w-full flex-row gap-2 bg-transparent pb-5 sm:place-content-between">
+            <TabsList className="-ml-4 flex h-min w-full flex-row justify-between bg-transparent pb-5 sm:ml-0">
               <TabsTrigger value="groups">
                 <div className="flex flex-col gap-2 text-xl">
                   <div className="flex flex-row place-content-center">
