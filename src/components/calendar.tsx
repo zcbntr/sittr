@@ -19,6 +19,7 @@ import type { SelectGroupInput } from "~/lib/schemas/groups";
 import ViewTaskDialog from "~/app/_components/tasks/viewtaskdialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { type SelectUser } from "~/lib/schemas/users";
+import { cn } from "~/lib/utils";
 
 const coloursList: string[] = [
   "#f54290",
@@ -80,11 +81,13 @@ export default function CalendarComponent({
   currentUser,
   groups,
   canCreateTasks,
+  className,
 }: {
   tasks: SelectBasicTask[];
   currentUser: SelectUser;
   groups: SelectGroupInput[];
   canCreateTasks: boolean;
+  className?: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -149,7 +152,11 @@ export default function CalendarComponent({
 
   return (
     <div>
-      <div className="h-[37rem]">
+      <div
+        className={cn(
+          "h-[37rem]"
+        )}
+      >
         <Calendar
           selectable
           localizer={localizer}
@@ -166,6 +173,7 @@ export default function CalendarComponent({
           startAccessor="start"
           endAccessor="end"
           titleAccessor="title"
+          className="rounded-md"
           eventPropGetter={(event, _start, _end, _isSelected) => {
             const newStyle = {
               backgroundColor: "lightgrey",

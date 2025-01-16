@@ -28,9 +28,12 @@ import {
   MdOutlinePets,
   MdOutlineTask,
 } from "react-icons/md";
+import { useState } from "react";
 
 export default function Home() {
   const router = useRouter();
+
+  const [dataUseTextToggled, setDataUseTextToggled] = useState(false);
 
   const formSchema = z.object({
     inviteCode: z
@@ -376,12 +379,7 @@ export default function Home() {
           <div className="text-3xl font-semibold">
             Frequently Asked Questions
           </div>
-          <Accordion
-            type="single"
-            collapsible
-            defaultValue="item-1"
-            className="w-full max-w-xl"
-          >
+          <Accordion type="single" collapsible className="w-full max-w-xl">
             <AccordionItem value="item-1">
               <AccordionTrigger className="text-xl">
                 Is sittr free?
@@ -456,14 +454,56 @@ export default function Home() {
               <AccordionTrigger className="text-xl">
                 How do I get sittr?
               </AccordionTrigger>
-              <AccordionContent className="px-2 text-lg">
-                You can simply{" "}
-                <Link href="/sign-in" className="font-semibold">
-                  log in
-                </Link>{" "}
-                with your Google or Facebook account to get started. An account
-                is needed in order to connect your sittr data to your email
-                address.
+              <AccordionContent className="flex flex-col gap-2 px-2 text-lg">
+                <div>
+                  You can simply{" "}
+                  <Link href="/sign-in" className="font-semibold">
+                    log in
+                  </Link>{" "}
+                  with your Google or Facebook account to get started. An
+                  account is needed in order to connect your sittr data to your
+                  email address.{" "}
+                </div>
+
+                <div className="flex flex-row">
+                  <button
+                    className={`${
+                      !dataUseTextToggled ? "block" : "hidden"
+                    } font-semibold text-white`}
+                    onClick={() => setDataUseTextToggled(true)}
+                  >
+                    Learn more
+                  </button>
+                </div>
+
+                <div
+                  className={`${
+                    dataUseTextToggled ? "block" : "hidden"
+                  } flex flex-col gap-2 font-light`}
+                >
+                  <p>
+                    Sittr uses your email address to connect your social account
+                    with the data you create on the platform. This includes your
+                    pets, groups and tasks.
+                  </p>
+                  <p>
+                    Sittr also uses your email address to send you notifications
+                    about tasks you have comming up, and to keep your account
+                    secure. Notifications can be toggled on or off. We do not
+                    share your email address with anyone.
+                  </p>
+                </div>
+
+                <div className="flex flex-row">
+                  <button
+                    className={`${
+                      dataUseTextToggled ? "block" : "hidden"
+                    } font-semibold text-white`}
+                    onClick={() => setDataUseTextToggled(false)}
+                  >
+                    Hide
+                  </button>
+                </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>

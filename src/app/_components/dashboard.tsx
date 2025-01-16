@@ -36,7 +36,7 @@ export default async function Dashboard({
   }
 
   return (
-    <div className="flex flex-col gap-3 p-3">
+    <div className="flex flex-col gap-4 p-4">
       <section>
         <div className="flex flex-row flex-wrap place-content-center gap-2 sm:place-content-end">
           <div className="flex flex-col place-content-center">
@@ -67,16 +67,19 @@ export default async function Dashboard({
       <section>
         <Suspense
           key={dateFrom.toString() + dateTo.toString() + tasksType}
-          fallback={<div>Loading table...</div>}
+          fallback={
+            <div className="flex flex-row place-content-center">
+              Loading table...
+            </div>
+          }
         >
-          <div className="pb-5">
-            <CalendarComponent
-              currentUser={currentUser}
-              groups={groups}
-              tasks={tasks}
-              canCreateTasks={canCreateTasks}
-            />
-          </div>
+          <CalendarComponent
+            currentUser={currentUser}
+            groups={groups}
+            tasks={tasks}
+            canCreateTasks={canCreateTasks}
+            className="rounded-md"
+          />
         </Suspense>
       </section>
     </div>
