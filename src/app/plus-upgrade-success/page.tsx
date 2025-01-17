@@ -31,6 +31,7 @@ export default async function PlusUpgradeSuccess() {
             <li>
               Your sitters can upload up to 10 images to show task completion
             </li>
+            <li>Upload pictures of your pets to show their personalities (coming soon)</li>
             <li>And many more features.</li>
           </ul>
         </div>
@@ -45,9 +46,11 @@ export default async function PlusUpgradeSuccess() {
         <div className="mt-2 flex flex-row place-content-center">
           <div className="max-w-96 align-middle text-sm text-zinc-500">
             <span className="font-medium">Your feedback matters.</span> Please{" "}
-            <Link href="/support" className="underline">contact support</Link> if you encounter any
-            issues, want to suggest additional features, or are not satisfied
-            with{" "}
+            <Link href="/support" className="underline">
+              contact support
+            </Link>{" "}
+            if you encounter any issues, want to suggest additional features, or
+            are not satisfied with{" "}
             <span className="font-bold text-black">
               sittr
               <sup className="text-violet-600">+</sup>

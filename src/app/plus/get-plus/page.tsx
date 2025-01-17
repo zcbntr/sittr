@@ -17,7 +17,7 @@ export default async function Page({}) {
 
   return (
     <div className="flex flex-row place-content-center">
-      <div className="flex w-5/6 py-5 flex-col gap-3">
+      <div className="flex w-5/6 flex-col gap-3 py-5">
         <div className="text-3xl">
           Get{" "}
           <span className="font-bold">
@@ -37,6 +37,22 @@ export default async function Page({}) {
         </div>
 
         <PlusPurchaseForm />
+
+        <div className="mt-2 flex flex-row place-content-center">
+          <div className="max-w-96 align-middle text-sm text-zinc-500">
+            <span className="font-medium">Your feedback matters.</span> Please{" "}
+            <Link href="/support" className="underline">
+              contact support
+            </Link>{" "}
+            if you encounter any issues, want to suggest additional features, or
+            are not satisfied with{" "}
+            <span className="font-bold text-black">
+              sittr
+              <sup className="text-violet-600">+</sup>
+            </span>
+            . You have 14 days to request a refund.
+          </div>
+        </div>
       </div>
     </div>
   );
