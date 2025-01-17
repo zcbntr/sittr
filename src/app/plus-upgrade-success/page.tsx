@@ -13,7 +13,7 @@ export default async function PlusUpgradeSuccess() {
   const user = await getBasicLoggedInUser();
 
   if (!user?.plusMembership) {
-    redirect("/plus");
+    redirect("/compare-plans");
   }
 
   return (

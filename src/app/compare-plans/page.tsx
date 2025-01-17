@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { getBasicLoggedInUser } from "~/server/queries/users";
-import { buttonVariants } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { redirect } from "next/navigation";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -18,13 +18,7 @@ export const metadata: Metadata = {
   title: "Find the plan that's right for you",
 };
 
-export default async function PlusUpgradeSuccess() {
-  const user = await getBasicLoggedInUser();
-
-  if (user?.plusMembership) {
-    redirect("/plus-upgrade-success");
-  }
-
+export default async function PlanComparisonPage() {
   return (
     <main className="mx-auto max-w-2xl p-4 py-5 text-center sm:flex sm:grow sm:flex-col sm:place-content-center md:max-w-3xl">
       <div className="flex h-min w-full grow flex-col gap-7">
@@ -53,7 +47,7 @@ export default async function PlusUpgradeSuccess() {
 
         <div className="flex flex-row place-content-center">
           <Link
-            href="/plus/get-plus"
+            href="/get-plus"
             className={cn(
               buttonVariants({ variant: "default" }),
               "mx-3 w-full max-w-xl sm:max-w-48",
@@ -96,7 +90,7 @@ export default async function PlusUpgradeSuccess() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
-                    5
+                    3
                   </TableCell>
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     10
@@ -266,6 +260,29 @@ export default async function PlusUpgradeSuccess() {
                   </TableCell>
                 </TableRow>
               </TableBody>
+
+              <TableFooter>
+                <TableCell className="max-w-52 text-center"></TableCell>
+                <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  <Button>
+                    <Link href="/">Get started</Link>
+                  </Button>
+                </TableCell>
+                <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  <Button>
+                    <Link href="/get-plus">
+                      Get <span className="text-violet-600">Plus</span>
+                    </Link>
+                  </Button>
+                </TableCell>
+                <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  <Button>
+                    <Link href="/get-pro">
+                      Get <span className="text-violet-600">Pro</span>
+                    </Link>
+                  </Button>
+                </TableCell>
+              </TableFooter>
             </Table>
           </div>
           <div className="flex flex-row place-content-center px-4 pt-4 text-sm text-muted-foreground">

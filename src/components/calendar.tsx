@@ -152,11 +152,7 @@ export default function CalendarComponent({
 
   return (
     <div>
-      <div
-        className={cn(
-          "h-[37rem]"
-        )}
-      >
+      <div className={cn("h-[37rem]")}>
         <Calendar
           selectable
           localizer={localizer}
@@ -231,7 +227,9 @@ export default function CalendarComponent({
         />
 
         <CreateTaskDialog
-          showRepeatingOption={currentUser.plusMembership}
+          showRepeatingOption={
+            currentUser.plan == "Plus" || currentUser.plan == "Pro"
+          }
           groups={groups}
           props={createTaskDialogProps}
         >

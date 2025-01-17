@@ -48,15 +48,20 @@ export async function TopNav() {
     return (
       <header className="border-b border-[#e0e0e0] bg-[#f5f5f5] px-2 py-3 md:px-6">
         <div className="container mx-auto flex items-center justify-between">
-          {!user.plusMembership && (
+          {user.plan === "Free" && (
             <Link href="/" className="text-4xl font-bold">
               sittr
             </Link>
           )}
-          {user.plusMembership && (
+          {user.plan === "Plus" && (
             <Link href="/" className="text-4xl font-bold">
               sittr
               <sup className="font-bold text-violet-600">+</sup>
+            </Link>
+          )}
+          {user.plan === "Pro" && (
+            <Link href="/" className="text-4xl font-bold">
+              sittr <span className="font-bold text-violet-600">Pro</span>
             </Link>
           )}
           <nav className="flex flex-row items-center space-x-3">

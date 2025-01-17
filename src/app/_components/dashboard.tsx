@@ -41,7 +41,10 @@ export default async function Dashboard({
         <div className="flex flex-row flex-wrap place-content-center gap-2 sm:place-content-end">
           <div className="flex flex-col place-content-center">
             <CreateTaskDialog
-              showRepeatingOption={currentUser.plusMembership}
+              showRepeatingOption={
+                currentUser.plan === "Plus" ||
+                currentUser.plan === "Pro"
+              }
               groups={groups}
             >
               <Button variant="outline" disabled={!canCreateTasks}>

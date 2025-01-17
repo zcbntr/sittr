@@ -74,9 +74,14 @@ export default function GroupMembersTable({
                 {member.user?.name ? initials(member.user?.name) : <MdPerson />}
               </AvatarFallback>
             </Avatar>
-            {member.user?.plusMembership && (
+            {member.user?.plan === "Plus" && (
               <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
                 +
+              </div>
+            )}
+            {member.user?.plan === "Pro" && (
+              <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-600">
+                Pro
               </div>
             )}
           </div>
@@ -256,43 +261,32 @@ export default function GroupMembersTable({
       searchable={true}
       filterable={false}
     >
-      {((user.plusMembership && groupMembers.length < 101) ||
-        (!user.plusMembership && groupMembers.length < 6)) && (
+      {((user.plan === "Free" && groupMembers.length < 5) ||
+        (user.plan === "Plus" && groupMembers.length < 10) ||
+        (user.plan === "Pro" && groupMembers.length < 150)) && (
         <CreateGroupInviteDialog groupId={groupId}>
           <Button className="max-w-80">Create Invite</Button>
         </CreateGroupInviteDialog>
       )}
-      {user.plusMembership && groupMembers.length >= 101 && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <div className="pointer-events-none inline-flex h-9 max-w-80 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
-                Create Invite
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>You have reached the limit of group members you can have.</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-      {!user.plusMembership && groupMembers.length >= 6 && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <div className="pointer-events-none inline-flex h-9 max-w-80 cursor-default items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
-                Create Invite
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                You have reached the limit of group members you can have without
-                a Plus membership.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
+      {(user.plan === "Free" && groupMembers.length >= 5) ||
+        (user.plan === "Plus" && groupMembers.length >= 10) ||
+        (user.plan === "Pro" && groupMembers.length >= 150 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <div className="pointer-events-none inline-flex h-9 max-w-80 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
+                  Create Invite
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  You have reached the limit of group members you can have with
+                  your {user.plan} plan.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ))}
     </DataTable>
   ) : (
     <DataTable

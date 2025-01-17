@@ -1,23 +1,26 @@
 import { getBasicLoggedInUser } from "~/server/queries/users";
-import PlusPurchaseForm from "../../_components/account/plus-purchase-form";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { type Metadata } from "next";
+import PlusPurchaseForm from "../_components/account/plus-purchase-form";
 
 export const metadata: Metadata = {
-  title: "Get your sittr plan",
+  title: "Get sittr+",
 };
 
 export default async function Page({}) {
   const user = await getBasicLoggedInUser();
 
   if (!user) {
-    redirect("/sign-in?redirect=/plus/get-plus");
+    redirect("/sign-in?redirect=/get-plus");
   }
 
-  if (user.plusMembership) {
+  if (user.plan === "Plus") {
     // Redirect to thank you page
     redirect("/plus-upgrade-success");
+  } else if (user.plan === "Pro") {
+    // Redirect to comparison page
+    redirect("/compare-plans");
   }
 
   return (

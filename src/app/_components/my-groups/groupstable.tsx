@@ -104,9 +104,14 @@ export default function GroupsTable({
                       )}
                     </AvatarFallback>
                   </Avatar>
-                  {member.user?.plusMembership && (
+                  {member.user?.plan === "Plus" && (
                     <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
                       +
+                    </div>
+                  )}
+                  {member.user?.plan === "Pro" && (
+                    <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-600">
+                      Pro
                     </div>
                   )}
                 </div>
@@ -139,9 +144,14 @@ export default function GroupsTable({
                     )}
                   </AvatarFallback>
                 </Avatar>
-                {filteredMembers[0].user?.plusMembership && (
+                {filteredMembers[0].user?.plan === "Plus" && (
                   <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
                     +
+                  </div>
+                )}
+                {filteredMembers[0].user?.plan === "Pro" && (
+                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-600">
+                    Pro
                   </div>
                 )}
               </div>
@@ -303,43 +313,32 @@ export default function GroupsTable({
         searchable={true}
         filterable={false}
       >
-        {((user.plusMembership && groups.length < 101) ||
-          (!user.plusMembership && groups.length < 6)) && (
+        {((user.plan === "Free" && groups.length < 5) ||
+          (user.plan === "Plus" && groups.length < 10) ||
+          (user.plan === "Pro" && groups.length < 250)) && (
           <CreateGroupDialog>
             <Button className="max-w-80">New Group</Button>
           </CreateGroupDialog>
         )}
-        {user.plusMembership && groups.length >= 101 && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="pointer-events-none inline-flex h-9 max-w-80 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
-                  Create Group
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>You have reached the limit of groups you can have.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-        {!user.plusMembership && groups.length >= 6 && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="pointer-events-none inline-flex h-9 max-w-80 cursor-default items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
-                  Create Group
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  You have reached the limit of groups you can have without a
-                  Plus membership.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        {(user.plan === "Free" && groups.length >= 5) ||
+          (user.plan === "Plus" && groups.length >= 10) ||
+          (user.plan === "Pro" && groups.length >= 250 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="pointer-events-none inline-flex h-9 max-w-80 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
+                    Create Group
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    You have reached the limit of groups you can have with your{" "}
+                    {user.plan} plan.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
 
         <JoinGroupDialog>
           <Button variant="outline">Join Group</Button>

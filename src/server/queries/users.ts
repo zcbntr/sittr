@@ -9,6 +9,10 @@ import {
 } from "~/lib/schemas/users";
 import { db } from "../db";
 import { notificationPreferences } from "../db/schema";
+import { z } from "zod";
+
+export const PlanEnum = z.enum(["Free", "Plus", "Pro"]);
+export type PlanEnum = z.infer<typeof PlanEnum>;
 
 export async function getBasicLoggedInUser(): Promise<
   SelectBasicUser | undefined
@@ -83,7 +87,9 @@ export async function getLoggedInUser(): Promise<SelectUser | undefined> {
   return selectUserSchema.parse(userRow);
 }
 
-export async function getBasicUserByUserId(userId: string): Promise<SelectBasicUser> {
+export async function getBasicUserByUserId(
+  userId: string,
+): Promise<SelectBasicUser> {
   const session = await auth();
 
   if (!session?.user) {
@@ -101,7 +107,9 @@ export async function getBasicUserByUserId(userId: string): Promise<SelectBasicU
   return selectUserSchema.parse(userRow);
 }
 
-export async function getBasicUserByEmail(email: string): Promise<SelectBasicUser> {
+export async function getBasicUserByEmail(
+  email: string,
+): Promise<SelectBasicUser> {
   const session = await auth();
 
   if (!session?.user) {

@@ -174,7 +174,7 @@ export default function TaskOwnerPage({
               <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-input px-20 sm:h-auto">
                 <div className="flex flex-col place-content-center">
                   <Link
-                    href={"/plus"}
+                    href={"/compare-plans"}
                     className="text-center text-sm text-muted-foreground"
                   >
                     Get{" "}

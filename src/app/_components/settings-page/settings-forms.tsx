@@ -58,7 +58,7 @@ export default function SettingsPanel({
               more images per task and larger groups.
             </div>
             <Button asChild className="w-full bg-violet-600">
-              <Link href="/plus" prefetch={true}>
+              <Link href="/compare-plans" prefetch={true}>
                 Find Out More
               </Link>
             </Button>

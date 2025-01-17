@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 import { GroupRoleEnum, NotificationTypeEnum } from "~/lib/schemas";
+import { PlanEnum } from "../queries/users";
 
 /**
  * Multi-project schema feature of Drizzle ORM.
@@ -19,6 +20,8 @@ import { GroupRoleEnum, NotificationTypeEnum } from "~/lib/schemas";
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 export const createTable = pgTableCreator((name) => `sittr_${name}`);
+
+export const planEnum = pgEnum("plan", PlanEnum.options);
 
 export const groupRoleEnum = pgEnum("role", GroupRoleEnum.options);
 export const notificationTypeEnum = pgEnum(
@@ -34,7 +37,7 @@ export const users = createTable("user", {
   email: text("email").unique(),
   emailVerified: timestamp("email_verified", { mode: "date" }),
   image: text("image"),
-  plusMembership: boolean("plus_membership").notNull().default(false),
+  plan: planEnum("plan").notNull().default("Free"),
 });
 
 export const userRelations = relations(users, ({ one, many }) => ({

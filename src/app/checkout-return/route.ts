@@ -16,7 +16,7 @@ export const GET = async (request: NextRequest) => {
 
   const stripeSessionId = searchParams.get("session_id");
 
-  if (!stripeSessionId?.length) return redirect("/plus/get-plus");
+  if (!stripeSessionId?.length) return redirect("/get-plus");
 
   const session = await stripe.checkout.sessions.retrieve(stripeSessionId);
 
@@ -40,8 +40,8 @@ export const GET = async (request: NextRequest) => {
   if (session.status === "open") {
     // Here you'll likely want to head back to some pre-payment page in your checkout
     // so the user can try again
-    return redirect(`/plus`);
+    return redirect(`/compare-plans`);
   }
 
-  return redirect("/plus");
+  return redirect("/compare-plans");
 };

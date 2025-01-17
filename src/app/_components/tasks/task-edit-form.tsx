@@ -240,7 +240,7 @@ export function TaskEditForm({
                 />
               </div>
 
-              {user.plusMembership && (
+              {(user.plan === "Plus" || user.plan === "Pro") && (
                 <div className="flex flex-col">
                   <Carousel
                     setApi={setApi}
@@ -324,17 +324,22 @@ export function TaskEditForm({
                 </div>
               )}
 
-              {!user.plusMembership && (
+              {user.plan === "Free" && (
                 <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-input px-20 sm:h-auto">
                   <div className="flex flex-col place-content-center">
                     <Link
-                      href={"/plus"}
+                      href={"/compare-plans"}
                       className="text-center text-sm text-muted-foreground"
                     >
                       Get{" "}
                       <span className="font-bold">
                         sittr
                         <sup className="text-violet-600 opacity-70">+</sup>
+                      </span>{" "}
+                      or{" "}
+                      <span className="font-bold">
+                        sittr
+                        <span className="text-violet-600 opacity-70">Pro</span>
                       </span>{" "}
                       to add images to your tasks
                     </Link>
