@@ -35,8 +35,8 @@ export const createTaskAction = authenticatedProcedure
   .handler(async ({ input, ctx }) => {
     const userId = ctx.user.id;
 
-    // Limit non plus users to creating 5 tasks per week. Count tasks created since the start of the week (Monday)
-    if (!ctx.user.plusMembership) {
+    // Limit users tasks per week. Count tasks created since the start of the week (Monday) UTC
+    if (ctx.user.plan === "Free" || ctx.user.plan === "Plus") {
       const lastMonday = startOfWeek(new Date(), { weekStartsOn: 1 });
 
       const tasksCreatedThisWeek = await db.query.tasks.findMany({
@@ -47,9 +47,12 @@ export const createTaskAction = authenticatedProcedure
         limit: 5,
       });
 
-      if (tasksCreatedThisWeek.length >= 5) {
+      if (
+        (ctx.user.plan === "Free" && tasksCreatedThisWeek.length >= 3) ||
+        (ctx.user.plan === "Plus" && tasksCreatedThisWeek.length >= 10)
+      ) {
         throw new Error(
-          "You have reached the limit of tasks you can create this week",
+          `You have reached the limit of tasks you can create this week with your ${ctx.user.plan} plan`,
         );
       }
     }
@@ -67,8 +70,8 @@ export const createTaskAction = authenticatedProcedure
         .returning()
         .execute();
     } else {
-      // Check the user has plus
-      if (!ctx.user.plusMembership) {
+      // Check the user has a plan that supports repeating tasks
+      if (ctx.user.plan === "Free") {
         throw new Error("You need a plus membership to create repeating tasks");
       }
 

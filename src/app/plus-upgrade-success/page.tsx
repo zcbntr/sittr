@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function PlusUpgradeSuccess() {
   const user = await getBasicLoggedInUser();
 
-  if (!user?.plusMembership) {
+  if (user?.plan === "Free") {
     redirect("/compare-plans");
   }
 

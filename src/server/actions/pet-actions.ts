@@ -31,8 +31,9 @@ export const createPetAction = authenticatedProcedure
     const petCount = petCountRows.length;
 
     if (
-      (user.plusMembership && petCount >= 100) ||
-      (!user.plusMembership && petCount >= 2)
+      (user.plan === "Free" && petCount >= 5) ||
+      (user.plan === "Plus" && petCount >= 10) ||
+      (user.plan === "Pro" && petCount >= 1000)
     ) {
       throw new Error(
         "You have reached the maximum number of pets for your plan type",

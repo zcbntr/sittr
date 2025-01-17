@@ -11,6 +11,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 const apiKey = process.env.STRIPE_SECRET_KEY;
 const stripe = new Stripe(apiKey);
 
+// Update this to check what the user purchased - plus or pro
 export const GET = async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
 
@@ -26,6 +27,7 @@ export const GET = async (request: NextRequest) => {
     const user = await getBasicLoggedInUser();
 
     if (!user) {
+      // Maybe email me or something if this happens
       console.error(
         "User not found. Urgently fix this, user has paid for sittr plus but not upgraded.",
       );

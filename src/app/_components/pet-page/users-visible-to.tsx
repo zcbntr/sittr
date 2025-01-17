@@ -25,9 +25,14 @@ export default function UsersVisibleTo({
                   {user?.name ? initials(user?.name) : <MdPerson />}
                 </AvatarFallback>
               </Avatar>
-              {user?.plusMembership && (
+              {user?.plan === "Plus" && (
                 <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
                   +
+                </div>
+              )}
+              {user?.plan === "Pro" && (
+                <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-600">
+                  Pro
                 </div>
               )}
             </div>

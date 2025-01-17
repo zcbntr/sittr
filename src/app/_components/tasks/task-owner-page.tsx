@@ -44,7 +44,7 @@ export default function TaskOwnerPage({
           </div>
         </div>
       ) : (
-        <div className="max-w-5xl pt-3 pb-6">
+        <div className="max-w-5xl pb-6 pt-3">
           <div className="flex w-full max-w-3xl flex-col gap-4">
             <div className="flex flex-row place-content-between gap-3 px-6">
               <Link
@@ -62,9 +62,14 @@ export default function TaskOwnerPage({
                       {task?.pet?.name ? initials(task.pet.name) : <MdPets />}
                     </AvatarFallback>
                   </Avatar>
-                  {user.plusMembership && (
+                  {user.plan === "Plus" && (
                     <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
                       +
+                    </div>
+                  )}
+                  {user.plan === "Pro" && (
+                    <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-600">
+                      Pro
                     </div>
                   )}
                 </div>
@@ -156,21 +161,22 @@ export default function TaskOwnerPage({
               </div>
             )}
 
-            {!task?.instructionImages && user.plusMembership && (
-              <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-input px-20 sm:h-auto">
-                <div className="flex flex-col place-content-center">
-                  <Button
-                    variant={"link"}
-                    onClick={() => router.replace("?editing=true")}
-                    className="text-center text-sm text-muted-foreground"
-                  >
-                    Add images to your tasks
-                  </Button>
+            {!task?.instructionImages &&
+              (user.plan === "Plus" || user.plan === "Pro") && (
+                <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-input px-20 sm:h-auto">
+                  <div className="flex flex-col place-content-center">
+                    <Button
+                      variant={"link"}
+                      onClick={() => router.replace("?editing=true")}
+                      className="text-center text-sm text-muted-foreground"
+                    >
+                      Add images to your tasks
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {!task?.instructionImages && !user.plusMembership && (
+            {!task?.instructionImages && user.plan === "Free" && (
               <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-input px-20 sm:h-auto">
                 <div className="flex flex-col place-content-center">
                   <Link
@@ -257,7 +263,7 @@ export default function TaskOwnerPage({
 
             {task.completedAt &&
               !task?.completionImages &&
-              user.plusMembership && (
+              (user.plan === "Plus" || user.plan === "Pro") && (
                 <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-neutral-500 px-20 sm:h-auto">
                   <div className="flex flex-col place-content-center">
                     <div className="text-center text-muted-foreground">
@@ -269,7 +275,7 @@ export default function TaskOwnerPage({
 
             {task.completedAt &&
               !task?.completionImages &&
-              !user.plusMembership && (
+              user.plan === "Free" && (
                 <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-neutral-500 px-20 sm:h-auto">
                   <div className="flex flex-col place-content-center">
                     <div className="text-center text-muted-foreground">

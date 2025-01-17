@@ -28,7 +28,7 @@ export default function SettingsPanel({
   return (
     <div className="p-2">
       <div className="flex flex-col gap-5">
-        {user?.plusMembership && (
+        {user?.plan === "Plus" && (
           <div className="flex flex-col gap-3 rounded-md border border-violet-600 p-3">
             <div className="text-xl">
               You have{" "}
@@ -44,7 +44,7 @@ export default function SettingsPanel({
           </div>
         )}
 
-        {!user?.plusMembership && (
+        {user?.plan === "Free" && (
           <div className="flex flex-col gap-3 rounded-md border border-violet-600 p-3">
             <div className="text-xl">
               Get{" "}

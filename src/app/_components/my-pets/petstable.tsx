@@ -199,43 +199,32 @@ export default function PetsTable({
         searchable={true}
         filterable={false}
       >
-        {((user.plusMembership && pets.length < 100) ||
-          (!user.plusMembership && pets.length < 2)) && (
+        {((user.plan === "Free" && pets.length < 2) ||
+          (user.plan === "Plus" && pets.length < 10) ||
+          (user.plan === "Pro" && pets.length < 1000)) && (
           <CreatePetDialog>
             <Button className="max-w-80">New Pet</Button>
           </CreatePetDialog>
         )}
-        {user.plusMembership && pets.length >= 100 && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="pointer-events-none inline-flex h-9 max-w-80 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
-                  New Pet
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>You have reached the limit of pets you can have.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-        {!user.plusMembership && pets.length >= 2 && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="pointer-events-none inline-flex h-9 max-w-80 cursor-default items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
-                  New Pet
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  You have reached the limit of pets you can have without a Plus
-                  membership.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        {(user.plan === "Free" && pets.length >= 5) ||
+          (user.plan === "Plus" && pets.length >= 10) ||
+          (user.plan === "Pro" && pets.length >= 1000 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="pointer-events-none inline-flex h-9 max-w-80 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 ring-offset-background transition-colors">
+                    New Pet
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    You have reached the limit of pets you can have with your{" "}
+                    {user.plan} plan.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
       </DataTable>
     </div>
   );

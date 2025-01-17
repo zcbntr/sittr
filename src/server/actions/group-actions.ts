@@ -44,8 +44,9 @@ export const createGroupAction = authenticatedProcedure
     }
 
     if (
-      (user.plusMembership && userGroupRows.length >= 100) ||
-      (!user.plusMembership && userGroupRows.length >= 5)
+      (user.plan === "Free" && userGroupRows.length >= 2) ||
+      (user.plan === "Plus" && userGroupRows.length >= 10) ||
+      (user.plan === "Pro" && userGroupRows.length >= 250)
     ) {
       throw new Error("Reached maximum groups for your plan");
     }
@@ -279,10 +280,11 @@ export const addUserToGroupAction = ownsGroupProcedure
     });
 
     if (
-      (owner.plusMembership && groupMemberRows.length >= 101) ||
-      (!owner.plusMembership && groupMemberRows.length >= 6)
+      (owner.plan === "Free" && groupMemberRows.length >= 4) ||
+      (owner.plan === "Plus" && groupMemberRows.length >= 11) ||
+      (owner.plan === "Pro" && groupMemberRows.length >= 251)
     ) {
-      throw new Error("Max group size reached");
+      throw new Error(`Max group size reached for your ${owner.plan} plan`);
     }
 
     const { success } = await basicRatelimit.limit(input.userId);
@@ -483,12 +485,13 @@ export const joinGroupAction = authenticatedProcedure
       })
       .execute();
 
+    // Check if group is full based on owner's plan
     if (
-      (groupOwner.plusMembership && groupMemberRows.length >= 101) ||
-      (!groupOwner.plusMembership && groupMemberRows.length >= 6)
+      (groupOwner.plan === "Free" && groupMemberRows.length >= 4) ||
+      (groupOwner.plan === "Plus" && groupMemberRows.length >= 11) ||
+      (groupOwner.plan === "Pro" && groupMemberRows.length >= 251)
     ) {
-      // Check if the group is full (3 members for free tier, 101 for plus tier)
-      throw new Error("Max group size reached");
+      throw new Error(`Max group size reached for your ${user.plan} plan`);
     }
 
     // Add the user to the group
@@ -527,6 +530,7 @@ export const joinGroupAction = authenticatedProcedure
     redirect(`/group/${inviteCodeRow.groupId}`);
   });
 
+// Eventually make this a admin only action rather than owner only
 export const acceptPendingUserAction = ownsGroupProcedure
   .createServerAction()
   .input(acceptPendingMemberSchema)
@@ -534,16 +538,17 @@ export const acceptPendingUserAction = ownsGroupProcedure
     const user = ctx.user;
     const { groupId } = input;
 
-    // Check if the group is full (3 members for free tier, 101 for plus tier)
     const groupMemberRows = await db.query.groupMembers.findMany({
       where: (model, { eq }) => eq(model.groupId, input.groupId),
     });
 
+    // Check if the group is full based on the user's plan - needs to be changed to owner eventually
     if (
-      (user.plusMembership && groupMemberRows.length >= 101) ||
-      (!user.plusMembership && groupMemberRows.length >= 6)
+      (user.plan === "Free" && groupMemberRows.length >= 4) ||
+      (user.plan === "Plus" && groupMemberRows.length >= 11) ||
+      (user.plan === "Pro" && groupMemberRows.length >= 101)
     ) {
-      throw new Error("Max group size reached");
+      throw new Error(`Max group size reached for your ${user.plan} plan`);
     }
 
     // Change the role of the user to member from pending
@@ -651,16 +656,17 @@ export const createGroupInviteCodeAction = ownsGroupProcedure
   .handler(async ({ input, ctx }) => {
     const user = ctx.user;
 
-    // Check if the group is full (3 members for free tier, 101 for plus tier)
     const groupMemberRows = await db.query.groupMembers.findMany({
       where: (model, { eq }) => eq(model.groupId, input.groupId),
     });
 
+    // Check if the group is full based on the user's plan - needs to be changed to owner eventually
     if (
-      (user.plusMembership && groupMemberRows.length >= 101) ||
-      (!user.plusMembership && groupMemberRows.length >= 6)
+      (user.plan === "Free" && groupMemberRows.length >= 4) ||
+      (user.plan === "Plus" && groupMemberRows.length >= 11) ||
+      (user.plan === "Pro" && groupMemberRows.length >= 101)
     ) {
-      throw new Error("Max group size reached");
+      throw new Error(`Max group size reached for your ${user.plan} plan`);
     }
 
     const inviteCode = randomString(8, "#aA");

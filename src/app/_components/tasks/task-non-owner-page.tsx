@@ -153,9 +153,14 @@ export default function TaskNonOwnerPage({
                     )}
                   </AvatarFallback>
                 </Avatar>
-                {taskOwner.plusMembership && (
+                {taskOwner.plan === "Plus" && (
                   <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
                     +
+                  </div>
+                )}
+                {taskOwner.plan === "Pro" && (
+                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-600">
+                    Pro
                   </div>
                 )}
               </div>
@@ -359,7 +364,7 @@ export default function TaskNonOwnerPage({
             </div>
           </div>
 
-          {taskOwner.plusMembership && (
+          {(taskOwner.plan === "Plus" || taskOwner.plan === "Pro") && (
             <div className="flex flex-col">
               <Carousel
                 setApi={setApi}
@@ -452,7 +457,7 @@ export default function TaskNonOwnerPage({
 
           {task.completedAt &&
             !task?.completionImages &&
-            taskOwner.plusMembership && (
+            (taskOwner.plan === "Plus" || taskOwner.plan === "Pro") && (
               <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-neutral-500 px-20 sm:h-auto">
                 <div className="flex flex-col place-content-center">
                   <div className="text-center text-muted-foreground">
@@ -464,7 +469,7 @@ export default function TaskNonOwnerPage({
 
           {task.completedAt &&
             !task?.completionImages &&
-            !taskOwner.plusMembership && (
+            taskOwner.plan === "Free" && (
               <div className="border-1 flex h-64 max-w-full flex-row place-content-center rounded-md border border-neutral-500 px-20 sm:h-auto">
                 <div className="flex flex-col place-content-center">
                   <div className="text-center text-muted-foreground">

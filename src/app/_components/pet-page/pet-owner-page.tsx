@@ -90,7 +90,7 @@ export function PetOwnerPage({
               <div className="flex flex-col place-content-between sm:max-w-64">
                 <div className="flex flex-col gap-5">
                   <div className="flex flex-row place-content-center">
-                    <Avatar className="h-full w-full max-w-64 max-h-64">
+                    <Avatar className="h-full max-h-64 w-full max-w-64">
                       <AvatarImage
                         src={pet.profilePic ? pet.profilePic.url : undefined}
                         alt={`${pet.name}'s avatar`}
@@ -139,9 +139,14 @@ export function PetOwnerPage({
                               )}
                             </AvatarFallback>
                           </Avatar>
-                          {pet.owner?.plusMembership && (
+                          {pet.owner?.plan === "Plus" && (
                             <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
                               +
+                            </div>
+                          )}
+                          {pet.owner?.plan === "Pro" && (
+                            <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-600">
+                              Pro
                             </div>
                           )}
                         </div>

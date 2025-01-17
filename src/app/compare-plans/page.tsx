@@ -130,7 +130,7 @@ export default async function PlanComparisonPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
-                    5
+                    3
                   </TableCell>
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     10

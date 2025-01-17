@@ -176,9 +176,14 @@ export default function ViewTaskDialog({
                     {task?.pet?.name ? initials(task.pet.name) : <MdPets />}
                   </AvatarFallback>
                 </Avatar>
-                {task?.pet?.owner?.plusMembership && (
+                {task?.pet?.owner?.plan === "Plus" && (
                   <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
                     +
+                  </div>
+                )}
+                {task?.pet?.owner?.plan === "Pro" && (
+                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-600">
+                    Pro
                   </div>
                 )}
               </div>
