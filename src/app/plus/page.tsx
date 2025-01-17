@@ -12,6 +12,11 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Find the plan that's right for you",
+};
 
 export default async function PlusUpgradeSuccess() {
   const user = await getBasicLoggedInUser();
@@ -21,7 +26,7 @@ export default async function PlusUpgradeSuccess() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl p-4 py-5 text-center sm:flex sm:grow sm:flex-col sm:place-content-center">
+    <main className="mx-auto max-w-2xl p-4 py-5 text-center sm:flex sm:grow sm:flex-col sm:place-content-center md:max-w-3xl">
       <div className="flex h-min w-full grow flex-col gap-7">
         <h3 className="text-3xl font-medium">
           <span className="font-bold">
@@ -58,109 +63,217 @@ export default async function PlusUpgradeSuccess() {
           </Link>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-row px-4 text-center text-3xl font-light sm:text-left">
-            Feature Comparison
-          </div>
-          <Table className="text-lg">
-            <TableCaption>
-              Rate limits may apply to certain actions separately from
-              weekly/montly limits
-            </TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-center font-bold">Action</TableHead>
-                <TableHead className="text-center font-bold">Free</TableHead>
-                <TableHead className="text-center font-bold">Plus</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell className="text-center">
-                  <div className="flex flex-col">
-                    Tasks per week{" "}
-                    <div className="text-center text-sm text-muted-foreground">
-                      (resets Mon 00:00 UTC)
+        <div>
+          <div className="border-1 flex flex-col rounded-md border">
+            <Table className="text-lg">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="max-w-64 font-bold">
+                    Compare Limits
+                  </TableHead>
+                  <TableHead className="text-center font-bold">Free</TableHead>
+                  <TableHead className="text-center font-bold">
+                    <span className="font-bold">
+                      sittr
+                      <sup className="text-violet-600">+</sup>
+                    </span>
+                  </TableHead>
+                  <TableHead className="text-center font-bold">
+                    <span className="font-bold">
+                      sittr <span className="text-violet-600">Pro</span>
+                    </span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="text-left">
+                    <div className="flex max-w-52 flex-col">
+                      Tasks per week{" "}
+                      <div className="text-sm text-muted-foreground">
+                        Resets every Monday at 00:00:00 UTC
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>5</TableCell>
-                <TableCell className="text-center">Unlimited</TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell className="text-center">Total groups</TableCell>
-                <TableCell>5</TableCell>
-                <TableCell className="text-center">Unlimited</TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell className="text-center">Max group size</TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     5
-                    <div className="text-center text-sm text-muted-foreground">
-                      (excluding you)
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    10
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    Unlimited
+                  </TableCell>
+                </TableRow>
+
+                <TableRow>
+                  <TableCell className="text-left">
+                    <div className="flex max-w-52 flex-col">
+                      Total Groups
+                      <div className="text-sm text-muted-foreground">
+                        Maximum groups you can create
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell className="text-center">Unlimited</TableCell>
-              </TableRow>
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    2
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    10
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    Unlimited
+                  </TableCell>
+                </TableRow>
 
-              <TableRow>
-                <TableCell className="text-center">Total pets</TableCell>
-                <TableCell>2</TableCell>
-                <TableCell className="text-center">Unlimited</TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell className="text-center">
-                  Set up recuring tasks
-                </TableCell>
-                <TableCell>❌</TableCell>
-                <TableCell className="text-center">✔️</TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell className="text-center">
-                  <div className="flex flex-col">
-                    Instructional images
-                    <div className="text-center text-sm text-muted-foreground">
-                      (per task)
+                <TableRow>
+                  <TableCell className="text-left">
+                    <div className="flex max-w-52 flex-col">
+                      Total Group Members{" "}
+                      <div className="text-sm text-muted-foreground">
+                        Number of group members, excluding you
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>❌</TableCell>
-                <TableCell className="text-center">10</TableCell>
-              </TableRow>
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    5
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    10
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    Unlimited
+                  </TableCell>
+                </TableRow>
 
-              <TableRow>
-                <TableCell className="text-center">
-                  <div className="flex flex-col">
-                    Completion images
-                    <div className="text-center text-sm text-muted-foreground">
-                      (per task, uploaded by sitter)
+                <TableRow>
+                  <TableCell className="text-left">
+                    <div className="flex max-w-52 flex-col">
+                      Total Pets per Group{" "}
+                      <div className="text-sm text-muted-foreground">
+                        The number of pets a single group can sit for
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>❌</TableCell>
-                <TableCell className="text-center">10</TableCell>
-              </TableRow>
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    1
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    5
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    Unlimited
+                  </TableCell>
+                </TableRow>
 
-              <TableRow>
-                <TableCell className="text-center">
-                  <div className="flex flex-col">
-                    Pictures of pet
-                    <div className="text-center text-sm text-muted-foreground">
-                      (displayed on pet profile)
+                <TableRow>
+                  <TableCell className="text-left">
+                    <div className="flex max-w-52 flex-col">
+                      Total Pets
+                      <div className="text-sm text-muted-foreground">
+                        Maximum pets you can create
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>❌</TableCell>
-                <TableCell className="text-center">10</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    2
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    10
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    Unlimited
+                  </TableCell>
+                </TableRow>
+
+                <TableRow>
+                  <TableCell className="text-left">
+                    <div className="flex max-w-52 flex-col">
+                      Recuring Tasks
+                      <div className="text-sm text-muted-foreground">
+                        Set a frequency and final date for tasks to repeat until
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    ❌
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    ✔️
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    ✔️
+                  </TableCell>
+                </TableRow>
+
+                <TableRow>
+                  <TableCell className="text-left">
+                    <div className="flex max-w-52 flex-col">
+                      Instructional Images
+                      <div className="text-sm text-muted-foreground">
+                        Per task, show sitters what to do
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    ❌
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    10
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    20
+                  </TableCell>
+                </TableRow>
+
+                <TableRow>
+                  <TableCell className="text-left">
+                    <div className="flex max-w-52 flex-col">
+                      Completion images
+                      <div className="text-sm text-muted-foreground">
+                        Per task, uploaded by sitter
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    ❌
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    10
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    20
+                  </TableCell>
+                </TableRow>
+
+                <TableRow className="border-b-1 border">
+                  <TableCell className="text-left">
+                    <div className="flex max-w-52 flex-col">
+                      Pet Pictures
+                      <div className="text-sm text-muted-foreground">
+                        Per pet, displayed on pet profile
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    ❌
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    10
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    20
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+          <div className="flex flex-row place-content-center px-4 pt-4 text-sm text-muted-foreground">
+            <div className="max-w-lg">
+              Rate limits may apply separately to the above listed limits. If
+              this occurs you may need to come back later to try again.
+            </div>
+          </div>
         </div>
       </div>
     </main>

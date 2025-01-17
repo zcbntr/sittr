@@ -3,6 +3,11 @@ import { redirect } from "next/navigation";
 import { getBasicLoggedInUser } from "~/server/queries/users";
 import { buttonVariants } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
+import { type Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Thanks for supporting sittr",
+};
 
 export default async function PlusUpgradeSuccess() {
   const user = await getBasicLoggedInUser();
@@ -31,7 +36,10 @@ export default async function PlusUpgradeSuccess() {
             <li>
               Your sitters can upload up to 10 images to show task completion
             </li>
-            <li>Upload pictures of your pets to show their personalities (coming soon)</li>
+            <li>
+              Upload pictures of your pets to show their personalities (coming
+              soon)
+            </li>
             <li>And many more features.</li>
           </ul>
         </div>

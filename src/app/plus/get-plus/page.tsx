@@ -2,6 +2,11 @@ import { getBasicLoggedInUser } from "~/server/queries/users";
 import PlusPurchaseForm from "../../_components/account/plus-purchase-form";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { type Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Get your sittr plan",
+};
 
 export default async function Page({}) {
   const user = await getBasicLoggedInUser();
