@@ -11,9 +11,6 @@ import { db } from "../db";
 import { notificationPreferences } from "../db/schema";
 import { z } from "zod";
 
-export const PlanEnum = z.enum(["Free", "Plus", "Pro"]);
-export type PlanEnum = z.infer<typeof PlanEnum>;
-
 export async function getBasicLoggedInUser(): Promise<
   SelectBasicUser | undefined
 > {

@@ -11,8 +11,7 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
-import { GroupRoleEnum, NotificationTypeEnum } from "~/lib/schemas";
-import { PlanEnum } from "../queries/users";
+import { GroupRoleEnum, NotificationTypeEnum, PlanEnum } from "~/lib/schemas";
 
 /**
  * Multi-project schema feature of Drizzle ORM.

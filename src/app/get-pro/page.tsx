@@ -24,8 +24,16 @@ export default async function Page({}) {
   }
 
   return (
+    <div className="flex h-96 grow flex-row place-content-center">
+      <div className="flex h-full max-w-3xl flex-col place-content-center gap-3 py-5 text-2xl font-semibold">
+        Pro is not available at this time.
+      </div>
+    </div>
+  );
+
+  return (
     <div className="flex flex-row place-content-center">
-      <div className="flex w-5/6 flex-col gap-3 py-5">
+      <div className="flex w-full max-w-3xl flex-col gap-3 py-5">
         <div className="text-3xl">
           Get{" "}
           <span className="font-bold">

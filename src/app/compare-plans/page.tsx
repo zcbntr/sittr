@@ -262,26 +262,28 @@ export default async function PlanComparisonPage() {
               </TableBody>
 
               <TableFooter>
-                <TableCell className="max-w-52 text-center"></TableCell>
-                <TableCell className="text-center sm:min-w-32 md:min-w-44">
-                  <Button>
-                    <Link href="/">Get started</Link>
-                  </Button>
-                </TableCell>
-                <TableCell className="text-center sm:min-w-32 md:min-w-44">
-                  <Button>
-                    <Link href="/get-plus">
-                      Get <span className="text-violet-600">Plus</span>
-                    </Link>
-                  </Button>
-                </TableCell>
-                <TableCell className="text-center sm:min-w-32 md:min-w-44">
-                  <Button>
-                    <Link href="/get-pro">
-                      Get <span className="text-violet-600">Pro</span>
-                    </Link>
-                  </Button>
-                </TableCell>
+                <TableRow>
+                  <TableCell className="max-w-52 text-center"></TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    <Button>
+                      <Link href="/">Get started</Link>
+                    </Button>
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    <Button>
+                      <Link href="/get-plus">
+                        Get <span className="text-violet-600">Plus</span>
+                      </Link>
+                    </Button>
+                  </TableCell>
+                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                    <Button>
+                      <Link href="/get-pro">
+                        Get <span className="text-violet-600">Pro</span>
+                      </Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
               </TableFooter>
             </Table>
           </div>

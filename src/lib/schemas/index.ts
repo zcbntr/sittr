@@ -40,6 +40,9 @@ export type TaskRepeatitionFrequency = z.infer<typeof TaskRepeatitionFrequency>;
 export const GroupRoleEnum = z.enum(["Owner", "Member", "Pending"]);
 export type GroupRoleEnum = z.infer<typeof GroupRoleEnum>;
 
+export const PlanEnum = z.enum(["Free", "Plus", "Pro"]);
+export type PlanEnum = z.infer<typeof PlanEnum>;
+
 export const NotificationTypeEnum = z.enum([
   "Overdue Task",
   "Upcoming Unclaimed Task",
