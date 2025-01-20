@@ -105,12 +105,12 @@ export default function GroupsTable({
                     </AvatarFallback>
                   </Avatar>
                   {member.user?.plan === "Plus" && (
-                    <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
+                    <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-500">
                       +
                     </div>
                   )}
                   {member.user?.plan === "Pro" && (
-                    <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-600">
+                    <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-500">
                       Pro
                     </div>
                   )}
@@ -145,12 +145,12 @@ export default function GroupsTable({
                   </AvatarFallback>
                 </Avatar>
                 {filteredMembers[0].user?.plan === "Plus" && (
-                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
+                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-500">
                     +
                   </div>
                 )}
                 {filteredMembers[0].user?.plan === "Pro" && (
-                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-600">
+                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-500">
                     Pro
                   </div>
                 )}

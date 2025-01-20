@@ -56,12 +56,12 @@ export async function TopNav() {
           {user.plan === "Plus" && (
             <Link href="/" className="text-4xl font-bold">
               sittr
-              <sup className="font-bold text-violet-600">+</sup>
+              <sup className="font-bold text-violet-500">+</sup>
             </Link>
           )}
           {user.plan === "Pro" && (
             <Link href="/" className="text-4xl font-bold">
-              sittr <span className="font-bold text-violet-600">Pro</span>
+              sittr <span className="font-bold text-violet-500">Pro</span>
             </Link>
           )}
           <nav className="flex flex-row items-center space-x-3">

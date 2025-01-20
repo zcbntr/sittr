@@ -34,7 +34,7 @@ export default function SettingsPanel({
               You have{" "}
               <span className="font-bold">
                 sittr
-                <sup className="text-violet-600">+</sup>
+                <sup className="text-violet-500">+</sup>
               </span>
             </div>
             <div className="">
@@ -50,7 +50,7 @@ export default function SettingsPanel({
               Get{" "}
               <span className="font-bold">
                 sittr
-                <sup className="text-violet-600">+</sup>
+                <sup className="text-violet-500">+</sup>
               </span>
             </div>
             <div className="">

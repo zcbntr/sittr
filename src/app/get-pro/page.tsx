@@ -38,7 +38,7 @@ export default async function Page({}) {
           Get{" "}
           <span className="font-bold">
             sittr
-            <span className="text-violet-600">Pro</span>
+            <span className="text-violet-500">Pro</span>
           </span>
         </div>
 
@@ -64,7 +64,7 @@ export default async function Page({}) {
             are not satisfied with{" "}
             <span className="font-bold text-black">
               sittr
-              <span className="text-violet-600">Pro</span>
+              <span className="text-violet-500">Pro</span>
             </span>
             . You have 14 days to request a refund.
           </div>

@@ -334,12 +334,12 @@ export function TaskEditForm({
                       Get{" "}
                       <span className="font-bold">
                         sittr
-                        <sup className="text-violet-600 opacity-70">+</sup>
+                        <sup className="text-violet-500 opacity-70">+</sup>
                       </span>{" "}
                       or{" "}
                       <span className="font-bold">
                         sittr
-                        <span className="text-violet-600 opacity-70">Pro</span>
+                        <span className="text-violet-500 opacity-70">Pro</span>
                       </span>{" "}
                       to add images to your tasks
                     </Link>

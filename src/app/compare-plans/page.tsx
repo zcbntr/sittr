@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getBasicLoggedInUser } from "~/server/queries/users";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
-import { redirect } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -12,20 +11,22 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Metadata } from "next";
+import { type Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Find the plan that's right for you",
 };
 
 export default async function PlanComparisonPage() {
+  const user = await getBasicLoggedInUser();
+
   return (
     <main className="mx-auto max-w-2xl p-4 py-5 text-center sm:flex sm:grow sm:flex-col sm:place-content-center md:max-w-3xl">
       <div className="flex h-min w-full grow flex-col gap-7">
         <h3 className="text-3xl font-medium">
           <span className="font-bold">
             sittr
-            <sup className="text-violet-600">+</sup>
+            <sup className="text-violet-500">+</sup>
           </span>{" "}
           gives you access to all the features of sittr.
         </h3>
@@ -53,7 +54,9 @@ export default async function PlanComparisonPage() {
               "mx-3 w-full max-w-xl sm:max-w-48",
             )}
           >
-            <span className="text-lg">Get Plus</span>
+            <span className="text-lg">
+              Get <span className="text-violet-500">Plus</span>
+            </span>
           </Link>
         </div>
 
@@ -69,14 +72,14 @@ export default async function PlanComparisonPage() {
                   <TableHead className="text-center font-bold">
                     <span className="font-bold">
                       sittr
-                      <sup className="text-violet-600">+</sup>
+                      <sup className="text-violet-500">+</sup>
                     </span>
                   </TableHead>
-                  <TableHead className="text-center font-bold">
+                  {/* <TableHead className="text-center font-bold">
                     <span className="font-bold">
-                      sittr <span className="text-violet-600">Pro</span>
+                      sittr <span className="text-violet-500">Pro</span>
                     </span>
-                  </TableHead>
+                  </TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -95,9 +98,9 @@ export default async function PlanComparisonPage() {
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     10
                   </TableCell>
-                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  {/* <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     Unlimited
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
 
                 <TableRow>
@@ -115,9 +118,9 @@ export default async function PlanComparisonPage() {
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     10
                   </TableCell>
-                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  {/* <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     Unlimited
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
 
                 <TableRow>
@@ -135,9 +138,9 @@ export default async function PlanComparisonPage() {
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     10
                   </TableCell>
-                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  {/* <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     Unlimited
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
 
                 <TableRow>
@@ -155,9 +158,9 @@ export default async function PlanComparisonPage() {
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     5
                   </TableCell>
-                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  {/* <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     Unlimited
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
 
                 <TableRow>
@@ -175,9 +178,9 @@ export default async function PlanComparisonPage() {
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     10
                   </TableCell>
-                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  {/* <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     Unlimited
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
 
                 <TableRow>
@@ -195,9 +198,9 @@ export default async function PlanComparisonPage() {
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     ✔️
                   </TableCell>
-                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  {/* <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     ✔️
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
 
                 <TableRow>
@@ -215,9 +218,9 @@ export default async function PlanComparisonPage() {
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     10
                   </TableCell>
-                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  {/* <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     20
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
 
                 <TableRow>
@@ -235,9 +238,9 @@ export default async function PlanComparisonPage() {
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     10
                   </TableCell>
-                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  {/* <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     20
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
 
                 <TableRow className="border-b-1 border">
@@ -255,9 +258,9 @@ export default async function PlanComparisonPage() {
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     10
                   </TableCell>
-                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  {/* <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     20
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
               </TableBody>
 
@@ -270,19 +273,35 @@ export default async function PlanComparisonPage() {
                     </Button>
                   </TableCell>
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
-                    <Button>
-                      <Link href="/get-plus">
-                        Get <span className="text-violet-600">Plus</span>
-                      </Link>
-                    </Button>
+                    {user?.plan !== "Plus" && (
+                      <Button>
+                        <Link href="/get-plus">
+                          Get <span className="text-violet-500">Plus</span>
+                        </Link>
+                      </Button>
+                    )}
+                    {user?.plan === "Plus" && (
+                      <Button>
+                        <Link href="/">Get started</Link>
+                      </Button>
+                    )}
                   </TableCell>
-                  <TableCell className="text-center sm:min-w-32 md:min-w-44">
+                  {/* <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     <Button>
-                      <Link href="/get-pro">
-                        Get <span className="text-violet-600">Pro</span>
-                      </Link>
+                      {user?.plan !== "Pro" && (
+                      <Button>
+                        <Link href="/get-pro">
+                          Get <span className="text-violet-500">Pro</span>
+                        </Link>
+                      </Button>
+                    )}
+                    {user?.plan === "Pro" && (
+                      <Button>
+                        <Link href="/">Get started</Link>
+                      </Button>
+                    )}
                     </Button>
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
               </TableFooter>
             </Table>

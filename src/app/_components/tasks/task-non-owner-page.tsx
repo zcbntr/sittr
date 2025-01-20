@@ -154,12 +154,12 @@ export default function TaskNonOwnerPage({
                   </AvatarFallback>
                 </Avatar>
                 {taskOwner.plan === "Plus" && (
-                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-600">
+                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-2xl font-bold text-violet-500">
                     +
                   </div>
                 )}
                 {taskOwner.plan === "Pro" && (
-                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-600">
+                  <div className="absolute right-0 top-0 -mr-1 -mt-1 flex h-5 w-5 items-center justify-center text-xl font-bold text-violet-500">
                     Pro
                   </div>
                 )}
@@ -476,7 +476,7 @@ export default function TaskNonOwnerPage({
                     The task owner needs to upgrade to{" "}
                     <span className="font-bold">
                       sittr
-                      <sup className="text-violet-600 opacity-70">+</sup>
+                      <sup className="text-violet-500 opacity-70">+</sup>
                     </span>{" "}
                     to enable completion images.
                   </div>

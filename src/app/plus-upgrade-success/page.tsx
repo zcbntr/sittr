@@ -24,7 +24,7 @@ export default async function PlusUpgradeSuccess() {
           You can now access all the features of{" "}
           <span className="font-bold">
             sittr
-            <sup className="text-violet-600">+</sup>
+            <sup className="text-violet-500">+</sup>
           </span>
         </h3>
         <div className="mx-auto flex flex-row place-content-center text-pretty pl-12 pr-6 text-left sm:pl-16">
@@ -61,7 +61,7 @@ export default async function PlusUpgradeSuccess() {
             are not satisfied with{" "}
             <span className="font-bold text-black">
               sittr
-              <sup className="text-violet-600">+</sup>
+              <sup className="text-violet-500">+</sup>
             </span>
           </div>
         </div>
