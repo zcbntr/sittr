@@ -269,7 +269,7 @@ export default async function PlanComparisonPage() {
                   <TableCell className="max-w-52 text-center"></TableCell>
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
                     <Button>
-                      <Link href="/">Get started</Link>
+                      <Link href="/">Get Started</Link>
                     </Button>
                   </TableCell>
                   <TableCell className="text-center sm:min-w-32 md:min-w-44">
@@ -282,7 +282,7 @@ export default async function PlanComparisonPage() {
                     )}
                     {user?.plan === "Plus" && (
                       <Button>
-                        <Link href="/">Get started</Link>
+                        <Link href="/">Get Started</Link>
                       </Button>
                     )}
                   </TableCell>
@@ -297,7 +297,7 @@ export default async function PlanComparisonPage() {
                     )}
                     {user?.plan === "Pro" && (
                       <Button>
-                        <Link href="/">Get started</Link>
+                        <Link href="/">Get Started</Link>
                       </Button>
                     )}
                     </Button>

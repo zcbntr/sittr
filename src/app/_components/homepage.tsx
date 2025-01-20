@@ -460,7 +460,7 @@ export default function Home() {
                   <Link href="/sign-in" className="font-semibold">
                     log in
                   </Link>{" "}
-                  with your Google or Facebook account to get started. An
+                  with your Google or Facebook account to Get Started. An
                   account is needed in order to connect your sittr data to your
                   email address.{" "}
                 </div>

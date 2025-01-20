@@ -21,6 +21,7 @@ import { TaskEditForm } from "./task-edit-form";
 import { type SelectBasicGroup } from "~/lib/schemas/groups";
 import Image from "next/image";
 import { initials } from "~/lib/utils";
+import { ReadMore } from "~/components/read-more";
 
 export default function TaskOwnerPage({
   task,
@@ -121,7 +122,7 @@ export default function TaskOwnerPage({
                   asChild
                   variant={"ghost"}
                   onClick={() => router.replace("?editing=true")}
-                  className="max-w-6 px-0"
+                  className="max-w-6 cursor-pointer px-0"
                   size="icon"
                 >
                   <MdEdit />
@@ -131,15 +132,15 @@ export default function TaskOwnerPage({
 
             <div className="mt-[-6px] flex flex-col gap-1 px-6">
               <div className="text-2xl font-semibold">{task.name}</div>
-              {/* Make it extendable with a label for when its opened by clicking see more */}
-              <div className="open:max-h-auto max-h-28">
-                {task?.description}
-              </div>
+              <ReadMore
+                id="task-description"
+                text={task.description ? task.description : ""}
+              />
             </div>
 
             {task?.instructionImages && (
               <div className="flex flex-row place-content-center">
-                <Carousel className="h-fit max-h-96 min-h-64 max-w-full rounded-md">
+                <Carousel className="h-fit max-h-96 min-h-64 max-w-full rounded-md sm:-ml-6">
                   <CarouselContent className="-ml-4 max-h-96 min-h-64 max-w-full pl-6 pr-4">
                     {task.instructionImages.map((image, index) => (
                       <CarouselItem key={index} className="pl-4">
